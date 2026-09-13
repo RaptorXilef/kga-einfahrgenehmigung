@@ -147,8 +147,7 @@ $chartDataPayload = [
 
             </script>
 
-            <section class="c-card u-margin-block-end-l"
-                     style="border-block-start-color: #6366f1;">
+            <section class="c-card c-card--primary u-margin-block-end-l">
                 <details class="c-accordion u-margin-block-none">
                     <summary class="c-accordion__summary u-font-bold u-border-none">
                         <span class="c-accordion__title">
@@ -157,8 +156,7 @@ $chartDataPayload = [
                     </summary>
                     <div class="c-accordion__body c-box c-box--subtle u-margin-block-none">
                         <div class="u-flex u-gap-xs u-margin-block-end-m u-justify-end">
-                            <div class="c-box u-padding-around-s u-display-inline-flex"
-                                 style="padding-block: 4px;">
+                            <div class="c-box u-padding-inline-s u-padding-block-xs u-display-inline-flex">
                                 <button id="chartToggleMonth"
                                         class="c-button c-button--primary c-button--small">Monatlich</button>
                                 <button id="chartToggleYear"
@@ -166,8 +164,7 @@ $chartDataPayload = [
                             </div>
                         </div>
                         <canvas id="yearlyStatsChart"
-                                class="u-inline-size-100"
-                                style="max-block-size: 350px;"></canvas>
+                                class="c-stat-chart u-inline-size-100"></canvas>
                     </div>
                 </details>
             </section>
@@ -253,11 +250,11 @@ $chartDataPayload = [
             $loadUrl = '?' . \http_build_query($queryParams);
             ?>
                 <a href="<?php echo $loadUrl; ?>" class="c-button c-button--secondary">
-                <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
-                     class="c-icon c-button__icon"
-                     alt="">
-                &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
-            </a>
+                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
+                         class="c-icon c-button__icon"
+                         alt="">
+                    &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
+                </a>
             </div>
         <?php } ?>
     </div>

@@ -3,7 +3,7 @@
 /**
  * Anzeige der Wartungsseite
  *
- * Path: Path: public/maintenance.php
+ * Path: public/maintenance.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -52,80 +52,40 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
     <title>Wartungsarbeiten - <?php echo \htmlspecialchars($vereinsName); ?></title>
-
     <link rel="stylesheet"
           href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
-
-    <style>
-    body {
-        background: #f8fafc;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        margin: 0;
-        font-family: sans-serif;
-    }
-
-    .c-maintenance-card {
-        background: white;
-        padding: 40px;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-        text-align: center;
-        max-width: 500px;
-        border-top: 5px solid #f59e0b;
-    }
-
-    .c-icon-large {
-        font-size: 50px;
-        margin-bottom: 20px;
-        display: block;
-    }
-
-    .c-logo {
-        max-width: 200px;
-        margin-bottom: 20px;
-    }
-
-    </style>
 </head>
 
-<body>
-    <div class="c-maintenance-card">
+<body class="l-public-body u-justify-center u-bg-light u-padding-block-l">
+    <div
+         class="c-card c-card--warning o-container o-container--small u-text-center u-padding-block-xl u-shadow-highlight">
         <?php if ($logoFile) { ?>
             <img src="<?php echo $settings['base_url'] . $logoFile; ?>"
-                 class="c-logo"
+                 class="c-logo u-margin-block-end-l"
                  alt="Logo">
         <?php } ?>
 
-        <span class="c-icon-large">
-            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-tools.webp"
-                 class="c-icon"
-                 alt=""
-                 style="width: 1.5em; height: 1.5em;">
+        <span class="u-text-4xl u-display-block u-margin-block-end-m">
+            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-tools.webp" class="c-icon c-icon--lg" alt="">
         </span>
 
-        <h1>Kurze Pause!</h1>
-        <p style="color: #64748b; line-height: 1.6;">
-            Wir aktualisieren gerade das System für die
-            <strong><?php echo \htmlspecialchars($vereinsName); ?></strong>,
+        <h1 class="u-margin-block-start-none">Kurze Pause!</h1>
+        <p class="u-color-muted u-text-lg">
+            Wir aktualisieren gerade das System für die <br>
+            <strong class="u-color-dark"><?php echo \htmlspecialchars($vereinsName); ?></strong>, <br>
             um Ihnen den bestmöglichen Service zu bieten.
         </p>
 
         <?php if (!empty($settings['maintenance_mode_admin'])) { ?>
-            <div style="display:inline-block; margin-top: 15px; padding: 5px 15px; background: #fee2e2;
-                        color: #991b1b; border-radius: 20px; font-size: 0.75rem; font-weight: bold;
-                        text-transform: uppercase;">
+            <div class="c-badge c-badge--danger u-margin-block-start-m">
                 Vollständige Systemwartung
             </div>
         <?php } ?>
 
-        <p style="margin-top: 20px; font-weight: bold; color: #1e293b;">
+        <p class="u-font-bold u-color-dark u-margin-block-start-l">
             In Kürze sind wir wieder für Sie da.
         </p>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 0.85rem;
-                    color: #94a3b8;">
+        <div class="u-border-top u-padding-block-start-m u-margin-block-start-l u-color-muted u-text-sm">
             Vielen Dank für Ihr Verständnis.
         </div>
     </div>

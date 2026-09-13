@@ -40,7 +40,7 @@ $plots = $periodStats['plots'] ?? [];
                             <?php } ?>
                             <th class="c-table__header-cell u-text-center">Anträge</th>
                             <th class="c-table__header-cell u-text-start"
-                                style="inline-size: 20%;">Intensität</th>
+                                style="--col-width: 20%; inline-size: var(--col-width);">Intensität</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -68,7 +68,9 @@ $plots = $periodStats['plots'] ?? [];
                                                      alt="">
                                             </div>
                                             <div class="u-text-xs u-font-extrabold"
-                                                 style="margin-block-start: -5px;"><?php echo $rank++; ?></div>
+                                                 style="--rank-offset: -5px; margin-block-start: var(--rank-offset);">
+                                                <?php echo $rank++; ?>
+                                            </div>
                                         <?php } else { ?>
                                             <span class="u-color-muted u-font-extrabold">#<?php echo $rank++; ?></span>
                                         <?php } ?>
@@ -108,9 +110,9 @@ $plots = $periodStats['plots'] ?? [];
                                     </td>
                                     <!-- INTENSITÄT (Progress Bar) -->
                                     <td class="c-table__data-cell u-text-start u-padding-inline-end-l">
-                                        <div class="c-progress-bar">
-                                            <div class="c-progress-bar__fill"
-                                                 style="inline-size: <?php echo $perc; ?>%;"></div>
+                                        <div class="c-progress-bar"
+                                             style="--progress-width: <?php echo $perc; ?>%;">
+                                            <div class="c-progress-bar__fill"></div>
                                         </div>
                                     </td>
                                 </tr>

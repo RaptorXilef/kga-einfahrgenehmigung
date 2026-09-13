@@ -11,7 +11,7 @@
     }
 
     .c-stat-card__value {
-        font-size: 2.2rem;
+        font-size: clamp(1.5rem, 3vw, 2.2rem);
         font-weight: 700;
         margin-block-start: 5px;
         color: var(--color-text-main);
@@ -36,5 +36,9 @@
         flex-wrap: wrap;
         align-items: center;
         margin-block-start: 10px;
+    }
+
+    .c-stat-chart {
+        max-block-size: 350px;
     }
 }
