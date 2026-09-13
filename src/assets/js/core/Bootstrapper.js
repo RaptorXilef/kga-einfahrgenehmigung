@@ -1,11 +1,56 @@
 /**
- * Zentraler Component-Bootstrapper mit Garbage Collection Protection.
- * Bindet JS-Klassen an DOM-Elemente und verhindert Zombie-Instanzen.
+ * Zentraler Component-Bootstrapper mit automatischer Garbage Collection.
+ * Bindet JS-Klassen an DOM-Elemente und verhindert Zombie-Instanzen durch einen MutationObserver.
  */
 
 // Sichert die Zuweisung, ohne den Garbage Collector zu blockieren
 // Struktur: WeakMap<Element, Map<ComponentClass, Instance>>
 const componentRegistry = new WeakMap();
+
+// Zentraler DOM-Observer: Erkennt gelöschte Elemente und triggert deren destroy() Methode
+const gcObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+        for (const removedNode of mutation.removedNodes) {
+            if (removedNode.nodeType !== Node.ELEMENT_NODE) continue;
+
+            // Rekursive Prüfung: Löscht ein Parent, müssen auch die Kinder aufgeräumt werden
+            const cleanupNode = (node) => {
+                const classMap = componentRegistry.get(node);
+                if (classMap) {
+                    for (const instance of classMap.values()) {
+                        if (typeof instance.destroy === 'function') {
+                            try {
+                                instance.destroy();
+                            } catch (err) {
+                                console.error(
+                                    `[Bootstrapper] Fehler beim Zerstören von Component:`,
+                                    err
+                                );
+                            }
+                        }
+                    }
+                    componentRegistry.delete(node);
+                }
+
+                // Rekursiv alle Kinder durchlaufen (O(n) - aber notwendig für GC)
+                if (node.children && node.children.length > 0) {
+                    Array.from(node.children).forEach(cleanupNode);
+                }
+            };
+
+            cleanupNode(removedNode);
+        }
+    }
+});
+
+// Observer sicher starten
+if (document.body) {
+    gcObserver.observe(document.body, { childList: true, subtree: true });
+} else {
+    document.addEventListener('DOMContentLoaded', () => {
+        gcObserver.observe(document.body, { childList: true, subtree: true });
+    });
+}
 
 export function mount(selector, ComponentClass, ...args) {
     let elements = [];

@@ -22,12 +22,12 @@
             transform 0.2s,
             background-color 0.2s,
             box-shadow 0.2s;
+    }
 
-        &:hover {
-            transform: translateY(-3px);
-            background-color: var(--color-primary-soft);
-            box-shadow: 0 15px 30px
-                color-mix(in oklch, var(--color-primary) 40%, transparent);
-        }
+    .c-fab-refresh:hover {
+        transform: translateY(-3px);
+        background-color: var(--color-primary-soft);
+        box-shadow: 0 15px 30px
+            color-mix(in oklch, var(--color-primary) 40%, transparent);
     }
 }

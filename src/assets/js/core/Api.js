@@ -24,17 +24,36 @@ class ApiService {
 
         if (!response.ok) {
             if (isJson) {
-                const errData = await response.json();
-                return { success: false, error: errData.error || `HTTP Fehler ${response.status}` };
+                try {
+                    const errData = await response.json();
+                    return {
+                        success: false,
+                        error: errData.error || `HTTP Fehler ${response.status}`,
+                    };
+                } catch {
+                    return {
+                        success: false,
+                        error: `JSON Parse-Fehler (HTTP ${response.status}).`,
+                    };
+                }
             }
             return { success: false, error: `Server-Verbindungsfehler (HTTP ${response.status}).` };
         }
 
         if (isJson) {
-            return await response.json();
+            try {
+                return await response.json();
+            } catch {
+                return { success: false, error: 'Ungültige Server-Antwort (Defektes JSON).' };
+            }
         }
 
         return { success: false, error: 'Ungültige Server-Antwort (Kein JSON).' };
+    }
+
+    #normalizeEndpoint(endpoint) {
+        // Endpoint-Pfade bereinigen (verhindert doppelte Slashes)
+        return endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
     }
 
     async post(endpoint, bodyData = null) {
@@ -59,10 +78,9 @@ class ApiService {
 
         // Modernes Timeout-Handling ohne Memory-Leak-Gefahr
         const signal = AbortSignal.timeout(this.timeoutMs);
+        const cleanEndpoint = this.#normalizeEndpoint(endpoint);
 
         try {
-            // Endpoint-Pfade bereinigen (verhindert doppelte Slashes)
-            const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
             const response = await fetch(`${this.baseUrl}${cleanEndpoint}`, {
                 method: 'POST',
                 headers: headers,
@@ -78,19 +96,22 @@ class ApiService {
                     error: 'Zeitüberschreitung. Die Verbindung war zu langsam.',
                 };
             }
-            if (
-                error.name !== 'TypeError' &&
-                error.message !== 'NetworkError when attempting to fetch resource.'
-            ) {
-                console.error(`[API Error] POST /${endpoint} failed:`, error);
+
+            // Fehler, die nicht von Abbrüchen stammen, im Log hinterlassen
+            if (error.name !== 'TypeError' && error.name !== 'AbortError') {
+                console.error(`[API Error] POST /${cleanEndpoint} failed:`, error);
             }
-            return { success: false, error: 'Netzwerkfehler. Server nicht erreichbar.' };
+
+            return {
+                success: false,
+                error: 'Netzwerkfehler. Server nicht erreichbar oder Verbindung abgebrochen.',
+            };
         }
     }
 
     async get(endpoint, params = '') {
         const query = params ? `?${params.toString()}` : '';
-        const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+        const cleanEndpoint = this.#normalizeEndpoint(endpoint);
         const signal = AbortSignal.timeout(this.timeoutMs);
 
         try {
@@ -106,13 +127,15 @@ class ApiService {
                     error: 'Zeitüberschreitung. Die Verbindung war zu langsam.',
                 };
             }
-            if (
-                error.name !== 'TypeError' &&
-                error.message !== 'NetworkError when attempting to fetch resource.'
-            ) {
-                console.error(`[API Error] GET /${endpoint} failed:`, error);
+
+            if (error.name !== 'TypeError' && error.name !== 'AbortError') {
+                console.error(`[API Error] GET /${cleanEndpoint} failed:`, error);
             }
-            return { success: false, error: 'Netzwerkfehler. Server nicht erreichbar.' };
+
+            return {
+                success: false,
+                error: 'Netzwerkfehler. Server nicht erreichbar oder Verbindung abgebrochen.',
+            };
         }
     }
 }
