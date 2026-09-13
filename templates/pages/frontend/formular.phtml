@@ -109,8 +109,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
                 <!-- Warnung-Box für Datumsfehler -->
                 <div id="date-warning"
-                     class="c-box c-box--warning u-margin-block-end-m"
-                     style="display:none;">
+                     class="c-box c-box--warning u-margin-block-end-m u-hidden">
                     <span id="date-warning-text"></span>
                 </div>
 
@@ -350,13 +349,12 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         </div>
 
                         <div id="dynamic-date-info"
-                             class="c-box c-box--highlight u-margin-block-start-l u-text-sm"
-                             style="display:none; line-height: 1.5;">
+                             class="c-box c-box--highlight u-margin-block-start-l u-text-sm u-hidden"
+                             style="line-height: 1.5;">
                             <div id="dynamic-opening-hours"
                                  class="u-margin-block-end-s"></div>
                             <div id="dynamic-holiday-notice"
-                                 class="c-box c-box--danger-soft"
-                                 style="display: none;"></div>
+                                 class="c-box c-box--danger-soft u-hidden"></div>
                         </div>
                     </div>
 

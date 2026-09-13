@@ -33,9 +33,9 @@ final readonly class GetDateInfoAction implements ViewActionInterface
             $holidays = $this->holidayService->getHolidaysInRange($dto->von, $dto->bis);
             $openingData = $this->holidayService->getOpeningHoursDataForDateRange($dto->von, $dto->bis);
 
-            $openingHtml = '<strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>' .
+            $openingHtml = '<strong class="u-font-bold">⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>' .
                 'Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>' .
-                '<span style="color: var(--primary-color); font-weight: bold;">' .
+                '<span class="u-color-primary u-font-bold">' .
                 HolidayHtmlPresenter::formatOpeningHours($openingData) . '</span>';
 
             return JsonResponse::success([

@@ -130,16 +130,15 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
                 }
             }
 
-            // FIX: Baue semantische HTML-Listen anstelle von <br>&bull; für perfektes CSS
             // Formatiert Arrays mit Kategorien sauber als strukturierte HTML-Liste
             $formatList = function (array $categories): string {
-                $html = '<ul class="u-margin-y-xs" style="padding-inline-start: 20px;">';
+                $html = '<ul class="u-margin-block-xs u-padding-inline-start-m">';
                 foreach ($categories as $cat => $items) {
                     if (\is_numeric($cat)) {
                         $html .= '<li>' . \htmlspecialchars((string) $items) . '</li>';
                     } else {
-                        $html .= '<li class="u-margin-bottom-xs"><strong><em>' . \htmlspecialchars((string) $cat) . '</em></strong>:';
-                        $html .= '<ul class="u-margin-top-none u-margin-bottom-xs" style="padding-inline-start: 20px;">';
+                        $html .= '<li class="u-margin-block-end-xs"><strong class="u-font-bold"><em>' . \htmlspecialchars((string) $cat) . '</em></strong>:';
+                        $html .= '<ul class="u-margin-block-start-none u-margin-block-end-xs u-padding-inline-start-m">';
                         foreach ((array) $items as $item) {
                             $html .= '<li>' . \htmlspecialchars((string) $item) . '</li>';
                         }
