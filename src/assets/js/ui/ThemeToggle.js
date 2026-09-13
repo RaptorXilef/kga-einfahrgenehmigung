@@ -1,6 +1,7 @@
 /**
  * Modulares BEM-Toggle für den Hell/Dunkel Modus.
- * Beachtet System-Präferenzen, speichert die Auswahl persistent und steuert das Icon-Feedback (Ziel-Status).
+ * Beachtet System-Präferenzen, speichert die Auswahl persistent und verhindert
+ * Memory-Leaks durch sauberes Event-Listener Lifecycle-Management.
  */
 export class ThemeToggle {
     constructor(container) {
@@ -8,6 +9,7 @@ export class ThemeToggle {
         this.icon = this.button.querySelector('.js-theme-icon');
         this.text = this.button.querySelector('.js-theme-text');
         this.STORAGE_KEY = 'kga_theme_preference';
+        this.abortController = new AbortController();
 
         this.init();
     }
@@ -22,21 +24,33 @@ export class ThemeToggle {
 
         this.applyTheme(activeTheme);
 
-        this.button.addEventListener('click', (e) => {
-            e.preventDefault();
-            activeTheme =
-                document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            this.applyTheme(activeTheme);
-            localStorage.setItem(this.STORAGE_KEY, activeTheme);
-        });
+        const options = { signal: this.abortController.signal };
+
+        this.button.addEventListener(
+            'click',
+            (e) => {
+                e.preventDefault();
+                activeTheme =
+                    document.documentElement.getAttribute('data-theme') === 'dark'
+                        ? 'light'
+                        : 'dark';
+                this.applyTheme(activeTheme);
+                localStorage.setItem(this.STORAGE_KEY, activeTheme);
+            },
+            options
+        );
 
         // Wenn der Nutzer seine System-Einstellungen ändert, währen die Seite offen ist, reagieren wir!
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-            // Aber nur, wenn der Nutzer das Theme nicht manuell überschrieben hat
-            if (!localStorage.getItem(this.STORAGE_KEY)) {
-                this.applyTheme(e.matches ? 'dark' : 'light');
-            }
-        });
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener(
+            'change',
+            (e) => {
+                // Aber nur, wenn der Nutzer das Theme nicht manuell überschrieben hat
+                if (!localStorage.getItem(this.STORAGE_KEY)) {
+                    this.applyTheme(e.matches ? 'dark' : 'light');
+                }
+            },
+            options
+        );
     }
 
     applyTheme(theme) {
@@ -55,5 +69,10 @@ export class ThemeToggle {
                 this.text.innerText = 'Dunkel';
             }
         }
+    }
+
+    // Wird vom Bootstrapper aufgerufen, falls die Komponente aus dem DOM fliegt
+    destroy() {
+        this.abortController.abort();
     }
 }

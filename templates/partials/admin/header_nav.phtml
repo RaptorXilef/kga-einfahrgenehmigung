@@ -52,11 +52,10 @@ $currentPage = $path === '' ? 'admin' : $path;
                         <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
                              class="c-icon"
                              alt="Role Icon">
-                        <span><?php echo \htmlspecialchars($roleName); ?></span>
+                        <span class="c-group-badge__label"><?php echo \htmlspecialchars($roleName); ?></span>
                     </div>
                 </div>
 
-                <!-- Rechteverwaltung ist in die 1. Zeile gerutscht und heißt nur noch "Rechte" -->
                 <?php if ($auth->hasPermission('system.manage')) { ?>
                     <a href="users" class="c-tabs__btn <?php echo $currentPage === 'users' ? 'c-tabs__btn--active' : ''; ?>">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Benutzer-Verwaltung
@@ -106,7 +105,6 @@ $currentPage = $path === '' ? 'admin' : $path;
                 </a>
             <?php } ?>
 
-            <!-- Hier wurde die physische Margin-Klasse durch die logische ersetzt! -->
             <a href="check" class="c-tabs__btn u-margin-inline-start-auto" target="_blank">
                 <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
             </a>

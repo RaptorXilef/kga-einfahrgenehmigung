@@ -2,6 +2,7 @@ import { debounce } from '../utils/Utils.js';
 
 /**
  * Controller für globale Admin-Dashboard Funktionen.
+ * Strenges Memory-Management mit AbortController für Event-Delegation.
  */
 export class AdminDashboard {
     constructor(container) {
@@ -10,6 +11,9 @@ export class AdminDashboard {
         this.contents = this.container.querySelectorAll('.c-tabs__content');
         this.searchInput = document.getElementById('adminSearch');
 
+        // Zentraler Zerstörer für alle delegierten Events
+        this.abortController = new AbortController();
+
         this.init();
         this.restoreLastTab();
         this.handleUrlParams();
@@ -17,26 +21,29 @@ export class AdminDashboard {
     }
 
     init() {
+        const options = { signal: this.abortController.signal };
+
         // 1. Tab-Steuerung
         this.tabs.forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.switchTab(btn.getAttribute('data-tab-target'), btn);
-            });
+            btn.addEventListener(
+                'click',
+                (e) => {
+                    e.preventDefault();
+                    this.switchTab(btn.getAttribute('data-tab-target'), btn);
+                },
+                options
+            );
         });
 
         // 2. Server-Side Such-Logik (Debounce)
         if (this.searchInput) {
             const form = document.getElementById('dashboardFilterForm');
             if (form) {
-                // Submit wird gedrosselt ausgelöst, nachdem der Nutzer aufgehört hat zu tippen
-                this.searchInput.addEventListener(
-                    'input',
-                    debounce(() => form.submit(), 600)
-                );
+                // Die referenzierte Handler-Funktion muss im Speicher bleiben
+                this.debouncedSearch = debounce(() => form.submit(), 600);
+                this.searchInput.addEventListener('input', this.debouncedSearch, options);
             }
 
-            // Cursor ans Ende des Textfelds setzen, wenn es schon einen Wert hat
             if (this.searchInput.value) {
                 const val = this.searchInput.value;
                 this.searchInput.value = '';
@@ -46,30 +53,34 @@ export class AdminDashboard {
         }
 
         // 3. Delegierte Klicks für "Sperren" Buttons
-        this.container.addEventListener('click', (e) => {
-            const suspendBtn = e.target.closest('.js-suspend-btn');
-            if (suspendBtn) {
-                e.preventDefault();
-                const code = suspendBtn.dataset.code;
+        // Delegiertes Event an AbortSignal binden!
+        this.container.addEventListener(
+            'click',
+            (e) => {
+                const suspendBtn = e.target.closest('.js-suspend-btn');
+                if (suspendBtn) {
+                    e.preventDefault();
+                    const code = suspendBtn.dataset.code;
 
-                // Architektonische Notiz: prompt() blockiert den Main-Thread.
-                // Für diese kritische Admin-Aktion (Sperren) ist das beabsichtigt,
-                // um weitere Interaktionen zu verhindern, bis der Admin entschieden hat.
-                const reason = prompt(`Grund für die Sperre von ${code}?`);
+                    // Architektonische Notiz: prompt() blockiert den Main-Thread.
+                    // Für diese kritische Admin-Aktion (Sperren) ist das beabsichtigt,
+                    // um weitere Interaktionen zu verhindern, bis der Admin entschieden hat.
+                    const reason = prompt(`Grund für die Sperre von ${code}?`);
 
-                if (reason && reason.trim() !== '') {
-                    const form = document.getElementById(`form_suspend_${code}`);
-                    const input = document.getElementById(`reason_suspend_${code}`);
-                    if (form && input) {
-                        input.value = reason;
-                        form.submit();
+                    if (reason && reason.trim() !== '') {
+                        const form = document.getElementById(`form_suspend_${code}`);
+                        const input = document.getElementById(`reason_suspend_${code}`);
+                        if (form && input) {
+                            input.value = reason;
+                            form.submit();
+                        }
                     }
                 }
-            }
-        });
+            },
+            options
+        );
     }
 
-    // Behandelt die Checkbox-Logik im Finanz-Tab
     initFinanceBulk() {
         this.bulkCheckboxes = this.container.querySelectorAll('.js-bulk-pay-cb');
         this.bulkToggleAll = this.container.querySelector('.js-bulk-pay-toggle-all');
@@ -78,17 +89,23 @@ export class AdminDashboard {
         this.countSpanPay = document.getElementById('bulkPayCount');
         this.countSpanRemind = document.getElementById('bulkRemindCount');
 
+        const options = { signal: this.abortController.signal };
+
         if (this.bulkToggleAll) {
-            this.bulkToggleAll.addEventListener('change', (e) => {
-                this.bulkCheckboxes.forEach((cb) => {
-                    cb.checked = e.target.checked;
-                });
-                this.updateBulkPayButton();
-            });
+            this.bulkToggleAll.addEventListener(
+                'change',
+                (e) => {
+                    this.bulkCheckboxes.forEach((cb) => {
+                        cb.checked = e.target.checked;
+                    });
+                    this.updateBulkPayButton();
+                },
+                options
+            );
         }
 
         this.bulkCheckboxes.forEach((cb) => {
-            cb.addEventListener('change', () => this.updateBulkPayButton());
+            cb.addEventListener('change', () => this.updateBulkPayButton(), options);
         });
     }
 
@@ -106,31 +123,24 @@ export class AdminDashboard {
 
     switchTab(tabId, activeBtn) {
         if (!tabId || !activeBtn) return;
-
-        // Early Exit Guard verhindert, dass bestehende Tabs resettet werden, wenn das Ziel nicht existiert
         const target = document.getElementById(tabId);
         if (!target) return;
 
-        this.contents.forEach((c) => {
-            c.classList.remove('c-tabs__content--active');
-        });
-        this.tabs.forEach((b) => {
-            b.classList.remove('c-tabs__btn--active');
-        });
+        this.contents.forEach((c) => c.classList.remove('c-tabs__content--active'));
+        this.tabs.forEach((b) => b.classList.remove('c-tabs__btn--active'));
 
         target.classList.add('c-tabs__content--active');
         activeBtn.classList.add('c-tabs__btn--active');
-        // Absicherung gegen blockierten localStorage (SecurityError)
+
         try {
             localStorage.setItem('lastAdminTab', tabId);
         } catch {
-            // Ignore
+            // Ignore blockierte Storage
         }
     }
 
     restoreLastTab() {
         let lastTab = 'tab-active';
-        // Absicherung gegen blockierten localStorage
         try {
             lastTab = localStorage.getItem('lastAdminTab') || 'tab-active';
         } catch {
@@ -142,9 +152,6 @@ export class AdminDashboard {
         try {
             targetBtn = document.querySelector(`[data-tab-target="${lastTab}"]`);
         } catch {
-            console.warn(
-                '[AdminDashboard] Ungültiger Tab-String im LocalStorage, falle auf Standard zurück.'
-            );
             targetBtn = document.querySelector('[data-tab-target="tab-active"]');
         }
 
@@ -169,5 +176,10 @@ export class AdminDashboard {
             const btn = this.container.querySelector(`[data-tab-target="${focusId}"]`);
             if (btn) this.switchTab(focusId, btn);
         }
+    }
+
+    destroy() {
+        // Tötet alle delegierten Events sofort und restlos
+        this.abortController.abort();
     }
 }

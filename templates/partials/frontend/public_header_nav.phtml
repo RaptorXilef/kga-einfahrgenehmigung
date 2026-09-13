@@ -26,7 +26,7 @@ $currentPage = $path === '' ? 'index' : $path;
             <div class="c-header-nav__brand">
                 <div class="u-flex u-justify-center">
                     <img src="<?php echo $settings['base_url'] . 'assets/img/logo/kga-zm.webp'; ?>"
-                         alt="KGA Einfahrts-Manager Logo"
+                         alt="KGA Logo"
                          class="c-logo"
                          style="max-inline-size: 40px; max-block-size: 40px;">
                 </div>
@@ -38,7 +38,7 @@ $currentPage = $path === '' ? 'index' : $path;
             <div class="u-flex u-align-center u-gap-m">
                 <!-- Zuerst Verwaltung, dann Theme Toggle -->
                 <a href="admin" class="c-button c-button--secondary c-button--small">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Verwaltung
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon c-button__icon" alt=""> Verwaltung
                 </a>
 
                 <!-- Theme Toggle -->
@@ -58,11 +58,9 @@ $currentPage = $path === '' ? 'index' : $path;
             <a href="index" class="c-tabs__btn <?php echo $currentPage === 'index' ? 'c-tabs__btn--active' : ''; ?>">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>" class="c-icon" alt=""> Antrag
             </a>
-
             <a href="history" class="c-tabs__btn <?php echo $currentPage === 'history' ? 'c-tabs__btn--active' : ''; ?>">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon" alt=""> Verlauf
             </a>
-
             <a href="check" class="c-tabs__btn u-margin-inline-start-auto <?php echo $currentPage === 'check' ? 'c-tabs__btn--active' : ''; ?>">
                 <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
             </a>
