@@ -7,18 +7,28 @@
     }
 
     .c-action-card {
+        --card-translate-y: 0;
+        --card-shadow: none;
+        --card-border: var(--color-border);
+        --card-bg: var(--color-bg-white);
+        --icon-bg: var(--color-bg-light);
+        --icon-color: inherit;
+
         flex: 1 1 300px;
         min-inline-size: 280px;
-        background-color: var(--color-bg-white);
-        border: 2px solid var(--color-border);
+        background-color: var(--card-bg);
+        border: 2px solid var(--card-border);
         border-radius: 14px;
         padding: var(--space-m);
         display: flex;
         align-items: center;
         gap: var(--space-m);
         cursor: pointer;
+        translate: 0 var(--card-translate-y);
+        box-shadow: var(--card-shadow);
+        will-change: translate, box-shadow;
         transition:
-            transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+            translate 0.3s cubic-bezier(0.4, 0, 0.2, 1),
             box-shadow 0.3s ease,
             background-color 0.3s ease,
             border-color 0.3s ease;
@@ -28,8 +38,36 @@
     }
 
     .c-action-card:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-md);
+        --card-translate-y: -3px;
+        --card-shadow: var(--shadow-md);
+    }
+
+    .c-action-card--voucher:hover {
+        --card-border: var(--color-primary);
+        --card-bg: var(--color-primary-soft);
+        --icon-bg: var(--color-primary);
+        --icon-color: var(--color-bg-white);
+    }
+
+    .c-action-card--manual:hover {
+        --card-border: var(--color-success);
+        --card-bg: var(--color-success-soft);
+        --icon-bg: var(--color-success);
+        --icon-color: var(--color-bg-white);
+    }
+
+    .c-action-card--csv:hover {
+        --card-border: var(--color-primary);
+        --card-bg: var(--color-primary-soft);
+        --icon-bg: var(--color-primary);
+        --icon-color: var(--color-bg-white);
+    }
+
+    .c-action-card--json:hover {
+        --card-border: var(--color-warning);
+        --card-bg: var(--color-warning-soft);
+        --icon-bg: var(--color-warning);
+        --icon-color: var(--color-bg-white);
     }
 
     .c-action-card__title {
@@ -54,51 +92,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: var(--color-bg-light);
+        background-color: var(--icon-bg);
+        color: var(--icon-color);
         border-radius: 10px;
         transition:
             background-color 0.3s ease,
             color 0.3s ease;
         flex-shrink: 0;
-    }
-
-    .c-action-card--voucher:hover {
-        border-color: var(--color-primary);
-        background-color: var(--color-primary-soft);
-    }
-
-    .c-action-card--voucher:hover .c-action-card__icon {
-        background-color: var(--color-primary);
-        color: var(--color-bg-white);
-    }
-
-    .c-action-card--manual:hover {
-        border-color: var(--color-success);
-        background-color: var(--color-success-soft);
-    }
-
-    .c-action-card--manual:hover .c-action-card__icon {
-        background-color: var(--color-success);
-        color: var(--color-bg-white);
-    }
-
-    .c-action-card--csv:hover {
-        border-color: var(--color-primary);
-        background-color: var(--color-primary-soft);
-    }
-
-    .c-action-card--csv:hover .c-action-card__icon {
-        background-color: var(--color-primary);
-        color: var(--color-bg-white);
-    }
-
-    .c-action-card--json:hover {
-        border-color: var(--color-warning);
-        background-color: var(--color-warning-soft);
-    }
-
-    .c-action-card--json:hover .c-action-card__icon {
-        background-color: var(--color-warning);
-        color: var(--color-bg-white);
     }
 }

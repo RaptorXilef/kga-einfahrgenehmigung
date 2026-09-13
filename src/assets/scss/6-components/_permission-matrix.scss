@@ -3,7 +3,7 @@
         transition: all 0.3s ease;
     }
 
-    .c-tree-wrapper.is-master-active {
+    .is-master-active {
         opacity: 0.4;
         pointer-events: none;
         filter: grayscale(100%);
@@ -14,15 +14,18 @@
         margin-inline-start: calc(var(--depth, 0) * var(--space-xl));
     }
 
-    .c-tree-node:last-child > .c-tree-item {
-        border-block-end: none;
+    .c-tree-node:last-child {
+        --tree-item-border: none;
     }
 
     .c-tree-item {
         transition: background-color 0.2s;
         padding-block: var(--space-s);
         padding-inline: 0;
-        border-block-end: 1px solid var(--color-bg-light);
+        border-block-end: var(
+            --tree-item-border,
+            1px solid var(--color-bg-light)
+        );
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -36,7 +39,7 @@
         background-color: transparent;
     }
 
-    .c-tree-item.is-auto-active {
+    .is-auto-active {
         background-color: color-mix(
             in oklch,
             var(--color-success) 10%,
@@ -44,7 +47,7 @@
         ) !important;
     }
 
-    .c-tree-item.is-auto-inactive {
+    .is-auto-inactive {
         background-color: color-mix(
             in oklch,
             var(--color-danger) 5%,
@@ -76,10 +79,30 @@
     }
 
     .c-switch {
+        --switch-bg: var(--color-border);
+        --switch-thumb-x: 4px;
+        --switch-text-content: attr(data-off);
+        --switch-text-color: var(--color-text-muted);
+        --switch-text-inset-start: auto;
+        --switch-text-inset-end: 12px;
+
         position: relative;
         display: inline-block;
         inline-size: 100px;
         block-size: 32px;
+    }
+
+    .c-switch:has(.c-switch__input:checked) {
+        --switch-bg: var(--color-success);
+        --switch-thumb-x: 68px;
+        --switch-text-content: attr(data-on);
+        --switch-text-color: var(--color-bg-white);
+        --switch-text-inset-start: 12px;
+        --switch-text-inset-end: auto;
+    }
+
+    .c-switch--danger:has(.c-switch__input:checked) {
+        --switch-bg: var(--color-danger);
     }
 
     .c-switch__input {
@@ -93,8 +116,8 @@
         position: absolute;
         cursor: pointer;
         inset: 0;
-        background-color: var(--color-border);
-        transition: 0.4s;
+        background-color: var(--switch-bg);
+        transition: background-color 0.4s;
         border-radius: 30px;
     }
 
@@ -103,11 +126,11 @@
         content: '';
         block-size: 24px;
         inline-size: 24px;
-        inset-inline-start: 4px;
         inset-block-start: 50%;
-        translate: 0 -50%;
+        translate: var(--switch-thumb-x) -50%;
         background-color: var(--color-bg-white);
-        transition: 0.4s;
+        will-change: translate;
+        transition: translate 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
         border-radius: 50%;
         z-index: 5;
         box-shadow: 0 2px 4px
@@ -115,34 +138,17 @@
     }
 
     .c-switch__label::after {
-        content: attr(data-off);
+        content: var(--switch-text-content);
         position: absolute;
-        inset-inline-end: 12px;
+        inset-inline-start: var(--switch-text-inset-start);
+        inset-inline-end: var(--switch-text-inset-end);
         inset-block-start: 50%;
         translate: 0 -50%;
         font-size: 0.65rem;
         font-weight: 900;
-        color: var(--color-text-muted);
-        transition: all 0.3s;
-    }
-
-    /* Sicherer Sibling-Selector (+) reagiert sofort auf JS cb.checked = true */
-    .c-switch__input:checked + .c-switch__label {
-        background-color: var(--color-success);
-    }
-
-    .c-switch__input:checked + .c-switch__label::before {
-        transform: translateX(68px);
-    }
-
-    .c-switch__input:checked + .c-switch__label::after {
-        content: attr(data-on);
-        inset-inline-start: 12px;
-        inset-inline-end: auto;
-        color: var(--color-bg-white);
-    }
-
-    .c-switch--danger .c-switch__input:checked + .c-switch__label {
-        background-color: var(--color-danger);
+        color: var(--switch-text-color);
+        transition:
+            color 0.3s,
+            inset 0.3s;
     }
 }
