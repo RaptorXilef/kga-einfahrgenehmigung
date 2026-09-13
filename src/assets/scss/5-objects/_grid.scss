@@ -17,15 +17,24 @@
     }
 
     .o-grid--auto-fit-sm {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(
+            auto-fit,
+            minmax(clamp(150px, 15vw, 180px), 1fr)
+        );
     }
 
     .o-grid--auto-fit {
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(
+            auto-fit,
+            minmax(clamp(240px, 20vw, 280px), 1fr)
+        );
     }
 
     .o-grid--auto-fit-lg {
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        grid-template-columns: repeat(
+            auto-fit,
+            minmax(clamp(320px, 25vw, 400px), 1fr)
+        );
     }
 
     .o-grid--sidebar {

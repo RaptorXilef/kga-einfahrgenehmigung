@@ -74,7 +74,7 @@
             color-mix(in oklch, var(--color-text-main) 5%, transparent);
     }
 
-    .c-group-badge span {
+    .c-group-badge__label {
         color: var(--color-text-main);
         font-weight: 800;
         font-size: 0.7rem;

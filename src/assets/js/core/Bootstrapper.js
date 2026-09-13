@@ -1,9 +1,10 @@
 /**
- * Zentraler Component-Bootstrapper.
- * Sucht nach DOM-Elementen und instanziiert die dazugehörigen Klassen.
- * Beinhaltet eine Error-Boundary, um zu verhindern, dass ein defektes Modul
- * die Ausführung anderer, wichtiger Skripte (wie den Session-Timer) blockiert.
+ * Zentraler Component-Bootstrapper mit Garbage Collection Protection.
+ * Bindet JS-Klassen an DOM-Elemente und verhindert Zombie-Instanzen.
  */
+
+// Sichert die Zuweisung, ohne den Garbage Collector zu blockieren
+const componentRegistry = new WeakMap();
 
 export function mount(selector, ComponentClass, ...args) {
     let elements = [];
@@ -18,8 +19,13 @@ export function mount(selector, ComponentClass, ...args) {
 
     const instances = [];
     for (const el of elements) {
+        // Verhindert doppeltes Mounting desselben Elements
+        if (componentRegistry.has(el)) continue;
+
         try {
-            instances.push(new ComponentClass(el, ...args));
+            const instance = new ComponentClass(el, ...args);
+            componentRegistry.set(el, instance);
+            instances.push(instance);
         } catch (error) {
             console.error(
                 `[Bootstrapper] Kritischer Fehler beim Mounten von ${ComponentClass.name} an ${selector}:`,
@@ -31,28 +37,10 @@ export function mount(selector, ComponentClass, ...args) {
 }
 
 export function mountSingle(selector, ComponentClass, ...args) {
-    let el = null;
-    try {
-        el = document.querySelector(selector);
-    } catch (error) {
-        console.error(`[Bootstrapper] Ungültiger Singleton-Selektor blockiert: ${selector}`, error);
-        return null;
-    }
-
-    if (!el) return null;
-
-    try {
-        return new ComponentClass(el, ...args);
-    } catch (error) {
-        console.error(
-            `[Bootstrapper] Kritischer Fehler beim Mounten des Singletons ${ComponentClass.name} an ${selector}:`,
-            error
-        );
-        return null;
-    }
+    const instances = mount(selector, ComponentClass, ...args);
+    return instances.length > 0 ? instances[0] : null;
 }
 
-// FIX: Native Dynamic Imports für massiv reduzierten Initial-Payload
 export function lazyMount(selector, importPromise, className, ...args) {
     let elements = [];
     try {
@@ -67,8 +55,10 @@ export function lazyMount(selector, importPromise, className, ...args) {
         .then((module) => {
             const ComponentClass = module[className];
             for (const el of elements) {
+                if (componentRegistry.has(el)) continue;
                 try {
-                    new ComponentClass(el, ...args);
+                    const instance = new ComponentClass(el, ...args);
+                    componentRegistry.set(el, instance);
                 } catch (error) {
                     console.error(
                         `[Bootstrapper] Fehler beim asynchronen Mounten von ${className}:`,
@@ -83,28 +73,5 @@ export function lazyMount(selector, importPromise, className, ...args) {
 }
 
 export function lazyMountSingle(selector, importPromise, className, ...args) {
-    let el = null;
-    try {
-        el = document.querySelector(selector);
-    } catch (error) {
-        return null;
-    }
-
-    if (!el) return null;
-
-    importPromise()
-        .then((module) => {
-            const ComponentClass = module[className];
-            try {
-                new ComponentClass(el, ...args);
-            } catch (error) {
-                console.error(
-                    `[Bootstrapper] Fehler beim asynchronen Mounten von ${className}:`,
-                    error
-                );
-            }
-        })
-        .catch((err) =>
-            console.error(`[Bootstrapper] Netzwerk-Fehler beim Laden von ${className}:`, err)
-        );
+    lazyMount(selector, importPromise, className, ...args);
 }

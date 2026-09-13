@@ -3,12 +3,11 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding-inline: 16px;
+        padding-inline: var(--space-m);
         padding-block: 0;
-        inline-size: auto;
         min-inline-size: 42px;
         block-size: 42px;
-        border-radius: 10px;
+        border-radius: var(--space-m);
         border: 1px solid var(--color-border);
         background-color: var(--color-bg-white);
         color: var(--color-text-main);
@@ -22,11 +21,11 @@
             box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         text-decoration: none;
         box-shadow: var(--shadow-sm);
-        gap: 8px;
+        gap: var(--space-s);
         white-space: nowrap;
     }
 
-    .c-button .c-icon {
+    .c-button__icon {
         inline-size: 1.2em;
         block-size: 1.2em;
         flex-shrink: 0;
@@ -131,13 +130,8 @@
         padding-inline: 0;
     }
 
-    .c-button--small .c-icon {
-        inline-size: 1.1em;
-        block-size: 1.1em;
-    }
-
     .c-button--submit {
-        padding-block: 16px;
+        padding-block: var(--space-m);
         block-size: auto;
         font-size: 1.1rem;
     }

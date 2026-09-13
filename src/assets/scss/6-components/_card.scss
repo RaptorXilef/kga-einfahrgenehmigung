@@ -2,7 +2,7 @@
     .c-card {
         background-color: var(--color-bg-white);
         border: 1px solid var(--color-border);
-        border-radius: 16px;
+        border-radius: var(--space-m);
         box-shadow: var(--shadow-md);
         overflow: hidden;
     }
@@ -54,11 +54,19 @@
         background-color: var(--color-bg-light);
     }
 
-    /* Akkordeon-Karten für Benutzer- & Rollenverwaltung */
+    /* Akkordeon-Karten: CSS Custom Properties für State-Handling ohne Nachfahren-Selektoren */
     .c-category-card {
+        --card-body-display: block;
+        --card-header-radius: 0;
+
         background-color: var(--color-bg-white);
         border: 1px solid var(--color-border);
         border-radius: 12px;
+    }
+
+    .c-category-card.is-closed {
+        --card-body-display: none;
+        --card-header-radius: 12px;
     }
 
     .c-category-card__header {
@@ -69,26 +77,21 @@
             var(--color-text-main) 2%,
             transparent
         );
-        border-radius: 12px;
+        border-start-start-radius: 12px;
+        border-start-end-radius: 12px;
+        border-end-start-radius: var(--card-header-radius);
+        border-end-end-radius: var(--card-header-radius);
         transition: border-radius 0.2s;
     }
 
     .c-category-card__body {
+        display: var(--card-body-display);
         background-color: var(--color-bg-light);
         padding-block: var(--space-l);
         padding-inline: var(--space-l);
         border-block-start: 1px solid var(--color-border);
         border-end-start-radius: 12px;
         border-end-end-radius: 12px;
-    }
-
-    .c-category-card:not(.is-closed) .c-category-card__header {
-        border-end-start-radius: 0;
-        border-end-end-radius: 0;
-    }
-
-    .c-category-card.is-closed .c-category-card__body {
-        display: none;
     }
 
     .c-category-card.is-highlighted {

@@ -3,15 +3,12 @@ import { notifier } from '../core/Notifier.js';
 import { throttle } from '../utils/Utils.js';
 
 /**
- * Robustes Session-Timer Modul (ES6).
- * Nutzt das API-Singleton für Ping/Logout und Date.now() für exaktes Timing.
- * Mit Garbage Collection Method (destroy) für Single-Page-Apps.
+ * Robustes Session-Timer Modul (ES2026).
+ * Nutzt den AbortController für restlose Event-Listener Garbage-Collection.
  */
 export class SessionTimer {
     constructor(rootElement) {
-        this.container = rootElement; // z.B. das Nav-Element mit der id "ui-session-timer"
-
-        // Konstanten
+        this.container = rootElement;
         this.maxIdleMs = 20 * 60 * 1000; // 20 Minuten
         this.warningMs = 3 * 60 * 1000; // 3 Minuten Warn-Zeitraum
         this.lastActivity = Date.now();
@@ -37,6 +34,9 @@ export class SessionTimer {
         };
         this.boundStayLoggedIn = () => this.stayLoggedIn();
         this.boundLogoutNow = () => this.logoutNow();
+
+        // Zentrale Verwaltung aller Listener für sauberes Unmounting
+        this.abortController = new AbortController();
 
         this.init();
     }
@@ -69,31 +69,23 @@ export class SessionTimer {
         this.interval = setInterval(() => this.tick(), 1000);
         this.updateDisplay(this.maxIdleMs);
 
+        const options = { passive: true, signal: this.abortController.signal };
+
         ['click', 'keyup', 'scroll', 'touchstart'].forEach((evt) => {
-            document.addEventListener(evt, this.boundResetIdleTime, { passive: true });
+            document.addEventListener(evt, this.boundResetIdleTime, options);
         });
 
-        document.addEventListener('visibilitychange', this.boundVisibilityChange);
-        // HINWEIS: Das Storage-Event wirft bei blockierten Cookies selbst keine Exception.
-        window.addEventListener('storage', this.boundStorageChange);
+        document.addEventListener('visibilitychange', this.boundVisibilityChange, options);
+        window.addEventListener('storage', this.boundStorageChange, options);
 
-        if (this.btnStay) this.btnStay.addEventListener('click', this.boundStayLoggedIn);
-        if (this.btnLogout) this.btnLogout.addEventListener('click', this.boundLogoutNow);
+        if (this.btnStay) this.btnStay.addEventListener('click', this.boundStayLoggedIn, options);
+        if (this.btnLogout) this.btnLogout.addEventListener('click', this.boundLogoutNow, options);
     }
 
-    // Garbage Collection Methode (Wichtig, falls die Komponente jemals unmounted wird)
     destroy() {
         clearInterval(this.interval);
-
-        ['click', 'keyup', 'scroll', 'touchstart'].forEach((evt) => {
-            document.removeEventListener(evt, this.boundResetIdleTime);
-        });
-
-        document.removeEventListener('visibilitychange', this.boundVisibilityChange);
-        window.removeEventListener('storage', this.boundStorageChange);
-
-        if (this.btnStay) this.btnStay.removeEventListener('click', this.boundStayLoggedIn);
-        if (this.btnLogout) this.btnLogout.removeEventListener('click', this.boundLogoutNow);
+        // Beendet alle angehängten Event-Listener auf einen Schlag!
+        this.abortController.abort();
     }
 
     syncWithStorage() {

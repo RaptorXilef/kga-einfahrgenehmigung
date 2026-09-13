@@ -57,9 +57,8 @@ class ApiService {
             }
         }
 
-        // FIX: AbortController verhindert hängende Promises bei Funklöchern
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
+        // Modernes Timeout-Handling ohne Memory-Leak-Gefahr
+        const signal = AbortSignal.timeout(this.timeoutMs);
 
         try {
             // Endpoint-Pfade bereinigen (verhindert doppelte Slashes)
@@ -68,12 +67,12 @@ class ApiService {
                 method: 'POST',
                 headers: headers,
                 body: body,
-                signal: controller.signal, // Signal übergeben
+                signal: signal,
             });
             return await this.#handleResponse(response);
         } catch (error) {
             // Wenn der Abbruch durch unseren Timeout ausgelöst wurde
-            if (error.name === 'AbortError') {
+            if (error.name === 'TimeoutError') {
                 return {
                     success: false,
                     error: 'Zeitüberschreitung. Die Verbindung war zu langsam.',
@@ -86,29 +85,22 @@ class ApiService {
                 console.error(`[API Error] POST /${endpoint} failed:`, error);
             }
             return { success: false, error: 'Netzwerkfehler. Server nicht erreichbar.' };
-        } finally {
-            clearTimeout(timeoutId); // Speicher sauber aufräumen
         }
     }
 
     async get(endpoint, params = '') {
         const query = params ? `?${params.toString()}` : '';
         const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
-
-        // FIX: Auch GET Requests absichern
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
+        const signal = AbortSignal.timeout(this.timeoutMs);
 
         try {
             const response = await fetch(`${this.baseUrl}${cleanEndpoint}${query}`, {
-                headers: {
-                    Accept: 'application/json',
-                },
-                signal: controller.signal,
+                headers: { Accept: 'application/json' },
+                signal: signal,
             });
             return await this.#handleResponse(response);
         } catch (error) {
-            if (error.name === 'AbortError') {
+            if (error.name === 'TimeoutError') {
                 return {
                     success: false,
                     error: 'Zeitüberschreitung. Die Verbindung war zu langsam.',
@@ -121,8 +113,6 @@ class ApiService {
                 console.error(`[API Error] GET /${endpoint} failed:`, error);
             }
             return { success: false, error: 'Netzwerkfehler. Server nicht erreichbar.' };
-        } finally {
-            clearTimeout(timeoutId);
         }
     }
 }
