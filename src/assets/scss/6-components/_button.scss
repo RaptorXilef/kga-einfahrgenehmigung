@@ -1,5 +1,11 @@
 @layer components {
     .c-button {
+        --btn-bg: var(--color-bg-white);
+        --btn-color: var(--color-text-main);
+        --btn-border: var(--color-border);
+        --btn-translate-y: 0;
+        --btn-shadow: var(--shadow-sm);
+
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -8,21 +14,22 @@
         min-inline-size: 42px;
         block-size: 42px;
         border-radius: var(--space-m);
-        border: 1px solid var(--color-border);
-        background-color: var(--color-bg-white);
-        color: var(--color-text-main);
+        border: 1px solid var(--btn-border);
+        background-color: var(--btn-bg);
+        color: var(--btn-color);
         cursor: pointer;
-        /* GPU-Killer "transition: all" entfernt */
+        will-change: translate, box-shadow;
         transition:
             background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
             color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
             border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-            transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+            translate 0.2s cubic-bezier(0.4, 0, 0.2, 1),
             box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         text-decoration: none;
-        box-shadow: var(--shadow-sm);
+        box-shadow: var(--btn-shadow);
         gap: var(--space-s);
         white-space: nowrap;
+        translate: 0 var(--btn-translate-y);
     }
 
     .c-button__icon {
@@ -33,10 +40,10 @@
     }
 
     .c-button:hover {
-        background-color: var(--color-bg-light);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-        border-color: color-mix(
+        --btn-bg: var(--color-bg-light);
+        --btn-translate-y: -1px;
+        --btn-shadow: var(--shadow-md);
+        --btn-border: color-mix(
             in oklch,
             var(--color-border) 80%,
             var(--color-text-main)
@@ -44,14 +51,14 @@
     }
 
     .c-button--primary {
-        background-color: var(--color-primary);
-        color: var(--color-bg-white);
-        border: none;
+        --btn-bg: var(--color-primary);
+        --btn-color: var(--color-bg-white);
+        --btn-border: transparent;
         font-weight: 700;
     }
 
     .c-button--primary:hover {
-        background-color: color-mix(
+        --btn-bg: color-mix(
             in oklch,
             var(--color-primary) 80%,
             var(--color-text-main)
@@ -59,17 +66,17 @@
     }
 
     .c-button--secondary {
-        background-color: var(--color-bg-white);
+        --btn-bg: var(--color-bg-white);
     }
 
     .c-button--success {
-        background-color: var(--color-success-soft);
-        color: color-mix(
+        --btn-bg: var(--color-success-soft);
+        --btn-color: color-mix(
             in oklch,
             var(--color-success) 40%,
             var(--color-text-main)
         );
-        border-color: color-mix(
+        --btn-border: color-mix(
             in oklch,
             var(--color-success) 40%,
             transparent
@@ -77,7 +84,7 @@
     }
 
     .c-button--success:hover {
-        background-color: color-mix(
+        --btn-bg: color-mix(
             in oklch,
             var(--color-success-soft) 80%,
             var(--color-text-main)
@@ -85,17 +92,17 @@
     }
 
     .c-button--danger {
-        background-color: var(--color-danger-soft);
-        color: color-mix(
+        --btn-bg: var(--color-danger-soft);
+        --btn-color: color-mix(
             in oklch,
             var(--color-danger) 20%,
             var(--color-text-main)
         );
-        border-color: color-mix(in oklch, var(--color-danger) 40%, transparent);
+        --btn-border: color-mix(in oklch, var(--color-danger) 40%, transparent);
     }
 
     .c-button--danger:hover {
-        background-color: color-mix(
+        --btn-bg: color-mix(
             in oklch,
             var(--color-danger-soft) 80%,
             var(--color-text-main)
@@ -103,13 +110,13 @@
     }
 
     .c-button--danger-outline {
-        background-color: transparent;
-        border-color: var(--color-danger);
-        color: var(--color-danger);
+        --btn-bg: transparent;
+        --btn-border: var(--color-danger);
+        --btn-color: var(--color-danger);
     }
 
     .c-button--danger-outline:hover {
-        background-color: var(--color-danger-soft);
+        --btn-bg: var(--color-danger-soft);
     }
 
     .c-button--icon-only {
@@ -125,7 +132,7 @@
         font-size: 0.85rem;
     }
 
-    .c-button--small.c-button--icon-only {
+    .c-button--small-icon-only {
         inline-size: 34px;
         padding-inline: 0;
     }

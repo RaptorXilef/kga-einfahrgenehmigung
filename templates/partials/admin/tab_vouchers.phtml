@@ -40,9 +40,9 @@ use App\Infrastructure\Config\Config;
                     <table class="c-table u-width-100">
                         <thead>
                             <tr>
-                                <th>Code / QR</th>
-                                <th>Details & Konditionen</th>
-                                <th class="u-text-right u-padding-inline-end-m">Aktion</th>
+                                <th class="c-table__header-cell">Code / QR</th>
+                                <th class="c-table__header-cell">Details & Konditionen</th>
+                                <th class="c-table__header-cell u-text-right u-padding-inline-end-m">Aktion</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -54,7 +54,7 @@ use App\Infrastructure\Config\Config;
         ?>
                                 <tr>
                                     <td colspan="3"
-                                        class="u-text-center u-padding-around-l u-color-muted">
+                                        class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
                                         Aktuell keine unbenutzten Gutscheincodes vorhanden.
                                     </td>
                                 </tr>
@@ -74,7 +74,7 @@ use App\Infrastructure\Config\Config;
                                     }
                                     ?>
                                     <tr class="u-hover-fade <?php echo !$isValid ? 'c-table__row--danger u-opacity-50' : ''; ?>">
-                                        <td>
+                                        <td class="c-table__data-cell">
                                             <div class="u-text-center">
                                                 <button type="button"
                                                         class="c-button c-button--secondary c-button--small js-show-qr"
@@ -86,11 +86,11 @@ use App\Infrastructure\Config\Config;
                                                          alt=""> QR
                                                 </button>
                                                 <code class="u-display-block u-margin-block-start-s u-text-xs u-font-bold">
-                                                <?php echo $vCodeStr; ?>
-                                            </code>
+                                                    <?php echo $vCodeStr; ?>
+                                                </code>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td class="c-table__data-cell">
                                             <strong class="u-display-block u-text-md u-color-dark">
                                                 <?php echo \htmlspecialchars($v->reason); ?>
                                                 <?php if ($isExpired) {
@@ -99,15 +99,13 @@ use App\Infrastructure\Config\Config;
                                             </strong>
                                             <div class="u-margin-block-start-xs u-flex u-gap-s u-flex-wrap">
                                                 <span class="c-badge <?php echo $v->type === 'free' ? 'c-badge--success' : 'c-badge--primary'; ?>">
-                                                <?php echo $discountText; ?>
-                                            </span>
+                                                    <?php echo $discountText; ?>
+                                                </span>
                                                 <?php if ($v->multiUse) { ?>
                                                     <span class="c-badge c-badge--outline">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
-                                                         class="c-icon"
-                                                         alt="">
-                                                    &nbsp;Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
-                                                </span>
+                                                        <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>" class="c-icon" alt="">
+                                                        &nbsp;Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
+                                                    </span>
                                                 <?php } else { ?>
                                                     <span class="c-badge c-badge--outline">Einweg</span>
                                                 <?php } ?>
@@ -130,12 +128,12 @@ use App\Infrastructure\Config\Config;
 
                                             <div class="u-margin-block-start-s">
                                                 <span class="u-text-link js-copy-link u-text-xs u-font-semibold u-cursor-pointer u-flex u-align-center u-gap-xs u-display-inline-block" data-url="<?php echo $url; ?>">
-                                                Link kopieren
-                                                <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>" class="c-icon" alt="">
-                                            </span>
+                                                    Link kopieren
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>" class="c-icon" alt="">
+                                                </span>
                                             </div>
                                         </td>
-                                        <td class="u-text-right u-padding-inline-end-m">
+                                        <td class="c-table__data-cell u-text-right u-padding-inline-end-m">
                                             <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                                 <?php if ($auth->hasPermission('vouchers.suspend')) { ?>
                                                     <form method="POST"
@@ -216,9 +214,9 @@ use App\Infrastructure\Config\Config;
                     <table class="c-table c-table--summary u-width-100">
                         <thead>
                             <tr>
-                                <th class="u-text-left u-padding-inline-m">Datum</th>
-                                <th class="u-text-left">Nutzer</th>
-                                <th class="u-text-right u-padding-inline-end-m">Code</th>
+                                <th class="c-table__header-cell u-text-left u-padding-inline-m">Datum</th>
+                                <th class="c-table__header-cell u-text-left">Nutzer</th>
+                                <th class="c-table__header-cell u-text-right u-padding-inline-end-m">Code</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -226,22 +224,22 @@ use App\Infrastructure\Config\Config;
     if (empty($archive)) { ?>
                                 <tr>
                                     <td colspan="3"
-                                        class="u-text-center u-padding-around-l u-color-muted">Noch keine Einlösungen
-                                        dokumentiert.</td>
+                                        class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">Noch
+                                        keine Einlösungen dokumentiert.</td>
                                 </tr>
                             <?php } else { ?>
                                 <?php foreach ($archive as $arc) { ?>
                                     <tr class="u-hover-fade">
-                                        <td class="u-text-nowrap u-padding-inline-m">
+                                        <td class="c-table__data-cell u-text-nowrap u-padding-inline-m">
                                             <small class="u-font-bold u-color-muted"><?php echo \date('d.m.y', \strtotime($arc['redeemed_at'])); ?></small>
                                         </td>
-                                        <td>
+                                        <td class="c-table__data-cell">
                                             <div style="line-height: 1.2;">
                                                 <span class="u-font-semibold"><?php echo \htmlspecialchars($arc['user_name']); ?></span><br>
                                                 <small class="u-color-muted">Parzelle <?php echo $arc['user_plot']; ?></small>
                                             </div>
                                         </td>
-                                        <td class="u-text-right u-padding-inline-end-m">
+                                        <td class="c-table__data-cell u-text-right u-padding-inline-end-m">
                                             <code class="c-license-plate"><?php echo $arc['code']; ?></code>
                                         </td>
                                     </tr>

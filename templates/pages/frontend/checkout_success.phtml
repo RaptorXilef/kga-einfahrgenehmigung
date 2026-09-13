@@ -58,25 +58,27 @@ $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
                         <div>
                             <table class="c-table c-table--summary">
                                 <tr>
-                                    <td class="c-table__label">Betrag:</td>
-                                    <td class="c-table__value c-table__value--highlight"><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?> €</td>
+                                    <td class="c-table__data-cell c-table__label">Betrag:</td>
+                                    <td class="c-table__data-cell c-table__value c-table__value--highlight"><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?> €
+                                    </td>
                                 </tr>
                                 <tr class="c-table__row">
-                                    <td class="c-table__label">Empfänger:</td>
-                                    <td class="c-table__value"><?php echo \htmlspecialchars($settings['kontoinhaber']); ?></td>
+                                    <td class="c-table__data-cell c-table__label">Empfänger:</td>
+                                    <td class="c-table__data-cell c-table__value"><?php echo \htmlspecialchars($settings['kontoinhaber']); ?></td>
                                 </tr>
                                 <tr class="c-table__row">
-                                    <td class="c-table__label">IBAN:</td>
-                                    <td class="c-table__value u-font-mono"><?php echo \htmlspecialchars($settings['iban']); ?></td>
+                                    <td class="c-table__data-cell c-table__label">IBAN:</td>
+                                    <td class="c-table__data-cell c-table__value u-font-mono"><?php echo \htmlspecialchars($settings['iban']); ?></td>
                                 </tr>
                                 <tr class="c-table__row">
-                                    <td class="c-table__label">BIC:</td>
-                                    <td class="c-table__value"><?php echo \htmlspecialchars($settings['bic']); ?></td>
+                                    <td class="c-table__data-cell c-table__label">BIC:</td>
+                                    <td class="c-table__data-cell c-table__value"><?php echo \htmlspecialchars($settings['bic']); ?></td>
                                 </tr>
                                 <tr class="c-table__row">
-                                    <td class="c-table__label">Verwendungszweck:<br><small>(Zwingend
+                                    <td class="c-table__data-cell c-table__label">Verwendungszweck:<br><small>(Zwingend
                                             erforderlich!)</small></td>
-                                    <td class="c-table__value c-table__value--danger u-font-mono"><?php echo \htmlspecialchars($usage); ?></td>
+                                    <td class="c-table__data-cell c-table__value c-table__value--danger u-font-mono">
+                                        <?php echo \htmlspecialchars($usage); ?></td>
                                 </tr>
                             </table>
                         </div>

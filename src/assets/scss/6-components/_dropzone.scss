@@ -1,27 +1,31 @@
 @layer components {
     .c-dropzone {
+        --dropzone-border-color: transparent;
+        --dropzone-bg: transparent;
+        --overlay-opacity: 0;
+
         position: relative;
-        transition: all 0.2s ease;
-        border: 2px dashed transparent;
+        border: 2px dashed var(--dropzone-border-color);
+        background-color: var(--dropzone-bg);
+        transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease;
     }
 
     .c-dropzone--preview {
-        border-color: var(--color-border);
+        --dropzone-border-color: var(--color-border);
         cursor: pointer;
     }
 
     .c-dropzone--preview:hover {
-        border-color: var(--color-primary);
-        background-color: var(--color-bg-light);
+        --dropzone-border-color: var(--color-primary);
+        --dropzone-bg: var(--color-bg-light);
     }
 
-    .c-dropzone.is-dragover {
-        background-color: var(--color-primary-soft) !important;
-        border-color: var(--color-primary);
-    }
-
-    .c-dropzone.is-dragover .c-dropzone__overlay {
-        opacity: 1;
+    .is-dragover {
+        --dropzone-bg: var(--color-primary-soft) !important;
+        --dropzone-border-color: var(--color-primary) !important;
+        --overlay-opacity: 1 !important;
     }
 
     .c-dropzone__overlay {
@@ -38,7 +42,7 @@
         justify-content: center;
         font-weight: 700;
         font-size: 0.9rem;
-        opacity: 0;
+        opacity: var(--overlay-opacity);
         transition: opacity 0.2s;
         pointer-events: none;
         z-index: 10;
@@ -49,6 +53,9 @@
         font-size: 1.2rem;
         opacity: 1;
         color: var(--color-primary);
-        transition: all 0.2s;
+        transition:
+            font-size 0.2s,
+            opacity 0.2s,
+            color 0.2s;
     }
 }

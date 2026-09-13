@@ -68,23 +68,21 @@ $now = new \DateTimeImmutable('today');
             <table class="c-table js-sort-table u-width-100">
                 <thead>
                     <tr>
-                        <th class="js-sort-header u-text-left">Antragsteller & Kennung</th>
-                        <th class="js-sort-header u-text-center">Fahrzeug</th>
-                        <th class="js-sort-header u-text-center">Gültigkeit & Restzeit</th>
-                        <th class="js-sort-header u-text-center">Finanz-Status</th>
-                        <th class="u-text-right u-padding-inline-end-m">Aktion</th>
+                        <th class="c-table__header-cell js-sort-header u-text-left">Antragsteller & Kennung</th>
+                        <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
+                        <th class="c-table__header-cell js-sort-header u-text-center">Gültigkeit & Restzeit</th>
+                        <th class="c-table__header-cell js-sort-header u-text-center">Finanz-Status</th>
+                        <th class="c-table__header-cell u-text-right u-padding-inline-end-m">Aktion</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($permits)) { ?>
                         <tr>
                             <td colspan="5"
-                                class="u-text-center u-padding-around-l u-color-muted">
+                                class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
                                 <span class="u-text-2xl u-opacity-50">
-                                    <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>"
-                                         class="c-icon c-button__icon"
-                                         alt="">
-                                </span><br>
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>" class="c-icon c-button__icon" alt="">
+                    </span><br>
                                 <p class="u-margin-block-start-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum
                                     gefunden.</p>
                             </td>
@@ -133,21 +131,22 @@ $now = new \DateTimeImmutable('today');
                             $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                             ?>
                             <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
-                                <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>">
+                                <td class="c-table__data-cell"
+                                    data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>">
                                     <div class="u-flex u-flex-column">
                                         <span class="u-font-semibold u-color-main u-text-sm">
-                                        <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
-                                    </span>
+                                            <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
+                                        </span>
                                         <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs">
-                                        <?php echo $permit->code; ?>
-                                    </code>
+                                            <?php echo $permit->code; ?>
+                                        </code>
                                         <div>
                                             <span class="c-badge c-badge--outline">PARZELLE <?php echo $permit->getPlotNumber(); ?></span>
                                         </div>
                                     </div>
                                 </td>
-                                <td data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>"
-                                    class="u-text-center">
+                                <td class="c-table__data-cell u-text-center"
+                                    data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>">
                                     <div>
                                         <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
                                              class="c-icon <?php echo $isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
@@ -156,37 +155,33 @@ $now = new \DateTimeImmutable('today');
                                     </div>
                                     <div class="u-margin-block-start-xs">
                                         <span class="c-license-plate">
-                                        <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
-                                    </span>
+                                            <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
+                                        </span>
                                     </div>
                                 </td>
-                                <td data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>"
-                                    class="u-text-center">
+                                <td class="c-table__data-cell u-text-center"
+                                    data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>">
                                     <div>
                                         <strong class="u-color-main u-text-sm"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
                                         <small class="u-color-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
                                         <div class="u-margin-block-start-xs">
                                             <?php if ($isExpired) { ?>
                                                 <span class="c-badge c-badge--outline">
-                                                <?php echo $countdownText; ?>
-                                            </span>
+                                                    <?php echo $countdownText; ?>
+                                                </span>
                                             <?php } else { ?>
                                                 <span class="c-badge <?php echo ($remaining <= 1 && !$isFuture) ? 'c-badge--danger' : 'c-badge--primary'; ?>">
-                                                <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>"
-                                                     class="c-icon c-button__icon"
-                                                     alt=""> <?php echo $countdownText; ?>
-                                            </span>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>" class="c-icon c-button__icon" alt=""> <?php echo $countdownText; ?>
+                                                </span>
                                             <?php } ?>
                                         </div>
                                     </div>
                                 </td>
-                                <td data-sort-val="<?php echo $isPaid ? '1' : '0'; ?>"
-                                    class="u-text-center">
-                                    <span class="c-badge <?php echo $statusClass; ?>">
-                                    <?php echo $statusText; ?>
-                                </span>
+                                <td class="c-table__data-cell u-text-center"
+                                    data-sort-val="<?php echo $isPaid ? '1' : '0'; ?>">
+                                    <span class="c-badge <?php echo $statusClass; ?>"><?php echo $statusText; ?></span>
                                 </td>
-                                <td class="u-text-right u-padding-inline-end-m">
+                                <td class="c-table__data-cell u-text-right u-padding-inline-end-m">
                                     <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                         <?php $allowCancel = (bool) $config->get('allow_user_cancellation', true);
                             if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) { ?>

@@ -5,7 +5,7 @@
         font-size: 0.95rem;
     }
 
-    .c-table th {
+    .c-table__header-cell {
         background-color: var(--color-bg-light);
         color: var(--color-text-muted);
         padding-block: 0.85rem;
@@ -18,7 +18,7 @@
         letter-spacing: 0.5px;
     }
 
-    .c-table td {
+    .c-table__data-cell {
         padding-block: 1.25rem;
         padding-inline: 1rem;
         border-block-end: 1px solid var(--color-border);
@@ -26,10 +26,10 @@
     }
 
     /* Intelligenter Zeilenumbruch für E-Mail-Adressen */
-    .c-table a[href^='mailto:'] {
-        overflow-wrap: anywhere !important;
-        word-break: break-word !important;
-        white-space: normal !important;
+    .c-table__mail-link {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        white-space: normal;
         display: inline-block;
         max-inline-size: 100%;
     }
@@ -85,35 +85,36 @@
         border-block-start: 2px solid var(--color-border);
     }
 
-    /* TableSorter.js Extensions strikt an Component gebunden */
-    th.is-sortable {
+    /* TableSorter.js Extensions strikt flach über CSS Variablen */
+    .is-sortable {
+        --sort-icon-opacity: 0.3;
+        --sort-icon-color: inherit;
+        --sortable-color: inherit;
+
         cursor: pointer;
         user-select: none;
         transition: color 0.2s;
+        color: var(--sortable-color);
     }
 
-    th.is-sortable:hover {
-        color: var(--color-text-dark);
+    .is-sortable:hover {
+        --sortable-color: var(--color-text-dark);
     }
 
-    th.is-sortable[data-sort-dir='asc'],
-    th.is-sortable[data-sort-dir='desc'] {
-        color: var(--color-primary);
-    }
-
-    th.is-sortable[data-sort-dir='asc'] .c-sort-icon,
-    th.is-sortable[data-sort-dir='desc'] .c-sort-icon {
-        opacity: 1;
-        color: var(--color-primary);
+    .is-sortable[data-sort-dir='asc'],
+    .is-sortable[data-sort-dir='desc'] {
+        --sortable-color: var(--color-primary);
+        --sort-icon-opacity: 1;
+        --sort-icon-color: var(--color-primary);
     }
 
     .c-sort-icon {
-        opacity: 0.3;
+        opacity: var(--sort-icon-opacity);
         font-size: 1.1em;
         margin-inline-start: 4px;
         display: inline-block;
         vertical-align: middle;
-        color: inherit;
+        color: var(--sort-icon-color);
         transition:
             opacity 0.2s,
             color 0.2s;

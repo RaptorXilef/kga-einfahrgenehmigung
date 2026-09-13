@@ -114,7 +114,8 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
                 <h3 class="u-margin-block-none">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
                          class="c-icon c-button__icon"
-                         alt=""> Pächter- & Fahrzeugdaten</h3>
+                         alt=""> Pächter- & Fahrzeugdaten
+                </h3>
                 <span class="c-badge c-badge--<?php echo $permit->getStatus() === PermitStatus::Bezahlt ? 'success' : 'warning'; ?>">
                     FINANZ-STATUS: <?php echo \htmlspecialchars(\strtoupper($permit->getStatus()->value)); ?>
                 </span>
@@ -124,71 +125,72 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
                 <table class="c-table">
                     <?php if ($permit->isSuspended() && !empty($permit->getSuspensionReason())) { ?>
                         <tr class="c-table__row c-table__row--danger">
-                            <td class="c-table__label u-font-bold u-color-danger">Sperrgrund</td>
-                            <td class="c-table__value u-color-danger"><?php echo \htmlspecialchars($permit->getSuspensionReason()); ?></td>
+                            <td class="c-table__data-cell c-table__label u-font-bold u-color-danger">Sperrgrund</td>
+                            <td class="c-table__data-cell c-table__value u-color-danger"><?php echo \htmlspecialchars($permit->getSuspensionReason()); ?></td>
                         </tr>
                     <?php } ?>
                     <tr class="c-table__row">
-                        <td class="c-table__label u-font-bold"
+                        <td class="c-table__data-cell c-table__label u-font-bold"
                             style="inline-size: 35%;">Pächter Name</td>
-                        <td class="c-table__value"><?php echo \htmlspecialchars($permit->getOwnerName()); ?></td>
+                        <td class="c-table__data-cell c-table__value"><?php echo \htmlspecialchars($permit->getOwnerName()); ?></td>
                     </tr>
                     <tr class="c-table__row">
-                        <td class="c-table__label u-font-bold">Parzelle</td>
-                        <td class="c-table__value">Nr. <?php echo \htmlspecialchars($permit->getPlotNumber()); ?></td>
+                        <td class="c-table__data-cell c-table__label u-font-bold">Parzelle</td>
+                        <td class="c-table__data-cell c-table__value">Nr. <?php echo \htmlspecialchars($permit->getPlotNumber()); ?></td>
                     </tr>
                     <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
                         <tr class="c-table__row">
-                            <td class="c-table__label u-font-bold">E-Mail</td>
-                            <td class="c-table__value">
+                            <td class="c-table__data-cell c-table__label u-font-bold">E-Mail</td>
+                            <td class="c-table__data-cell c-table__value">
                                 <?php echo $permit->getOwnerEmail()
-                                    ? '<a href="mailto:' . \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8') . '" class="u-text-link">' . \str_replace('@', '<wbr>@', \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8')) . '</a>'
+                                    ? '<a href="mailto:' . \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8') . '" class="u-text-link c-table__mail-link">' . \str_replace('@', '<wbr>@', \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8')) . '</a>'
                                     : '<em class="u-color-muted">Keine E-Mail hinterlegt</em>';
                         ?>
                             </td>
                         </tr>
                     <?php } ?>
                     <tr class="c-table__row">
-                        <td class="c-table__label u-font-bold">Zweck / Grund</td>
-                        <td class="c-table__value"><?php echo \htmlspecialchars($permit->getPurpose()); ?></td>
+                        <td class="c-table__data-cell c-table__label u-font-bold">Zweck / Grund</td>
+                        <td class="c-table__data-cell c-table__value"><?php echo \htmlspecialchars($permit->getPurpose()); ?></td>
                     </tr>
                     <tr class="c-table__row">
-                        <td class="c-table__label u-font-bold">Fahrzeugtyp</td>
-                        <td class="c-table__value"><?php echo \strtoupper($permit->getVehicleType()); ?></td>
+                        <td class="c-table__data-cell c-table__label u-font-bold">Fahrzeugtyp</td>
+                        <td class="c-table__data-cell c-table__value"><?php echo \strtoupper($permit->getVehicleType()); ?></td>
                     </tr>
                     <tr class="c-table__row">
-                        <td class="c-table__label u-font-bold">Kennzeichen</td>
-                        <td class="c-table__value c-table__value--code"><?php echo \htmlspecialchars($permit->getLicensePlate()); ?></td>
+                        <td class="c-table__data-cell c-table__label u-font-bold">Kennzeichen</td>
+                        <td class="c-table__data-cell c-table__value c-table__value--code"><?php echo \htmlspecialchars($permit->getLicensePlate()); ?></td>
                     </tr>
                     <?php if ($permit->getCompany()) { ?>
                         <tr class="c-table__row">
-                            <td class="c-table__label u-font-bold">Firma / Lieferant</td>
-                            <td class="c-table__value"><?php echo \htmlspecialchars($permit->getCompany()); ?></td>
+                            <td class="c-table__data-cell c-table__label u-font-bold">Firma / Lieferant</td>
+                            <td class="c-table__data-cell c-table__value"><?php echo \htmlspecialchars($permit->getCompany()); ?></td>
                         </tr>
                     <?php } ?>
                     <tr class="c-table__row">
-                        <td class="c-table__label u-font-bold">Zeitraum</td>
-                        <td class="c-table__value"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?> bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></td>
+                        <td class="c-table__data-cell c-table__label u-font-bold">Zeitraum</td>
+                        <td class="c-table__data-cell c-table__value"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?> bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></td>
                     </tr>
                     <tr class="c-table__row">
-                        <td class="c-table__label u-font-bold">Erlaubte Zeiten</td>
-                        <td class="c-table__value"><?php echo $opening ?? ''; ?></td>
+                        <td class="c-table__data-cell c-table__label u-font-bold">Erlaubte Zeiten</td>
+                        <td class="c-table__data-cell c-table__value"><?php echo $opening ?? ''; ?></td>
                     </tr>
                     <?php if (!empty($holidayNotice)) { ?>
                         <tr class="c-table__row c-table__row--warning">
-                            <td class="c-table__label u-font-bold u-color-danger">Enthaltene Ruhe- und Feiertage</td>
-                            <td class="c-table__value u-color-danger"><?php echo $holidayNotice; ?></td>
+                            <td class="c-table__data-cell c-table__label u-font-bold u-color-danger">Enthaltene Ruhe-
+                                und Feiertage</td>
+                            <td class="c-table__data-cell c-table__value u-color-danger"><?php echo $holidayNotice; ?></td>
                         </tr>
                     <?php } ?>
                     <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
                         <tr class="c-table__row">
-                            <td class="c-table__label u-font-bold">Gebühr (Snapshot)</td>
-                            <td class="c-table__value"><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?> €</td>
+                            <td class="c-table__data-cell c-table__label u-font-bold">Gebühr (Snapshot)</td>
+                            <td class="c-table__data-cell c-table__value"><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?> €</td>
                         </tr>
                     <?php } ?>
                     <tr class="c-table__row">
-                        <td class="c-table__label u-font-bold">System-Erstellung</td>
-                        <td class="c-table__value"><?php echo $permit->getCreatedAt()->format('d.m.Y H:i'); ?> Uhr</td>
+                        <td class="c-table__data-cell c-table__label u-font-bold">System-Erstellung</td>
+                        <td class="c-table__data-cell c-table__value"><?php echo $permit->getCreatedAt()->format('d.m.Y H:i'); ?> Uhr</td>
                     </tr>
                 </table>
             </div>

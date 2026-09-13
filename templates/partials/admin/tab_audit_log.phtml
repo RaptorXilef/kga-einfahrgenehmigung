@@ -158,17 +158,18 @@ if ($auth->hasPermission('system.logs.view')) {
                 <table class="c-table u-width-100">
                     <thead>
                         <tr>
-                            <th class="u-text-left">Zeitpunkt</th>
-                            <th class="u-text-left">Aktion</th>
-                            <th class="u-text-left">System-Details</th>
-                            <th class="u-text-left u-padding-inline-end-m">Ausführender Benutzer</th>
+                            <th class="c-table__header-cell u-text-left">Zeitpunkt</th>
+                            <th class="c-table__header-cell u-text-left">Aktion</th>
+                            <th class="c-table__header-cell u-text-left">System-Details</th>
+                            <th class="c-table__header-cell u-text-left u-padding-inline-end-m">Ausführender Benutzer
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($auditLogs)) { ?>
                             <tr>
                                 <td colspan="4"
-                                    class="u-text-center u-padding-around-l u-color-muted">
+                                    class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
                                     Keine Protokolleinträge für diesen Filter gefunden.
                                 </td>
                             </tr>
@@ -177,21 +178,21 @@ if ($auth->hasPermission('system.logs.view')) {
                                 $avatar = $imageStorage->getImageUrl('user', $log->userId, 'icon-user-default.webp');
                                 ?>
                                 <tr class="u-hover-fade">
-                                    <td class="u-text-nowrap">
+                                    <td class="c-table__data-cell u-text-nowrap">
                                         <div class="u-flex u-flex-column">
                                             <span class="u-text-sm u-color-main u-font-semibold"><?php echo $log->createdAt->format('d.m.Y'); ?></span>
                                             <small class="u-color-muted"><?php echo $log->createdAt->format('H:i:s'); ?> Uhr</small>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td class="c-table__data-cell">
                                         <code class="c-badge c-badge--primary u-font-mono"><?php echo \htmlspecialchars($log->action); ?></code>
                                     </td>
-                                    <td>
+                                    <td class="c-table__data-cell">
                                         <span class="u-text-sm u-color-dark u-display-block">
-                                        <?php echo \htmlspecialchars($log->details); ?>
-                                    </span>
+                                            <?php echo \htmlspecialchars($log->details); ?>
+                                        </span>
                                     </td>
-                                    <td>
+                                    <td class="c-table__data-cell">
                                         <div class="u-flex u-align-center u-gap-s">
                                             <img src="<?php echo $avatar; ?>"
                                                  class="c-icon c-icon--md u-border-radius-circle">

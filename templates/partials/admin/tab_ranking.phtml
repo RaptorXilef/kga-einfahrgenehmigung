@@ -29,17 +29,17 @@ $plots = $periodStats['plots'] ?? [];
                 <table class="c-table u-width-100">
                     <thead>
                         <tr>
-                            <th class="u-text-center">Rang</th>
-                            <th class="u-text-left">Parzelle</th>
-                            <th class="u-text-left">Pächter (Zuletzt)</th>
+                            <th class="c-table__header-cell u-text-center">Rang</th>
+                            <th class="c-table__header-cell u-text-left">Parzelle</th>
+                            <th class="c-table__header-cell u-text-left">Pächter (Zuletzt)</th>
                             <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                                <th class="u-text-left">E-Mail (Zuletzt)</th>
+                                <th class="c-table__header-cell u-text-left">E-Mail (Zuletzt)</th>
                             <?php } ?>
                             <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
-                                <th class="u-text-right">Einnahmen</th>
+                                <th class="c-table__header-cell u-text-right">Einnahmen</th>
                             <?php } ?>
-                            <th class="u-text-center">Anträge</th>
-                            <th class="u-text-left"
+                            <th class="c-table__header-cell u-text-center">Anträge</th>
+                            <th class="c-table__header-cell u-text-left"
                                 style="inline-size: 20%;">Intensität</th>
                         </tr>
                     </thead>
@@ -47,8 +47,8 @@ $plots = $periodStats['plots'] ?? [];
                         <?php if (empty($plots)) { ?>
                             <tr>
                                 <td colspan="7"
-                                    class="u-text-center u-padding-around-l u-color-muted">Keine Daten im Zeitraum
-                                    gefunden.</td>
+                                    class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
+                                    Keine Daten im Zeitraum gefunden.</td>
                             </tr>
                             <?php } else {
                                 $rank = 1;
@@ -60,7 +60,7 @@ $plots = $periodStats['plots'] ?? [];
                                     ?>
                                 <tr class="u-hover-fade">
                                     <!-- RANG -->
-                                    <td class="u-text-center">
+                                    <td class="c-table__data-cell u-text-center">
                                         <?php if ($rank <= 3) { ?>
                                             <div class="u-text-xl">
                                                 <img src="<?php echo $asset->url('assets/img/icons/icon_trophy.webp'); ?>"
@@ -73,47 +73,41 @@ $plots = $periodStats['plots'] ?? [];
                                             <span class="u-color-muted u-font-extrabold">#<?php echo $rank++; ?></span>
                                         <?php } ?>
                                     </td>
-
                                     <!-- PARZELLE NUMMER -->
-                                    <td class="u-text-left">
+                                    <td class="c-table__data-cell u-text-left">
                                         <strong class="u-text-md"><?php echo \htmlspecialchars((string) $pNum); ?></strong>
                                     </td>
-
                                     <!-- PÄCHTER NAME -->
-                                    <td class="u-text-left"
+                                    <td class="c-table__data-cell u-text-left"
                                         style="word-break: break-word;">
                                         <span class="u-font-semibold"><?php echo \htmlspecialchars($data['name'] ?: 'Unbekannt'); ?></span>
                                     </td>
-
                                     <!-- E-MAIL -->
                                     <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                                        <td class="u-text-left">
+                                        <td class="c-table__data-cell u-text-left">
                                             <?php if ($data['email']) { ?>
                                                 <small>
-                                                    <a href="mailto:<?php echo \htmlspecialchars($data['email'], \ENT_QUOTES, 'UTF-8'); ?>" class="u-text-link">
-                                                    <?php echo \str_replace('@', '<wbr>@', \htmlspecialchars($data['email'], \ENT_QUOTES, 'UTF-8')); ?>
-                                                </a>
+                                                    <a href="mailto:<?php echo \htmlspecialchars($data['email'], \ENT_QUOTES, 'UTF-8'); ?>" class="u-text-link c-table__mail-link">
+                                                        <?php echo \str_replace('@', '<wbr>@', \htmlspecialchars($data['email'], \ENT_QUOTES, 'UTF-8')); ?>
+                                                    </a>
                                                 </small>
                                             <?php } else { ?>
                                                 <small class="u-color-muted"><em>keine Angabe</em></small>
                                             <?php } ?>
                                         </td>
                                     <?php } ?>
-
                                     <!-- EINNAHMEN -->
                                     <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
-                                        <td class="u-text-right u-text-nowrap">
+                                        <td class="c-table__data-cell u-text-right u-text-nowrap">
                                             <strong class="u-color-primary"><?php echo \number_format($data['revenue'], 2, ',', '.'); ?> €</strong>
                                         </td>
                                     <?php } ?>
-
                                     <!-- ANTRÄGE -->
-                                    <td class="u-text-center">
+                                    <td class="c-table__data-cell u-text-center">
                                         <span class="c-badge c-badge--outline u-color-main"><?php echo $data['count']; ?></span>
                                     </td>
-
                                     <!-- INTENSITÄT (Progress Bar) -->
-                                    <td class="u-text-left u-padding-inline-end-l">
+                                    <td class="c-table__data-cell u-text-left u-padding-inline-end-l">
                                         <div class="c-progress-bar">
                                             <div class="c-progress-bar__fill"
                                                  style="inline-size: <?php echo $perc; ?>%;"></div>

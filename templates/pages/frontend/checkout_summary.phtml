@@ -58,45 +58,45 @@ $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
             <div class="c-box c-box--subtle u-margin-block-end-l">
                 <table class="c-table c-table--summary">
                     <tr>
-                        <td class="c-table__label"
+                        <td class="c-table__data-cell c-table__label"
                             style="width: 35%;">Antragsteller:</td>
-                        <td class="c-table__value"><?php echo \htmlspecialchars($tempData['name'] ?? ''); ?></td>
+                        <td class="c-table__data-cell c-table__value"><?php echo \htmlspecialchars($tempData['name'] ?? ''); ?></td>
                     </tr>
                     <tr class="c-table__row">
-                        <td class="c-table__label">E-Mail-Adresse:</td>
-                        <td class="c-table__value u-color-primary"><?php echo \htmlspecialchars($tempData['email'] ?? ''); ?></td>
+                        <td class="c-table__data-cell c-table__label">E-Mail-Adresse:</td>
+                        <td class="c-table__data-cell c-table__value u-color-primary"><?php echo \htmlspecialchars($tempData['email'] ?? ''); ?></td>
                     </tr>
                     <tr class="c-table__row">
-                        <td class="c-table__label">Parzelle:</td>
-                        <td class="c-table__value">Nr. <?php echo \htmlspecialchars($tempData['parzelle'] ?? ''); ?></td>
+                        <td class="c-table__data-cell c-table__label">Parzelle:</td>
+                        <td class="c-table__data-cell c-table__value">Nr. <?php echo \htmlspecialchars($tempData['parzelle'] ?? ''); ?></td>
                     </tr>
                     <tr class="c-table__row">
-                        <td class="c-table__label">Fahrzeugtyp:</td>
-                        <td class="c-table__value"><?php $vKey = $tempData['typ'] ?? '';
+                        <td class="c-table__data-cell c-table__label">Fahrzeugtyp:</td>
+                        <td class="c-table__data-cell c-table__value"><?php $vKey = $tempData['typ'] ?? '';
 echo \htmlspecialchars($settings['vehicle_types'][$vKey]['label'] ?? $vKey); ?></td>
                     </tr>
                     <tr class="c-table__row">
-                        <td class="c-table__label">Kennzeichen:</td>
-                        <td class="c-table__value c-table__value--code"><?php echo \htmlspecialchars($tempData['kennzeichen'] ?? ''); ?></td>
+                        <td class="c-table__data-cell c-table__label">Kennzeichen:</td>
+                        <td class="c-table__data-cell c-table__value c-table__value--code"><?php echo \htmlspecialchars($tempData['kennzeichen'] ?? ''); ?></td>
                     </tr>
                     <?php if (!empty($tempData['firma'])) { ?>
                         <tr class="c-table__row">
-                            <td class="c-table__label">Firma / Lieferant:</td>
-                            <td class="c-table__value"><?php echo \htmlspecialchars($tempData['firma']); ?></td>
+                            <td class="c-table__data-cell c-table__label">Firma / Lieferant:</td>
+                            <td class="c-table__data-cell c-table__value"><?php echo \htmlspecialchars($tempData['firma']); ?></td>
                         </tr>
                     <?php } ?>
                     <tr class="c-table__row">
-                        <td class="c-table__label">Grund der Einfahrt:</td>
-                        <td class="c-table__value"><?php $zKey = $tempData['zweck'] ?? '';
+                        <td class="c-table__data-cell c-table__label">Grund der Einfahrt:</td>
+                        <td class="c-table__data-cell c-table__value"><?php $zKey = $tempData['zweck'] ?? '';
 echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
                     </tr>
                     <tr class="c-table__row">
-                        <td class="c-table__label">Zeitraum:</td>
-                        <td class="c-table__value"><?php echo \date('d.m.Y', \strtotime($tempData['datum_von'] ?? 'now')); ?> bis <?php echo \date('d.m.Y', \strtotime($tempData['datum_bis'] ?? 'now')); ?></td>
+                        <td class="c-table__data-cell c-table__label">Zeitraum:</td>
+                        <td class="c-table__data-cell c-table__value"><?php echo \date('d.m.Y', \strtotime($tempData['datum_von'] ?? 'now')); ?> bis <?php echo \date('d.m.Y', \strtotime($tempData['datum_bis'] ?? 'now')); ?></td>
                     </tr>
                     <tr>
-                        <td class="c-table__label--total">Zu zahlender Betrag:</td>
-                        <td class="c-table__value--total"><?php echo \number_format((float) ($tempData['preis'] ?? 0), 2, ',', '.'); ?> €</td>
+                        <td class="c-table__data-cell c-table__label--total">Zu zahlender Betrag:</td>
+                        <td class="c-table__data-cell c-table__value--total"><?php echo \number_format((float) ($tempData['preis'] ?? 0), 2, ',', '.'); ?> €</td>
                     </tr>
                 </table>
             </div>
