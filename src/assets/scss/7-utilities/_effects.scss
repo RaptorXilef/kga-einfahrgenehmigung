@@ -5,18 +5,21 @@
     .u-bg-light {
         background-color: var(--color-bg-light) !important;
     }
+
     .u-opacity-50 {
         opacity: 0.5 !important;
     }
     .u-opacity-75 {
         opacity: 0.75 !important;
     }
+
     .u-grayscale {
         filter: grayscale(100%) !important;
     }
     .u-filter-invert {
         filter: brightness(0) invert(1) !important;
     }
+
     .u-cursor-pointer {
         cursor: pointer !important;
     }
@@ -38,17 +41,8 @@
         background-color: var(--color-danger-soft) !important;
     }
 
-    body.state-bg-valid .c-card,
-    body.state-bg-rest .c-card,
-    body.state-bg-error .c-card {
+    .u-shadow-highlight {
         box-shadow: 0 10px 15px -3px
-            color-mix(in oklch, oklch(0 0 0) 5%, transparent);
-    }
-
-    .is-success-text {
-        color: var(--color-success) !important;
-    }
-    .is-danger-text {
-        color: var(--color-danger) !important;
+            color-mix(in oklch, oklch(0 0 0) 5%, transparent) !important;
     }
 }

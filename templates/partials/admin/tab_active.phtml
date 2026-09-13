@@ -127,17 +127,17 @@ if ($auth->hasPermission('permits.view')) {
             <?php echo $paginationHtml; ?>
 
             <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
-                <table class="c-table js-sort-table u-width-100">
+                <table class="c-table js-sort-table u-inline-size-100">
                     <thead>
                         <tr>
-                            <th class="c-table__header-cell js-sort-header u-text-left">Antragsteller & Kennung</th>
+                            <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung</th>
                             <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
                             <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                                <th class="c-table__header-cell js-sort-header u-text-left">Kontakt (E-Mail)</th>
+                                <th class="c-table__header-cell js-sort-header u-text-start">Kontakt (E-Mail)</th>
                             <?php } ?>
                             <th class="c-table__header-cell js-sort-header u-text-center">Gültigkeit & Restzeit</th>
                             <th class="c-table__header-cell js-sort-header u-text-center">Status</th>
-                            <th class="c-table__header-cell u-text-right u-padding-inline-end-m">Verwaltung</th>
+                            <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Verwaltung</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -233,7 +233,7 @@ if ($auth->hasPermission('permits.view')) {
                                     </td>
 
                                     <!-- 6. Verwaltung (Buttons & Verstecktes Formular) -->
-                                    <td class="c-table__data-cell u-text-right u-padding-inline-end-m">
+                                    <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                                         <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
                                                 <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Druckvorschau">

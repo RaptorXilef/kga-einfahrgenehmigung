@@ -6,10 +6,10 @@
         display: inline-block !important;
     }
 
-    .u-width-100 {
+    .u-inline-size-100 {
         inline-size: 100% !important;
     }
-    .u-height-100 {
+    .u-block-size-100 {
         block-size: 100% !important;
     }
 
@@ -35,11 +35,9 @@
     .u-border-none {
         border: none !important;
     }
-
     .u-border-radius-m {
         border-radius: 12px !important;
     }
-
     .u-border-radius-circle {
         border-radius: 50% !important;
     }

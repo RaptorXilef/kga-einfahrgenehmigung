@@ -29,14 +29,14 @@ $cancelledPermits ??= [];
             </header>
 
             <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
-                <table class="c-table js-sort-table u-width-100">
+                <table class="c-table js-sort-table u-inline-size-100">
                     <thead>
                         <tr>
-                            <th class="c-table__header-cell js-sort-header u-text-left">Antragsteller & Kennung</th>
+                            <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung</th>
                             <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
                             <th class="c-table__header-cell js-sort-header u-text-center">Zeitraum</th>
-                            <th class="c-table__header-cell js-sort-header u-text-right">Preis</th>
-                            <th class="c-table__header-cell js-sort-header u-text-right u-padding-inline-end-m">
+                            <th class="c-table__header-cell js-sort-header u-text-end">Preis</th>
+                            <th class="c-table__header-cell js-sort-header u-text-end u-padding-inline-end-m">
                                 Stornierungsdatum</th>
                         </tr>
                     </thead>
@@ -75,10 +75,10 @@ $cancelledPermits ??= [];
                                             </small>
                                         </div>
                                     </td>
-                                    <td class="c-table__data-cell u-text-right u-text-nowrap">
+                                    <td class="c-table__data-cell u-text-end u-text-nowrap">
                                         <strong class="u-color-dark"><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?> €</strong>
                                     </td>
-                                    <td class="c-table__data-cell u-text-right u-text-nowrap u-padding-inline-end-m">
+                                    <td class="c-table__data-cell u-text-end u-text-nowrap u-padding-inline-end-m">
                                         <strong class="u-color-danger"><?php echo $permit->getCreatedAt()->format('d.m.Y'); ?></strong><br>
                                         <small class="u-color-muted"><?php echo $permit->getCreatedAt()->format('H:i'); ?> Uhr</small>
                                     </td>

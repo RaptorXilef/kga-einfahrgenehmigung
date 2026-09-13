@@ -134,17 +134,17 @@ $currentPage = $path === '' ? 'admin' : $path;
         <div class="o-grid o-grid--2-cols u-margin-block-start-l">
             <!-- Button 1: Bleiben -->
             <button id="btn-session-stay"
-                    class="c-button c-button--success u-width-100">Bleiben</button>
+                    class="c-button c-button--success u-inline-size-100">Bleiben</button>
 
             <!-- Button 2: Abmelden (Sicheres Formular) -->
             <form method="POST"
                   action="admin_logout"
-                  class="u-margin-block-none u-width-100">
+                  class="u-margin-block-none u-inline-size-100">
                 <input type="hidden"
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <button type="submit"
-                        class="c-button c-button--danger u-width-100">Abmelden</button>
+                        class="c-button c-button--danger u-inline-size-100">Abmelden</button>
             </form>
         </div>
     </div>

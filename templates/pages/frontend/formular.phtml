@@ -134,7 +134,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 </span>
                     </div>
 
-                    <div class="c-voucher-container js-voucher-container c-box c-box--dashed o-container o-container--small u-margin-inline-auto">
+                    <div
+                         class="c-voucher-container js-voucher-container c-box c-box--dashed o-container o-container--small u-margin-inline-auto">
                         <!-- Formular nur für den Gutschein-Check -->
                         <form method="GET"
                               action="index"
@@ -402,11 +403,12 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                id="hp_contact_website"
                                class="c-form-group-hp__input"
                                tabindex="-1"
-                               autocomplete="off"> <?php // TODO Prüfen, ob bei HoneyPod erlaubt?>
+                               autocomplete="off"> <?php // TODO Prüfen, ob bei HoneyPod erlaubt
+                                                    ?>
                     </div>
 
                     <button type="submit"
-                            class="c-button c-button--primary c-button--submit u-width-100 u-margin-block-start-l">
+                            class="c-button c-button--primary c-button--submit u-inline-size-100 u-margin-block-start-l">
                         <?php echo $prefill ? 'Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
                     </button>
 

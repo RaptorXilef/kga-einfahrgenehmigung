@@ -123,7 +123,7 @@ export class SessionTimer {
         // Aktualisiere das Nav-Label
         if (this.container) {
             this.container.innerText = timeStr;
-            this.container.classList.toggle('is-danger-text', remainingMs <= this.warningMs);
+            this.container.classList.toggle('u-color-danger', remainingMs <= this.warningMs);
         }
 
         // Aktualisiere Modal-Countdown

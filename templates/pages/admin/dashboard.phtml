@@ -49,7 +49,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
 <main class="c-tab-content-container u-padding-block-l">
 
-    <div class="u-width-100">
+    <div class="u-inline-size-100">
         <!-- 1. NAVIGATION (TABS) -->
         <div class="c-tabs">
             <div class="c-tabs__nav u-margin-block-end-l">
@@ -329,13 +329,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     </button>
                 </div>
             </header>
-            <div class="c-card__body u-padding-block-l u-text-left u-overflow-y-auto u-flex-grow-1">
+            <div class="c-card__body u-padding-block-l u-text-start u-overflow-y-auto u-flex-grow-1">
                 <div id="release-notes-content"
                      class="c-markdown"></div>
             </div>
             <footer class="c-card__footer u-text-center">
                 <button type="button"
-                        class="c-button c-button--primary js-close-release-notes u-width-100 o-container o-container--small">
+                        class="c-button c-button--primary js-close-release-notes u-inline-size-100 o-container o-container--small">
                     ✓ Alles klar, verstanden!
                 </button>
             </footer>

@@ -57,7 +57,7 @@ export class VoucherManager {
 
         // Sichtbarkeit an CSS Utilities delegieren
         this.modalImg.classList.add('u-hidden');
-        this.modalLoader.classList.remove('u-hidden', 'is-danger-text');
+        this.modalLoader.classList.remove('u-hidden', 'u-color-danger');
         // Loader Text zurücksetzen, falls er beim letzten Mal auf "Fehler" stand
         this.modalLoader.innerText = 'Wird generiert...';
         this.modal.classList.add('c-modal--open');
@@ -83,7 +83,7 @@ export class VoucherManager {
             this.modalImg.classList.add('u-hidden');
             this.modalLoader.classList.remove('u-hidden');
             this.modalLoader.innerText = 'Fehler: QR-Code API nicht erreichbar.';
-            this.modalLoader.classList.add('is-danger-text');
+            this.modalLoader.classList.add('u-color-danger');
         };
 
         this.modalImg.src = qrUrl;
@@ -94,7 +94,7 @@ export class VoucherManager {
         this.modal.classList.remove('c-modal--open');
         this.modalImg.src = ''; // Leeren, damit beim nächsten Mal der Loader wieder erscheint
         // Loader-Style sicherheitshalber resetten
-        this.modalLoader.classList.remove('is-danger-text');
+        this.modalLoader.classList.remove('u-color-danger');
     }
 
     async copyLink(url, element) {
@@ -107,13 +107,13 @@ export class VoucherManager {
         const successAction = () => {
             element.innerText = 'Kopiert! ✓';
             // FIX: Farbänderung als Klasse toggeln
-            element.classList.add('is-success-text');
+            element.classList.add('u-color-success');
             notifier.show('Gutschein-Link in die Zwischenablage kopiert!', 'success');
 
             // Reset nach 2 Sekunden
             setTimeout(() => {
                 element.innerHTML = originalHtml;
-                element.classList.remove('is-success-text');
+                element.classList.remove('u-color-success');
                 delete element.dataset.isCopying; // Lock wieder freigeben
             }, 2000);
         };

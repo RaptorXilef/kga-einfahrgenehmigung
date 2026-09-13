@@ -1,3 +1,5 @@
+@use '../1-settings/tokens' as *;
+
 @layer utilities {
     .u-margin-none {
         margin: 0 !important;
@@ -5,19 +7,11 @@
     .u-margin-inline-auto {
         margin-inline: auto !important;
     }
-
     .u-margin-inline-start-auto {
         margin-inline-start: auto !important;
     }
     .u-margin-inline-end-auto {
         margin-inline-end: auto !important;
-    }
-
-    .u-margin-block-start-none {
-        margin-block-start: 0 !important;
-    }
-    .u-margin-block-end-none {
-        margin-block-end: 0 !important;
     }
     .u-margin-block-none {
         margin-block: 0 !important;
@@ -25,108 +19,13 @@
     .u-margin-inline-none {
         margin-inline: 0 !important;
     }
-
-    /* XS Spacing */
-    .u-margin-block-start-xs {
-        margin-block-start: 0.25rem !important;
+    .u-margin-block-start-none {
+        margin-block-start: 0 !important;
     }
-    .u-margin-block-end-xs {
-        margin-block-end: 0.25rem !important;
-    }
-    .u-margin-block-xs {
-        margin-block: 0.25rem !important;
-    }
-    .u-margin-inline-xs {
-        margin-inline: 0.25rem !important;
-    }
-    .u-margin-inline-start-xs {
-        margin-inline-start: 0.25rem !important;
-    }
-    .u-margin-inline-end-xs {
-        margin-inline-end: 0.25rem !important;
+    .u-margin-block-end-none {
+        margin-block-end: 0 !important;
     }
 
-    /* S Spacing */
-    .u-margin-block-start-s {
-        margin-block-start: 0.5rem !important;
-    }
-    .u-margin-block-end-s {
-        margin-block-end: 0.5rem !important;
-    }
-    .u-margin-block-s {
-        margin-block: 0.5rem !important;
-    }
-    .u-margin-inline-s {
-        margin-inline: 0.5rem !important;
-    }
-    .u-margin-inline-start-s {
-        margin-inline-start: 0.5rem !important;
-    }
-    .u-margin-inline-end-s {
-        margin-inline-end: 0.5rem !important;
-    }
-
-    /* M Spacing */
-    .u-margin-block-start-m {
-        margin-block-start: 1rem !important;
-    }
-    .u-margin-block-end-m {
-        margin-block-end: 1rem !important;
-    }
-    .u-margin-block-m {
-        margin-block: 1rem !important;
-    }
-    .u-margin-inline-m {
-        margin-inline: 1rem !important;
-    }
-    .u-margin-inline-start-m {
-        margin-inline-start: 1rem !important;
-    }
-    .u-margin-inline-end-m {
-        margin-inline-end: 1rem !important;
-    }
-
-    /* L Spacing */
-    .u-margin-block-start-l {
-        margin-block-start: 2rem !important;
-    }
-    .u-margin-block-end-l {
-        margin-block-end: 2rem !important;
-    }
-    .u-margin-block-l {
-        margin-block: 2rem !important;
-    }
-    .u-margin-inline-l {
-        margin-inline: 2rem !important;
-    }
-    .u-margin-inline-start-l {
-        margin-inline-start: 2rem !important;
-    }
-    .u-margin-inline-end-l {
-        margin-inline-end: 2rem !important;
-    }
-
-    /* XL Spacing */
-    .u-margin-block-start-xl {
-        margin-block-start: 3rem !important;
-    }
-    .u-margin-block-end-xl {
-        margin-block-end: 3rem !important;
-    }
-    .u-margin-block-xl {
-        margin-block: 3rem !important;
-    }
-    .u-margin-inline-xl {
-        margin-inline: 3rem !important;
-    }
-    .u-margin-inline-start-xl {
-        margin-inline-start: 3rem !important;
-    }
-    .u-margin-inline-end-xl {
-        margin-inline-end: 3rem !important;
-    }
-
-    /* Padding */
     .u-padding-none {
         padding: 0 !important;
     }
@@ -137,55 +36,40 @@
         padding-block-end: 0 !important;
     }
 
-    .u-padding-around-s {
-        padding: 0.5rem !important;
-    }
-    .u-padding-block-s {
-        padding-block: 0.5rem !important;
-    }
-    .u-padding-inline-s {
-        padding-inline: 0.5rem !important;
-    }
-    .u-padding-block-start-s {
-        padding-block-start: 0.5rem !important;
-    }
+    /* Eine Schleife für alle Tokens! */
+    @each $name, $value in $tokens-spacing {
+        /* Margins */
+        .u-margin-block-start-#{$name} {
+            margin-block-start: #{$value} !important;
+        }
+        .u-margin-block-end-#{$name} {
+            margin-block-end: #{$value} !important;
+        }
+        .u-margin-block-#{$name} {
+            margin-block: #{$value} !important;
+        }
+        .u-margin-inline-start-#{$name} {
+            margin-inline-start: #{$value} !important;
+        }
+        .u-margin-inline-end-#{$name} {
+            margin-inline-end: #{$value} !important;
+        }
+        .u-margin-inline-#{$name} {
+            margin-inline: #{$value} !important;
+        }
 
-    .u-padding-around-m {
-        padding: 1rem !important;
-    }
-    .u-padding-block-m {
-        padding-block: 1rem !important;
-    }
-    .u-padding-inline-m {
-        padding-inline: 1rem !important;
-    }
-    .u-padding-block-start-m {
-        padding-block-start: 1rem !important;
-    }
-
-    .u-padding-around-l {
-        padding: 2rem !important;
-    }
-    .u-padding-block-l {
-        padding-block: 2rem !important;
-    }
-    .u-padding-inline-l {
-        padding-inline: 2rem !important;
-    }
-    .u-padding-block-start-l {
-        padding-block-start: 2rem !important;
-    }
-
-    .u-padding-around-xl {
-        padding: 3rem !important;
-    }
-    .u-padding-block-xl {
-        padding-block: 3rem !important;
-    }
-    .u-padding-inline-xl {
-        padding-inline: 3rem !important;
-    }
-    .u-padding-block-start-xl {
-        padding-block-start: 3rem !important;
+        /* Paddings */
+        .u-padding-around-#{$name} {
+            padding: #{$value} !important;
+        }
+        .u-padding-block-#{$name} {
+            padding-block: #{$value} !important;
+        }
+        .u-padding-inline-#{$name} {
+            padding-inline: #{$value} !important;
+        }
+        .u-padding-block-start-#{$name} {
+            padding-block-start: #{$value} !important;
+        }
     }
 }

@@ -89,7 +89,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
 
     <header class="u-flex u-justify-between u-align-center u-margin-block-end-l">
         <div>
-            <h1 class="u-margin-block-none u-text-left">Detailprüfung (Vorstand)</h1>
+            <h1 class="u-margin-block-none u-text-start">Detailprüfung (Vorstand)</h1>
             <p class="u-color-muted">Interne Daten für Code: <code><?php echo $permit ? $permit->code : '---'; ?></code></p>
         </div>
         <div class="u-flex u-gap-s">
@@ -109,7 +109,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
     </header>
 
     <?php if ($permit) { ?>
-        <section class="c-card c-card--primary">
+        <section class="c-card c-card--primary u-shadow-highlight">
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <h3 class="u-margin-block-none">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"

@@ -120,15 +120,15 @@ if ($auth->hasPermission('system.logs.view')) { ?>
             <?php echo $paginationHtml; ?>
 
             <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
-                <table class="c-table u-width-100">
+                <table class="c-table u-inline-size-100">
                     <thead>
                         <tr>
-                            <th class="c-table__header-cell u-text-left">Zeitpunkt</th>
+                            <th class="c-table__header-cell u-text-start">Zeitpunkt</th>
                             <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                                <th class="c-table__header-cell u-text-left">Empfänger</th>
+                                <th class="c-table__header-cell u-text-start">Empfänger</th>
                             <?php } ?>
-                            <th class="c-table__header-cell u-text-left">Betreff & Details</th>
-                            <th class="c-table__header-cell u-text-right u-padding-inline-end-m">Status</th>
+                            <th class="c-table__header-cell u-text-start">Betreff & Details</th>
+                            <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -186,7 +186,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                             </div>
                                         <?php } ?>
                                     </td>
-                                    <td class="c-table__data-cell u-text-right u-padding-inline-end-m">
+                                    <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                                         <div class="u-flex u-gap-xs u-justify-end u-align-center u-text-nowrap">
                                             <span class="c-badge c-badge--<?php echo $isSuccess ? 'success' : 'danger'; ?>" style="min-inline-size: 100px; block-size: 32px;">
                                                 <?php $statusIcon = $isSuccess ? 'status-success' : 'status-invalid'; ?>

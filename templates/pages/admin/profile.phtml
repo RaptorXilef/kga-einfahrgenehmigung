@@ -31,7 +31,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
     <div class="u-margin-inline-auto">
         <header class="u-flex u-justify-between u-align-end u-margin-block-end-l">
             <div>
-                <h1 class="u-margin-none u-text-left">
+                <h1 class="u-margin-none u-text-start">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                          class="c-icon c-icon--md"
                          alt="">
@@ -68,7 +68,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
                            class="u-hidden"
                            accept="image/*">
                     <button type="button"
-                            class="c-button c-button--primary u-width-100 js-trigger-click"
+                            class="c-button c-button--primary u-inline-size-100 js-trigger-click"
                             data-target="avatar-input">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-camera.webp'); ?>"
                              class="c-icon c-button__icon"
@@ -142,7 +142,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
                                        placeholder="••••••••"
                                        autocomplete="current-password">
                             </div>
-                            <hr class="u-border-top u-width-100 u-margin-block-none"
+                            <hr class="u-border-top u-inline-size-100 u-margin-block-none"
                                 style="border: none;">
                             <div class="o-grid o-grid--2-cols u-gap-m">
                                 <div class="c-form-group">

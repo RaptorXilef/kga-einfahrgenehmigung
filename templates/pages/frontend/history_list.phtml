@@ -65,14 +65,14 @@ $now = new \DateTimeImmutable('today');
 
     <section class="c-card c-card--primary">
         <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
-            <table class="c-table js-sort-table u-width-100">
+            <table class="c-table js-sort-table u-inline-size-100">
                 <thead>
                     <tr>
-                        <th class="c-table__header-cell js-sort-header u-text-left">Antragsteller & Kennung</th>
+                        <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung</th>
                         <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
                         <th class="c-table__header-cell js-sort-header u-text-center">Gültigkeit & Restzeit</th>
                         <th class="c-table__header-cell js-sort-header u-text-center">Finanz-Status</th>
-                        <th class="c-table__header-cell u-text-right u-padding-inline-end-m">Aktion</th>
+                        <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Aktion</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -181,7 +181,7 @@ $now = new \DateTimeImmutable('today');
                                     data-sort-val="<?php echo $isPaid ? '1' : '0'; ?>">
                                     <span class="c-badge <?php echo $statusClass; ?>"><?php echo $statusText; ?></span>
                                 </td>
-                                <td class="c-table__data-cell u-text-right u-padding-inline-end-m">
+                                <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                                     <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                         <?php $allowCancel = (bool) $config->get('allow_user_cancellation', true);
                             if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) { ?>

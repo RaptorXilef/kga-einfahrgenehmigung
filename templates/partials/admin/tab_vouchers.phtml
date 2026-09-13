@@ -37,12 +37,12 @@ use App\Infrastructure\Config\Config;
                 </header>
                 <div class="c-card__body u-padding-block-none u-padding-inline-none"
                      style="max-block-size: 650px; overflow-y: auto;">
-                    <table class="c-table u-width-100">
+                    <table class="c-table u-inline-size-100">
                         <thead>
                             <tr>
                                 <th class="c-table__header-cell">Code / QR</th>
                                 <th class="c-table__header-cell">Details & Konditionen</th>
-                                <th class="c-table__header-cell u-text-right u-padding-inline-end-m">Aktion</th>
+                                <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Aktion</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -133,7 +133,7 @@ use App\Infrastructure\Config\Config;
                                                 </span>
                                             </div>
                                         </td>
-                                        <td class="c-table__data-cell u-text-right u-padding-inline-end-m">
+                                        <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                                             <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                                 <?php if ($auth->hasPermission('vouchers.suspend')) { ?>
                                                     <form method="POST"
@@ -211,12 +211,12 @@ use App\Infrastructure\Config\Config;
                 </header>
                 <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto"
                      style="max-block-size: 650px;">
-                    <table class="c-table c-table--summary u-width-100">
+                    <table class="c-table c-table--summary u-inline-size-100">
                         <thead>
                             <tr>
-                                <th class="c-table__header-cell u-text-left u-padding-inline-m">Datum</th>
-                                <th class="c-table__header-cell u-text-left">Nutzer</th>
-                                <th class="c-table__header-cell u-text-right u-padding-inline-end-m">Code</th>
+                                <th class="c-table__header-cell u-text-start u-padding-inline-m">Datum</th>
+                                <th class="c-table__header-cell u-text-start">Nutzer</th>
+                                <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Code</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -239,7 +239,7 @@ use App\Infrastructure\Config\Config;
                                                 <small class="u-color-muted">Parzelle <?php echo $arc['user_plot']; ?></small>
                                             </div>
                                         </td>
-                                        <td class="c-table__data-cell u-text-right u-padding-inline-end-m">
+                                        <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                                             <code class="c-license-plate"><?php echo $arc['code']; ?></code>
                                         </td>
                                     </tr>
@@ -270,7 +270,7 @@ use App\Infrastructure\Config\Config;
             </div>
 
             <button type="button"
-                    class="c-button c-button--primary u-width-100 u-margin-block-start-m js-close-modal">Schließen</button>
+                    class="c-button c-button--primary u-inline-size-100 u-margin-block-start-m js-close-modal">Schließen</button>
         </div>
     </div>
 <?php } ?>

@@ -186,7 +186,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                                    id="file-role-<?php echo \md5($roleId); ?>"
                                    accept="image/*">
                             <button type="button"
-                                    class="c-button c-button--secondary c-button--small u-width-100 js-trigger-click"
+                                    class="c-button c-button--secondary c-button--small u-inline-size-100 js-trigger-click"
                                     data-target="file-role-<?php echo \md5($roleId); ?>">Bild ändern</button>
                         </form>
 
@@ -268,7 +268,7 @@ if ($auth->hasPermission('system.roles.manage')) {
 
                             <div class="u-margin-block-start-xl">
                                 <button type="submit"
-                                        class="c-button c-button--primary c-button--large u-width-100 u-font-bold">
+                                        class="c-button c-button--primary c-button--large u-inline-size-100 u-font-bold">
                                     <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
                                          class="c-icon c-button__icon"
                                          alt=""> RECHTE FÜR <?php echo \strtoupper($rData->name); ?> SPEICHERN
