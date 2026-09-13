@@ -16,7 +16,7 @@ use App\Infrastructure\Maintenance\BackupService;
  * @var array $backups
  */
 $targets = [
-    'all' => ['label' => 'Komplette Datenbank (Alle)', 'icon' => '📦'],
+    'all' => ['label' => 'Komplette Datenbank (Alle)', 'icon' => '📦'], /* TODO <img src="<?php echo $asset->url('assets/img/icons/icon-package.webp'); ?>" class="c-icon c-button__icon" alt=""> */
     'roles' => ['label' => 'Rechte-Rollen', 'icon' => '🛡️'],
     'magic_links' => ['label' => 'Login-Tokens', 'icon' => '🔗'],
     'mail_log' => ['label' => 'E-Mail Protokolle', 'icon' => '📧'],
@@ -42,7 +42,9 @@ if ($auth->hasPermission('system.backup.manage')) {
         <div class="u-margin-bottom-l">
             <header class="u-margin-bottom-m u-flex u-align-center u-justify-between u-flex-wrap u-gap-m">
                 <div class="u-flex u-align-center u-gap-s">
-                    <span class="u-text-xl">📦</span>
+                    <span class="u-text-xl">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-package.webp'); ?>" class="c-icon c-button__icon" alt="">
+                    </span>
                     <div>
                         <h3 class="u-margin-none">Manuelle Sicherung & Resets</h3>
                         <p class="u-color-muted u-text-sm u-margin-none">Datenbank-Tabellen komprimiert sichern.</p>
@@ -50,9 +52,13 @@ if ($auth->hasPermission('system.backup.manage')) {
                 </div>
                 <?php if ($ftpEnabled) { ?>
                     <span class="c-badge c-badge--success"
-                          title="Backups werden zusätzlich auf einen externen Server gespiegelt.">☁️ FTP Offsite-Backup aktiv</span>
+                          title="Backups werden zusätzlich auf einen externen Server gespiegelt.">
+                          <img src="<?php echo $asset->url('assets/img/icons/icon-cloud.webp'); ?>" class="c-icon c-button__icon" alt=""> FTP Offsite-Backup aktiv
+                    </span>
                 <?php } else { ?>
-                    <span class="c-badge c-badge--outline">💾 Nur lokale Backups</span>
+                    <span class="c-badge c-badge--outline">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-floppy-disk.webp'); ?>" class="c-icon c-button__icon" alt=""> Nur lokale Backups
+                    </span>
                 <?php } ?>
             </header>
 
@@ -83,7 +89,11 @@ if ($auth->hasPermission('system.backup.manage')) {
 
                 <div class="c-card c-card--danger u-flex-column u-margin-none">
                     <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
-                        <h4 class="u-margin-none u-text-lg">🗑️ Tabelle leeren (Truncate)</h4>
+                        <h4 class="u-margin-none u-text-lg">
+                            <img src="<?php echo $asset->url('assets/img/icons/icon-wastebasket.webp'); ?>"
+                                 class="c-icon c-button__icon"
+                                 alt=""> Tabelle leeren (Truncate)
+                        </h4>
                     </div>
                     <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
                         <form method="POST"
@@ -114,7 +124,9 @@ if ($auth->hasPermission('system.backup.manage')) {
 
         <div class="u-margin-top-xl">
             <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
-                <span class="u-text-xl">💾</span>
+                <span class="u-text-xl">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-floppy-disk.webp'); ?>" class="c-icon c-button__icon" alt="">
+                </span>
                 <div>
                     <h3 class="u-margin-none">Verfügbare Backups zur Wiederherstellung</h3>
                     <p class="u-color-muted u-text-sm u-margin-none">Überschreiben oder ergänzen Sie Live-Tabellen mit
@@ -125,7 +137,9 @@ if ($auth->hasPermission('system.backup.manage')) {
             <?php if (empty($backups)) { ?>
                 <div class="c-card c-card--primary">
                     <div class="c-card__body u-padding-around-l u-text-center u-color-muted">
-                        <span class="u-text-2xl u-display-block u-margin-bottom-s">📦</span>
+                        <span class="u-text-2xl u-display-block u-margin-bottom-s">
+                            <img src="<?php echo $asset->url('assets/img/icons/icon-package.webp'); ?>" class="c-icon c-button__icon" alt="">
+                        </span>
                         Es sind noch keine ZIP-Archive vorhanden.
                     </div>
                 </div>
@@ -136,7 +150,8 @@ if ($auth->hasPermission('system.backup.manage')) {
                         $sizeMb = \round($b['size'] / 1024 / 1024, 2);
                         ?>
                         <div class="c-card c-card--primary u-flex-column u-margin-none">
-                            <div class="c-card__header u-flex u-justify-between u-align-center u-padding-around-m u-bg-light">
+                            <div
+                                 class="c-card__header u-flex u-justify-between u-align-center u-padding-around-m u-bg-light">
                                 <div>
                                     <h4 class="u-margin-none u-text-lg"><?php echo $formattedDate; ?></h4>
                                     <span class="u-color-muted u-text-sm"><?php echo \htmlspecialchars($b['filename']); ?> (<?php echo $sizeMb; ?> MB)</span>

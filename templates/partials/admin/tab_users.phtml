@@ -132,7 +132,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                             <button type="submit"
                                     class="c-button c-button--danger c-button--icon-only">
                                 <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
-                                     class="c-icon"
+                                     class="c-icon c-button__icon"
                                      alt="">
                             </button>
                         </form>
@@ -239,7 +239,10 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                                         <?php } ?>
                                     </select>
                                     <p class="u-color-muted u-text-sm u-margin-block-start-xs u-margin-block-none">
-                                        ℹ️ Änderungen an der Rolle wirken sich sofort auf die Berechtigungen aus. <?php // ToDo Icon?>
+                                        <img src="<?php echo $asset->url('assets/img/icons/icon-information.webp'); ?>"
+                                             class="c-icon c-button__icon"
+                                             alt=""> Änderungen an der Rolle wirken sich sofort auf die Berechtigungen
+                                        aus.>
                                     </p>
                                 </form>
                             </div>

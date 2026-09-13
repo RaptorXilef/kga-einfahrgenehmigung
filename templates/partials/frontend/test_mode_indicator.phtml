@@ -30,7 +30,9 @@ use App\Infrastructure\Config\Config;
 
             <?php if ($config->get('admin_dev_mode')) { ?>
                 <div class="c-test-indicator__admin-badge">
-                    🔐 Admin Bypass Aktiv
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-locked-with-key.webp'); ?>"
+                         class="c-icon c-button__icon"
+                         alt=""> Admin Bypass Aktiv
                 </div>
             <?php } ?>
 

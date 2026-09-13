@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\AssetHelperInterface;
 
 /**
  * Partial: Dashboard Tab - Bank Import
  *
+ * @var AssetHelperInterface $asset
  * @var ConfigInterface $config
  * @var array<string, mixed> $formData
  * @var array $settings
@@ -25,7 +27,11 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
 <div class="c-tab-content-container">
     <section class="c-card c-card--success">
         <header class="c-card__header u-text-center u-padding-block-l">
-            <h3 class="u-margin-block-none">🏦 Automatischer Bank-Kontoauszugs-Abgleich</h3> <?php // ToDo Icon?>
+            <h3 class="u-margin-block-none">
+                <img src="<?php echo $asset->url('assets/img/icons/icon-bank.webp'); ?>"
+                     class="c-icon c-button__icon"
+                     alt=""> Automatischer Bank-Kontoauszugs-Abgleich
+            </h3>
             <p class="u-color-muted">Laden Sie die CSV-Datei Ihrer Bank hoch, um offene Permits automatisch auf
                 "bezahlt" zu setzen.</p>
         </header>
@@ -46,7 +52,9 @@ if (!$headersExist) {
 
                     <div class="c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-block-xl c-box c-box--dashed"
                          id="csvDropzone">
-                        <span class="u-text-3xl u-display-block u-margin-block-end-s">📄</span> <?php // ToDo Icon?>
+                        <span class="u-text-3xl u-display-block u-margin-block-end-s">
+                            <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>" class="c-icon c-button__icon" alt="">
+                        </span>
                         <strong class="js-preview-text u-text-lg">CSV-Datei hierher ziehen oder klicken zum
                             Auswählen</strong>
 
@@ -110,7 +118,10 @@ if (!$headersExist) {
                             </select>
                             <div
                                  class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
-                                👁️ <strong id="preview_id" <?php // ToDo Icon?>
+                                <img src="<?php echo $asset->url('assets/img/icons/icon-eye.webp'); ?>"
+                                     class="c-icon c-button__icon"
+                                     alt="">
+                                <strong id="preview_id"
                                         class="u-color-primary">---</strong>
                             </div>
                         </div>
@@ -130,8 +141,12 @@ if (!$headersExist) {
                                     </option>
                                 <?php } ?>
                             </select>
-                            <div class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
-                                👁️ <strong id="preview_amount" <?php // ToDo Icon?>
+                            <div
+                                 class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
+                                <img src="<?php echo $asset->url('assets/img/icons/icon-eye.webp'); ?>"
+                                     class="c-icon c-button__icon"
+                                     alt="">
+                                <strong id="preview_amount"
                                         class="u-color-success">---</strong>
                             </div>
                         </div>
@@ -151,8 +166,12 @@ if (!$headersExist) {
                                     </option>
                                 <?php } ?>
                             </select>
-                            <div class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
-                                👁️ <strong id="preview_date" <?php // ToDo Icon?>
+                            <div
+                                 class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
+                                <img src="<?php echo $asset->url('assets/img/icons/icon-eye.webp'); ?>"
+                                     class="c-icon c-button__icon"
+                                     alt="">
+                                <strong id="preview_date"
                                         class="u-color-main">---</strong>
                             </div>
                         </div>
@@ -162,7 +181,12 @@ if (!$headersExist) {
                          class="u-margin-block-start-xl u-flex u-gap-m u-justify-between u-align-center u-border-top u-padding-block-start-l u-flex-wrap">
                         <a href="admin" class="c-button c-button--secondary">✕ Abbrechen</a>
                         <button type="submit"
-                                class="c-button c-button--primary">Abgleich starten & Permits aktivieren 🚀</button> <?php // ToDo Icon?>
+                                class="c-button c-button--primary">Abgleich starten & Permits aktivieren
+                            <img src="<?php echo $asset->url('assets/img/icons/icon-rocket.webp'); ?>"
+                                 class="c-icon c-button__icon"
+                                 alt="">
+                        </button>
+
                     </div>
                 </form>
             <?php } ?>

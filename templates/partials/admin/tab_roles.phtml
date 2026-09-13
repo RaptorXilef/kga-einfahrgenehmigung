@@ -79,7 +79,11 @@ if ($auth->hasPermission('system.roles.manage')) {
          class="u-flex u-flex-column u-gap-l">
         <section class="c-card c-card--primary">
             <header class="c-card__header">
-                <h3 class="u-margin-block-none">📦 Neue Rolle erstellen</h3> <?php // ToDo Icon?>
+                <h3 class="u-margin-block-none">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-package.webp'); ?>"
+                         class="c-icon c-button__icon"
+                         alt=""> Neue Rolle erstellen
+                </h3>
             </header>
             <div class="c-card__body u-padding-around-l">
                 <form method="POST"
@@ -148,7 +152,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                                 <button type="submit"
                                         class="c-button c-button--danger c-button--icon-only">
                                     <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
-                                         class="c-icon"
+                                         class="c-icon c-button__icon"
                                          alt="">
                                 </button>
                             </form>
@@ -230,7 +234,9 @@ if ($auth->hasPermission('system.roles.manage')) {
                                 <div
                                      class="c-box c-box--danger-soft u-margin-block-end-l u-padding-around-m u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
                                     <div class="u-flex u-align-center u-gap-m">
-                                        <span class="u-text-2xl">👑</span>
+                                        <span class="u-text-2xl">
+                                            <img src="<?php echo $asset->url('assets/img/icons/icon-crown.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                        </span>
                                         <div>
                                             <strong class="u-color-danger">Vollständiger System-Zugriff</strong>
                                             <small class="u-color-danger u-display-block u-opacity-75">Aktiviert alle
@@ -263,7 +269,9 @@ if ($auth->hasPermission('system.roles.manage')) {
                             <div class="u-margin-block-start-xl">
                                 <button type="submit"
                                         class="c-button c-button--primary c-button--large u-width-100 u-font-bold">
-                                    🛡️ RECHTE FÜR <?php echo \strtoupper($rData->name); ?> SPEICHERN <?php // ToDo Icon?>
+                                    <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
+                                         class="c-icon c-button__icon"
+                                         alt=""> RECHTE FÜR <?php echo \strtoupper($rData->name); ?> SPEICHERN
                                 </button>
                             </div>
                         </form>

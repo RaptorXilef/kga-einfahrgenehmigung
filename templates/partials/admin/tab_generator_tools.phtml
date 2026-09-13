@@ -52,7 +52,11 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     <?php if (!$hasAnyTemplate) { ?>
         <div class="c-card c-card--danger u-text-center">
             <div class="c-card__body c-card__body--xl">
-                <div class="u-text-4xl u-margin-block-end-m">🚫</div> <?php // ToDo Icon?>
+                <div class="u-text-4xl u-margin-block-end-m">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon_prohibited.webp'); ?>"
+                         class="c-icon c-button__icon"
+                         alt="">
+                </div>
                 <h3 class="u-margin-block-none">Keine Berechtigung</h3>
                 <p class="u-color-muted o-container--small u-margin-inline-auto u-margin-block-start-s">
                     Sie verfügen über keine Berechtigungen für die verfügbaren Genehmigungs-Vorlagen.
@@ -412,7 +416,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             <details class="c-box c-box--subtle u-margin-block-end-m">
                                 <summary class="u-cursor-pointer u-font-semibold u-color-primary"
                                          style="outline: none;">
-                                    ➕ Vorgaben für Pächter (Vorbefüllung) <?php // ToDo Icon?>
+                                    <img src="<?php echo $asset->url('assets/img/icons/icon-plus.webp'); ?>"
+                                         class="c-icon c-button__icon"
+                                         alt=""> Vorgaben für Pächter (Vorbefüllung)
                                 </summary>
                                 <div class="u-margin-block-start-m u-border-top u-padding-block-start-m">
                                     <p class="u-color-muted u-text-sm u-margin-block-start-none u-margin-block-end-m">
@@ -570,7 +576,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <button type="submit"
                                             class="c-button c-button--primary">
                                         <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
-                                             class="c-icon u-filter-invert"
+                                             class="c-icon c-button__icon u-filter-invert"
                                              alt=""> Code Generieren
                                     </button>
                                 </div>

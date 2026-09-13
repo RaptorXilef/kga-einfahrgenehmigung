@@ -212,13 +212,13 @@ if ($auth->hasPermission('permits.view')) {
                                         <div class="u-flex u-gap-xs u-justify-end">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
                                                 <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Drucken">
-                                                <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="">
-                                            </a>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                                </a>
                                             <?php } ?>
                                             <?php if ($auth->hasPermission('permits.view')) { ?>
                                                 <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
-                                                <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
-                                            </a>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                                </a>
                                             <?php } ?>
                                         </div>
                                     </td>
@@ -238,7 +238,7 @@ if ($auth->hasPermission('permits.view')) {
     $loadUrl = '?' . \http_build_query($queryParams);
     ?>
                 <a href="<?php echo $loadUrl; ?>" class="c-button c-button--secondary">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>" class="c-icon" alt="">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>" class="c-icon c-button__icon" alt="">
                     &nbsp; Daten aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
                 </a>
                 <p class="u-text-sm u-color-muted u-margin-block-start-s u-margin-block-none">

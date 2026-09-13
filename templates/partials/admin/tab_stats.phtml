@@ -115,7 +115,8 @@ $chartDataPayload = [
                 } else {
                     $label = $vConfig[$typeKey]['label'] ?? $typeKey;
                     $icon = $vConfig[$typeKey]['icon'] ?? '';
-                } // Nur anzeigen wenn vorhanden?>
+                } // Nur anzeigen wenn vorhanden
+                ?>
                                 <div class="c-badge c-badge--success u-font-bold u-text-xs">
                                     <img src="<?php echo $settings['base_url'] . $icon; ?>"
                                          class="c-icon c-icon--inline u-margin-inline-end-xs"> <?php echo $count; ?>
@@ -211,7 +212,7 @@ $chartDataPayload = [
                                 <div
                                      class="u-text-xs u-color-muted u-flex u-justify-center u-gap-s u-flex-wrap u-align-center">
                                     <?php
-                    $vConfig = $config->get('vehicle_types', []);
+                        $vConfig = $config->get('vehicle_types', []);
                 $typeItems = [];
                 foreach ($data['types'] as $tKey => $count) {
                     if ($count === 0) {
@@ -252,11 +253,11 @@ $chartDataPayload = [
             $loadUrl = '?' . \http_build_query($queryParams);
             ?>
                 <a href="<?php echo $loadUrl; ?>" class="c-button c-button--secondary">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
-                         class="c-icon"
-                         alt="">
-                    &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
-                </a>
+                <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
+                     class="c-icon c-button__icon"
+                     alt="">
+                &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
+            </a>
             </div>
         <?php } ?>
     </div>

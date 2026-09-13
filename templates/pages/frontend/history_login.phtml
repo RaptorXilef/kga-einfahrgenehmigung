@@ -66,7 +66,7 @@ $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
                             class="c-button c-button--primary c-button--submit u-width-100 u-margin-block-start-l">
                         Link anfordern
                         <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-button__icon"
                              alt="">
                     </button>
                     <div class="u-margin-block-start-m u-text-center">
@@ -97,7 +97,10 @@ $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
                     <button type="submit"
                             name="submit_code"
                             class="c-button c-button--primary c-button--submit u-width-100 u-margin-block-start-l">
-                        Einloggen 🔓
+                        Einloggen
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-unlocked.webp'); ?>"
+                             class="c-icon c-button__icon"
+                             alt="">
                     </button>
                 </form>
 

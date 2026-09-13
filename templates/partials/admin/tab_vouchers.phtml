@@ -82,7 +82,7 @@ use App\Infrastructure\Config\Config;
                                                         data-code="<?php echo \htmlspecialchars($vCodeStr); ?>"
                                                         data-url="<?php echo \htmlspecialchars($url); ?>">
                                                     <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
-                                                         class="c-icon"
+                                                         class="c-icon c-button__icon"
                                                          alt=""> QR
                                                 </button>
                                                 <code class="u-display-block u-margin-block-start-s u-text-xs u-font-bold">
@@ -155,7 +155,7 @@ use App\Infrastructure\Config\Config;
                                                                     class="c-button c-button--success c-button--small c-button--icon-only"
                                                                     title="Aktivieren">
                                                                 <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
-                                                                     class="c-icon"
+                                                                     class="c-icon c-button__icon"
                                                                      alt="">
                                                             </button>
                                                         <?php } else { ?>
@@ -163,7 +163,7 @@ use App\Infrastructure\Config\Config;
                                                                     class="c-button c-button--danger c-button--small c-button--icon-only"
                                                                     title="Sperren">
                                                                 <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
-                                                                     class="c-icon"
+                                                                     class="c-icon c-button__icon"
                                                                      alt="">
                                                             </button>
                                                         <?php } ?>
@@ -185,7 +185,7 @@ use App\Infrastructure\Config\Config;
                                                                 class="c-button c-button--danger-outline c-button--small c-button--icon-only"
                                                                 title="Löschen">
                                                             <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
-                                                                 class="c-icon"
+                                                                 class="c-icon c-button__icon"
                                                                  alt="">
                                                         </button>
                                                     </form>

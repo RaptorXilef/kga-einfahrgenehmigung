@@ -106,7 +106,8 @@ if ($auth->hasPermission('system.logs.view')) { ?>
         <section class="c-card">
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <div>
-                    <h3 class="u-margin-block-none"><img src="<?php echo $asset->url('assets/img/icons/nav-logs.webp'); ?>"
+                    <h3 class="u-margin-block-none">
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-logs.webp'); ?>"
                              class="c-icon"
                              alt=""> E-Mail Versand-Log</h3>
                     <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">Verlauf der letzten
@@ -175,8 +176,10 @@ if ($auth->hasPermission('system.logs.view')) { ?>
 
                                         <!-- FEHLERANZEIGE (Nur wenn Status nicht Erfolg) -->
                                         <?php if (!$isSuccess && !empty($log->status)) { ?>
-                                            <div class="c-box c-box--danger-soft u-margin-block-start-s u-padding-around-s">
-                                                <div class="u-color-danger u-text-xs u-font-extrabold u-text-uppercase u-margin-block-end-xs">
+                                            <div
+                                                 class="c-box c-box--danger-soft u-margin-block-start-s u-padding-around-s">
+                                                <div
+                                                     class="u-color-danger u-text-xs u-font-extrabold u-text-uppercase u-margin-block-end-xs">
                                                     Fehlermeldung:</div>
                                                 <div class="u-text-xs u-color-main"
                                                      style="white-space: normal;">
@@ -205,7 +208,11 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                                        value="<?php echo $log->timestamp->format('Y-m-d H:i:s'); ?>">
                                                 <button type="submit"
                                                         class="c-button c-button--primary c-button--icon-only"
-                                                        title="Erneut senden">🔄</button>
+                                                        title="Erneut senden">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
+                                                         class="c-icon c-button__icon"
+                                                         alt="">
+                                                </button>
                                             </form>
                                         </div>
                                     </td>

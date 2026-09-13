@@ -69,7 +69,9 @@ $currentPage = $path === '' ? 'admin' : $path;
                 <?php if (!empty($allReleaseNotes)) { ?>
                     <button type="button"
                             class="c-button c-button--secondary c-button--small js-show-all-release-notes">
-                        🎁 Was ist neu?
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-free.webp'); ?>"
+                             class="c-icon c-button__icon"
+                             alt=""> Was ist neu?
                     </button>
                 <?php } ?>
 
@@ -85,14 +87,18 @@ $currentPage = $path === '' ? 'admin' : $path;
 
                 <div class="c-session-pill"
                      title="Automatische Abmeldung bei Inaktivität">
-                    ⏳ <span id="ui-session-timer">20:00</span>
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>"
+                         class="c-icon c-button__icon"
+                         alt=""> <span id="ui-session-timer">20:00</span>
                 </div>
 
                 <!-- Logout -->
                 <button type="button"
                         id="btn-session-logout"
                         class="c-button c-button--small c-button--danger-outline">
-                    ✕ Abmelden
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-cross-mark.webp'); ?>"
+                         class="c-icon c-button__icon"
+                         alt=""> Abmelden
                 </button>
             </div>
         </div>
@@ -117,7 +123,9 @@ $currentPage = $path === '' ? 'admin' : $path;
      class="c-modal">
     <div class="c-modal__dialog">
         <h3 class="c-modal__title">
-            <span class="u-text-xl">⚠️</span> Inaktivität erkannt
+            <span class="u-text-xl">
+                <img src="<?php echo $asset->url('assets/img/icons/icon-warning.webp'); ?>" class="c-icon c-button__icon" alt="">
+            </span> Inaktivität erkannt
         </h3>
         <p class="u-color-muted u-margin-block-start-s">Aus Sicherheitsgründen werden Sie in <br><strong
                     id="modal-session-countdown"

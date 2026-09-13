@@ -21,35 +21,35 @@ $crons = [
         'desc' => 'Versendet zwischengespeicherte Mails (falls Queue-Limit im Web erreicht wird).',
         'url' => $baseUrl . '/api/process_mail_queue?token=' . $cronSecret,
         'interval' => 'Alle 1 - 5 Minuten',
-        'icon' => '📧', // ToDo Icon
+        'icon' => '📧', /* ToDo Icon <img src="<?php echo $asset->url('assets/img/icons/icon-e-mail.webp'); ?>" class="c-icon c-button__icon" alt=""> */
     ],
     [
         'label' => 'Zahlungserinnerungen versenden',
         'desc' => 'Prüft auf überfällige Anträge und versendet Mahnungen.',
         'url' => $baseUrl . '/api/cron/reminders?token=' . $cronSecret,
         'interval' => 'Täglich (z.B. morgens um 08:00)',
-        'icon' => '🔔', // ToDo Icon
+        'icon' => '🔔', /* ToDo Icon <img src="<?php echo $asset->url('assets/img/icons/icon-bell.webp'); ?>" class="c-icon c-button__icon" alt=""> */
     ],
     [
         'label' => 'Archivierung & DSGVO',
         'desc' => 'Verschiebt alte Genehmigungen ins Archiv und anonymisiert >10 Jahre alte Daten.',
         'url' => $baseUrl . '/api/cron/archive?token=' . $cronSecret,
         'interval' => 'Täglich (z.B. nachts um 02:00)',
-        'icon' => '🗄️', // ToDo Icon
+        'icon' => '🗄️', /* ToDo Icon <img src="<?php echo $asset->url('assets/img/icons/icon-file-cabinet.webp'); ?>" class="c-icon c-button__icon" alt=""> */
     ],
     [
         'label' => 'Auto-Backup & Rotation',
         'desc' => 'Erstellt einen MySQL-Dump und löscht ältere Backups nach dem FIFO-Prinzip.',
         'url' => $baseUrl . '/api/cron/backup?token=' . $cronSecret,
         'interval' => 'Täglich (z.B. nachts um 03:00)',
-        'icon' => '📦', // ToDo Icon
+        'icon' => '📦', /* ToDo Icon <img src="<?php echo $asset->url('assets/img/icons/icon-package.webp'); ?>" class="c-icon c-button__icon" alt=""> */
     ],
     [
         'label' => 'Spam-Filter synchronisieren',
         'desc' => 'Lädt die tagesaktuellen Trashmail-Domains über GitHub in den Cache herunter.',
         'url' => $baseUrl . '/api/cron/spam_sync?token=' . $cronSecret,
         'interval' => 'Einmal Wöchentlich',
-        'icon' => '🛡️', // ToDo Icon
+        'icon' => '🛡️', /* ToDo Icon <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>" class="c-icon c-button__icon" alt=""> */
     ],
 ];
 ?>
@@ -58,7 +58,9 @@ $crons = [
     <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
         <div class="u-margin-block-end-l">
             <header class="u-margin-block-end-m u-flex u-align-center u-gap-s">
-                <span class="u-text-xl">🛠️</span> <?php // ToDo Icon?>
+                <span class="u-text-xl">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-hammer-and-wrench.webp'); ?>" class="c-icon c-button__icon" alt="">
+                </span>
                 <div>
                     <h3 class="u-margin-block-none">Gefahrenzone: System-Werkzeuge</h3>
                     <p class="u-color-muted u-text-sm u-margin-block-none">Cache leeren und alte Daten anonymisieren.
@@ -68,7 +70,11 @@ $crons = [
             <div class="o-grid o-grid--auto-fit-lg">
                 <div class="c-card c-card--primary u-flex-column u-margin-block-none">
                     <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
-                        <h4 class="u-margin-block-none u-text-lg">🛡️ DSGVO-Anonymisierung</h4> <?php // ToDo Icon?>
+                        <h4 class="u-margin-block-none u-text-lg">
+                            <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
+                                 class="c-icon c-button__icon"
+                                 alt=""> DSGVO-Anonymisierung
+                        </h4>
                     </div>
                     <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
                         <p class="u-text-sm u-margin-block-none">Anonymisiert personenbezogene Daten in
@@ -89,7 +95,11 @@ $crons = [
 
                 <div class="c-card c-card--danger u-flex-column u-margin-block-none">
                     <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
-                        <h4 class="u-margin-block-none u-text-lg">🧹 System-Cache leeren</h4> <?php // ToDo Icon?>
+                        <h4 class="u-margin-block-none u-text-lg">
+                            <img src="<?php echo $asset->url('assets/img/icons/icon-broom.webp'); ?>"
+                                 class="c-icon c-button__icon"
+                                 alt=""> System-Cache leeren
+                        </h4>
                     </div>
                     <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
                         <p class="u-text-sm u-margin-block-none">Löscht temporäre Dateien, Routen-Caches und kompiliert
@@ -114,7 +124,9 @@ $crons = [
     <?php if ($auth->hasPermission('system.update.execute')) { ?>
         <div class="u-margin-block-end-l">
             <header class="u-margin-block-end-m u-flex u-align-center u-gap-s">
-                <span class="u-text-xl">🔄</span> <?php // ToDo Icon?>
+                <span class="u-text-xl">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>" class="c-icon c-button__icon" alt="">
+                </span>
                 <div>
                     <h3 class="u-margin-block-none">System-Updates</h3>
                     <p class="u-color-muted u-text-sm u-margin-block-none">Verwalten Sie Datenbank-Updates und
@@ -148,7 +160,9 @@ $crons = [
     <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
         <div class="u-margin-block-start-xl">
             <header class="u-margin-block-end-m u-flex u-align-center u-gap-s">
-                <span class="u-text-xl">⏱️</span> <?php // ToDo Icon?>
+                <span class="u-text-xl">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon_stopwatch.webp'); ?>" class="c-icon c-button__icon" alt="">
+                </span>
                 <div>
                     <h3 class="u-margin-block-none">Cronjobs & Automatisierung</h3>
                     <p class="u-color-muted u-text-sm u-margin-block-none">Rufen Sie diese URLs über Ihren Webhoster
@@ -188,14 +202,16 @@ $crons = [
                                     data-url="<?php echo \htmlspecialchars($cron['url']); ?>"
                                     title="In Zwischenablage kopieren">
                                 <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
-                                     class="c-icon"
+                                     class="c-icon c-button__icon"
                                      alt="">
                             </button>
                             <button type="button"
                                     class="c-button c-button--primary js-cron-btn"
                                     data-url="<?php echo \htmlspecialchars($cron['url']); ?>"
                                     title="Jetzt manuell ausführen">
-                                ▶ Ausführen <?php // ToDo Icon?>
+                                <img src="<?php echo $asset->url('assets/img/icons/icon-play-button.webp'); ?>"
+                                     class="c-icon c-button__icon"
+                                     alt=""> Ausführen
                             </button>
                         </div>
                     </div>

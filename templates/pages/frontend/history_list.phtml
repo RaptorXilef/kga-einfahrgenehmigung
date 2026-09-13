@@ -49,7 +49,9 @@ $now = new \DateTimeImmutable('today');
         <div class="u-flex u-align-center u-gap-m">
             <div class="c-session-pill"
                  title="Automatische Abmeldung bei Inaktivität">
-                ⏳ <span id="ui-session-timer">20:00</span> <?php // ToDo Icon?>
+                <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>"
+                     class="c-icon c-button__icon"
+                     alt=""> <span id="ui-session-timer">20:00</span>
             </div>
             <button type="button"
                     id="btn-session-logout"
@@ -78,7 +80,11 @@ $now = new \DateTimeImmutable('today');
                         <tr>
                             <td colspan="5"
                                 class="u-text-center u-padding-around-l u-color-muted">
-                                <span class="u-text-2xl u-opacity-50">📄</span><br> <?php // ToDo Icon?>
+                                <span class="u-text-2xl u-opacity-50">
+                                    <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>"
+                                         class="c-icon c-button__icon"
+                                         alt="">
+                                </span><br>
                                 <p class="u-margin-block-start-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum
                                     gefunden.</p>
                             </td>
@@ -166,7 +172,9 @@ $now = new \DateTimeImmutable('today');
                                             </span>
                                             <?php } else { ?>
                                                 <span class="c-badge <?php echo ($remaining <= 1 && !$isFuture) ? 'c-badge--danger' : 'c-badge--primary'; ?>">
-                                                ⏳ <?php echo $countdownText; ?>
+                                                <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>"
+                                                     class="c-icon c-button__icon"
+                                                     alt=""> <?php echo $countdownText; ?>
                                             </span>
                                             <?php } ?>
                                         </div>
@@ -196,17 +204,17 @@ $now = new \DateTimeImmutable('today');
                                                         class="c-button c-button--danger-outline c-button--icon-only"
                                                         title="Antrag stornieren">
                                                     <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
-                                                         class="c-icon"
+                                                         class="c-icon c-button__icon"
                                                          alt="">
                                                 </button>
                                             </form>
                                         <?php } ?>
                                         <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--icon-only" title="Status / Prüfseite öffnen">
-                                        <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
-                                    </a>
+                                            <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                        </a>
                                         <a href="history_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--icon-only" title="Dokument anzeigen">
-                                        <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="">
-                                    </a>
+                                            <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -220,7 +228,8 @@ $now = new \DateTimeImmutable('today');
             <?php $lastYear = (int) \date('Y') - 1;
 if ($currentArchiveYear !== $lastYear) { ?>
                 <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--secondary">
-                    📥 Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen <?php // ToDo Icon?>
+                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>" class="c-icon c-button__icon" alt=""> Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen <?php // ToDo Icon
+                                                                                                                                                                                    ?>
                 </a>
             <?php } else { ?>
                 <p class="u-text-xs u-color-muted u-margin-block-none">Archiv des Vorjahres (<?php echo $lastYear; ?>) ist geladen.</p>
@@ -234,34 +243,3 @@ if ($currentArchiveYear !== $lastYear) { ?>
         </a>
     </footer>
 </div>
-
-<?php /*
-<div id="session-warning-modal"
-     class="c-modal">
-    <div class="c-modal__dialog">
-        <h3 class="c-modal__title">
-            <span class="u-text-xl">⚠️</span> Inaktivität erkannt
-        </h3>
-        <p class="u-color-muted"
-           style="line-height: 1.5;">Aus Sicherheitsgründen werden Sie in <br><strong id="modal-session-countdown"
-                    class="u-color-danger u-text-xl">03:00</strong><br> Minuten automatisch abgemeldet.</p>
-
-        <div class="o-grid o-grid--2-cols u-margin-top-l">
-            <!-- Button 1: Bleiben -->
-            <button id="btn-session-stay"
-                    class="c-button c-button--success u-width-100">Bleiben</button>
-
-            <!-- Button 2: Abmelden (Sicheres Formular) -->
-            <form method="POST"
-                  action="history_logout"
-                  class="u-margin-none u-width-100">
-                <input type="hidden"
-                       name="csrf_token"
-                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                <button type="submit"
-                        class="c-button c-button--danger u-width-100">Abmelden</button>
-            </form>
-        </div>
-    </div>
-</div>
-*/ ?>

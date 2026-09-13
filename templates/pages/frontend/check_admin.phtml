@@ -63,7 +63,9 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
             </div>
         <?php } elseif ($permit && $isDateValid && !$isTimeAllowed) { ?>
             <div class="u-color-warning">
-                <span class="u-text-4xl">⏳</span>
+                <span class="u-text-4xl">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>" class="c-icon c-button__icon" alt="">
+                </span>
                 <h2 class="u-color-warning u-margin-block-start-s">AKTUELL RUHEZEIT</h2>
                 <?php if (\str_contains($allowedToday, 'Gültigkeit')) { ?>
                     <!-- Sonderfall: Genehmigung läuft während der Ruhezeit ab -->
@@ -92,11 +94,15 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
         </div>
         <div class="u-flex u-gap-s">
             <a href="check" class="c-button c-button--secondary">
-                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Neue Prüfung
+                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
+                     class="c-icon c-button__icon"
+                     alt=""> Neue Prüfung
             </a>
             <?php if ($permit && $auth->hasPermission('permits.print')) { ?>
                 <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--primary">
-                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt=""> Drucken
+                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
+                         class="c-icon c-button__icon"
+                         alt=""> Drucken
                 </a>
             <?php } ?>
         </div>
@@ -105,7 +111,10 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
     <?php if ($permit) { ?>
         <section class="c-card c-card--primary">
             <header class="c-card__header u-flex u-justify-between u-align-center">
-                <h3 class="u-margin-block-none">📋 Pächter- & Fahrzeugdaten</h3>
+                <h3 class="u-margin-block-none">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
+                         class="c-icon c-button__icon"
+                         alt=""> Pächter- & Fahrzeugdaten</h3>
                 <span class="c-badge c-badge--<?php echo $permit->getStatus() === PermitStatus::Bezahlt ? 'success' : 'warning'; ?>">
                     FINANZ-STATUS: <?php echo \htmlspecialchars(\strtoupper($permit->getStatus()->value)); ?>
                 </span>
