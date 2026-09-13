@@ -3,7 +3,7 @@
         transition: all 0.3s ease;
     }
 
-    .is-master-active {
+    .c-tree-wrapper.is-master-active {
         opacity: 0.4;
         pointer-events: none;
         filter: grayscale(100%);
@@ -39,7 +39,7 @@
         background-color: transparent;
     }
 
-    .is-auto-active {
+    .c-tree-item.is-auto-active {
         background-color: color-mix(
             in oklch,
             var(--color-success) 10%,
@@ -47,7 +47,7 @@
         ) !important;
     }
 
-    .is-auto-inactive {
+    .c-tree-item.is-auto-inactive {
         background-color: color-mix(
             in oklch,
             var(--color-danger) 5%,

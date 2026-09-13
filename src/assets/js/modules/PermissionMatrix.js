@@ -197,14 +197,14 @@ export class PermissionMatrix {
                     );
                     if (tabBtn) {
                         document.querySelectorAll('.c-tabs__btn').forEach((b) => {
-                            b.classList.remove('c-tabs__btn--active');
+                            b.classList.remove('is-active');
                         });
                         document.querySelectorAll('.c-tabs__content').forEach((c) => {
-                            c.classList.remove('c-tabs__content--active');
+                            c.classList.remove('is-active');
                         });
 
-                        tabBtn.classList.add('c-tabs__btn--active');
-                        parentTabContent.classList.add('c-tabs__content--active');
+                        tabBtn.classList.add('is-active');
+                        parentTabContent.classList.add('is-active');
                     }
                 }
 

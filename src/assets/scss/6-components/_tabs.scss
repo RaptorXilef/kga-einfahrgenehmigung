@@ -56,7 +56,7 @@
         );
     }
 
-    .c-tabs__btn--active {
+    .c-tabs__btn.is-active {
         background-color: var(--color-bg-white) !important;
         color: var(--color-primary) !important;
         box-shadow: var(--shadow-sm) !important;
@@ -68,9 +68,10 @@
         inline-size: 100%;
     }
 
-    .c-tabs__content--active {
+    .c-tabs__content.is-active {
         display: block;
         animation: tabsSlideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        will-change: opacity, translate;
     }
 
     @keyframes tabsSlideUp {

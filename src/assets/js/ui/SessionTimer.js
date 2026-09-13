@@ -94,7 +94,7 @@ export class SessionTimer {
             this.lastActivity = stored;
             if (this.isWarningActive) {
                 this.isWarningActive = false;
-                if (this.modal) this.modal.classList.remove('c-modal--open');
+                if (this.modal) this.modal.classList.remove('is-open');
             }
         }
         this.tick();
@@ -142,7 +142,7 @@ export class SessionTimer {
         // Warnung einblenden
         if (remainingMs <= this.warningMs && remainingMs > 0 && !this.isWarningActive) {
             this.isWarningActive = true;
-            if (this.modal) this.modal.classList.add('c-modal--open');
+            if (this.modal) this.modal.classList.add('is-open');
         }
 
         // Zwangs-Logout
@@ -162,7 +162,7 @@ export class SessionTimer {
                 this.setStoredActivity(this.lastActivity);
                 this.isWarningActive = false;
 
-                if (this.modal) this.modal.classList.remove('c-modal--open');
+                if (this.modal) this.modal.classList.remove('is-open');
                 this.updateDisplay(this.maxIdleMs);
                 notifier.show('Sitzung erfolgreich verlängert.');
             } else {

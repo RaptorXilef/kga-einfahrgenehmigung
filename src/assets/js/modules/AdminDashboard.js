@@ -126,11 +126,11 @@ export class AdminDashboard {
         const target = document.getElementById(tabId);
         if (!target) return;
 
-        this.contents.forEach((c) => c.classList.remove('c-tabs__content--active'));
-        this.tabs.forEach((b) => b.classList.remove('c-tabs__btn--active'));
+        this.contents.forEach((c) => c.classList.remove('is-active'));
+        this.tabs.forEach((b) => b.classList.remove('is-active'));
 
-        target.classList.add('c-tabs__content--active');
-        activeBtn.classList.add('c-tabs__btn--active');
+        target.classList.add('is-active');
+        activeBtn.classList.add('is-active');
 
         try {
             localStorage.setItem('lastAdminTab', tabId);

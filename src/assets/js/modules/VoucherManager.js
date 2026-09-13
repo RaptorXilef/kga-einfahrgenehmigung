@@ -60,7 +60,7 @@ export class VoucherManager {
         this.modalLoader.classList.remove('u-hidden', 'u-color-danger');
         // Loader Text zurücksetzen, falls er beim letzten Mal auf "Fehler" stand
         this.modalLoader.innerText = 'Wird generiert...';
-        this.modal.classList.add('c-modal--open');
+        this.modal.classList.add('is-open');
 
         // Die QR-Code API url-encoded aufrufen
         const encodedUrl = encodeURIComponent(url);
@@ -91,7 +91,7 @@ export class VoucherManager {
 
     closeQr() {
         if (!this.modal) return;
-        this.modal.classList.remove('c-modal--open');
+        this.modal.classList.remove('is-open');
         this.modalImg.src = ''; // Leeren, damit beim nächsten Mal der Loader wieder erscheint
         // Loader-Style sicherheitshalber resetten
         this.modalLoader.classList.remove('u-color-danger');

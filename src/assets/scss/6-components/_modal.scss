@@ -1,6 +1,5 @@
 @layer components {
     .c-modal {
-        /* Variable-Driven-State: Der Parent diktiert nur Variablen, nicht die Klassen der Kinder! */
         --modal-opacity: 0;
         --modal-pointer: none;
         --dialog-translate-y: 10px;
@@ -21,9 +20,10 @@
         padding: var(--space-l);
         display: flex;
         transition: opacity 0.3s ease;
+        will-change: opacity;
     }
 
-    .c-modal--open {
+    .c-modal.is-open {
         --modal-opacity: 1;
         --modal-pointer: auto;
         --dialog-translate-y: 0;

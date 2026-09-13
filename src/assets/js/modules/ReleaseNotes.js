@@ -45,7 +45,7 @@ export class ReleaseNotes {
                 e.preventDefault();
 
                 // Modal über State-Klasse schließen
-                this.container.classList.remove('c-modal--open');
+                this.container.classList.remove('is-open');
 
                 // Wenn wir gerade unread notes angezeigt haben, als gelesen in DB markieren!
                 if (this.showingUnread && this.unreadNotes.length > 0) {
@@ -111,7 +111,7 @@ export class ReleaseNotes {
         }
 
         this.container.classList.remove('u-hidden');
-        this.container.classList.add('c-modal--open');
+        this.container.classList.add('is-open');
     }
 
     async markAsRead(version) {
