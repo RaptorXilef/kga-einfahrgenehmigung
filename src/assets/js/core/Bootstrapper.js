@@ -4,6 +4,7 @@
  */
 
 // Sichert die Zuweisung, ohne den Garbage Collector zu blockieren
+// Struktur: WeakMap<Element, Map<ComponentClass, Instance>>
 const componentRegistry = new WeakMap();
 
 export function mount(selector, ComponentClass, ...args) {
@@ -19,12 +20,19 @@ export function mount(selector, ComponentClass, ...args) {
 
     const instances = [];
     for (const el of elements) {
-        // Verhindert doppeltes Mounting desselben Elements
-        if (componentRegistry.has(el)) continue;
+        // 1. Hole oder erstelle die Map für dieses spezifische DOM-Element
+        let classMap = componentRegistry.get(el);
+        if (!classMap) {
+            classMap = new Map();
+            componentRegistry.set(el, classMap);
+        }
+
+        // 2. Verhindert doppeltes Mounting DIESER spezifischen Klasse am selben Element
+        if (classMap.has(ComponentClass)) continue;
 
         try {
             const instance = new ComponentClass(el, ...args);
-            componentRegistry.set(el, instance);
+            classMap.set(ComponentClass, instance);
             instances.push(instance);
         } catch (error) {
             console.error(
@@ -55,10 +63,17 @@ export function lazyMount(selector, importPromise, className, ...args) {
         .then((module) => {
             const ComponentClass = module[className];
             for (const el of elements) {
-                if (componentRegistry.has(el)) continue;
+                let classMap = componentRegistry.get(el);
+                if (!classMap) {
+                    classMap = new Map();
+                    componentRegistry.set(el, classMap);
+                }
+
+                if (classMap.has(ComponentClass)) continue;
+
                 try {
                     const instance = new ComponentClass(el, ...args);
-                    componentRegistry.set(el, instance);
+                    classMap.set(ComponentClass, instance);
                 } catch (error) {
                     console.error(
                         `[Bootstrapper] Fehler beim asynchronen Mounten von ${className}:`,
