@@ -68,12 +68,12 @@
         transition: outline 0.3s;
     }
 
-    .c-category-card--closed {
+    .c-category-card.is-closed {
         --card-body-display: none;
         --card-header-radius: 12px;
     }
 
-    .c-category-card--highlighted {
+    .c-category-card.is-highlighted {
         --card-outline-color: var(--color-primary);
     }
 

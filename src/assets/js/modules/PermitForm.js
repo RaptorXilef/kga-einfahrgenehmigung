@@ -57,10 +57,9 @@ export class PermitForm {
     }
 
     init() {
-        // FIX: Den toten onchange HTML-Handler in sauberes JS überführt
         this.voucherMultiCb?.addEventListener('change', (e) => {
             if (this.voucherMaxWrap) {
-                this.voucherMaxWrap.style.display = e.target.checked ? 'block' : 'none';
+                this.voucherMaxWrap.classList.toggle('u-hidden', !e.target.checked);
             }
         });
 
@@ -97,7 +96,7 @@ export class PermitForm {
         // Admin: Zweck Toggle (Dropdown vs Text)
         this.toggleZweckBtn?.addEventListener('click', () => this.toggleZweckMode());
 
-        // Frontend: Gutschein-Toggle (Die Elemente liegen in der public View außerhalb des form-Tags!)
+        // Frontend: Gutschein-Toggle
         const voucherToggle = document.querySelector('.c-voucher-toggle');
         const voucherWrap = document.querySelector('.js-voucher-container');
 
@@ -208,7 +207,7 @@ export class PermitForm {
         const duration = isCustom ? 0 : parseInt(config.days, 10);
         const durationOffset = Math.max(0, duration - 1);
 
-        if (this.warningBox) this.warningBox.style.display = 'none';
+        if (this.warningBox) this.warningBox.classList.add('u-hidden');
 
         if (!isCustom) {
             // Min-Datum für das Bis-Feld basierend auf dem aktuellen Tag berechnen
@@ -223,7 +222,7 @@ export class PermitForm {
                     if (this.warningText) {
                         this.warningText.innerText =
                             'Das Datum wurde auf die Mindestdauer der Vorlage korrigiert.';
-                        this.warningBox.style.display = 'block';
+                        this.warningBox.classList.remove('u-hidden');
                     }
                 }
                 // Strikte lokale Datums-Berechnung anhand der String-Bestandteile
@@ -279,17 +278,17 @@ export class PermitForm {
 
             if (res.holidayNotice && this.holidayEl) {
                 this.holidayEl.innerHTML = sanitize(res.holidayNotice);
-                this.holidayEl.style.display = 'block';
+                this.holidayEl.classList.remove('u-hidden');
             } else if (this.holidayEl) {
-                this.holidayEl.style.display = 'none';
+                this.holidayEl.classList.add('u-hidden');
             }
 
-            if (this.dateInfoContainer) this.dateInfoContainer.style.display = 'block';
+            if (this.dateInfoContainer) this.dateInfoContainer.classList.remove('u-hidden');
         } else {
             // Silent-Failure beheben und UI bei Netzwerkfehler zurücksetzen
             this.openingEl.innerHTML =
                 '<span class="u-text-muted">Zeitraum konnte aufgrund eines Netzwerkfehlers nicht geprüft werden.</span>';
-            if (this.holidayEl) this.holidayEl.style.display = 'none';
+            if (this.holidayEl) this.holidayEl.classList.add('u-hidden');
             notifier.show(
                 'Netzwerkfehler: Einfahrtszeiten konnten nicht abgefragt werden.',
                 'error'
@@ -421,8 +420,10 @@ export class PermitForm {
 
     updateAdminVoucherUI() {
         if (!this.voucherDiscountType || !this.voucherValueWrap) return;
-        this.voucherValueWrap.style.display =
-            this.voucherDiscountType.value === 'free' ? 'none' : 'block';
+        this.voucherValueWrap.classList.toggle(
+            'u-hidden',
+            this.voucherDiscountType.value === 'free'
+        );
     }
 
     toggleZweckMode() {

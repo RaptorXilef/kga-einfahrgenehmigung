@@ -71,19 +71,11 @@ export class PermissionMatrix {
         const treeWrapper = container.querySelector('.c-tree-wrapper');
         if (!treeWrapper) return;
 
-        if (isMaster) {
-            treeWrapper.classList.add('is-master-active');
-            treeWrapper.querySelectorAll('input[data-perm-check="true"]').forEach((cb) => {
-                cb.disabled = true;
-                if (cb.parentElement) cb.parentElement.style.pointerEvents = 'none';
-            });
-        } else {
-            treeWrapper.classList.remove('is-master-active');
-            treeWrapper.querySelectorAll('input[data-perm-check="true"]').forEach((cb) => {
-                cb.disabled = false;
-                if (cb.parentElement) cb.parentElement.style.pointerEvents = 'auto';
-            });
-        }
+        treeWrapper.classList.toggle('is-master-active', isMaster);
+
+        treeWrapper.querySelectorAll('input[data-perm-check="true"]').forEach((cb) => {
+            cb.disabled = isMaster;
+        });
     }
 
     /**
@@ -210,12 +202,12 @@ export class PermissionMatrix {
 
                 // Karte aufklappen, scrollen & Highlight
                 setTimeout(() => {
-                    targetCard.classList.remove('c-category-card--closed');
+                    targetCard.classList.remove('is-closed');
                     targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    targetCard.classList.add('c-category-card--highlighted');
+                    targetCard.classList.add('is-highlighted');
 
                     setTimeout(() => {
-                        targetCard.classList.remove('c-category-card--highlighted');
+                        targetCard.classList.remove('is-highlighted');
                     }, 2000);
                 }, 400);
             }

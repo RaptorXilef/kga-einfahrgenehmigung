@@ -20,7 +20,7 @@ if (typeof window.KGA_TEMPLATES === 'undefined') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Event Delegation Logik (Unverändert übernommen)
+    // Event Delegation Logik
     document.body.addEventListener('submit', (e) => {
         const form = e.target;
         if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) e.preventDefault();
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const toggleBtn = e.target.closest('.js-toggle-parent');
         if (toggleBtn) {
             const card = toggleBtn.closest('.c-category-card');
-            if (card) card.classList.toggle('c-category-card--closed');
+            if (card) card.classList.toggle('is-closed');
         }
 
         // Globaler Reload-Button
@@ -142,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setInterval(
             () => {
                 if (document.visibilityState === 'visible') {
-                    // Redundanten catch() Block entfernt, da api.post nicht rejected
                     api.post('api/ping');
                 }
             },
