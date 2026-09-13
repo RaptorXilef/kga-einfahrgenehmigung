@@ -54,7 +54,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         <div class="c-tabs">
             <div class="c-tabs__nav u-margin-block-end-l">
                 <?php if ($auth->hasPermission('permits.view')) { ?>
-                    <button class="c-tabs__btn c-tabs__btn--active"
+                    <button class="c-tabs__btn is-active"
                             data-tab-target="tab-active">
                         <img src="<?php echo $asset->url('assets/img/icons/status-active.webp'); ?>"
                              class="c-icon c-tabs__icon"
@@ -112,7 +112,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('finance.bank_import')) { ?>
-                    <button class="c-tabs__btn <?php echo isset($bank_headers) ? 'c-tabs__btn--active' : ''; ?>"
+                    <button class="c-tabs__btn <?php echo isset($bank_headers) ? 'is-active' : ''; ?>"
                             data-tab-target="tab-bank-import">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-bank.webp'); ?>"
                              class="c-icon c-tabs__icon"
@@ -199,7 +199,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             <!-- 5. CONTENT (TABS) -->
             <?php if ($auth->hasPermission('permits.view')) { ?>
                 <div id="tab-active"
-                     class="c-tabs__content c-tabs__content--active">
+                     class="c-tabs__content is-active">
                     <?php include $appRoot . '/templates/partials/admin/tab_active.phtml'; ?>
                 </div>
                 <div id="tab-future"
@@ -239,7 +239,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
             <?php if ($auth->hasPermission('finance.bank_import')) { ?>
                 <div id="tab-bank-import"
-                     class="c-tabs__content <?php echo isset($bank_headers) ? 'c-tabs__content--active' : ''; ?>">
+                     class="c-tabs__content <?php echo isset($bank_headers) ? 'is-active' : ''; ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_bank_import.phtml'; ?>
                 </div>
             <?php } ?>
@@ -271,7 +271,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <?php include $appRoot . '/templates/partials/admin/tab_logs.phtml'; ?>
                 </div>
                 <div id="tab-audit-log"
-                     class="c-tabs__content <?php echo isset($_GET['audit_page']) ? 'c-tabs__content--active' : ''; ?>">
+                     class="c-tabs__content <?php echo isset($_GET['audit_page']) ? 'is-active' : ''; ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_audit_log.phtml'; ?>
                 </div>
             <?php } ?>

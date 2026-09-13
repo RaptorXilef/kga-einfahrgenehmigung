@@ -22,7 +22,7 @@
         --dropzone-bg: var(--color-bg-light);
     }
 
-    .is-dragover {
+    .c-dropzone.is-dragover {
         --dropzone-bg: var(--color-primary-soft) !important;
         --dropzone-border-color: var(--color-primary) !important;
         --overlay-opacity: 1 !important;

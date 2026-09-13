@@ -57,7 +57,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                 </div>
 
                 <?php if ($auth->hasPermission('system.manage')) { ?>
-                    <a href="users" class="c-tabs__btn <?php echo $currentPage === 'users' ? 'c-tabs__btn--active' : ''; ?>">
+                    <a href="users" class="c-tabs__btn <?php echo $currentPage === 'users' ? 'is-active' : ''; ?>">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon c-tabs__icon" alt=""> Benutzer-Verwaltung
                     </a>
                 <?php } ?>
@@ -80,7 +80,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                         class="c-theme-toggle js-theme-toggle"
                         title="Design wechseln">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-sun.webp'); ?>"
-                         class="c-icon js-theme-icon"
+                         class="c-icon c-theme-toggle__icon js-theme-icon"
                          alt="">
                     <span class="js-theme-text">Light</span>
                 </button>
@@ -106,7 +106,7 @@ $currentPage = $path === '' ? 'admin' : $path;
         <!-- ZEILE 2: Haupt-Navigation der App -->
         <div class="c-header-nav__bottom">
             <?php if ($auth->hasPermission('admin.access')) { ?>
-                <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'c-tabs__btn--active' : ''; ?>">
+                <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'is-active' : ''; ?>">
                     <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon c-tabs__icon" alt=""> Dashboard
                 </a>
             <?php } ?>
@@ -115,7 +115,6 @@ $currentPage = $path === '' ? 'admin' : $path;
                 <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon c-tabs__icon" alt=""> Check
             </a>
         </div>
-
     </div>
 </nav>
 

@@ -17,10 +17,8 @@ $path = \parse_url($requestUri, \PHP_URL_PATH);
 $path = \trim((string) $path, '/');
 $currentPage = $path === '' ? 'index' : $path;
 ?>
-
 <nav class="c-header-nav">
     <div class="c-tab-content-container">
-
         <!-- ZEILE 1: Marke, Verwaltung & Dark Mode -->
         <div class="c-header-nav__top">
             <div class="c-header-nav__brand">
@@ -36,17 +34,15 @@ $currentPage = $path === '' ? 'index' : $path;
             </div>
 
             <div class="u-flex u-align-center u-gap-m">
-                <!-- Zuerst Verwaltung, dann Theme Toggle -->
                 <a href="admin" class="c-button c-button--secondary c-button--small">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon c-button__icon" alt=""> Verwaltung
                 </a>
-
                 <!-- Theme Toggle -->
                 <button type="button"
                         class="c-theme-toggle js-theme-toggle"
                         title="Design wechseln">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-sun.webp'); ?>"
-                         class="c-icon js-theme-icon"
+                         class="c-icon c-theme-toggle__icon js-theme-icon"
                          alt="">
                     <span class="js-theme-text">Light</span>
                 </button>
@@ -55,16 +51,15 @@ $currentPage = $path === '' ? 'index' : $path;
 
         <!-- ZEILE 2: Navigation -->
         <div class="c-header-nav__bottom">
-            <a href="index" class="c-tabs__btn <?php echo $currentPage === 'index' ? 'c-tabs__btn--active' : ''; ?>">
+            <a href="index" class="c-tabs__btn <?php echo $currentPage === 'index' ? 'is-active' : ''; ?>">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>" class="c-icon c-tabs__icon" alt=""> Antrag
             </a>
-            <a href="history" class="c-tabs__btn <?php echo $currentPage === 'history' ? 'c-tabs__btn--active' : ''; ?>">
+            <a href="history" class="c-tabs__btn <?php echo $currentPage === 'history' ? 'is-active' : ''; ?>">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon c-tabs__icon" alt=""> Verlauf
             </a>
-            <a href="check" class="c-tabs__btn u-margin-inline-start-auto <?php echo $currentPage === 'check' ? 'c-tabs__btn--active' : ''; ?>">
+            <a href="check" class="c-tabs__btn u-margin-inline-start-auto <?php echo $currentPage === 'check' ? 'is-active' : ''; ?>">
                 <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon c-tabs__icon" alt=""> Check
             </a>
         </div>
-
     </div>
 </nav>

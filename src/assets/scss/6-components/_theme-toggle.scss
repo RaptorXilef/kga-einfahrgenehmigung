@@ -32,7 +32,11 @@
         box-shadow: var(--shadow-md);
     }
 
-    .c-theme-toggle:hover .c-icon {
+    .c-theme-toggle__icon {
+        transition: filter 0.2s ease;
+    }
+
+    .c-theme-toggle:hover .c-theme-toggle__icon {
         filter: brightness(0) invert(1);
     }
 }

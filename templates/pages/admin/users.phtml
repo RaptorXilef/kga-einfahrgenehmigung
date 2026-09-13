@@ -31,7 +31,7 @@ if ($auth->hasPermission('system.manage')) { ?>
         <div class="c-tabs">
             <div class="c-tabs__nav u-margin-block-end-l">
                 <?php if ($auth->hasPermission('system.users.manage')) { ?>
-                    <button class="c-tabs__btn c-tabs__btn--active"
+                    <button class="c-tabs__btn is-active"
                             data-tab-target="tab-users">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                              class="c-icon c-tabs__icon"
@@ -50,7 +50,7 @@ if ($auth->hasPermission('system.manage')) { ?>
 
             <?php if ($auth->hasPermission('system.users.manage')) { ?>
                 <div id="tab-users"
-                     class="c-tabs__content c-tabs__content--active">
+                     class="c-tabs__content is-active">
                     <?php include $appRoot . '/templates/partials/admin/tab_users.phtml'; ?>
                 </div>
             <?php } ?>

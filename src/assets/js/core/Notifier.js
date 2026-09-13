@@ -41,7 +41,7 @@ class NotifierService {
 
         // Slide-Out Animation nach 3 Sekunden
         this.hideTimeout = setTimeout(() => {
-            toast.classList.add('c-toast--hide');
+            toast.classList.add('is-hidden');
             this.removeTimeout = setTimeout(() => toast.remove(), 500);
         }, 3000);
     }

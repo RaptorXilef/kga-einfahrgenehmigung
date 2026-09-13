@@ -19,6 +19,7 @@
         /* Nutzt nun GPU-beschleunigte Translate-Animation */
         animation: toastSlideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28)
             forwards;
+        will-change: translate, opacity;
     }
 
     .c-toast--success {
@@ -33,7 +34,7 @@
         background-color: var(--color-primary);
     }
 
-    .c-toast--hide {
+    .c-toast.is-hidden {
         opacity: 0;
         translate: -50% 20px;
         transition: all 0.4s ease;
