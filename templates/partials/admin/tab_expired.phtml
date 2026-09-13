@@ -85,8 +85,7 @@ if ($totalPages > 1) {
                 if ($pageNum === '...') { ?>
                     <span class="u-color-muted u-padding-inline-s">&hellip;</span>
                 <?php } elseif ($pageNum === $page) { ?>
-                    <button class="c-button c-button--primary"
-                            style="pointer-events: none;"><?php echo $pageNum; ?></button>
+                    <span class="c-button c-button--primary" aria-current="page"><?php echo $pageNum; ?></span>
                 <?php } else { ?>
                     <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
             <?php }
@@ -103,7 +102,7 @@ if ($totalPages > 1) {
 <?php
     $paginationHtml = \ob_get_clean();
 } elseif ($totalCount > 0) {
-    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top" style="background-color: var(--color-bg-light);">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
+    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top u-bg-light">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
 }
 
 if ($auth->hasPermission('permits.view')) {
@@ -171,7 +170,8 @@ if ($auth->hasPermission('permits.view')) {
                                         <div>
                                             <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
                                                  class="c-icon c-icon--md u-grayscale u-opacity-50"
-                                                 title="<?php echo $vLabel; ?>">
+                                                 title="<?php echo $vLabel; ?>"
+                                                 alt="">
                                         </div>
                                         <div class="u-margin-block-start-xs">
                                             <span class="c-license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
