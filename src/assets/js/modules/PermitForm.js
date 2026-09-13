@@ -311,7 +311,7 @@ export class PermitForm {
 
         // Stale Request ignorieren
         if (currentFetchId !== this.priceFetchId) return;
-        this.priceDisplay.classList.remove('is-free', 'is-error');
+        this.priceDisplay.classList.remove('c-price-display--free', 'c-price-display--error');
 
         if (res.success) {
             // "Fail-Safe" Sicherheitsmechanismus
@@ -324,7 +324,6 @@ export class PermitForm {
             };
 
             // Frontend Darstellung (mit Rabatt-HTML)
-            // FIX: Typo korrigiert (this.priceDisplay.tagName statt res.tagName)
             if (this.priceDisplay.tagName !== 'SPAN' && res.discountText) {
                 const rawHtml = `
                     <div class="c-price-original">Original: ${res.original.toFixed(2).replace('.', ',')} €</div>
@@ -341,14 +340,14 @@ export class PermitForm {
                 if (res.discountText) this.priceDisplay.title = res.discountText;
             }
 
-            if (res.isFree) this.priceDisplay.classList.add('is-free');
+            if (res.isFree) this.priceDisplay.classList.add('c-price-display--free');
         } else {
             // Silent-Failure beheben und UI Error-State setzen
             this.priceDisplay.innerText =
                 this.priceDisplay.tagName === 'SPAN'
                     ? 'Fehler'
                     : 'Gebühr: Berechnung fehlgeschlagen';
-            this.priceDisplay.classList.add('is-error');
+            this.priceDisplay.classList.add('c-price-display--error');
             notifier.show(
                 'Preis konnte aufgrund eines Netzwerkfehlers nicht berechnet werden.',
                 'error'

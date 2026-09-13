@@ -46,6 +46,12 @@
     }
 
     .c-control-bar__search {
+        /* Genialer Architektur-Move: Wir steuern das Aussehen der darin liegenden .c-form-input
+       nur über CSS-Variablen, ganz ohne Spezifitäts-Hack und Chaining! */
+        --input-pl: 42px;
+        --input-radius: 30px;
+        --input-height: 38px;
+
         position: relative;
         margin-inline-start: auto;
         flex-grow: 1;
@@ -59,13 +65,5 @@
         pointer-events: none;
         z-index: 10;
         color: var(--color-text-muted);
-    }
-
-    /* Spezifität erhöht, damit .c-form-input das Padding nicht überschreibt! */
-    .c-control-bar__search-input.c-form-input {
-        padding-inline-start: 42px;
-        border-radius: 30px;
-        block-size: 38px;
-        inline-size: 100%;
     }
 }

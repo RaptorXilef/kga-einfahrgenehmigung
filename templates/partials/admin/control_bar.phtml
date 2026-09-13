@@ -89,8 +89,8 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 
                 <div class="c-control-bar__search">
                     <span class="c-control-bar__search-icon">
-                    <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt="">
-                </span>
+                        <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt="">
+                    </span>
                     <!-- name="q" und value aus PHP für Server-Side Search -->
                     <input type="text"
                            id="adminSearch"
@@ -100,7 +100,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                            value="<?php echo \htmlspecialchars($currentQ); ?>"
                            placeholder="Schnellsuche..."
                            title="Suchen Sie nach Namen, KFZ oder SmartCode"
-                           class="c-form-input c-control-bar__search-input">
+                           class="c-form-input">
                 </div>
 
                 <?php if (!empty($sessionFilters)) { ?>
