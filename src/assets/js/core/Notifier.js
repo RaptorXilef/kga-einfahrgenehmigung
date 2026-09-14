@@ -24,25 +24,27 @@ class NotifierService {
         // FIX: Saubere BEM Modifikatoren statt Inline-Styles
         toast.className = `c-toast c-toast--${type}`;
 
-        // HTML-Gerüst ohne die eigentliche Message
-        const iconName = type === 'success' ? 'status-success.webp' : 'status-denied.webp';
-
         if (type === 'success' || type === 'error') {
-            toast.innerHTML = `<img src="${this.baseUrl}assets/img/icons/${iconName}" class="c-icon c-toast__icon" alt=""> <span class="c-toast__msg js-toast-msg"></span>`;
-        } else {
-            toast.innerHTML = `<span class="c-toast__msg js-toast-msg"></span>`;
+            const iconName = type === 'success' ? 'status-success.webp' : 'status-denied.webp';
+            const icon = document.createElement('img');
+            icon.src = `${this.baseUrl}assets/img/icons/${iconName}`;
+            icon.className = 'c-icon c-toast__icon';
+            icon.alt = '';
+            toast.appendChild(icon);
         }
 
         // Sicheres Einfügen der Nachricht als Text!
-        const msgContainer = toast.querySelector('.js-toast-msg');
+        const msgContainer = document.createElement('span');
+        msgContainer.className = 'c-toast__msg js-toast-msg';
         msgContainer.textContent = message;
+        toast.appendChild(msgContainer);
 
         document.body.appendChild(toast);
 
         // Slide-Out Animation nach 3 Sekunden
         this.hideTimeout = setTimeout(() => {
             toast.classList.add('is-hidden');
-            this.removeTimeout = setTimeout(() => toast.remove(), 500);
+            this.removeTimeout = setTimeout(() => toast.remove(), 400); // Gematcht auf CSS-Transition
         }, 3000);
     }
 }

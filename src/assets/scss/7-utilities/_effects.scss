@@ -31,6 +31,14 @@
         background-color: var(--color-bg-light) !important;
     }
 
+    /* Global SMACSS States for JS Interaction */
+    .is-success {
+        color: var(--color-success) !important;
+    }
+    .is-error {
+        color: var(--color-danger) !important;
+    }
+
     .state-bg-valid {
         background-color: var(--color-success-soft) !important;
     }

@@ -116,6 +116,9 @@ export class AdminDashboard {
             if (this.countSpanRemind) this.countSpanRemind.innerText = checkedCount;
 
             const isHidden = checkedCount === 0;
+            this.btnPay.hidden = isHidden;
+            this.btnRemind.hidden = isHidden;
+            // Fallback für verbleibendes HTML, das evtl. noch die Klasse nutzt
             this.btnPay.classList.toggle('u-hidden', isHidden);
             this.btnRemind.classList.toggle('u-hidden', isHidden);
         }

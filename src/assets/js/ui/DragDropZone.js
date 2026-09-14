@@ -91,7 +91,8 @@ export class DragDropZone {
                 }
                 this.currentPreviewUrl = URL.createObjectURL(file);
                 img.src = this.currentPreviewUrl;
-                img.classList.remove('u-hidden');
+                img.hidden = false;
+                img.classList.remove('u-hidden'); // Rückwärtskompatibilität
             }
 
             if (txt) {

@@ -1,4 +1,9 @@
 @layer utilities {
+    /* Global HTML5 Hidden Guard - Überschreibt jedes Display-Verhalten */
+    [hidden] {
+        display: none !important;
+    }
+
     .u-display-block {
         display: block !important;
     }

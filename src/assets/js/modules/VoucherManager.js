@@ -55,9 +55,9 @@ export class VoucherManager {
 
         this.modalCode.innerText = code;
 
-        // Sichtbarkeit an CSS Utilities delegieren
-        this.modalImg.classList.add('u-hidden');
-        this.modalLoader.classList.remove('u-hidden', 'u-color-danger');
+        this.modalImg.hidden = true;
+        this.modalLoader.hidden = false;
+        this.modalLoader.classList.remove('is-error');
         // Loader Text zurücksetzen, falls er beim letzten Mal auf "Fehler" stand
         this.modalLoader.innerText = 'Wird generiert...';
         this.modal.classList.add('is-open');
@@ -74,16 +74,16 @@ export class VoucherManager {
 
         // Wir blenden das Bild erst ein, wenn die externe API es fertig gerendert hat
         this.modalImg.onload = () => {
-            this.modalLoader.classList.add('u-hidden');
-            this.modalImg.classList.remove('u-hidden');
+            this.modalLoader.hidden = true;
+            this.modalImg.hidden = false;
         };
 
         // Fehlerbehandlung, falls die externe API offline oder geblockt ist!
         this.modalImg.onerror = () => {
-            this.modalImg.classList.add('u-hidden');
-            this.modalLoader.classList.remove('u-hidden');
+            this.modalImg.hidden = true;
+            this.modalLoader.hidden = false;
             this.modalLoader.innerText = 'Fehler: QR-Code API nicht erreichbar.';
-            this.modalLoader.classList.add('u-color-danger');
+            this.modalLoader.classList.add('is-error');
         };
 
         this.modalImg.src = qrUrl;
@@ -92,9 +92,8 @@ export class VoucherManager {
     closeQr() {
         if (!this.modal) return;
         this.modal.classList.remove('is-open');
-        this.modalImg.src = ''; // Leeren, damit beim nächsten Mal der Loader wieder erscheint
-        // Loader-Style sicherheitshalber resetten
-        this.modalLoader.classList.remove('u-color-danger');
+        this.modalImg.src = '';
+        this.modalLoader.classList.remove('is-error');
     }
 
     async copyLink(url, element) {
@@ -106,14 +105,13 @@ export class VoucherManager {
 
         const successAction = () => {
             element.innerText = 'Kopiert! ✓';
-            // FIX: Farbänderung als Klasse toggeln
-            element.classList.add('u-color-success');
+            element.classList.add('is-success');
             notifier.show('Gutschein-Link in die Zwischenablage kopiert!', 'success');
 
             // Reset nach 2 Sekunden
             setTimeout(() => {
                 element.innerHTML = originalHtml;
-                element.classList.remove('u-color-success');
+                element.classList.remove('is-success');
                 delete element.dataset.isCopying; // Lock wieder freigeben
             }, 2000);
         };
