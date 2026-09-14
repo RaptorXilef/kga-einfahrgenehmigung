@@ -107,7 +107,8 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                 <div class="c-category-card is-closed"
                      id="card-<?php echo $userId; ?>">
                     <header class="c-category-card__header u-flex u-justify-between u-align-center">
-                        <div class="u-flex u-align-center u-gap-m js-toggle-parent u-cursor-pointer u-flex-grow-1">
+                        <div class="u-flex u-align-center u-gap-m js-toggle-parent u-cursor-pointer u-flex-grow-1"
+                             aria-controls="card-body-<?php echo $userId; ?>">
                             <img src="<?php echo $userImage; ?>"
                                  class="c-avatar c-avatar--sm"
                                  alt="">
@@ -137,7 +138,8 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                             </button>
                         </form>
                     </header>
-                    <div class="c-category-card__body">
+                    <div class="c-category-card__body"
+                         id="card-body-<?php echo $userId; ?>">
                         <div class="o-grid o-grid--user-management u-gap-l">
 
                             <div class="c-box c-box--dashed u-padding-around-s u-border-radius-m">

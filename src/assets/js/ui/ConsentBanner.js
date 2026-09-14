@@ -1,5 +1,6 @@
 /**
  * Modulares Consent-Banner für DSGVO-konforme Google Analytics Integration.
+ * Inklusive A11y DOM-Steuerung.
  */
 export class ConsentBanner {
     constructor(container) {
@@ -33,6 +34,10 @@ export class ConsentBanner {
             if (!cookieVal) {
                 this.container.hidden = false;
                 this.container.classList.remove('u-hidden'); // Rückwärtskompatibilität
+                // A11Y Dialog-Semantik setzen
+                this.container.setAttribute('role', 'dialog');
+                this.container.setAttribute('aria-modal', 'false'); // Non-blocking
+                this.container.setAttribute('aria-labelledby', 'consent-banner-title');
             } else {
                 this.applyConsent(JSON.parse(cookieVal));
             }
@@ -113,10 +118,12 @@ export class ConsentBanner {
             this.btnSaveSelection.hidden = false;
             this.btnSaveSelection.classList.remove('u-hidden');
             this.btnToggleDetails.innerText = this.config.texts.hide_details;
+            this.btnToggleDetails.setAttribute('aria-expanded', 'true');
         } else {
             this.detailsContainer.hidden = true;
             this.btnSaveSelection.hidden = true;
             this.btnToggleDetails.innerText = this.config.texts.show_details;
+            this.btnToggleDetails.setAttribute('aria-expanded', 'false');
         }
     }
 

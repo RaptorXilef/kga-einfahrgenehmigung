@@ -129,7 +129,8 @@ if ($auth->hasPermission('system.roles.manage')) {
                 <div class="c-category-card is-closed"
                      id="card-<?php echo $roleId; ?>">
                     <header class="c-category-card__header u-flex u-justify-between u-align-center">
-                        <div class="u-flex u-align-center u-gap-m js-toggle-parent u-cursor-pointer u-flex-grow-1">
+                        <div class="u-flex u-align-center u-gap-m js-toggle-parent u-cursor-pointer u-flex-grow-1"
+                             aria-controls="card-body-<?php echo $roleId; ?>">
                             <img src="<?php echo $roleImage; ?>"
                                  class="c-avatar c-avatar--sm c-avatar--role"
                                  alt="">
@@ -159,7 +160,8 @@ if ($auth->hasPermission('system.roles.manage')) {
                         <?php } ?>
                     </header>
 
-                    <div class="c-category-card__body">
+                    <div class="c-category-card__body"
+                         id="card-body-<?php echo $roleId; ?>">
 
                         <!-- Avatar / Icon Dropzone analog zu Benutzerverwaltung -->
                         <form method="POST"

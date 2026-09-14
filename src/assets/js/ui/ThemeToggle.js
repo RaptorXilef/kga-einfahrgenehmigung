@@ -1,7 +1,6 @@
 /**
  * Modulares BEM-Toggle für den Hell/Dunkel Modus.
- * Beachtet System-Präferenzen, speichert die Auswahl persistent und verhindert
- * Memory-Leaks durch sauberes Event-Listener Lifecycle-Management.
+ * Beachtet System-Präferenzen und setzt A11y Attribute.
  */
 export class ThemeToggle {
     constructor(container) {
@@ -55,6 +54,14 @@ export class ThemeToggle {
 
     applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
+
+        // A11Y Label setzen
+        if (this.button) {
+            this.button.setAttribute(
+                'aria-label',
+                theme === 'dark' ? 'In den hellen Modus wechseln' : 'In den dunklen Modus wechseln'
+            );
+        }
 
         if (this.icon && this.text) {
             const baseUrl = window.KGA_CONFIG?.baseUrl || '/';

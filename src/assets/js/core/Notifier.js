@@ -1,6 +1,6 @@
 /**
  * Zentraler Notification-Service (Toasts) als Singleton.
- * Ersetzt verstreute Inline-Toast-Logiken durch eine einheitliche, moderne API.
+ * Ersetzt verstreute Inline-Toast-Logiken durch eine einheitliche, moderne API (WAI-ARIA konform).
  */
 
 class NotifierService {
@@ -24,12 +24,18 @@ class NotifierService {
         // FIX: Saubere BEM Modifikatoren statt Inline-Styles
         toast.className = `c-toast c-toast--${type}`;
 
+        // A11Y: Screenreader-Fokus & Live-Announcements
+        toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+        toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+        toast.setAttribute('aria-atomic', 'true');
+
         if (type === 'success' || type === 'error') {
             const iconName = type === 'success' ? 'status-success.webp' : 'status-denied.webp';
             const icon = document.createElement('img');
             icon.src = `${this.baseUrl}assets/img/icons/${iconName}`;
             icon.className = 'c-icon c-toast__icon';
             icon.alt = '';
+            icon.setAttribute('aria-hidden', 'true');
             toast.appendChild(icon);
         }
 

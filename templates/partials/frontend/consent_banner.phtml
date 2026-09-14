@@ -40,7 +40,8 @@ $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
 
         <div class="c-consent-banner__dialog">
             <div class="c-consent-banner__content">
-                <h3 class="c-consent-banner__title"><?php echo \htmlspecialchars($consentConfig['texts']['title']); ?></h3>
+                <h3 class="c-consent-banner__title"
+                    id="consent-banner-title"><?php echo \htmlspecialchars($consentConfig['texts']['title']); ?></h3>
                 <p class="c-consent-banner__text">
                     <?php echo \htmlspecialchars($consentConfig['texts']['description']); ?>
                 </p>
@@ -82,7 +83,9 @@ $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
                     <?php echo \htmlspecialchars($consentConfig['texts']['accept_essential']); ?>
                 </button>
                 <button id="btn-toggle-details"
-                        class="c-consent-banner__button c-consent-banner__button--text js-toggle-details">
+                        class="c-consent-banner__button c-consent-banner__button--text js-toggle-details"
+                        aria-expanded="false"
+                        aria-controls="kga-consent-details">
                     <?php echo \htmlspecialchars($consentConfig['texts']['show_details']); ?>
                 </button>
                 <button id="btn-save-selection"

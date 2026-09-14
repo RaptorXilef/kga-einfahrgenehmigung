@@ -88,10 +88,32 @@ export class AccordionCard {
         this.toggleBtn = this.card.querySelector('.js-toggle-parent');
         if (this.toggleBtn) this.init();
     }
+
     init() {
-        this.toggleBtn.addEventListener('click', (e) => {
+        const isClosed = this.card.classList.contains('is-closed');
+
+        // A11Y: Native Button-Semantik & State für div-basierte Toggles herstellen
+        if (this.toggleBtn.tagName !== 'BUTTON') {
+            this.toggleBtn.setAttribute('role', 'button');
+            this.toggleBtn.setAttribute('tabindex', '0');
+        }
+        this.toggleBtn.setAttribute('aria-expanded', !isClosed);
+
+        const toggleAction = (e) => {
             e.preventDefault();
+            const willClose = !this.card.classList.contains('is-closed');
             this.card.classList.toggle('is-closed');
+            this.toggleBtn.setAttribute('aria-expanded', !willClose);
+        };
+
+        // Maus/Touch Interaction
+        this.toggleBtn.addEventListener('click', toggleAction);
+
+        // Keyboard Interaction (Space & Enter)
+        this.toggleBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                toggleAction(e);
+            }
         });
     }
 }
