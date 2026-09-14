@@ -1,3 +1,5 @@
+@use '../1-settings/z-index' as *;
+
 @layer components {
     .c-header-nav {
         background-color: var(--color-bg-white);
@@ -6,7 +8,7 @@
         margin-block-end: var(--space-l);
         box-shadow: var(--shadow-sm);
         position: relative;
-        z-index: 100;
+        z-index: z('header');
         inline-size: 100%;
     }
 

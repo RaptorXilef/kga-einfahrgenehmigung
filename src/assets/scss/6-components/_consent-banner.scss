@@ -1,3 +1,5 @@
+@use '../1-settings/z-index' as *;
+
 @layer components {
     .c-consent-banner {
         position: fixed;
@@ -8,7 +10,7 @@
         border-block-start: 1px solid var(--color-border);
         padding-block: var(--space-l);
         padding-inline: var(--space-l);
-        z-index: 99999;
+        z-index: z('consent-banner');
         box-shadow: 0 -5px 25px
             color-mix(in oklch, var(--color-text-main) 5%, transparent);
     }

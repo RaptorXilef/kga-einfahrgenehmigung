@@ -1,3 +1,5 @@
+@use '../1-settings/z-index' as *;
+
 @layer components {
     .c-fab-refresh {
         position: fixed;
@@ -17,7 +19,7 @@
         box-shadow: 0 10px 25px
             color-mix(in oklch, var(--color-primary) 30%, transparent);
         cursor: pointer;
-        z-index: 9000;
+        z-index: z('fab');
         transition:
             transform 0.2s,
             background-color 0.2s,

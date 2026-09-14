@@ -1,3 +1,5 @@
+@use '../1-settings/z-index' as *;
+
 @layer components {
     .c-dropzone {
         --dropzone-border-color: transparent;
@@ -45,7 +47,7 @@
         opacity: var(--overlay-opacity);
         transition: opacity 0.2s;
         pointer-events: none;
-        z-index: 10;
+        z-index: z('dropzone-overlay');
         border-radius: inherit;
     }
 
