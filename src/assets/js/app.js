@@ -8,6 +8,18 @@
 import { api } from './core/Api.js';
 import { lazyMount, lazyMountSingle, mount, mountSingle } from './core/Bootstrapper.js';
 import { ConsentBanner } from './ui/ConsentBanner.js';
+import {
+    AccordionCard,
+    AutoSubmitSelect,
+    ConfirmClick,
+    ConfirmSubmit,
+    EventTracker,
+    FabRefresh,
+    PrintControls,
+    RemoteSubmit,
+    SelectOnClick,
+    TriggerClick,
+} from './ui/GlobalInteractions.js';
 import { PasswordToggle } from './ui/PasswordToggle.js';
 import { SessionTimer } from './ui/SessionTimer.js';
 import { ThemeToggle } from './ui/ThemeToggle.js';
@@ -20,88 +32,29 @@ if (typeof window.KGA_TEMPLATES === 'undefined') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Event Delegation Logik
-    document.body.addEventListener('submit', (e) => {
-        const form = e.target;
-        if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) e.preventDefault();
-    });
-
-    document.body.addEventListener('click', (e) => {
-        // Klick-Bestätigungen für Buttons
-        const confirmBtn = e.target.closest('[data-confirm-click]');
-        if (confirmBtn && !window.confirm(confirmBtn.dataset.confirmClick)) {
-            e.preventDefault();
-            return;
-        }
-
-        // Remote Form Submit (Löst ein Formular anhand seiner ID aus)
-        const submitBtn = e.target.closest('.js-submit-form');
-        if (submitBtn) {
-            e.preventDefault();
-            const targetId = submitBtn.dataset.target;
-            const form = document.getElementById(targetId);
-            if (form) form.requestSubmit();
-        }
-
-        // Click-Weiterleitung (z.B. für versteckte File-Inputs)
-        const triggerBtn = e.target.closest('.js-trigger-click');
-        if (triggerBtn) {
-            e.preventDefault();
-            const target = document.getElementById(triggerBtn.dataset.target);
-            if (target) target.click();
-        }
-
-        // Text-Feld bei Klick markieren
-        if (e.target.classList.contains('js-select-on-click')) e.target.select();
-
-        // Accordion-Karten einklappen (Admin-Rollen)
-        const toggleBtn = e.target.closest('.js-toggle-parent');
-        if (toggleBtn) {
-            const card = toggleBtn.closest('.c-category-card');
-            if (card) card.classList.toggle('is-closed');
-        }
-
-        // Globaler Reload-Button
-        const refreshBtn = e.target.closest('.c-fab-refresh');
-        if (refreshBtn) {
-            e.preventDefault();
-            window.location.href =
-                window.location.origin + window.location.pathname + window.location.search;
-        }
-
-        // Globaler Close-Window Button (Druckansicht)
-        const closeWindowBtn = e.target.closest('.js-close-window');
-        if (closeWindowBtn) {
-            e.preventDefault();
-            window.close();
-        }
-
-        // Globaler Print-Window Button (Druckansicht)
-        const printWindowBtn = e.target.closest('.js-print-window');
-        if (printWindowBtn) {
-            e.preventDefault();
-            window.print();
-        }
-    });
-
-    // Auto-Submit für Select-Boxen (Admin Dashboard Filter)
-    document.body.addEventListener('change', (e) => {
-        if (e.target.classList.contains('js-auto-submit-select')) {
-            e.target.closest('form').requestSubmit();
-        }
-    });
+    // Globale Mini-Logiken (Isolierte Klassen für striktes Single Responsibility)
+    mount('form[data-confirm]', ConfirmSubmit);
+    mount('[data-confirm-click]', ConfirmClick);
+    mount('.js-submit-form', RemoteSubmit);
+    mount('.js-trigger-click', TriggerClick);
+    mount('.js-select-on-click', SelectOnClick);
+    mount('.c-category-card', AccordionCard);
+    mount('.c-fab-refresh', FabRefresh);
+    mount('.js-close-window, .js-print-window', PrintControls);
+    mount('.js-auto-submit-select', AutoSubmitSelect);
+    mount('.js-track-event', EventTracker);
 
     // Core / UI mounten
     mountSingle('#ui-session-timer', SessionTimer);
     mount('.js-password-toggle', PasswordToggle);
     mountSingle('#kga-consent-banner', ConsentBanner);
-    mount('.js-theme-toggle', ThemeToggle); // NEU: Theme Toggle eingebunden
+    mount('.js-theme-toggle', ThemeToggle);
 
-    // Lazy Loading Module
+    // Lazy Loading UI Module
     lazyMount('.js-avatar-dropzone', () => import('./ui/DragDropZone.js'), 'DragDropZone');
     lazyMount('.js-sort-table', () => import('./ui/TableSorter.js'), 'TableSorter');
 
-    // Schwere Module Lazy Loaden (Spart hunderte KB beim initialen Seitenaufruf)
+    // Schwere Fach-Module Lazy Loaden (Spart hunderte KB beim initialen Seitenaufruf)
     lazyMount(
         '#permitForm, form[action*="create_voucher"]',
         () => import('./modules/PermitForm.js'),
@@ -125,17 +78,11 @@ document.addEventListener('DOMContentLoaded', () => {
         'ReleaseNotes'
     );
 
+    // Admin-Module
     lazyMountSingle('.l-admin', () => import('./modules/PermissionMatrix.js'), 'PermissionMatrix');
     lazyMountSingle('.l-admin', () => import('./modules/AdminDashboard.js'), 'AdminDashboard');
     lazyMountSingle('#tab-stats', () => import('./modules/DashboardStats.js'), 'DashboardStats');
     lazyMountSingle('#tab-bank-import', () => import('./modules/BankImport.js'), 'BankImport');
-
-    // Mini-Logiken (Events & Pings) zentralisieren
-    document.querySelectorAll('.js-track-event').forEach((el) => {
-        if (el.dataset.event && typeof window.dataLayer !== 'undefined') {
-            window.dataLayer.push({ event: el.dataset.event });
-        }
-    });
 
     // Akku- und Netzwerk-Schonung. Nur pingen, wenn Tab aktiv ist!
     if (document.body.classList.contains('l-public-body')) {
