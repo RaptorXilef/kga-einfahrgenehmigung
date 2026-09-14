@@ -11,6 +11,9 @@
         @each $name, $value in $tokens-spacing {
             --space-#{$name}: #{$value};
         }
+        @each $name, $value in $tokens-layout {
+            --layout-#{$name}: #{$value};
+        }
 
         --font-sans: 'Inter', -apple-system, sans-serif;
         --shadow-sm: 0 1px 3px

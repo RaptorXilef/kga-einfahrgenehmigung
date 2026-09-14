@@ -41,3 +41,9 @@ $tokens-spacing: (
     'xl': 2rem,
     'xxl': 3rem,
 );
+
+// Zentrale Layout-Magic-Numbers
+$tokens-layout: (
+    'max-width': 1100px,
+    'modal-sm': 400px,
+);

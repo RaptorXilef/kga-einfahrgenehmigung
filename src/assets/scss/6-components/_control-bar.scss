@@ -20,7 +20,7 @@
         padding-inline: var(--space-l);
         margin-block-end: var(--space-xl);
         inline-size: 100%;
-        max-inline-size: 1100px;
+        max-inline-size: var(--layout-max-width);
     }
 
     .c-control-bar__input {

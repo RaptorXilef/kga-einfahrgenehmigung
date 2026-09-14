@@ -8,7 +8,7 @@
     }
 
     .c-tab-content-container {
-        max-inline-size: 1100px;
+        max-inline-size: var(--layout-max-width);
         margin-inline: auto !important;
         padding-inline: 20px;
         inline-size: 100%;
