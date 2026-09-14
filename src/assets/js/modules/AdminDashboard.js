@@ -129,8 +129,13 @@ export class AdminDashboard {
         const target = document.getElementById(tabId);
         if (!target) return;
 
-        this.contents.forEach((c) => c.classList.remove('is-active'));
-        this.tabs.forEach((b) => b.classList.remove('is-active'));
+        // LINTER FIX: Explizite Blöcke verhindern implizites Return in forEach
+        this.contents.forEach((c) => {
+            c.classList.remove('is-active');
+        });
+        this.tabs.forEach((b) => {
+            b.classList.remove('is-active');
+        });
 
         target.classList.add('is-active');
         activeBtn.classList.add('is-active');
@@ -166,7 +171,7 @@ export class AdminDashboard {
     handleUrlParams() {
         const urlParams = new URLSearchParams(window.location.search);
 
-        // Audit Logs (Alte Logik)
+        // Audit Logs
         if (urlParams.has('audit_page') || urlParams.has('audit_filter')) {
             const auditBtn = this.container.querySelector('[data-tab-target="tab-audit-log"]');
             if (auditBtn) this.switchTab('tab-audit-log', auditBtn);
