@@ -1,3 +1,5 @@
+@use 'sass:map';
+
 // ITCSS Z-Index Map - Zentrale Verwaltung aller Z-Ebenen
 // Verhindert Z-Index-Kriege zwischen Modals, Toasts und Dropdowns
 $z-index: (
@@ -13,8 +15,8 @@ $z-index: (
 );
 
 @function z($layer) {
-    @if map-has-key($z-index, $layer) {
-        @return map-get($z-index, $layer);
+    @if map.has-key($z-index, $layer) {
+        @return map.get($z-index, $layer);
     }
     @warn "Unbekannter Z-Index Layer: `#{$layer}`.";
     @return null;

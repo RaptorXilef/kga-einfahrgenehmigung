@@ -14,6 +14,7 @@ use App\Infrastructure\Config\Config;
  * @var Config $config
  * @var array $permitGroups
  * @var array $settings
+ * @var string $appRoot
  */
 $now = new \DateTimeImmutable('today');
 $allFuture = $permitGroups['future'] ?? [];
@@ -31,80 +32,10 @@ $offset = ($page - 1) * $limit;
 
 $futurePermits = \array_slice($allFuture, $offset, $limit);
 
-// Paginierung als HTML-String vorrendern
-$paginationHtml = '';
-if ($totalPages > 1) {
-    $queryParams = $_GET;
-    unset($queryParams['page']);
-    $baseUrlStr = '?' . \http_build_query($queryParams) . '&page=';
-
-    $adjacents = 2;
-    $pagesToShow = [];
-    if ($totalPages <= (1 + ($adjacents * 2) + 2)) {
-        for ($i = 1; $i <= $totalPages; ++$i) {
-            $pagesToShow[] = $i;
-        }
-    } else {
-        if ($page <= $adjacents + 2) {
-            for ($i = 1; $i <= 1 + ($adjacents * 2); ++$i) {
-                $pagesToShow[] = $i;
-            }
-            $pagesToShow[] = '...';
-            $pagesToShow[] = $totalPages;
-        } elseif ($totalPages - $page <= $adjacents + 1) {
-            $pagesToShow[] = 1;
-            $pagesToShow[] = '...';
-            for ($i = $totalPages - ($adjacents * 2); $i <= $totalPages; ++$i) {
-                $pagesToShow[] = $i;
-            }
-        } else {
-            $pagesToShow[] = 1;
-            $pagesToShow[] = '...';
-            for ($i = $page - $adjacents; $i <= $page + $adjacents; ++$i) {
-                $pagesToShow[] = $i;
-            }
-            $pagesToShow[] = '...';
-            $pagesToShow[] = $totalPages;
-        }
-    }
-
-    \ob_start();
-    ?>
-    <div class="c-pagination">
-        <div class="c-pagination__info">
-            Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong>
-        </div>
-        <div class="c-pagination__controls">
-            <?php if ($page > 1) { ?>
-                <a href="<?php echo $baseUrlStr . ($page - 1); ?>" class="c-button c-button--secondary c-button--icon-only">&larr;</a>
-            <?php } else { ?>
-                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
-                        disabled>&larr;</button>
-            <?php } ?>
-
-            <?php foreach ($pagesToShow as $pageNum) {
-                if ($pageNum === '...') { ?>
-                    <span class="u-color-muted u-padding-inline-s">&hellip;</span>
-                <?php } elseif ($pageNum === $page) { ?>
-                    <span class="c-button c-button--primary" aria-current="page"><?php echo $pageNum; ?></span>
-                <?php } else { ?>
-                    <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
-            <?php }
-                } ?>
-
-            <?php if ($page < $totalPages) { ?>
-                <a href="<?php echo $baseUrlStr . ($page + 1); ?>" class="c-button c-button--secondary c-button--icon-only">&rarr;</a>
-            <?php } else { ?>
-                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
-                        disabled>&rarr;</button>
-            <?php } ?>
-        </div>
-    </div>
-<?php
-    $paginationHtml = \ob_get_clean();
-} elseif ($totalCount > 0) {
-    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-block-start u-bg-light">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
-}
+\ob_start();
+$paginationParam = 'page';
+include $appRoot . '/templates/partials/admin/pagination.phtml';
+$paginationHtml = \ob_get_clean();
 
 if ($auth->hasPermission('permits.view')) {
     ?>
@@ -204,7 +135,7 @@ if ($auth->hasPermission('permits.view')) {
                                     <!-- 4. Zeitraum & Countdown -->
                                     <td class="c-table__data-cell u-text-center"
                                         data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>">
-                                        <div style="--custom-lh: 1.2; line-height: var(--custom-lh);">
+                                        <div class="u-line-height-tight">
                                             <strong class="u-text-sm"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
                                             <small class="u-color-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
                                             <div class="u-margin-block-start-xs">
@@ -223,6 +154,7 @@ if ($auth->hasPermission('permits.view')) {
                                             <span class="c-badge c-badge--success">AKTIV</span>
                                         <?php } ?>
                                     </td>
+
                                     <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                                         <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>

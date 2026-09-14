@@ -15,6 +15,7 @@ use App\Infrastructure\Config\Config;
  * @var array $permitGroups
  * @var array $settings
  * @var int $minArchiveYear
+ * @var string $appRoot
  */
 $allExpired = $permitGroups['expired'] ?? [];
 
@@ -30,80 +31,10 @@ $offset = ($page - 1) * $limit;
 
 $expiredPermits = \array_slice($allExpired, $offset, $limit);
 
-// Paginierung als HTML-String vorrendern
-$paginationHtml = '';
-if ($totalPages > 1) {
-    $queryParams = $_GET;
-    unset($queryParams['page']);
-    $baseUrlStr = '?' . \http_build_query($queryParams) . '&page=';
-
-    $adjacents = 2;
-    $pagesToShow = [];
-    if ($totalPages <= (1 + ($adjacents * 2) + 2)) {
-        for ($i = 1; $i <= $totalPages; ++$i) {
-            $pagesToShow[] = $i;
-        }
-    } else {
-        if ($page <= $adjacents + 2) {
-            for ($i = 1; $i <= 1 + ($adjacents * 2); ++$i) {
-                $pagesToShow[] = $i;
-            }
-            $pagesToShow[] = '...';
-            $pagesToShow[] = $totalPages;
-        } elseif ($totalPages - $page <= $adjacents + 1) {
-            $pagesToShow[] = 1;
-            $pagesToShow[] = '...';
-            for ($i = $totalPages - ($adjacents * 2); $i <= $totalPages; ++$i) {
-                $pagesToShow[] = $i;
-            }
-        } else {
-            $pagesToShow[] = 1;
-            $pagesToShow[] = '...';
-            for ($i = $page - $adjacents; $i <= $page + $adjacents; ++$i) {
-                $pagesToShow[] = $i;
-            }
-            $pagesToShow[] = '...';
-            $pagesToShow[] = $totalPages;
-        }
-    }
-
-    \ob_start();
-    ?>
-    <div class="c-pagination">
-        <div class="c-pagination__info">
-            Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong>
-        </div>
-        <div class="c-pagination__controls">
-            <?php if ($page > 1) { ?>
-                <a href="<?php echo $baseUrlStr . ($page - 1); ?>" class="c-button c-button--secondary c-button--icon-only">&larr;</a>
-            <?php } else { ?>
-                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
-                        disabled>&larr;</button>
-            <?php } ?>
-
-            <?php foreach ($pagesToShow as $pageNum) {
-                if ($pageNum === '...') { ?>
-                    <span class="u-color-muted u-padding-inline-s">&hellip;</span>
-                <?php } elseif ($pageNum === $page) { ?>
-                    <span class="c-button c-button--primary" aria-current="page"><?php echo $pageNum; ?></span>
-                <?php } else { ?>
-                    <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
-            <?php }
-                } ?>
-
-            <?php if ($page < $totalPages) { ?>
-                <a href="<?php echo $baseUrlStr . ($page + 1); ?>" class="c-button c-button--secondary c-button--icon-only">&rarr;</a>
-            <?php } else { ?>
-                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
-                        disabled>&rarr;</button>
-            <?php } ?>
-        </div>
-    </div>
-<?php
-    $paginationHtml = \ob_get_clean();
-} elseif ($totalCount > 0) {
-    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-block-start u-bg-light">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
-}
+\ob_start();
+$paginationParam = 'page';
+include $appRoot . '/templates/partials/admin/pagination.phtml';
+$paginationHtml = \ob_get_clean();
 
 if ($auth->hasPermission('permits.view')) {
     ?>

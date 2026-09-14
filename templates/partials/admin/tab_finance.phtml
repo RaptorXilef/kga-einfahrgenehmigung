@@ -17,6 +17,7 @@ use App\Infrastructure\Config\Config;
  * @var array $permitGroups
  * @var array $settings
  * @var array $collectiveTransfers
+ * @var string $appRoot
  */
 $dueDaysCfg = (int) $config->get('payment_due_days', 14);
 $now = new \DateTimeImmutable('today');
@@ -46,79 +47,10 @@ $privacyEmail = $auth->hasPermission('privacy.emails.view');
 $privacyFinance = $auth->hasPermission('privacy.finance.view');
 $colspan = 5 + ($privacyEmail ? 1 : 0) + ($privacyFinance ? 1 : 0) + ($hasBulkRight ? 1 : 0);
 
-$paginationHtml = '';
-if ($totalPages > 1) {
-    $queryParams = $_GET;
-    unset($queryParams['page']);
-    $baseUrlStr = '?' . \http_build_query($queryParams) . '&page=';
-
-    $adjacents = 2;
-    $pagesToShow = [];
-    if ($totalPages <= (1 + ($adjacents * 2) + 2)) {
-        for ($i = 1; $i <= $totalPages; ++$i) {
-            $pagesToShow[] = $i;
-        }
-    } else {
-        if ($page <= $adjacents + 2) {
-            for ($i = 1; $i <= 1 + ($adjacents * 2); ++$i) {
-                $pagesToShow[] = $i;
-            }
-            $pagesToShow[] = '...';
-            $pagesToShow[] = $totalPages;
-        } elseif ($totalPages - $page <= $adjacents + 1) {
-            $pagesToShow[] = 1;
-            $pagesToShow[] = '...';
-            for ($i = $totalPages - ($adjacents * 2); $i <= $totalPages; ++$i) {
-                $pagesToShow[] = $i;
-            }
-        } else {
-            $pagesToShow[] = 1;
-            $pagesToShow[] = '...';
-            for ($i = $page - $adjacents; $i <= $page + $adjacents; ++$i) {
-                $pagesToShow[] = $i;
-            }
-            $pagesToShow[] = '...';
-            $pagesToShow[] = $totalPages;
-        }
-    }
-
-    \ob_start();
-    ?>
-    <div class="c-pagination">
-        <div class="c-pagination__info">
-            Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong>
-        </div>
-        <div class="c-pagination__controls">
-            <?php if ($page > 1) { ?>
-                <a href="<?php echo $baseUrlStr . ($page - 1); ?>" class="c-button c-button--secondary c-button--icon-only">&larr;</a>
-            <?php } else { ?>
-                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
-                        disabled>&larr;</button>
-            <?php } ?>
-
-            <?php foreach ($pagesToShow as $pageNum) {
-                if ($pageNum === '...') { ?>
-                    <span class="u-color-muted u-padding-inline-s">&hellip;</span>
-                <?php } elseif ($pageNum === $page) { ?>
-                    <span class="c-button c-button--primary" aria-current="page"><?php echo $pageNum; ?></span>
-                <?php } else { ?>
-                    <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
-            <?php }
-                } ?>
-
-            <?php if ($page < $totalPages) { ?>
-                <a href="<?php echo $baseUrlStr . ($page + 1); ?>" class="c-button c-button--secondary c-button--icon-only">&rarr;</a>
-            <?php } else { ?>
-                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
-                        disabled>&rarr;</button>
-            <?php } ?>
-        </div>
-    </div>
-<?php
-    $paginationHtml = \ob_get_clean();
-} elseif ($totalCount > 0) {
-    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-block-start u-bg-light">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
-}
+\ob_start();
+$paginationParam = 'page';
+include $appRoot . '/templates/partials/admin/pagination.phtml';
+$paginationHtml = \ob_get_clean();
 
 if ($auth->hasPermission('finance.view')) {
     ?>
@@ -164,55 +96,54 @@ if ($auth->hasPermission('finance.view')) {
                 <!-- AUFGABEN-LISTE FÜR SAMMELÜBERWEISUNGEN -->
                 <?php if (!empty($collectiveTransfers)) { ?>
                     <div class="u-padding-around-m u-padding-block-end-none">
-                        <div
-                             class="c-alert c-alert--warning c-alert--large u-flex-column u-align-start u-text-start u-margin-block-end-l">
-                            <h4 class="u-margin-block-start-none u-margin-block-end-s u-flex u-align-center u-gap-s">
-                                <span class="u-text-xl">
-                                    <img src="<?php echo $asset->url('assets/img/icons/icon-warning.webp'); ?>" class="c-icon c-button__icon" alt="">
-                                </span>
-                                Manuelle Zahlungszuordnung erforderlich
-                            </h4>
-                            <p class="u-margin-block-start-none u-margin-block-end-m u-text-sm">
-                                Das System hat in der Bankdatei Überweisungen gefunden, die manuell geprüft werden
-                                müssen.
-                            </p>
+                        <div class="c-alert c-alert--warning c-alert--large u-flex-column u-align-start u-text-start u-margin-block-end-l">
+                            <div class="c-alert__content">
+                                <h4 class="u-margin-block-start-none u-margin-block-end-s u-flex u-align-center u-gap-s">
+                                    <span class="u-text-xl">
+                                        <img src="<?php echo $asset->url('assets/img/icons/icon-warning.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                    </span>
+                                    Manuelle Zahlungszuordnung erforderlich
+                                </h4>
+                                <p class="u-margin-block-start-none u-margin-block-end-m u-text-sm">
+                                    Das System hat in der Bankdatei Überweisungen gefunden, die manuell geprüft werden
+                                    müssen.
+                                </p>
 
-                            <div class="u-flex u-flex-column u-gap-s u-inline-size-100">
-                                <?php foreach ($collectiveTransfers as $ct) { ?>
-                                    <div
-                                         class="c-box c-box--warning u-bg-white u-flex u-justify-between u-align-center u-gap-m u-flex-wrap">
-                                        <div>
-                                            <strong class="u-text-lg u-color-warning"><?php echo \number_format($ct['amount'], 2, ',', '.'); ?> €</strong>
-                                            <span class="u-color-muted u-text-sm u-margin-inline-start-s">am <?php echo \htmlspecialchars($ct['date']); ?></span>
-                                            <div
-                                                 class="c-box c-box--subtle u-margin-block-start-xs u-font-mono u-text-sm u-color-warning">
-                                                <?php echo \htmlspecialchars($ct['purpose']); ?>
+                                <div class="u-flex u-flex-column u-gap-s u-inline-size-100">
+                                    <?php foreach ($collectiveTransfers as $ct) { ?>
+                                        <div class="c-box c-box--warning u-bg-white u-flex u-justify-between u-align-center u-gap-m u-flex-wrap">
+                                            <div>
+                                                <strong class="u-text-lg u-color-warning"><?php echo \number_format($ct['amount'], 2, ',', '.'); ?> €</strong>
+                                                <span class="u-color-muted u-text-sm u-margin-inline-start-s">am <?php echo \htmlspecialchars($ct['date']); ?></span>
+                                                <div
+                                                     class="c-box c-box--subtle u-margin-block-start-xs u-font-mono u-text-sm u-color-warning">
+                                                    <?php echo \htmlspecialchars($ct['purpose']); ?>
+                                                </div>
+                                                <div class="u-flex u-align-center u-gap-s u-flex-wrap u-margin-block-start-s">
+                                                    <span class="u-text-xs u-font-bold u-color-warning u-text-uppercase">
+                                                        <?php echo ($ct['type'] ?? 'sammel') === 'kennzeichen' ? 'Kennzeichen-Match:' : 'Mehrere Codes:'; ?>
+                                                    </span>
+                                                    <?php foreach ($ct['codes'] as $c) { ?>
+                                                        <span class="c-badge c-badge--outline u-font-mono"><?php echo $c; ?></span>
+                                                    <?php } ?>
+                                                </div>
                                             </div>
-                                            <div
-                                                 class="u-flex u-align-center u-gap-s u-flex-wrap u-margin-block-start-s">
-                                                <span class="u-text-xs u-font-bold u-color-warning u-text-uppercase">
-                                                    <?php echo ($ct['type'] ?? 'sammel') === 'kennzeichen' ? 'Kennzeichen-Match:' : 'Mehrere Codes:'; ?>
-                                                </span>
-                                                <?php foreach ($ct['codes'] as $c) { ?>
-                                                    <span class="c-badge c-badge--outline u-font-mono"><?php echo $c; ?></span>
-                                                <?php } ?>
-                                            </div>
+                                            <form method="POST"
+                                                  action="<?php echo $settings['base_url']; ?>dismiss_transfer"
+                                                  class="u-margin-block-none">
+                                                <input type="hidden"
+                                                       name="csrf_token"
+                                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                                <input type="hidden"
+                                                       name="anomaly_id"
+                                                       value="<?php echo $ct['id']; ?>">
+                                                <button type="submit"
+                                                        class="c-button c-button--danger c-button--small"
+                                                        title="Hinweis ausblenden">✔ Schließen</button>
+                                            </form>
                                         </div>
-                                        <form method="POST"
-                                              action="<?php echo $settings['base_url']; ?>dismiss_transfer"
-                                              class="u-margin-block-none">
-                                            <input type="hidden"
-                                                   name="csrf_token"
-                                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                            <input type="hidden"
-                                                   name="anomaly_id"
-                                                   value="<?php echo $ct['id']; ?>">
-                                            <button type="submit"
-                                                    class="c-button c-button--danger c-button--small"
-                                                    title="Hinweis ausblenden">✔ Schließen</button>
-                                        </form>
-                                    </div>
-                                <?php } ?>
+                                    <?php } ?>
+                                </div>
                             </div>
                         </div>
                     </div>
