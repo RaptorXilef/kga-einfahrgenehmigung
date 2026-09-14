@@ -80,8 +80,7 @@ if ($totalPages > 1) {
                 if ($pageNum === '...') { ?>
                     <span class="u-color-muted u-padding-inline-s">&hellip;</span>
                 <?php } elseif ($pageNum === $page) { ?>
-                    <button class="c-button c-button--primary"
-                            style="pointer-events: none;"><?php echo $pageNum; ?></button>
+                    <span class="c-button c-button--primary" aria-current="page"><?php echo $pageNum; ?></span>
                 <?php } else { ?>
                     <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
             <?php }
@@ -98,7 +97,7 @@ if ($totalPages > 1) {
 <?php
     $paginationHtml = \ob_get_clean();
 } elseif ($totalCount > 0) {
-    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top" style="background-color: var(--color-bg-light);">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
+    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top u-bg-light">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
 }
 
 if ($auth->hasPermission('system.logs.view')) { ?>
@@ -179,8 +178,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                                 <div
                                                      class="u-color-danger u-text-xs u-font-extrabold u-text-uppercase u-margin-block-end-xs">
                                                     Fehlermeldung:</div>
-                                                <div class="u-text-xs u-color-main"
-                                                     style="white-space: normal;">
+                                                <div class="u-text-xs u-color-main u-white-space-normal">
                                                     <?php echo \htmlspecialchars($log->status); ?>
                                                 </div>
                                             </div>
@@ -188,7 +186,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                     </td>
                                     <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                                         <div class="u-flex u-gap-xs u-justify-end u-align-center u-text-nowrap">
-                                            <span class="c-badge c-badge--<?php echo $isSuccess ? 'success' : 'danger'; ?>" style="min-inline-size: 100px; block-size: 32px;">
+                                            <span class="c-badge c-badge--<?php echo $isSuccess ? 'success' : 'danger'; ?> c-badge--fixed">
                                                 <?php $statusIcon = $isSuccess ? 'status-success' : 'status-invalid'; ?>
                                                 <img src="<?php echo $asset->url("assets/img/icons/{$statusIcon}.webp"); ?>" class="c-icon" alt="">
                                                 <?php echo $isSuccess ? 'GESENDET' : 'FEHLER'; ?>

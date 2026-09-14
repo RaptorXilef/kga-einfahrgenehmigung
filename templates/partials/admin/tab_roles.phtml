@@ -37,7 +37,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                 <div class="c-tree-node"
                      style="--depth: <?php echo $depth; ?>;"
                      data-key="<?php echo $key ?? $id; ?>">
-                    <div class="c-tree-item <?php echo $depth === 0 ? 'c-tree-item--root' : ''; ?> <?php echo !$key ? 'is-category' : ''; ?>">
+                    <div class="c-tree-item <?php echo $depth === 0 ? 'c-tree-item--root' : ''; ?> <?php echo !$key ? 'c-tree-item--category' : ''; ?>">
                         <div class="c-tree-item__label-wrapper u-flex u-flex-column">
                             <span class="c-tree-item__label <?php echo $depth === 0 ? 'c-tree-item__label--root' : ''; ?>">
                                 <?php echo \htmlspecialchars((string) ($node['label'] ?? $id)); ?>

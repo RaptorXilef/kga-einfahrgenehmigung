@@ -78,8 +78,7 @@ $crons = [
                     </div>
                     <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
                         <p class="u-text-sm u-margin-block-none">Anonymisiert personenbezogene Daten in
-                            Archiv-Einträgen, die
-                            älter als 10 Jahre sind. (Wird auch vom Cronjob erledigt).</p>
+                            Archiv-Einträgen, die älter als 10 Jahre sind. (Wird auch vom Cronjob erledigt).</p>
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>anonymize_archive"
                               data-confirm="Sollen alte Archiv-Einträge jetzt DSGVO-konform anonymisiert werden?"
@@ -103,8 +102,7 @@ $crons = [
                     </div>
                     <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
                         <p class="u-text-sm u-margin-block-none">Löscht temporäre Dateien, Routen-Caches und kompiliert
-                            die
-                            System-Berechtigungen neu.</p>
+                            die System-Berechtigungen neu.</p>
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>clear_cache"
                               data-confirm="Cache jetzt leeren?"
@@ -140,8 +138,7 @@ $crons = [
                     </div>
                     <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
                         <p class="u-text-sm u-margin-block-none">Löst alle ausstehenden Tabellen-Anpassungen (.sql
-                            Dateien)
-                            manuell aus, falls dies nicht via Console geschehen ist.</p>
+                            Dateien) manuell aus, falls dies nicht via Console geschehen ist.</p>
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>run_update_migrations"
                               class="u-margin-block-start-auto">
@@ -166,15 +163,16 @@ $crons = [
                 <div>
                     <h3 class="u-margin-block-none">Cronjobs & Automatisierung</h3>
                     <p class="u-color-muted u-text-sm u-margin-block-none">Rufen Sie diese URLs über Ihren Webhoster
-                        (z.B.
-                        Strato, Ionos, oder cron-job.org) zyklisch per GET auf.</p>
+                        (z.B. Strato, Ionos, oder cron-job.org) zyklisch per GET auf.</p>
                 </div>
             </header>
 
             <?php if ($cronSecret === '') { ?>
                 <div class="c-alert c-alert--danger u-margin-block-end-m">
-                    <strong>Achtung:</strong> Es wurde kein <code>cron_secret</code> in der Konfiguration definiert. Die
-                    Automatisierung ist dadurch nicht abgesichert und wird fehlschlagen!
+                    <div class="c-alert__content">
+                        <strong>Achtung:</strong> Es wurde kein <code>cron_secret</code> in der Konfiguration definiert.
+                        Die Automatisierung ist dadurch nicht abgesichert und wird fehlschlagen!
+                    </div>
                 </div>
             <?php } ?>
 

@@ -57,6 +57,11 @@
         color: var(--color-text-muted);
     }
 
+    .c-badge--fixed {
+        min-inline-size: 100px;
+        block-size: 32px;
+    }
+
     .c-date-indicator {
         background-color: var(--color-bg-white);
         border: 2px solid var(--color-primary);
