@@ -44,7 +44,7 @@ export class VoucherManager {
 
         if (this.modal) {
             this.modal.addEventListener('click', (e) => {
-                // Nur schließen, wenn man auf den abgedunkelten Hintergrund klickt
+                // Ein nativer Klick auf das <dialog> Element (den ::backdrop) schließt das Modal
                 if (e.target === this.modal) this.closeQr();
             });
         }
@@ -58,9 +58,8 @@ export class VoucherManager {
         this.modalImg.hidden = true;
         this.modalLoader.hidden = false;
         this.modalLoader.classList.remove('is-error');
-        // Loader Text zurücksetzen, falls er beim letzten Mal auf "Fehler" stand
         this.modalLoader.innerText = 'Wird generiert...';
-        this.modal.classList.add('is-open');
+        this.modal.showModal();
 
         // Die QR-Code API url-encoded aufrufen
         const encodedUrl = encodeURIComponent(url);
@@ -91,7 +90,7 @@ export class VoucherManager {
 
     closeQr() {
         if (!this.modal) return;
-        this.modal.classList.remove('is-open');
+        this.modal.close();
         this.modalImg.src = '';
         this.modalLoader.classList.remove('is-error');
     }

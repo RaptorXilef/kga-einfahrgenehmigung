@@ -94,7 +94,7 @@ export class SessionTimer {
             this.lastActivity = stored;
             if (this.isWarningActive) {
                 this.isWarningActive = false;
-                if (this.modal) this.modal.classList.remove('is-open');
+                if (this.modal && this.modal.open) this.modal.close();
             }
         }
         this.tick();
@@ -123,7 +123,7 @@ export class SessionTimer {
         // Aktualisiere das Nav-Label
         if (this.container) {
             this.container.innerText = timeStr;
-            this.container.classList.toggle('u-color-danger', remainingMs <= this.warningMs);
+            this.container.classList.toggle('is-error', remainingMs <= this.warningMs);
         }
 
         // Aktualisiere Modal-Countdown
@@ -142,7 +142,7 @@ export class SessionTimer {
         // Warnung einblenden
         if (remainingMs <= this.warningMs && remainingMs > 0 && !this.isWarningActive) {
             this.isWarningActive = true;
-            if (this.modal) this.modal.classList.add('is-open');
+            if (this.modal && !this.modal.open) this.modal.showModal();
         }
 
         // Zwangs-Logout
@@ -162,7 +162,7 @@ export class SessionTimer {
                 this.setStoredActivity(this.lastActivity);
                 this.isWarningActive = false;
 
-                if (this.modal) this.modal.classList.remove('is-open');
+                if (this.modal && this.modal.open) this.modal.close();
                 this.updateDisplay(this.maxIdleMs);
                 notifier.show('Sitzung erfolgreich verlängert.');
             } else {

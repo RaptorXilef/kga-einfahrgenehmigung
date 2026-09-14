@@ -311,8 +311,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             nonce="<?php echo $cspNonce; ?>">
     </script>
 
-    <div id="release-notes-modal"
-         class="c-modal u-hidden">
+    <dialog id="release-notes-modal"
+            class="c-modal">
         <div class="c-modal__dialog c-modal__dialog--large c-card c-card--primary u-padding-none u-flex-column">
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <h3 class="u-margin-none u-flex u-align-center u-gap-s js-release-notes-title">
@@ -340,7 +340,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 </button>
             </footer>
         </div>
-    </div>
+    </dialog>
 
     <script type="application/json"
             id="release-notes-unread-data"

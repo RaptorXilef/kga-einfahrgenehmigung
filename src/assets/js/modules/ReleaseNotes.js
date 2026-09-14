@@ -43,9 +43,8 @@ export class ReleaseNotes {
         this.closeBtns.forEach((btn) => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-
                 // Modal über State-Klasse schließen
-                this.container.classList.remove('is-open');
+                this.container.close();
 
                 // Wenn wir gerade unread notes angezeigt haben, als gelesen in DB markieren!
                 if (this.showingUnread && this.unreadNotes.length > 0) {
@@ -54,6 +53,16 @@ export class ReleaseNotes {
                     this.unreadNotes = []; // Leeren, damit beim nächsten Klick auf "Alle" nicht neu in DB gespeichert wird
                 }
             });
+        });
+
+        this.container.addEventListener('click', (e) => {
+            if (e.target === this.container) {
+                this.container.close();
+                if (this.showingUnread && this.unreadNotes.length > 0) {
+                    this.markAsRead(this.unreadNotes[0].version);
+                    this.unreadNotes = [];
+                }
+            }
         });
 
         // Event Listener für manuelles Öffnen durch den Button im Dashboard
@@ -81,6 +90,8 @@ export class ReleaseNotes {
                 : '📚 Release Notes Historie';
         }
         if (this.badgeElement) {
+            this.badgeElement.hidden = !isUnread;
+            // Fallback für evtl. verbleibendes HTML
             this.badgeElement.classList.toggle('u-hidden', !isUnread);
         }
 
@@ -107,11 +118,10 @@ export class ReleaseNotes {
             this.contentArea.innerHTML = html;
         } else {
             this.contentArea.innerHTML =
-                '<div class="c-alert c-alert--danger">Fehler: Markdown Parser nicht geladen.</div>';
+                '<div class="c-alert c-alert--danger"><div class="c-alert__content">Fehler: Markdown Parser nicht geladen.</div></div>';
         }
 
-        this.container.classList.remove('u-hidden');
-        this.container.classList.add('is-open');
+        this.container.showModal();
     }
 
     async markAsRead(version) {
