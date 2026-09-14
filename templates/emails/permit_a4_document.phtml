@@ -70,12 +70,12 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
         color: #1e293b;
         line-height: 1.5;
         padding: 20px;
-        background: #f8fafc;
+        background-color: #f8fafc;
         margin: 0;
     }
 
-    .page-container {
-        background: white;
+    .c-page-container {
+        background-color: #ffffff;
         width: 210mm;
         min-height: 297mm;
         margin: auto;
@@ -86,11 +86,10 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
     }
 
     /* MODERNES TICKET-DESIGN */
-    .header-box {
+    .c-header-box {
         display: table;
         width: 100%;
-        background-color: #ffffff !important;
-        /* Die Farbe wird nun modern als Akzent-Rahmen gesetzt */
+        background-color: #ffffff;
         border: 2px solid <?php echo $headerColor; ?>;
         border-top: 18px solid <?php echo $headerColor; ?>;
         border-radius: 12px;
@@ -99,14 +98,14 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
     }
 
-    .header-left {
+    .c-header-box__left {
         display: table-cell;
         vertical-align: middle;
         text-align: left;
         padding: 25px;
     }
 
-    .header-right {
+    .c-header-box__right {
         display: table-cell;
         vertical-align: middle;
         text-align: right;
@@ -114,7 +113,7 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
         width: 150px;
     }
 
-    .title {
+    .c-title {
         font-size: 1.5em;
         font-weight: 800;
         margin: 0;
@@ -125,19 +124,19 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
         word-break: keep-all;
     }
 
-    .subtitle {
+    .c-subtitle {
         margin: 6px 0 15px 0;
         font-size: 1.3em;
         font-weight: 600;
         color: #64748b;
     }
 
-    .full-code {
+    .c-full-code {
         font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
         font-size: 1.6em;
         margin-top: 15px;
         font-weight: 700;
-        background: #f1f5f9 !important;
+        background-color: #f1f5f9;
         color: #0f172a;
         display: inline-block;
         padding: 6px 14px;
@@ -146,33 +145,32 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
         letter-spacing: 1px;
     }
 
-    .quarter-box {
+    .c-quarter-box {
         margin-top: 15px;
         margin-bottom: 5px;
     }
 
-    .quarter {
+    .c-quarter {
         display: inline-block;
         border: 1.5px solid #cbd5e1;
         padding: 4px 12px;
-        background: #f8fafc !important;
+        background-color: #f8fafc;
         font-size: 10pt;
         font-weight: 800;
         color: #64748b;
         border-radius: 20px;
-        /* Moderne Pill-Form */
         text-align: center;
         margin-right: 6px;
     }
 
-    .quarter--active {
-        background: <?php echo $headerColor; ?> !important;
-        color: #ffffff !important;
+    .c-quarter--active {
+        background-color: <?php echo $headerColor; ?>;
+        color: #ffffff;
         border-color: <?php echo $headerColor; ?>;
     }
 
-    .header-qr {
-        background: #fff !important;
+    .c-header-qr {
+        background-color: #ffffff;
         padding: 8px;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
@@ -182,12 +180,12 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
         line-height: 1;
     }
 
-    .header-qr img {
+    .c-header-qr__img {
         display: block;
         border-radius: 4px;
     }
 
-    .header-qr-text {
+    .c-header-qr__text {
         font-size: 7.5pt;
         font-weight: 800;
         text-transform: uppercase;
@@ -197,45 +195,45 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
         letter-spacing: 0.5px;
     }
 
-    .data-section {
+    .c-data-section {
         margin-bottom: 15px;
     }
 
-    .data-table {
+    .c-data-table {
         width: 100%;
         border-collapse: collapse;
         font-size: 13pt;
     }
 
-    .data-table td {
+    .c-data-table td {
         padding: 10px 5px;
         border-bottom: 1px solid #e2e8f0;
     }
 
-    .label {
+    .c-data-table__label {
         color: #475569;
         width: 35%;
     }
 
-    .value {
-        font-weight: bold !important;
+    .c-data-table__value {
+        font-weight: bold;
         color: #0f172a;
     }
 
-    .parking-note {
-        background: #fefce8 !important;
+    .c-parking-note {
+        background-color: #fefce8;
         border: 1px solid #fde047;
         border-left: 4px solid #eab308;
         padding: 12px;
         margin-bottom: 15px;
         border-radius: 6px;
-        font-weight: 600 !important;
+        font-weight: 600;
         color: #854d0e;
         font-size: 11pt;
     }
 
-    .info-notice-box {
-        background: #f8fafc !important;
+    .c-info-notice-box {
+        background-color: #f8fafc;
         border: 1px solid #cbd5e1;
         padding: 15px;
         margin-bottom: 10px;
@@ -243,7 +241,7 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
         font-size: 10.5pt;
     }
 
-    .conditions {
+    .c-conditions {
         font-size: 9.5pt;
         border-top: 2px solid #e2e8f0;
         padding-top: 10px;
@@ -251,24 +249,25 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
         color: #334155;
     }
 
-    .conditions h4 {
+    .c-conditions__title {
         margin: 0 0 8px 0;
         text-transform: uppercase;
         color: #0f172a;
         letter-spacing: 0.5px;
+        font-weight: bold;
     }
 
-    .conditions ul {
+    .c-conditions__list {
         padding-left: 20px;
         margin: 0;
     }
 
-    .conditions li {
+    .c-conditions__item {
         margin-bottom: 4px;
     }
 
-    .route-box {
-        background: #f1f5f9 !important;
+    .c-route-box {
+        background-color: #f1f5f9;
         border: 1px solid #cbd5e1;
         padding: 12px;
         border-radius: 6px;
@@ -276,7 +275,7 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
         color: #475569;
     }
 
-    .footer-info {
+    .c-footer-info {
         margin-top: 20px;
         text-align: center;
         font-size: 9pt;
@@ -285,7 +284,7 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
         padding-top: 15px;
     }
 
-    .clear {
+    .c-clear {
         clear: both;
     }
 
@@ -296,56 +295,56 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
         }
 
         body {
-            background: #fff !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            background-color: #ffffff;
+            padding: 0;
+            margin: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
-        .no-print {
-            display: none !important;
+        .u-no-print {
+            display: none;
         }
 
-        .page-container {
-            border: none !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            margin: 0 !important;
-            padding: 10mm 15mm !important;
-            width: 210mm !important;
-            height: 297mm !important;
+        .c-page-container {
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            margin: 0;
+            padding: 10mm 15mm;
+            width: 210mm;
+            height: 297mm;
             page-break-inside: avoid;
         }
 
-        .data-table {
-            font-size: 11.5pt !important;
+        .c-data-table {
+            font-size: 11.5pt;
         }
 
-        .data-table td {
-            padding: 6px 5px !important;
+        .c-data-table td {
+            padding: 6px 5px;
         }
 
-        .info-notice-box {
-            margin-bottom: 15px !important;
-            padding: 8px !important;
-            font-size: 10pt !important;
+        .c-info-notice-box {
+            margin-bottom: 15px;
+            padding: 8px;
+            font-size: 10pt;
         }
 
-        .conditions {
-            font-size: 9pt !important;
-            margin-top: 10px !important;
-            padding-top: 10px !important;
+        .c-conditions {
+            font-size: 9pt;
+            margin-top: 10px;
+            padding-top: 10px;
         }
 
-        .route-box {
-            padding: 8px !important;
-            margin-top: 6px !important;
+        .c-route-box {
+            padding: 8px;
+            margin-top: 6px;
         }
 
-        .parking-note {
-            padding: 5px !important;
-            margin-bottom: 10px !important;
+        .c-parking-note {
+            padding: 5px;
+            margin-bottom: 10px;
         }
     }
 
@@ -353,37 +352,38 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
 </head>
 
 <body>
-    <div class="page-container">
+    <div class="c-page-container">
 
-        <div class="header-box">
-            <div class="header-left">
-                <h1 class="title"><?php echo $title; ?></h1>
-                <p class="subtitle">Anlage: <?php echo \htmlspecialchars($vereinsName); ?></p>
+        <div class="c-header-box">
+            <div class="c-header-box__left">
+                <h1 class="c-title"><?php echo $title; ?></h1>
+                <p class="c-subtitle">Anlage: <?php echo \htmlspecialchars($vereinsName); ?></p>
 
                 <?php if ($isPermanent) { ?>
-                    <div class="quarter-box">
+                    <div class="c-quarter-box">
                         <?php for ($i = 1; $i <= 4; ++$i) { ?>
-                            <span class="quarter <?php echo \in_array($i, $activeQuarters, true) ? 'quarter--active' : ''; ?>">
+                            <span class="c-quarter <?php echo \in_array($i, $activeQuarters, true) ? 'c-quarter--active' : ''; ?>">
                                 Q<?php echo $i; ?>
                             </span>
                         <?php } ?>
                     </div>
                 <?php } ?>
 
-                <div class="full-code">CODE: <?php echo \htmlspecialchars((string) $fullIdentifier, \ENT_QUOTES, 'UTF-8'); ?></div>
+                <div class="c-full-code">CODE: <?php echo \htmlspecialchars((string) $fullIdentifier, \ENT_QUOTES, 'UTF-8'); ?></div>
             </div>
 
-            <div class="header-right">
-                <div class="header-qr">
+            <div class="c-header-box__right">
+                <div class="c-header-qr">
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&data=<?php echo \htmlspecialchars((string) $checkUrl, \ENT_QUOTES, 'UTF-8'); ?>"
                          alt="Klicken Sie oben über der E-Mail auf 'Bilder anzeigen' um den QR-Code zu sehen!"
-                         style="width: 160px; height: 160px;">
-                    <span class="header-qr-text">Scan zur Prüfung</span>
+                         style="width: 160px; height: 160px;"
+                         class="c-header-qr__img">
+                    <span class="c-header-qr__text">Scan zur Prüfung</span>
                 </div>
             </div>
         </div>
 
-        <div class="info-notice-box">
+        <div class="c-info-notice-box">
             <strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>
             Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>
             <span style="font-size: 11pt; color: #1e3a8a; display: block; margin-top: 6px; line-height: 1.5;">
@@ -392,77 +392,74 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
 
             <?php if (!empty($holidayNotice)) { ?>
                 <div
-                     style="margin-top: 10px; color: #d32f2f; font-weight: bold; font-size: 10.5pt; padding: 8px; background: rgba(211, 47, 47, 0.05); border-radius: 6px; border-left: 4px solid #d32f2f;">
+                     style="margin-top: 10px; color: #d32f2f; font-weight: bold; font-size: 10.5pt; padding: 8px; background-color: rgba(211, 47, 47, 0.05); border-radius: 6px; border-left: 4px solid #d32f2f;">
                     <?php echo $holidayNotice; ?>
                 </div>
             <?php } ?>
         </div>
 
-        <div class="data-section">
-            <table class="data-table">
+        <div class="c-data-section">
+            <table class="c-data-table">
                 <tr>
-                    <td class="label">Zeitraum:</td>
-                    <td class="value"><?php echo \htmlspecialchars((string) $displayVon, \ENT_QUOTES, 'UTF-8'); ?> - <?php echo \htmlspecialchars((string) $displayBis, \ENT_QUOTES, 'UTF-8'); ?></td>
+                    <td class="c-data-table__label">Zeitraum:</td>
+                    <td class="c-data-table__value"><?php echo \htmlspecialchars((string) $displayVon, \ENT_QUOTES, 'UTF-8'); ?> - <?php echo \htmlspecialchars((string) $displayBis, \ENT_QUOTES, 'UTF-8'); ?></td>
                 </tr>
-                <?php /*<tr>
-                    <td class="label">Gültig bis:</td>
-                    <td class="value"><strong><?php echo $displayBis; ?></strong></td>
-                </tr>*/ ?>
                 <tr>
-                    <td class="label">Amtl. Kennzeichen:</td>
-                    <td class="value"><?php echo \htmlspecialchars($kennzeichen); ?></td>
+                    <td class="c-data-table__label">Amtl. Kennzeichen:</td>
+                    <td class="c-data-table__value"><?php echo \htmlspecialchars($kennzeichen); ?></td>
                 </tr>
                 <?php if (!empty($firma)) { ?>
                     <tr>
-                        <td class="label">Firma / Lieferant:</td>
-                        <td class="value"><?php echo \htmlspecialchars($firma); ?></td>
+                        <td class="c-data-table__label">Firma / Lieferant:</td>
+                        <td class="c-data-table__value"><?php echo \htmlspecialchars($firma); ?></td>
                     </tr>
                 <?php } ?>
                 <tr>
-                    <td class="label">Parzelle Nr.:</td>
-                    <td class="value"><?php echo \htmlspecialchars($parzelle); ?></td>
+                    <td class="c-data-table__label">Parzelle Nr.:</td>
+                    <td class="c-data-table__value"><?php echo \htmlspecialchars($parzelle); ?></td>
                 </tr>
                 <tr>
-                    <td class="label">Zweck der Einfahrt:</td>
-                    <td class="value"><?php echo \htmlspecialchars($zweck); ?></td>
+                    <td class="c-data-table__label">Zweck der Einfahrt:</td>
+                    <td class="c-data-table__value"><?php echo \htmlspecialchars($zweck); ?></td>
                 </tr>
             </table>
         </div>
 
-        <div class="clear"></div>
+        <div class="c-clear"></div>
 
         <?php if ($isPermanent) { ?>
-            <div class="parking-note">
+            <div class="c-parking-note">
                 ℹ️ Gilt auch zum Parken in der Anlage / vor dem Vereinshaus.
             </div>
         <?php } ?>
 
-        <div class="no-print"
-             style="margin: 15px 0; background: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; text-align: center; font-size: 11pt;">
+        <div class="u-no-print"
+             style="margin: 15px 0; background-color: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; text-align: center; font-size: 11pt;">
             🖨️ <strong>Tipp:</strong> Sie können dieses Dokument jederzeit erneut herunterladen oder drucken unter:<br>
             <a href="<?php echo \htmlspecialchars($baseUrl); ?>history" style="color: #3498db; font-weight: bold; text-decoration: none; display: inline-block; margin-top: 5px;">
                 <?php echo \htmlspecialchars($baseUrl); ?>history
             </a>
         </div>
 
-        <div class="conditions">
-            <h4>Bedingungen & Sicherheitshinweise:</h4>
-            <ul>
-                <li><strong>Sichtbarkeit:</strong> Dieses Dokument oder der handgeschriebene Code ist gut sichtbar im
-                    Fahrzeug (Windschutzscheibe) auszulegen.</li>
-                <li><strong>Gültigkeit:</strong> Gilt nur für den oben genannten Zweck. <?php echo !$isPermanent ? '<strong>Gilt NICHT</strong> während der Ruhezeiten, Sonn- und Feiertagen.' : 'Gültig innerhalb der genehmigten Quartale.'; ?></li>
-                <li><strong>Geschwindigkeit:</strong> In der gesamten Anlage gilt Schritttempo (<strong>max. 10
-                        km/h</strong>).</li>
-                <li><strong>Parken:</strong> <?php echo $isPermanent ? 'Berechtigt zum Parken auf ausgewiesenen Flächen / Vereinshaus.' : 'Berechtigt zum Be- und Entladen, jedoch <strong>nicht zum Parken</strong>.'; ?></li>
-                <li><strong>Schranke:</strong> Die Schranke ist nach dem Ein- und Ausfahren direkt wieder zu
-                    verschließen.</li>
-                <li><strong>Nutzungskreis:</strong> Die Genehmigung gilt ausdrücklich auch für Liefer- und Baufahrzeuge.
-                </li>
-                <li><strong>Entzug:</strong> Bei Nichteinhaltung der Gartenordnung wird die Genehmigung sofort entzogen.
-                </li>
+        <div class="c-conditions">
+            <div class="c-conditions__title">Bedingungen & Sicherheitshinweise:</div>
+            <ul class="c-conditions__list">
+                <li class="c-conditions__item"><strong>Sichtbarkeit:</strong> Dieses Dokument oder der handgeschriebene
+                    Code ist gut sichtbar im Fahrzeug (Windschutzscheibe) auszulegen.</li>
+                <li class="c-conditions__item"><strong>Gültigkeit:</strong> Gilt nur für den oben genannten Zweck.
+                    <?php echo !$isPermanent ? '<strong>Gilt NICHT</strong> während der Ruhezeiten, Sonn- und Feiertagen.' : 'Gültig innerhalb der genehmigten Quartale.'; ?></li>
+                <li class="c-conditions__item"><strong>Geschwindigkeit:</strong> In der gesamten Anlage gilt
+                    Schritttempo (<strong>max. 10 km/h</strong>).</li>
+                <li class="c-conditions__item"><strong>Parken:</strong> <?php echo $isPermanent ? 'Berechtigt zum Parken auf ausgewiesenen Flächen / Vereinshaus.' : 'Berechtigt zum Be- und Entladen, jedoch <strong>nicht zum Parken</strong>.'; ?></li>
+                <li class="c-conditions__item"><strong>Schranke:</strong> Die Schranke ist nach dem Ein- und Ausfahren
+                    direkt wieder zu verschließen.</li>
+                <li class="c-conditions__item"><strong>Nutzungskreis:</strong> Die Genehmigung gilt ausdrücklich auch
+                    für Liefer- und Baufahrzeuge.</li>
+                <li class="c-conditions__item"><strong>Entzug:</strong> Bei Nichteinhaltung der Gartenordnung wird die
+                    Genehmigung sofort entzogen.</li>
             </ul>
 
-            <div class="route-box">
+            <div class="c-route-box">
                 <strong>Genehmigte Einfahrten ausschließlich über die Schranken:</strong>
                 <ul style="margin-top: 5px; font-size: 9.5pt;">
                     <li>Nachtalbenweg - Andersenweg - Reineke-Fuchs-Weg</li>
@@ -480,7 +477,7 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
             </p>
         </div>
 
-        <div class="footer-info">
+        <div class="c-footer-info">
             Dieses Dokument wurde maschinell erstellt und ist ohne Unterschrift gültig.<br>
             Erstellt am: <?php echo \htmlspecialchars((string) $erstellt, \ENT_QUOTES, 'UTF-8'); ?> | &copy; <?php echo \htmlspecialchars((string) $vereinsName, \ENT_QUOTES, 'UTF-8'); ?><br>
             Bereitgestellt über das System unter:
