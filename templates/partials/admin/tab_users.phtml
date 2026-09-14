@@ -79,7 +79,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                              class="c-avatar-dropzone c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only u-position-relative">
                             <img class="c-avatar-dropzone__img js-preview-img u-hidden"
                                  alt="">
-                            <span class="js-preview-text u-opacity-50">
+                            <span class="c-dropzone__text js-preview-text u-opacity-50">
                                 <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon c-icon--md" alt="">
                             </span>
                             <div class="c-dropzone__overlay">Ablegen</div>
@@ -141,7 +141,6 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                         <div class="o-grid o-grid--user-management u-gap-l">
 
                             <div class="c-box c-box--dashed u-padding-around-s u-border-radius-m">
-                                <!-- Dropzone Formular für das Bild -->
                                 <form method="POST"
                                       action="upload_avatar"
                                       enctype="multipart/form-data"

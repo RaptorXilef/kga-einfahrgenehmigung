@@ -36,7 +36,7 @@
 
     .c-toast.is-hidden {
         opacity: 0;
-        translate: -50% 20px;
+        translate: -50% var(--space-l);
         transition: all 0.4s ease;
     }
 
@@ -55,7 +55,7 @@
     @keyframes toastSlideUp {
         from {
             opacity: 0;
-            translate: -50% 20px;
+            translate: -50% var(--space-l);
         }
         to {
             opacity: 1;

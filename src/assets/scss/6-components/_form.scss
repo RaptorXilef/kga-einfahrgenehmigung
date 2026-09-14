@@ -43,7 +43,7 @@
         appearance: none;
         background-image: var(--icon-select-arrow);
         background-repeat: no-repeat;
-        background-position: right 14px center;
+        background-position: calc(100% - 14px) center; /* Logischer Fallback für LTR */
         padding-inline-end: 40px;
     }
 

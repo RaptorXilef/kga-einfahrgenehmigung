@@ -49,13 +49,16 @@
         border-radius: inherit;
     }
 
-    .js-preview-text.is-filled {
-        font-size: 1.2rem;
-        opacity: 1;
-        color: var(--color-primary);
+    .c-dropzone__text {
         transition:
             font-size 0.2s,
             opacity 0.2s,
             color 0.2s;
+    }
+
+    .c-dropzone__text.is-filled {
+        font-size: 1.2rem;
+        opacity: 1;
+        color: var(--color-primary);
     }
 }

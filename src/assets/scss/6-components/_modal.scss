@@ -2,7 +2,7 @@
     .c-modal {
         --modal-opacity: 0;
         --modal-pointer: none;
-        --dialog-translate-y: 10px;
+        --dialog-translate-y: var(--space-m);
 
         position: fixed;
         inset: 0;
