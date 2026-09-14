@@ -232,9 +232,13 @@ if ($auth->hasPermission('finance.view')) {
                                 <?php if ($hasBulkRight) { ?>
                                     <th class="c-table__header-cell u-text-center"
                                         style="--col-width: 40px; inline-size: var(--col-width);">
-                                        <input type="checkbox"
-                                               class="js-bulk-pay-toggle-all c-form-checkbox"
-                                               title="Alle auswählen">
+                                        <label class="c-checkbox u-margin-block-none"
+                                               title="Alle auswählen"
+                                               style="justify-content: center;">
+                                            <input type="checkbox"
+                                                   class="js-bulk-pay-toggle-all c-checkbox__input"
+                                                   style="margin-block-start: 0;">
+                                        </label>
                                     </th>
                                 <?php } ?>
                                 <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung
@@ -277,10 +281,14 @@ if ($auth->hasPermission('finance.view')) {
                                         <?php if ($hasBulkRight) { ?>
                                             <td class="c-table__data-cell u-text-center">
                                                 <?php if (!$is_suspended) { ?>
-                                                    <input type="checkbox"
-                                                           name="codes[]"
-                                                           value="<?php echo $permit->code; ?>"
-                                                           class="js-bulk-pay-cb c-form-checkbox">
+                                                    <label class="c-checkbox u-margin-block-none"
+                                                           style="justify-content: center;">
+                                                        <input type="checkbox"
+                                                               name="codes[]"
+                                                               value="<?php echo $permit->code; ?>"
+                                                               class="js-bulk-pay-cb c-checkbox__input"
+                                                               style="margin-block-start: 0;">
+                                                    </label>
                                                 <?php } else { ?>
                                                     <span title="Gesperrt" class="u-opacity-50">
                                                         <img src="<?php echo $asset->url('assets/img/icons/icon_prohibited.webp'); ?>" class="c-icon" alt="">

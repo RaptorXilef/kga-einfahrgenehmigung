@@ -266,33 +266,33 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 </div>
 
                                 <div class="c-box u-margin-block-end-m u-padding-around-s">
-                                    <label class="c-form-checkbox__wrapper">
+                                    <label class="c-checkbox">
                                         <input type="checkbox"
                                                name="mark_as_paid"
                                                value="1"
                                                checked
-                                               class="c-form-checkbox">
-                                        <div>
+                                               class="c-checkbox__input">
+                                        <span class="c-checkbox__label">
                                             <strong class="u-text-sm u-color-main u-display-block">
                                                 Sofort als "Bezahlt" markieren</strong>
                                             <small class="u-color-muted u-margin-block-start-xs u-display-block">
                                                 Häkchen entfernen, falls z.B. noch überwiesen wird.</small>
-                                        </div>
+                                        </span>
                                     </label>
                                 </div>
 
                                 <div
                                      class="u-flex u-justify-between u-align-center u-border-block-start u-padding-block-start-m">
                                     <div>
-                                        <label class="u-flex u-align-center u-gap-s u-cursor-pointer"
+                                        <label class="c-checkbox"
                                                title="Soll dem Pächter eine PDF zugestellt werden?">
                                             <input type="checkbox"
                                                    name="send_email"
                                                    value="1"
                                                    checked
-                                                   class="c-form-checkbox">
-                                            <strong class="u-font-bold u-text-sm u-color-main">
-                                                PDF via E-Mail senden</strong>
+                                                   class="c-checkbox__input">
+                                            <span class="c-checkbox__label u-font-bold u-text-sm u-color-main"
+                                                  style="margin-block-start: 2px;">PDF via E-Mail senden</span>
                                         </label>
                                         <div class="u-color-muted u-text-xs u-margin-block-start-s">* Pflichtfelder
                                         </div>
@@ -423,21 +423,21 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <div class="c-form-group u-margin-block-end-m">
                                         <label class="c-form-label">Zeitraum-Vorgabe *</label>
                                         <div class="u-flex u-gap-m u-margin-block-start-xs">
-                                            <div class="c-form-checkbox__wrapper">
+                                            <label class="c-checkbox">
                                                 <input type="radio"
                                                        name="voucher_date_mode"
                                                        value="fixed"
                                                        checked
-                                                       class="c-form-checkbox">
-                                                <span class="c-form-checkbox__label"><strong>Fest</strong> (Erzwingt exakte Daten)</span>
-                                            </div>
-                                            <div class="c-form-checkbox__wrapper">
+                                                       class="c-checkbox__input">
+                                                <span class="c-checkbox__label"><strong>Fest</strong> (Erzwingt exakte Daten)</span>
+                                            </label>
+                                            <label class="c-checkbox">
                                                 <input type="radio"
                                                        name="voucher_date_mode"
                                                        value="flexible"
-                                                       class="c-form-checkbox">
-                                                <span class="c-form-checkbox__label"><strong>Offen</strong> (Pächter wählt selbst)</span>
-                                            </div>
+                                                       class="c-checkbox__input">
+                                                <span class="c-checkbox__label"><strong>Offen</strong> (Pächter wählt selbst)</span>
+                                            </label>
                                         </div>
                                     </div>
 
@@ -544,12 +544,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             <!-- Abschluss Container -->
                             <div class="c-box c-box--dashed">
                                 <div class="c-form-group u-margin-block-end-s">
-                                    <label class="u-flex u-align-center u-gap-s u-cursor-pointer">
+                                    <label class="c-checkbox">
                                         <input type="checkbox"
                                                name="voucher_multi_use"
                                                id="v_multi"
-                                               class="c-form-checkbox">
-                                        <strong class="u-font-bold u-text-sm u-color-main">Mehrfach einlösbar?</strong>
+                                               class="c-checkbox__input">
+                                        <span class="c-checkbox__label u-font-bold u-text-sm u-color-main"
+                                              style="margin-block-start: 2px;">Mehrfach einlösbar?</span>
                                     </label>
                                 </div>
                                 <div class="c-form-group u-hidden"

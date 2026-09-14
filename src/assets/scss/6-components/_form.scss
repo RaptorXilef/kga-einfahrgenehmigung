@@ -123,25 +123,29 @@
         border-color: color-mix(in oklch, var(--color-danger) 20%, transparent);
     }
 
-    .c-form-checkbox {
-        margin-block-start: 4px;
-        scale: 1.2;
-        cursor: pointer;
-    }
-
-    .c-form-checkbox__wrapper {
+    /* Neuer konsolidierter BEM-Block für Checkboxes und Radios */
+    .c-checkbox {
         display: flex;
         gap: 12px;
         align-items: flex-start;
-    }
-
-    .c-form-checkbox__label {
-        line-height: 1.4;
         cursor: pointer;
-        font-size: clamp(0.9rem, 0.85rem + 0.5vw, 0.95rem);
     }
 
-    .c-form-checkbox__required {
+    .c-checkbox__input {
+        margin-block-start: 4px;
+        scale: 1.2;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .c-checkbox__label {
+        line-height: 1.4;
+        font-size: clamp(0.9rem, 0.85rem + 0.5vw, 0.95rem);
+        user-select: none;
+        display: block;
+    }
+
+    .c-checkbox__required {
         color: var(--color-danger);
         font-weight: 700;
         margin-inline-start: 2px;
@@ -177,26 +181,6 @@
     .c-password-toggle__btn:hover,
     .c-password-toggle__btn.is-active {
         opacity: 1;
-    }
-
-    .c-form-group-hp {
-        position: absolute;
-        inset-inline-start: -9999px;
-        inset-block-start: -9999px;
-        opacity: 0;
-        z-index: -1;
-        pointer-events: none;
-        block-size: 0;
-        inline-size: 0;
-        overflow: hidden;
-    }
-
-    .c-form-group-hp__input {
-        inline-size: 1px;
-        block-size: 1px;
-        border: none;
-        padding: 0;
-        margin: 0;
     }
 
     .c-form-input--short {

@@ -182,42 +182,45 @@ if ($auth->hasPermission('system.backup.manage')) {
                                         <p class="u-margin-none u-margin-bottom-s u-font-bold u-text-sm">
                                             Wiederherstellungs-Modus:</p>
 
-                                        <div class="c-form-checkbox__wrapper u-margin-bottom-s">
+                                        <label class="c-checkbox u-margin-block-end-s">
                                             <input type="radio"
                                                    name="mode"
                                                    value="1"
                                                    checked
-                                                   class="c-form-checkbox">
-                                            <div>
-                                                <strong class="u-text-sm u-color-main u-display-block">1. Migrieren
-                                                    (Empfohlen)</strong>
-                                                <span class="u-text-xs u-color-muted">Aktualisiert Geändertes & füllt Lücken. Vorhandenes bleibt.</span>
-                                            </div>
-                                        </div>
+                                                   class="c-checkbox__input">
+                                            <span class="c-checkbox__label">
+                                                <strong class="u-text-sm u-color-main u-display-block">
+                                                    1. Migrieren (Empfohlen)</strong>
+                                                <span class="u-text-xs u-color-muted u-display-block u-margin-block-start-xs">
+                                                    Aktualisiert Geändertes & füllt Lücken. Vorhandenes bleibt.</span>
+                                            </span>
+                                        </label>
 
-                                        <div class="c-form-checkbox__wrapper u-margin-bottom-s">
+                                        <label class="c-checkbox u-margin-block-end-s">
                                             <input type="radio"
                                                    name="mode"
                                                    value="2"
-                                                   class="c-form-checkbox">
-                                            <div>
-                                                <strong class="u-text-sm u-color-danger u-display-block">2. Exakte Kopie
-                                                    (Gefährlich)</strong>
-                                                <span class="u-text-xs u-color-muted">Löscht alle neueren Daten, die im Backup nicht existieren!</span>
-                                            </div>
-                                        </div>
+                                                   class="c-checkbox__input">
+                                            <span class="c-checkbox__label">
+                                                <strong class="u-text-sm u-color-danger u-display-block">
+                                                    2. Exakte Kopie (Gefährlich)</strong>
+                                                <span class="u-text-xs u-color-muted u-display-block u-margin-block-start-xs">
+                                                    Löscht alle neueren Daten, die im Backup nicht existieren!</span>
+                                            </span>
+                                        </label>
 
-                                        <div class="c-form-checkbox__wrapper">
+                                        <label class="c-checkbox">
                                             <input type="radio"
                                                    name="mode"
                                                    value="3"
-                                                   class="c-form-checkbox">
-                                            <div>
-                                                <strong class="u-text-sm u-color-main u-display-block">3. Nur fehlende
-                                                    ergänzen</strong>
-                                                <span class="u-text-xs u-color-muted">Fügt nur hinzu, was komplett fehlt.</span>
-                                            </div>
-                                        </div>
+                                                   class="c-checkbox__input">
+                                            <span class="c-checkbox__label">
+                                                <strong class="u-text-sm u-color-main u-display-block">
+                                                    3. Nur fehlende ergänzen</strong>
+                                                <span class="u-text-xs u-color-muted u-display-block u-margin-block-start-xs">
+                                                    Fügt nur hinzu, was komplett fehlt.</span>
+                                            </span>
+                                        </label>
                                     </div>
 
                                     <div class="u-flex u-gap-s">

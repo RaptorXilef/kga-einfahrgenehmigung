@@ -58,17 +58,17 @@ $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
                      class="c-consent-banner__details js-consent-details u-hidden">
                     <?php foreach ($consentConfig['groups'] as $group) { ?>
                         <div class="c-consent-banner__group">
-                            <div class="c-form-checkbox__wrapper">
+                            <label class="c-checkbox">
                                 <input type="checkbox"
                                        id="consent-chk-<?php echo $group['id']; ?>"
                                        value="1"
-                                       class="c-form-checkbox"
+                                       class="c-checkbox__input"
                                        <?php echo $group['required'] ? 'checked disabled' : ''; ?>>
-                                <div>
+                                <span class="c-checkbox__label">
                                     <strong class="u-display-block u-text-sm"><?php echo \htmlspecialchars($group['title']); ?></strong>
-                                    <span class="u-text-xs u-color-muted"><?php echo \htmlspecialchars($group['description']); ?></span>
-                                </div>
-                            </div>
+                                    <span class="u-display-block u-text-xs u-color-muted u-margin-block-start-xs"><?php echo \htmlspecialchars($group['description']); ?></span>
+                                </span>
+                            </label>
                         </div>
                     <?php } ?>
                 </div>
