@@ -102,7 +102,7 @@ if ($totalPages > 1) {
 <?php
     $paginationHtml = \ob_get_clean();
 } elseif ($totalCount > 0) {
-    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top u-bg-light">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
+    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-block-start u-bg-light">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
 }
 
 if ($auth->hasPermission('permits.view')) {
