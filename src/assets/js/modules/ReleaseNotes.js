@@ -98,7 +98,7 @@ export class ReleaseNotes {
                         window.marked.parse(note.content)
                     );
 
-                    html += `<div class="c-markdown u-margin-block-end-l">`;
+                    html += `<div class="s-markdown u-margin-block-end-l">`;
                     html += `<h1>Version ${safeVersion}</h1>`;
                     html += safeContent;
                     html += `</div>`;

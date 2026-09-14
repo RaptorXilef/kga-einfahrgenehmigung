@@ -1,14 +1,14 @@
 @layer components {
-    .c-markdown {
+    .s-markdown {
         font-family: var(--font-sans);
         line-height: 1.6;
         color: var(--color-text-main);
         padding: clamp(var(--space-m), 3vw, var(--space-xl));
     }
 
-    .c-markdown h1,
-    .c-markdown h2,
-    .c-markdown h3 {
+    .s-markdown h1,
+    .s-markdown h2,
+    .s-markdown h3 {
         margin-block-start: 1.5em;
         margin-block-end: 0.5em;
         border-block-end: 1px solid var(--color-border);
@@ -16,31 +16,31 @@
         color: var(--color-text-dark);
     }
 
-    .c-markdown h1 {
+    .s-markdown h1 {
         color: var(--color-primary);
         font-size: clamp(1.5rem, 2vw + 0.5rem, 1.8rem);
         border-block-end: 2px solid var(--color-primary);
     }
 
-    .c-markdown h2 {
+    .s-markdown h2 {
         font-size: clamp(1.2rem, 1.5vw + 0.5rem, 1.4rem);
     }
 
-    .c-markdown h3 {
+    .s-markdown h3 {
         font-size: clamp(1rem, 1vw + 0.5rem, 1.1rem);
         border-block-end: none;
     }
 
-    .c-markdown ul {
+    .s-markdown ul {
         padding-inline-start: 2em;
         margin-block-end: 1em;
     }
 
-    .c-markdown li {
+    .s-markdown li {
         margin-block-end: 0.4em;
     }
 
-    .c-markdown code {
+    .s-markdown code {
         background-color: var(--color-bg-light);
         padding-block: 0.2em;
         padding-inline: 0.4em;
@@ -51,7 +51,7 @@
         color: var(--color-danger);
     }
 
-    .c-markdown pre {
+    .s-markdown pre {
         background-color: var(--color-text-main);
         color: var(--color-bg-light);
         padding: var(--space-m);
@@ -62,14 +62,14 @@
             color-mix(in oklch, var(--color-text-dark) 20%, transparent);
     }
 
-    .c-markdown pre code {
+    .s-markdown pre code {
         background-color: transparent;
         border: none;
         color: inherit;
         padding: 0;
     }
 
-    .c-markdown blockquote {
+    .s-markdown blockquote {
         border-inline-start: 4px solid var(--color-primary);
         padding-inline-start: var(--space-m);
         color: var(--color-text-muted);
@@ -81,12 +81,12 @@
         border-end-end-radius: 8px;
     }
 
-    .c-markdown a {
+    .s-markdown a {
         color: var(--color-primary);
         text-decoration: none;
     }
 
-    .c-markdown a:hover {
+    .s-markdown a:hover {
         text-decoration: underline;
     }
 }
