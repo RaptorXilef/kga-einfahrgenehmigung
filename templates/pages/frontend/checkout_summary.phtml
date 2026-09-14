@@ -59,7 +59,7 @@ $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
                 <table class="c-table c-table--summary">
                     <tr>
                         <td class="c-table__data-cell c-table__label"
-                            style="width: 35%;">Antragsteller:</td>
+                            style="--col-width: 35%; inline-size: var(--col-width);">Antragsteller:</td>
                         <td class="c-table__data-cell c-table__value"><?php echo \htmlspecialchars($tempData['name'] ?? ''); ?></td>
                     </tr>
                     <tr class="c-table__row">

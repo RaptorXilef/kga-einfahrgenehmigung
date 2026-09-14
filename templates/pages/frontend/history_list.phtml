@@ -81,8 +81,8 @@ $now = new \DateTimeImmutable('today');
                             <td colspan="5"
                                 class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
                                 <span class="u-text-2xl u-opacity-50">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>" class="c-icon c-button__icon" alt="">
-                    </span><br>
+                                    <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                </span><br>
                                 <p class="u-margin-block-start-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum
                                     gefunden.</p>
                             </td>
@@ -150,8 +150,9 @@ $now = new \DateTimeImmutable('today');
                                     <div>
                                         <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
                                              class="c-icon <?php echo $isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
-                                             style="inline-size: 24px; block-size: 24px;"
-                                             title="<?php echo $vLabel; ?>">
+                                             style="--icon-size: 24px; inline-size: var(--icon-size); block-size: var(--icon-size);"
+                                             title="<?php echo $vLabel; ?>"
+                                             alt="">
                                     </div>
                                     <div class="u-margin-block-start-xs">
                                         <span class="c-license-plate">
@@ -223,8 +224,7 @@ $now = new \DateTimeImmutable('today');
             <?php $lastYear = (int) \date('Y') - 1;
 if ($currentArchiveYear !== $lastYear) { ?>
                 <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--secondary">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>" class="c-icon c-button__icon" alt=""> Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen <?php // ToDo Icon
-                                                                                                                                                                                    ?>
+                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>" class="c-icon c-button__icon" alt=""> Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen
                 </a>
             <?php } else { ?>
                 <p class="u-text-xs u-color-muted u-margin-block-none">Archiv des Vorjahres (<?php echo $lastYear; ?>) ist geladen.</p>

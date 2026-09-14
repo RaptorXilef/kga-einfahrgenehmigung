@@ -52,6 +52,10 @@
         border-radius: 4px;
     }
 
+    .c-box--danger-top {
+        border-block-start-color: var(--color-danger-soft) !important;
+    }
+
     .c-box--dashed {
         background-color: var(--color-bg-light);
         border: 1px dashed var(--color-border);

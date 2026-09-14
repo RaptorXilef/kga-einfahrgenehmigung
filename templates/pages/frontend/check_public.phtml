@@ -75,8 +75,8 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
 
                         <?php if (!empty($permit->getSuspensionReason())) { ?>
                             <div class="c-box c-box--danger-soft u-margin-block-start-m u-text-center">
-                                <strong class="u-text-xs u-text-uppercase"
-                                        style="letter-spacing: 0.5px;">Grund der Sperrung:</strong><br>
+                                <strong class="u-text-xs u-text-uppercase u-letter-spacing-sm">
+                                    Grund der Sperrung:</strong><br>
                                 <span class="u-text-lg u-display-block u-margin-block-start-xs"><?php echo \htmlspecialchars($permit->getSuspensionReason()); ?></span>
                             </div>
                         <?php } ?>

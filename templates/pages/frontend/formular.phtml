@@ -78,12 +78,10 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
                     <div class="c-alert__footer u-margin-block-start-xl">
                         <p>Sie werden in
-                            <span id="countdown"
-                                  class="u-font-extrabold u-text-xl u-color-primary"> 60</span>
+                            <span id="countdown" class="u-font-extrabold u-text-xl u-color-primary"> 60</span>
                             Sekunden zur Code-Eingabe weitergeleitet...
                         </p>
-                        <a href="verify"
-                           class="c-button c-button--success c-button--wide u-margin-block-start-m">
+                        <a href="verify" class="c-button c-button--success c-button--wide u-margin-block-start-m">
                             Jetzt direkt zur Eingabe
                         </a>
                     </div>
@@ -126,11 +124,9 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
                     <div class="u-text-center u-margin-block-end-l u-flex u-justify-center">
                         <span class="c-voucher-toggle">
-                    <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
-                         class="c-icon"
-                         alt="">
-                    Sie haben einen Aktivierungscode? Dann hier klicken.
-                </span>
+                            <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" alt="">
+                            Sie haben einen Aktivierungscode? Dann hier klicken.
+                        </span>
                     </div>
 
                     <div
@@ -262,12 +258,12 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
                         <!-- Dynamisches Firmenfeld -->
                         <div class="c-form-group u-margin-block-start-m u-hidden"
-                             id="u_firma_wrapper">
+                             id="firma_wrapper">
                             <label class="c-form-label"
-                                   for="u_firma">Firma / Lieferant</label>
+                                   for="firma">Firma / Lieferant</label>
                             <input type="text"
                                    name="firma"
-                                   id="u_firma"
+                                   id="firma"
                                    class="c-form-input"
                                    placeholder="Name der Firma"
                                    autocomplete="organization"
@@ -349,8 +345,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         </div>
 
                         <div id="dynamic-date-info"
-                             class="c-box c-box--highlight u-margin-block-start-l u-text-sm u-hidden"
-                             style="line-height: 1.5;">
+                             class="c-box c-box--highlight u-margin-block-start-l u-text-sm u-hidden">
                             <div id="dynamic-opening-hours"
                                  class="u-margin-block-end-s"></div>
                             <div id="dynamic-holiday-notice"
@@ -401,8 +396,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                id="hp_contact_website"
                                class="c-form-group-hp__input"
                                tabindex="-1"
-                               autocomplete="off"> <?php // TODO Prüfen, ob bei HoneyPod erlaubt
-                                                    ?>
+                               autocomplete="off"> <?php // TODO Prüfen, ob bei HoneyPod erlaubt?>
                     </div>
 
                     <button type="submit"
