@@ -55,8 +55,8 @@ if (!$headersExist) {
                         <span class="u-text-3xl u-display-block u-margin-block-end-s">
                             <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>" class="c-icon c-button__icon" alt="">
                         </span>
-                        <strong class="js-preview-text u-text-lg">CSV-Datei hierher ziehen oder klicken zum
-                            Auswählen</strong>
+                        <strong class="c-dropzone__text js-preview-text u-text-lg">
+                            CSV-Datei hierher ziehen oder klicken zum Auswählen</strong>
 
                         <!-- Modus-Indikator für die Nutzer -->
                         <div class="u-margin-block-start-m u-color-muted u-text-sm">
@@ -79,7 +79,9 @@ if (!$headersExist) {
                 </form>
             <?php } else { ?>
                 <div class="c-alert c-alert--info u-margin-block-end-m">
-                    CSV erfolgreich eingelesen! Bitte bestätigen Sie die Spaltenzuordnung anhand der Live-Vorschau.
+                    <div class="c-alert__content">
+                        CSV erfolgreich eingelesen! Bitte bestätigen Sie die Spaltenzuordnung anhand der Live-Vorschau.
+                    </div>
                 </div>
 
                 <!-- JSON Daten Container für das BankImport.js Modul -->
@@ -178,7 +180,7 @@ if (!$headersExist) {
                     </div>
 
                     <div
-                         class="u-margin-block-start-xl u-flex u-gap-m u-justify-between u-align-center u-border-top u-padding-block-start-l u-flex-wrap">
+                         class="u-margin-block-start-xl u-flex u-gap-m u-justify-between u-align-center u-border-block-start u-padding-block-start-l u-flex-wrap">
                         <a href="admin" class="c-button c-button--secondary">✕ Abbrechen</a>
                         <button type="submit"
                                 class="c-button c-button--primary">Abgleich starten & Permits aktivieren

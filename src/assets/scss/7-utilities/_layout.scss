@@ -47,6 +47,19 @@
         border-radius: 50% !important;
     }
 
+    .u-border-block-start {
+        border-block-start: 1px solid var(--color-border) !important;
+    }
+    .u-border-block-end {
+        border-block-end: 1px solid var(--color-border) !important;
+    }
+    .u-border-inline-start {
+        border-inline-start: 1px solid var(--color-border) !important;
+    }
+    .u-border-inline-end {
+        border-inline-end: 1px solid var(--color-border) !important;
+    }
+
     .u-text-decoration-none {
         text-decoration: none !important;
     }

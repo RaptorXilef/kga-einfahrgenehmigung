@@ -39,7 +39,6 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
         \DIRECTORY_SEPARATOR . 'logo' . \DIRECTORY_SEPARATOR . "kga.$ext";
     if (\file_exists($localPath)) {
         $logoFile = "assets/img/logo/kga.$ext";
-
         break;
     }
 }
@@ -85,7 +84,7 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
         <p class="u-font-bold u-color-dark u-margin-block-start-l">
             In Kürze sind wir wieder für Sie da.
         </p>
-        <div class="u-border-top u-padding-block-start-m u-margin-block-start-l u-color-muted u-text-sm">
+        <div class="u-border-block-start u-padding-block-start-m u-margin-block-start-l u-color-muted u-text-sm">
             Vielen Dank für Ihr Verständnis.
         </div>
     </div>
