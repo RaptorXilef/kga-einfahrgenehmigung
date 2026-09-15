@@ -15,6 +15,9 @@ export class PermitForm {
         this.dateFetchId = 0;
         this.priceFetchId = 0;
 
+        // Zentraler Controller für restlose Garbage Collection
+        this.abortController = new AbortController();
+
         // Formularfelder dynamisch aus dem Container fischen (Unterstützt Frontend & Admin)
         this.tplSelect = this.container.querySelector('[name="template_key"]');
         this.typSelect = this.container.querySelector('[name="typ"]');
@@ -48,8 +51,7 @@ export class PermitForm {
 
         // Config sicher abrufen
         this.config = window.KGA_CONFIG || { vehicleConfig: {} };
-        this.templates = window.KGA_TEMPLATES || {}; // Metadaten müssen vom PHP in window.KGA_TEMPLATES geschrieben werden!
-        // FIX: Neue UI-Elemente für das Gutschein-Formular aus dem DOM holen
+        this.templates = window.KGA_TEMPLATES || {};
         this.voucherMultiCb = this.container.querySelector('#v_multi');
         this.voucherMaxWrap = this.container.querySelector('#v_max_wrap');
 
@@ -57,44 +59,78 @@ export class PermitForm {
     }
 
     init() {
-        this.voucherMultiCb?.addEventListener('change', (e) => {
-            if (this.voucherMaxWrap) {
-                this.voucherMaxWrap.classList.toggle('u-hidden', !e.target.checked);
-            }
-        });
+        const options = { signal: this.abortController.signal };
+
+        this.voucherMultiCb?.addEventListener(
+            'change',
+            (e) => {
+                if (this.voucherMaxWrap) {
+                    this.voucherMaxWrap.hidden = !e.target.checked;
+                }
+            },
+            options
+        );
 
         // Basis-Event-Listener
-        this.typSelect?.addEventListener('change', () => {
-            this.toggleVehicleFields();
-            this.updatePrice();
-        });
+        this.typSelect?.addEventListener(
+            'change',
+            () => {
+                this.toggleVehicleFields();
+                this.updatePrice();
+            },
+            options
+        );
 
-        this.kennzeichenInput?.addEventListener('blur', (e) => this.formatLicensePlate(e.target));
-        this.parzelleInput?.addEventListener('blur', (e) => this.formatPlotNumber(e.target));
+        this.kennzeichenInput?.addEventListener(
+            'blur',
+            (e) => this.formatLicensePlate(e.target),
+            options
+        );
+        this.parzelleInput?.addEventListener(
+            'blur',
+            (e) => this.formatPlotNumber(e.target),
+            options
+        );
 
         // Datums-Synchronisation (Vorgabe-Tage vs Custom)
-        this.tplSelect?.addEventListener('change', () => {
-            this.handleDateChange('template');
-            this.updatePrice();
-        });
+        this.tplSelect?.addEventListener(
+            'change',
+            () => {
+                this.handleDateChange('template');
+                this.updatePrice();
+            },
+            options
+        );
 
-        this.vonInput?.addEventListener('change', () => {
-            this.handleDateChange('von');
-            this.updatePrice();
-            this.validateBerlinRestrictions();
-        });
+        this.vonInput?.addEventListener(
+            'change',
+            () => {
+                this.handleDateChange('von');
+                this.updatePrice();
+                this.validateBerlinRestrictions();
+            },
+            options
+        );
 
-        this.bisInput?.addEventListener('change', () => {
-            this.handleDateChange('bis');
-            this.updatePrice();
-            this.validateBerlinRestrictions();
-        });
+        this.bisInput?.addEventListener(
+            'change',
+            () => {
+                this.handleDateChange('bis');
+                this.updatePrice();
+                this.validateBerlinRestrictions();
+            },
+            options
+        );
 
         // Admin: Gutschein-Rabattart Toggle
-        this.voucherDiscountType?.addEventListener('change', () => this.updateAdminVoucherUI());
-
+        this.voucherDiscountType?.addEventListener(
+            'change',
+            () => this.updateAdminVoucherUI(),
+            options
+        );
         // Admin: Zweck Toggle (Dropdown vs Text)
-        this.toggleZweckBtn?.addEventListener('click', () => this.toggleZweckMode());
+
+        this.toggleZweckBtn?.addEventListener('click', () => this.toggleZweckMode(), options);
 
         // Frontend: Gutschein-Toggle
         const voucherToggle = document.querySelector('.c-voucher-toggle');
@@ -102,12 +138,16 @@ export class PermitForm {
 
         if (voucherToggle && voucherWrap && !voucherToggle.dataset.bound) {
             voucherToggle.dataset.bound = 'true'; // Doppeltes Binden verhindern
-            voucherToggle.addEventListener('click', () => {
-                voucherWrap.classList.toggle('is-open');
-            });
+            voucherToggle.addEventListener(
+                'click',
+                () => {
+                    voucherWrap.classList.toggle('is-open');
+                },
+                options
+            );
         }
 
-        // Initiale Aufrufe, um das UI beim Laden glattzuziehen
+        // Initiale Aufrufe
         this.enforceMinDates();
         this.toggleVehicleFields();
         this.handleDateChange('init');
@@ -116,7 +156,7 @@ export class PermitForm {
     }
 
     /**
-     * FIX: Wandelt ein lokales Date-Objekt sicher in einen YYYY-MM-DD String um,
+     * Wandelt ein lokales Date-Objekt sicher in einen YYYY-MM-DD String um,
      * OHNE auf UTC zurückzugreifen (Verhindert Timezone Off-by-One Bugs).
      */
     getLocalIsoDate(dateObj = new Date()) {
@@ -128,8 +168,7 @@ export class PermitForm {
 
     enforceMinDates() {
         if (!this.vonInput) return;
-        const todayStr = this.getLocalIsoDate();
-        this.vonInput.min = todayStr;
+        this.vonInput.min = this.getLocalIsoDate();
     }
 
     toggleVehicleFields() {
@@ -140,7 +179,7 @@ export class PermitForm {
         const isCompanyRequired = cfg.show_company;
 
         if (this.firmaWrapper) {
-            this.firmaWrapper.classList.toggle('u-hidden', !isCompanyRequired);
+            this.firmaWrapper.hidden = !isCompanyRequired;
         }
 
         if (this.labelKennzeichen) {
@@ -207,7 +246,7 @@ export class PermitForm {
         const duration = isCustom ? 0 : parseInt(config.days, 10);
         const durationOffset = Math.max(0, duration - 1);
 
-        if (this.warningBox) this.warningBox.classList.add('u-hidden');
+        if (this.warningBox) this.warningBox.hidden = true;
 
         if (!isCustom) {
             // Min-Datum für das Bis-Feld basierend auf dem aktuellen Tag berechnen
@@ -222,12 +261,12 @@ export class PermitForm {
                     if (this.warningText) {
                         this.warningText.innerText =
                             'Das Datum wurde auf die Mindestdauer der Vorlage korrigiert.';
-                        this.warningBox.classList.remove('u-hidden');
+                        this.warningBox.hidden = false;
                     }
                 }
                 // Strikte lokale Datums-Berechnung anhand der String-Bestandteile
                 const [y, m, d] = this.bisInput.value.split('-').map(Number);
-                const dateObj = new Date(y, m - 1, d); // Monat ist 0-basiert
+                const dateObj = new Date(y, m - 1, d);
                 dateObj.setDate(dateObj.getDate() - durationOffset);
                 this.vonInput.value = this.getLocalIsoDate(dateObj);
             } else {
@@ -278,17 +317,17 @@ export class PermitForm {
 
             if (res.holidayNotice && this.holidayEl) {
                 this.holidayEl.innerHTML = sanitize(res.holidayNotice);
-                this.holidayEl.classList.remove('u-hidden');
+                this.holidayEl.hidden = false;
             } else if (this.holidayEl) {
-                this.holidayEl.classList.add('u-hidden');
+                this.holidayEl.hidden = true;
             }
 
-            if (this.dateInfoContainer) this.dateInfoContainer.classList.remove('u-hidden');
+            if (this.dateInfoContainer) this.dateInfoContainer.hidden = false;
         } else {
             // Silent-Failure beheben und UI bei Netzwerkfehler zurücksetzen
             this.openingEl.innerHTML =
                 '<span class="u-text-muted">Zeitraum konnte aufgrund eines Netzwerkfehlers nicht geprüft werden.</span>';
-            if (this.holidayEl) this.holidayEl.classList.add('u-hidden');
+            if (this.holidayEl) this.holidayEl.hidden = true;
             notifier.show(
                 'Netzwerkfehler: Einfahrtszeiten konnten nicht abgefragt werden.',
                 'error'
@@ -359,7 +398,7 @@ export class PermitForm {
         dateInputs.forEach((input) => {
             if (!input?.value) return;
 
-            // FIX: Verhindert Timezone-Shift (Off-by-One Day) durch striktes, lokales Parsing der String-Bestandteile
+            // Verhindert Timezone-Shift (Off-by-One Day) durch striktes, lokales Parsing der String-Bestandteile
             const [y, m, d] = input.value.split('-').map(Number);
             const date = new Date(y, m - 1, d);
 
@@ -420,28 +459,32 @@ export class PermitForm {
 
     updateAdminVoucherUI() {
         if (!this.voucherDiscountType || !this.voucherValueWrap) return;
-        this.voucherValueWrap.classList.toggle(
-            'u-hidden',
-            this.voucherDiscountType.value === 'free'
-        );
+        this.voucherValueWrap.hidden = this.voucherDiscountType.value === 'free';
     }
 
     toggleZweckMode() {
         if (!this.zweckSelect || !this.zweckManual || !this.toggleZweckBtn) return;
 
-        if (this.zweckSelect.classList.contains('u-hidden')) {
-            this.zweckSelect.classList.remove('u-hidden');
+        if (this.zweckSelect.hidden) {
+            this.zweckSelect.hidden = false;
             this.zweckSelect.name = 'zweck';
-            this.zweckManual.classList.add('u-hidden');
+            this.zweckManual.hidden = true;
             this.zweckManual.name = '_unused_zweck';
             this.toggleZweckBtn.innerHTML = `<img src="${this.config.baseUrl}assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell`;
         } else {
-            this.zweckSelect.classList.add('u-hidden');
+            this.zweckSelect.hidden = true;
             this.zweckSelect.name = '_unused_zweck';
-            this.zweckManual.classList.remove('u-hidden');
+            this.zweckManual.hidden = false;
             this.zweckManual.name = 'zweck';
             this.toggleZweckBtn.innerHTML = `<img src="${this.config.baseUrl}assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Aus Liste`;
             this.zweckManual.focus();
         }
+    }
+
+    /**
+     * Wird vom Bootstrapper aufgerufen, wenn das Element aus dem DOM entfernt wird.
+     */
+    destroy() {
+        this.abortController.abort();
     }
 }

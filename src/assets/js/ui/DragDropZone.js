@@ -13,7 +13,10 @@ export class DragDropZone {
         this.isPreviewOnly = this.zone.classList.contains('js-preview-only');
         // Steuert, ob nach einem Preview direkt abgesendet werden soll
         this.isAutoSubmit = this.zone.classList.contains('js-auto-submit');
-        this.currentPreviewUrl = null; // Speicher-Referenz für Garbage Collection
+        this.currentPreviewUrl = null;
+
+        // Zentraler Controller für restlose Garbage Collection
+        this.abortController = new AbortController();
 
         if (this.input) {
             this.init();
@@ -21,6 +24,8 @@ export class DragDropZone {
     }
 
     init() {
+        const options = { signal: this.abortController.signal };
+
         // Standard-Browser-Aktionen (wie Bild im Tab öffnen) verhindern
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
             this.zone.addEventListener(
@@ -29,7 +34,7 @@ export class DragDropZone {
                     e.preventDefault();
                     e.stopPropagation();
                 },
-                false
+                options
             );
         });
 
@@ -38,7 +43,7 @@ export class DragDropZone {
             this.zone.addEventListener(
                 eventName,
                 () => this.zone.classList.add('is-dragover'),
-                false
+                options
             );
         });
 
@@ -47,28 +52,36 @@ export class DragDropZone {
             this.zone.addEventListener(
                 eventName,
                 () => this.zone.classList.remove('is-dragover'),
-                false
+                options
             );
         });
 
         // Die Magie beim Loslassen (Drop)
-        this.zone.addEventListener('drop', (e) => {
-            if (e.dataTransfer.files.length > 0) {
-                this.input.files = e.dataTransfer.files;
-                this.handleFile(this.input.files[0]);
-            }
-        });
+        this.zone.addEventListener(
+            'drop',
+            (e) => {
+                if (e.dataTransfer.files.length > 0) {
+                    this.input.files = e.dataTransfer.files;
+                    this.handleFile(this.input.files[0]);
+                }
+            },
+            options
+        );
 
         // Fallback: Normaler Klick auf das Input-Feld
-        this.input.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                this.handleFile(e.target.files[0]);
-            }
-        });
+        this.input.addEventListener(
+            'change',
+            (e) => {
+                if (e.target.files.length > 0) {
+                    this.handleFile(e.target.files[0]);
+                }
+            },
+            options
+        );
 
         // Klick auf die Zone öffnet den Datei-Dialog (wenn Preview-Modus)
         if (this.isPreviewOnly) {
-            this.zone.addEventListener('click', () => this.input.click());
+            this.zone.addEventListener('click', () => this.input.click(), options);
         }
     }
 
@@ -92,7 +105,6 @@ export class DragDropZone {
                 this.currentPreviewUrl = URL.createObjectURL(file);
                 img.src = this.currentPreviewUrl;
                 img.hidden = false;
-                img.classList.remove('u-hidden'); // Rückwärtskompatibilität
             }
 
             if (txt) {
@@ -118,6 +130,16 @@ export class DragDropZone {
             } else {
                 this.form.submit();
             }
+        }
+    }
+
+    /**
+     * Zerstört alle Event-Listener und gibt die Blob-URL aus dem Speicher frei!
+     */
+    destroy() {
+        this.abortController.abort();
+        if (this.currentPreviewUrl) {
+            URL.revokeObjectURL(this.currentPreviewUrl);
         }
     }
 }
