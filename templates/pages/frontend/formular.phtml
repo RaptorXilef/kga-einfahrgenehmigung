@@ -108,9 +108,9 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
                 <!-- Warnung-Box für Datumsfehler -->
-                <div id="date-warning"
-                     class="c-box c-box--warning u-margin-block-end-m u-hidden">
-                    <span id="date-warning-text"></span>
+                <div class="c-box c-box--warning u-margin-block-end-m js-pf-date-warning"
+                     hidden>
+                    <span class="js-pf-date-warning-text"></span>
                 </div>
 
                 <!-- GUTSCHEIN EINGABE / ANZEIGE -->
@@ -125,7 +125,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php } elseif ($hasActiveVouchers) { ?>
                     <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
                     <div class="u-text-center u-margin-block-end-l u-flex u-justify-center">
-                        <span class="c-voucher-toggle">
+                        <span class="c-voucher-toggle js-voucher-toggle">
                             <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" loading="lazy" alt="">
                             Sie haben einen Aktivierungscode? Dann hier klicken.
                         </span>
@@ -143,7 +143,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 <input type="text"
                                        id="voucher_input"
                                        name="voucher"
-                                       class="c-form-input u-text-uppercase"
+                                       class="c-form-input u-text-uppercase js-pf-voucher-input"
                                        placeholder="GUT-XXXX-XXXX"
                                        autocomplete="off"
                                        value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ''); ?>">
@@ -161,8 +161,10 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                    <!-- Wir nutzen die js-pf-voucher-input Klasse hier ebenfalls für das Hidden Field (Fallback) -->
                     <input type="hidden"
                            name="voucher"
+                           class="js-pf-voucher-input"
                            value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ($prefill['code'] ?? '')); ?>">
 
                     <!-- SCHRITT 1: PERSÖNLICH -->
@@ -188,7 +190,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 <input type="text"
                                        name="parzelle"
                                        id="parzelle"
-                                       class="c-form-input"
+                                       class="c-form-input js-pf-parzelle"
                                        required
                                        placeholder="Nr."
                                        autocomplete="off"
@@ -223,7 +225,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                        for="typ">Fahrzeug-Typ</label>
                                 <select name="typ"
                                         id="typ"
-                                        class="c-form-select"
+                                        class="c-form-select js-pf-typ"
                                         autocomplete="off"
                                         <?php echo ($prefill['data']['typ'] ?? '') ? 'readonly' : ''; ?>>
                                     <?php foreach ($config->get('vehicle_types') as $val => $vData) {
@@ -239,13 +241,12 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 </select>
                             </div>
                             <div class="c-form-group">
-                                <label class="c-form-label"
-                                       id="label_kennzeichen"
+                                <label class="c-form-label js-pf-label-kennzeichen"
                                        for="kennzeichen">Amtl. Kennzeichen (B-ML 9876)</label>
                                 <input type="text"
                                        name="kennzeichen"
                                        id="kennzeichen"
-                                       class="c-form-input"
+                                       class="c-form-input js-pf-kennzeichen"
                                        required
                                        maxlength="15"
                                        pattern="[A-Za-z0-9\-\s]+"
@@ -258,14 +259,14 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         </div>
 
                         <!-- Dynamisches Firmenfeld -->
-                        <div class="c-form-group u-margin-block-start-m u-hidden"
-                             id="firma_wrapper">
+                        <div class="c-form-group u-margin-block-start-m js-pf-firma-wrapper"
+                             hidden>
                             <label class="c-form-label"
                                    for="firma">Firma / Lieferant</label>
                             <input type="text"
                                    name="firma"
                                    id="firma"
-                                   class="c-form-input"
+                                   class="c-form-input js-pf-firma"
                                    placeholder="Name der Firma"
                                    autocomplete="organization"
                                    value="<?php echo \htmlspecialchars((string) ($formData['firma'] ?? $prefill['data']['firma'] ?? '')); ?>"
@@ -298,7 +299,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                        for="template_key">Gewünschte Dauer</label>
                                 <select name="template_key"
                                         id="template_key"
-                                        class="c-form-select"
+                                        class="c-form-select js-pf-template"
                                         autocomplete="off"
                                         <?php echo ($prefill['template_key'] ?? '') ? 'readonly' : ''; ?>>
                                     <?php foreach ($publicTemplates as $key => $tpl) { ?>
@@ -314,7 +315,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             <?php $singleKey = \array_key_first($publicTemplates); ?>
                             <input type="hidden"
                                    name="template_key"
-                                   id="template_key"
+                                   class="js-pf-template"
                                    value="<?php echo $singleKey; ?>">
                         <?php } ?>
 
@@ -325,7 +326,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 <input type="date"
                                        name="datum_von"
                                        id="datum_von"
-                                       class="c-form-input"
+                                       class="c-form-input js-pf-von"
                                        required
                                        autocomplete="off"
                                        value="<?php echo \htmlspecialchars((string) ($formData['datum_von'] ?? $prefill['data']['datum_von'] ?? \date('Y-m-d'))); ?>"
@@ -337,7 +338,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 <input type="date"
                                        name="datum_bis"
                                        id="datum_bis"
-                                       class="c-form-input"
+                                       class="c-form-input js-pf-bis"
                                        required
                                        autocomplete="off"
                                        value="<?php echo \htmlspecialchars((string) ($formData['datum_bis'] ?? $prefill['data']['datum_bis'] ?? '')); ?>"
@@ -345,18 +346,16 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             </div>
                         </div>
 
-                        <div id="dynamic-date-info"
-                             class="c-box c-box--highlight u-margin-block-start-l u-text-sm u-hidden">
-                            <div id="dynamic-opening-hours"
-                                 class="u-margin-block-end-s"></div>
-                            <div id="dynamic-holiday-notice"
-                                 class="c-box c-box--danger-soft u-hidden"></div>
+                        <div class="c-box c-box--highlight u-margin-block-start-l u-text-sm js-pf-dynamic-date-info"
+                             hidden>
+                            <div class="u-margin-block-end-s js-pf-dynamic-opening"></div>
+                            <div class="c-box c-box--danger-soft js-pf-dynamic-holiday"
+                                 hidden></div>
                         </div>
                     </div>
 
                     <!-- Preis-Anzeige mit Rabatt-Logik -->
-                    <div id="price-display"
-                         class="c-price-display u-margin-block-start-m u-margin-block-end-l">
+                    <div class="c-price-display u-margin-block-start-m u-margin-block-end-l js-pf-price-display">
                         Wird berechnet...
                     </div>
 
@@ -377,8 +376,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                             <?php echo $agree['label_html']; ?>
                                             <?php if ($agree['required']) { ?>
                                             <span class="c-checkbox__required" title="Pflichtfeld">*</span>
-                                            <?php } ?>
-                                        </span>
+                                    <?php } ?>
+                                    </span>
                                     </label>
                                 <?php } ?>
                             </div>

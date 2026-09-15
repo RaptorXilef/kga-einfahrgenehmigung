@@ -5,6 +5,7 @@ import { notifier } from '../core/Notifier.js';
  * Modulares Management des Antragsformulars (Frontend & Admin).
  * Übernimmt dynamische Sichtbarkeiten, API-Preis-Berechnung, Feiertagsprüfung
  * und Datums-Synchronisation (Start-/Enddatum).
+ * Nutzt strikte '.js-pf-*' BEM-Hooks für absolute Entkopplung von CSS und Form-Names.
  */
 export class PermitForm {
     constructor(container) {
@@ -17,43 +18,41 @@ export class PermitForm {
         // Zentraler Controller für restlose Garbage Collection
         this.abortController = new AbortController();
 
-        // Formularfelder dynamisch aus dem Container fischen (Unterstützt Frontend & Admin)
-        this.tplSelect = this.container.querySelector('[name="template_key"]');
-        this.typSelect = this.container.querySelector('[name="typ"]');
-        this.vonInput = this.container.querySelector('[name="datum_von"]');
-        this.bisInput = this.container.querySelector('[name="datum_bis"]');
-        this.parzelleInput = this.container.querySelector('[name="parzelle"]');
-        this.kennzeichenInput = this.container.querySelector('[name="kennzeichen"]');
-        this.firmaInput = this.container.querySelector('[name="firma"]');
-        this.firmaWrapper = this.firmaInput?.closest('.c-form-group');
-        this.labelKennzeichen =
-            this.container.querySelector('#label_kennzeichen') ||
-            this.kennzeichenInput?.closest('.c-form-group')?.querySelector('label');
+        // Strikte BEM JS-Hooks statt fragiler IDs oder Name-Attribute
+        this.tplSelect = this.container.querySelector('.js-pf-template');
+        this.typSelect = this.container.querySelector('.js-pf-typ');
+        this.vonInput = this.container.querySelector('.js-pf-von');
+        this.bisInput = this.container.querySelector('.js-pf-bis');
+        this.parzelleInput = this.container.querySelector('.js-pf-parzelle');
+        this.kennzeichenInput = this.container.querySelector('.js-pf-kennzeichen');
+        this.firmaInput = this.container.querySelector('.js-pf-firma');
+
+        this.firmaWrapper = this.container.querySelector('.js-pf-firma-wrapper');
+        this.labelKennzeichen = this.container.querySelector('.js-pf-label-kennzeichen');
 
         // Frontend & Admin Preis-Anzeige
-        this.priceDisplay = this.container.querySelector('#price-display');
-        this.voucherInput = this.container.querySelector('[name="voucher"]');
+        this.priceDisplay = this.container.querySelector('.js-pf-price-display');
+        this.voucherInput = this.container.querySelector('.js-pf-voucher-input');
 
-        // Admin-Spezifische Felder (Gutschein-Generator & Manuelle Anlage)
-        this.voucherDiscountType = this.container.querySelector('[name="voucher_discount_type"]');
-        this.voucherValueWrap = this.container.querySelector('#v_val_wrap');
-        this.zweckSelect = this.container.querySelector('[name="zweck"], [name="_unused_zweck"]');
-        this.zweckManual = this.container.querySelector('#zweck_manual');
-        this.toggleZweckBtn = this.container.querySelector('#toggle_zweck_btn');
+        // Admin-Spezifische Felder
+        this.voucherDiscountType = this.container.querySelector('.js-pf-voucher-type');
+        this.voucherValueWrap = this.container.querySelector('.js-pf-voucher-value-wrap');
+        this.zweckSelect = this.container.querySelector('.js-pf-zweck-select');
+        this.zweckManual = this.container.querySelector('.js-pf-zweck-manual');
+        this.toggleZweckBtn = this.container.querySelector('.js-pf-toggle-zweck');
+        this.voucherMultiCb = this.container.querySelector('.js-pf-voucher-multi');
+        this.voucherMaxWrap = this.container.querySelector('.js-pf-voucher-max-wrap');
 
         // Frontend-Spezifische Info-Boxen
-        this.warningBox = this.container.querySelector('#date-warning');
-        this.warningText = this.container.querySelector('#date-warning-text');
-        this.dateInfoContainer = this.container.querySelector('#dynamic-date-info');
-        this.openingEl = this.container.querySelector('#dynamic-opening-hours');
-        this.holidayEl = this.container.querySelector('#dynamic-holiday-notice');
+        this.warningBox = this.container.querySelector('.js-pf-date-warning');
+        this.warningText = this.container.querySelector('.js-pf-date-warning-text');
+        this.dateInfoContainer = this.container.querySelector('.js-pf-dynamic-date-info');
+        this.openingEl = this.container.querySelector('.js-pf-dynamic-opening');
+        this.holidayEl = this.container.querySelector('.js-pf-dynamic-holiday');
 
         // Config sicher abrufen
         this.config = window.KGA_CONFIG || { vehicleConfig: {} };
         this.templates = window.KGA_TEMPLATES || {};
-
-        this.voucherMultiCb = this.container.querySelector('#v_multi');
-        this.voucherMaxWrap = this.container.querySelector('#v_max_wrap');
 
         this.init();
     }
@@ -71,7 +70,6 @@ export class PermitForm {
             options
         );
 
-        // Basis-Event-Listener
         this.typSelect?.addEventListener(
             'change',
             () => {
@@ -86,6 +84,7 @@ export class PermitForm {
             (e) => this.formatLicensePlate(e.target),
             options
         );
+
         this.parzelleInput?.addEventListener(
             'blur',
             (e) => this.formatPlotNumber(e.target),
@@ -133,16 +132,14 @@ export class PermitForm {
         this.toggleZweckBtn?.addEventListener('click', () => this.toggleZweckMode(), options);
 
         // Frontend: Gutschein-Toggle
-        const voucherToggle = document.querySelector('.c-voucher-toggle');
-        const voucherWrap = document.querySelector('.js-voucher-container');
+        const voucherToggle = this.container.querySelector('.js-voucher-toggle');
+        const voucherWrap = this.container.querySelector('.js-voucher-container');
 
         if (voucherToggle && voucherWrap && !voucherToggle.dataset.bound) {
             voucherToggle.dataset.bound = 'true'; // Doppeltes Binden verhindern
             voucherToggle.addEventListener(
                 'click',
-                () => {
-                    voucherWrap.classList.toggle('is-open');
-                },
+                () => voucherWrap.classList.toggle('is-open'),
                 options
             );
         }

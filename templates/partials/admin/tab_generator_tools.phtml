@@ -93,9 +93,11 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <!-- Dummy für API (verhindert undefined JS Fehler) -->
                             <input type="hidden"
                                    name="voucher"
-                                   value=""> <!-- Dummy für API -->
+                                   class="js-pf-voucher-input"
+                                   value="">
 
                             <div class="o-grid o-grid--2-cols u-margin-block-end-m">
                                 <div class="c-form-group">
@@ -103,7 +105,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                            for="template_key">Gültig für Vorlage *</label>
                                     <select name="template_key"
                                             id="template_key"
-                                            class="c-form-select"
+                                            class="c-form-select js-pf-template"
                                             autocomplete="off">
                                         <?php foreach ($allowedTemplates as $key => $tpl) { ?>
                                             <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
@@ -115,7 +117,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                            for="typ">Fahrzeugtyp *</label>
                                     <select name="typ"
                                             id="typ"
-                                            class="c-form-select"
+                                            class="c-form-select js-pf-typ"
                                             autocomplete="off">
                                         <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
                                             if (!($vData['active'] ?? true)) {
@@ -134,7 +136,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <input type="date"
                                            name="datum_von"
                                            id="datum_von"
-                                           class="c-form-input"
+                                           class="c-form-input js-pf-von"
                                            required
                                            value="<?php echo \date('Y-m-d'); ?>"
                                            autocomplete="off">
@@ -145,7 +147,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <input type="date"
                                            name="datum_bis"
                                            id="datum_bis"
-                                           class="c-form-input"
+                                           class="c-form-input js-pf-bis"
                                            required
                                            autocomplete="off">
                                 </div>
@@ -169,7 +171,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <input type="text"
                                            name="parzelle"
                                            id="parzelle"
-                                           class="c-form-input"
+                                           class="c-form-input js-pf-parzelle"
                                            required
                                            placeholder="0001"
                                            autocomplete="off">
@@ -177,26 +179,25 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             </div>
 
                             <div class="c-form-group u-margin-block-end-m">
-                                <label class="c-form-label"
-                                       id="label_kennzeichen"
+                                <label class="c-form-label js-pf-label-kennzeichen"
                                        for="kennzeichen">Amtl. Kennzeichen *</label>
                                 <input type="text"
                                        name="kennzeichen"
                                        id="kennzeichen"
-                                       class="c-form-input"
+                                       class="c-form-input js-pf-kennzeichen"
                                        required
                                        placeholder="B-XX 123"
                                        autocomplete="off">
                             </div>
 
-                            <div class="c-form-group u-margin-block-end-m u-hidden"
-                                 id="firma_wrapper">
+                            <div class="c-form-group u-margin-block-end-m js-pf-firma-wrapper"
+                                 hidden>
                                 <label class="c-form-label"
                                        for="firma">Firma / Lieferant (Optional)</label>
                                 <input type="text"
                                        id="firma"
                                        name="firma"
-                                       class="c-form-input"
+                                       class="c-form-input js-pf-firma"
                                        placeholder="Firmenname"
                                        autocomplete="off">
                             </div>
@@ -218,13 +219,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <label class="c-form-label u-flex u-justify-between u-align-center"
                                            for="zweck_select">
                                         <span>Einfahrts-Grund *</span>
-                                        <span class="u-text-link u-cursor-pointer" id="toggle_zweck_btn">
+                                        <span class="u-text-link u-cursor-pointer js-pf-toggle-zweck">
                                             <img src="<?php echo $asset->url('assets/img/icons/icon-crayon.webp'); ?>" class="c-icon" loading="lazy" alt=""> Manuell
                                         </span>
                                     </label>
                                     <select name="zweck"
                                             id="zweck_select"
-                                            class="c-form-select"
+                                            class="c-form-select js-pf-zweck-select"
                                             autocomplete="off">
                                         <?php foreach ($standardPurposes as $val => $label) { ?>
                                             <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($label); ?></option>
@@ -234,8 +235,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <!-- Manuelles Feld (inkl. Auto-Complete Historie) -->
                                     <input type="text"
                                            name="_unused_zweck"
-                                           id="zweck_manual"
-                                           class="c-form-input u-hidden"
+                                           class="c-form-input js-pf-zweck-manual"
+                                           hidden
                                            placeholder="Eigener Grund..."
                                            list="custom_purposes_list"
                                            aria-label="Eigener Grund"
@@ -254,7 +255,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <label class="c-form-label u-flex u-justify-between u-align-center"
                                            for="preis_override">
                                         <span>Sonderpreis (€)</span>
-                                        <span id="price-display" class="c-badge c-badge--primary u-font-mono u-text-sm">0,00 €</span>
+                                        <span class="c-badge c-badge--primary u-font-mono u-text-sm js-pf-price-display">0,00 €</span>
                                     </label>
                                     <input type="number"
                                            id="preis_override"
@@ -324,7 +325,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             Erstellt Rabattcodes für das öffentliche Portal.</p>
                     </header>
                     <div class="c-card__body">
+                        <!-- Die Klasse js-permit-form wird hier ebenfalls genutzt für die Synchronisierung -->
                         <form method="POST"
+                              class="js-permit-form"
                               action="<?php echo $settings['base_url']; ?>create_voucher">
                             <input type="hidden"
                                    name="csrf_token"
@@ -335,7 +338,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                        for="v_template_key">Gültig für Vorlage *</label>
                                 <select name="template_key"
                                         id="v_template_key"
-                                        class="c-form-select"
+                                        class="c-form-select js-pf-template"
                                         autocomplete="off">
                                     <?php foreach ($allowedTemplates as $key => $tpl) { ?>
                                         <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
@@ -349,15 +352,15 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                            for="v_type">Rabatt-Art *</label>
                                     <select name="voucher_discount_type"
                                             id="v_type"
-                                            class="c-form-select"
+                                            class="c-form-select js-pf-voucher-type"
                                             autocomplete="off">
                                         <option value="free">100% Kostenlos</option>
                                         <option value="percent">Prozentual (%)</option>
                                         <option value="fixed">Festbetrag (€)</option>
                                     </select>
                                 </div>
-                                <div class="c-form-group u-hidden"
-                                     id="v_val_wrap">
+                                <div class="c-form-group js-pf-voucher-value-wrap"
+                                     hidden>
                                     <label class="c-form-label"
                                            for="v_val">Wert (Zahl) *</label>
                                     <input type="number"
@@ -452,7 +455,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                             <input type="date"
                                                    id="v_datum_von"
                                                    name="datum_von"
-                                                   class="c-form-input"
+                                                   class="c-form-input js-pf-von"
                                                    autocomplete="off">
                                         </div>
                                         <div class="c-form-group">
@@ -461,7 +464,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                             <input type="date"
                                                    id="v_datum_bis"
                                                    name="datum_bis"
-                                                   class="c-form-input"
+                                                   class="c-form-input js-pf-bis"
                                                    autocomplete="off">
                                         </div>
                                     </div>
@@ -483,7 +486,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                             <input type="text"
                                                    id="v_parzelle"
                                                    name="parzelle"
-                                                   class="c-form-input"
+                                                   class="c-form-input js-pf-parzelle"
                                                    placeholder="0001"
                                                    autocomplete="off">
                                         </div>
@@ -495,7 +498,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                         <input type="text"
                                                id="v_kennzeichen"
                                                name="kennzeichen"
-                                               class="c-form-input"
+                                               class="c-form-input js-pf-kennzeichen"
                                                placeholder="B-XX 123"
                                                autocomplete="off">
                                     </div>
@@ -506,7 +509,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                                    for="v_typ">Fahrzeugtyp</label>
                                             <select id="v_typ"
                                                     name="typ"
-                                                    class="c-form-select"
+                                                    class="c-form-select js-pf-typ"
                                                     autocomplete="off">
                                                 <option value="">-- Nicht vorgeben --</option>
                                                 <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
@@ -532,13 +535,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                         </div>
                                     </div>
 
-                                    <div class="c-form-group">
+                                    <div class="c-form-group js-pf-firma-wrapper"
+                                         hidden>
                                         <label class="c-form-label"
                                                for="v_firma">Firma / Lieferant</label>
                                         <input type="text"
                                                id="v_firma"
                                                name="firma"
-                                               class="c-form-input"
+                                               class="c-form-input js-pf-firma"
                                                placeholder="Firmenname"
                                                autocomplete="off">
                                     </div>
@@ -551,14 +555,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <label class="c-checkbox">
                                         <input type="checkbox"
                                                name="voucher_multi_use"
-                                               id="v_multi"
-                                               class="c-checkbox__input">
+                                               class="c-checkbox__input js-pf-voucher-multi">
                                         <span class="c-checkbox__label u-font-bold u-text-sm u-color-main"
                                               style="margin-block-start: 2px;">Mehrfach einlösbar?</span>
                                     </label>
                                 </div>
-                                <div class="c-form-group u-hidden"
-                                     id="v_max_wrap">
+                                <div class="c-form-group js-pf-voucher-max-wrap"
+                                     hidden>
                                     <label class="c-form-label u-color-muted"
                                            for="v_max_uses">Maximale Nutzungen *</label>
                                     <input type="number"
