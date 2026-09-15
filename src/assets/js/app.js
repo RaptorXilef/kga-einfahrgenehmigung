@@ -32,7 +32,7 @@ if (typeof window.KGA_TEMPLATES === 'undefined') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Globale Mini-Logiken (Isolierte Klassen für striktes Single Responsibility)
+    // Globale Mini-Logiken
     mount('form[data-confirm]', ConfirmSubmit);
     mount('[data-confirm-click]', ConfirmClick);
     mount('.js-submit-form', RemoteSubmit);
@@ -45,21 +45,16 @@ document.addEventListener('DOMContentLoaded', () => {
     mount('.js-track-event', EventTracker);
 
     // Core / UI mounten
-    mountSingle('#ui-session-timer', SessionTimer);
+    mountSingle('.js-session-timer', SessionTimer);
     mount('.js-password-toggle', PasswordToggle);
-    mountSingle('#kga-consent-banner', ConsentBanner);
+    mountSingle('.js-consent-banner', ConsentBanner);
     mount('.js-theme-toggle', ThemeToggle);
 
-    // Lazy Loading UI Module
+    // Lazy Loading
     lazyMount('.js-avatar-dropzone', () => import('./ui/DragDropZone.js'), 'DragDropZone');
     lazyMount('.js-sort-table', () => import('./ui/TableSorter.js'), 'TableSorter');
 
-    // Schwere Fach-Module Lazy Loaden (Spart hunderte KB beim initialen Seitenaufruf)
-    lazyMount(
-        '#permitForm, form[action*="create_voucher"]',
-        () => import('./modules/PermitForm.js'),
-        'PermitForm'
-    );
+    lazyMount('.js-permit-form', () => import('./modules/PermitForm.js'), 'PermitForm');
     lazyMountSingle('#tab-system', () => import('./modules/SystemTools.js'), 'SystemTools');
     lazyMountSingle('#tab-vouchers', () => import('./modules/VoucherManager.js'), 'VoucherManager');
     lazyMountSingle(

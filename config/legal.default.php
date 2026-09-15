@@ -32,7 +32,7 @@ return [
         'texts' => [
             'title' => 'Datenschutz & Cookies',
             'description' => 'Wir nutzen Cookies und ähnliche Technologien auf unserer Website. Einige von ihnen sind essenziell für den Betrieb der Seite (z. B. für den Antragsfortschritt), während andere uns helfen, diese Website zu verbessern.',
-            'accept_all' => '🍪 Ich mag Cookies! [Alle akzeptieren] 🍪',
+            'accept_all' => 'Ich mag Cookies! [Alle akzeptieren]', // Emojis entfernt
             'accept_essential' => '[Nur essenzielle]',
             'save_selection' => 'Auswahl speichern',
             'show_details' => 'Details einblenden',

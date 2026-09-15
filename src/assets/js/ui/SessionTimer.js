@@ -15,10 +15,10 @@ export class SessionTimer {
         this.isWarningActive = false;
 
         // DOM Elemente (liegen bereits statisch im HTML, z.B. in header_nav.phtml)
-        this.modalTimer = document.getElementById('modal-session-countdown');
-        this.modal = document.getElementById('session-warning-modal');
-        this.btnStay = document.getElementById('btn-session-stay');
-        this.btnLogout = document.getElementById('btn-session-logout');
+        this.modalTimer = document.querySelector('.js-session-countdown');
+        this.modal = document.querySelector('.js-session-warning-modal');
+        this.btnStay = document.querySelector('.js-session-stay');
+        this.btnLogout = document.querySelector('.js-session-logout');
 
         // Bestimme Logout-Route dynamisch (Admin vs History)
         this.isHistoryMode = window.location.pathname.includes('/history');

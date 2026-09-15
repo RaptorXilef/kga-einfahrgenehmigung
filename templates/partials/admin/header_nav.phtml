@@ -93,7 +93,8 @@ $currentPage = $path === '' ? 'admin' : $path;
                     <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
-                         alt=""> <span id="ui-session-timer">20:00</span>
+                         alt="">
+                    <span class="js-session-timer">20:00</span>
                 </div>
 
                 <!-- Logout -->
@@ -123,22 +124,20 @@ $currentPage = $path === '' ? 'admin' : $path;
     </div>
 </nav>
 
-<dialog id="session-warning-modal"
-        class="c-modal">
+<dialog class="c-modal js-session-warning-modal">
     <div class="c-modal__dialog">
         <h3 class="c-modal__title">
             <span class="u-text-xl">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-warning.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
             </span> Inaktivität erkannt
         </h3>
-        <p class="u-color-muted u-margin-block-start-s">Aus Sicherheitsgründen werden Sie in <br><strong
-                    id="modal-session-countdown"
-                    class="u-color-danger u-text-xl">03:00</strong><br> Minuten automatisch abgemeldet.</p>
-
+        <p class="u-color-muted u-margin-block-start-s">Aus Sicherheitsgründen werden Sie in <br>
+            <strong class="u-color-danger u-text-xl js-session-countdown">
+                03:00</strong><br> Minuten automatisch abgemeldet.
+        </p>
         <div class="o-grid o-grid--2-cols u-margin-block-start-l">
             <!-- Button 1: Bleiben -->
-            <button id="btn-session-stay"
-                    class="c-button c-button--success u-inline-size-100">Bleiben</button>
+            <button class="c-button c-button--success u-inline-size-100 js-session-stay">Bleiben</button>
 
             <!-- Button 2: Abmelden (Sicheres Formular) -->
             <form method="POST"
@@ -148,7 +147,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <button type="submit"
-                        class="c-button c-button--danger u-inline-size-100">Abmelden</button>
+                        class="c-button c-button--danger u-inline-size-100 js-session-logout">Abmelden</button>
             </form>
         </div>
     </div>

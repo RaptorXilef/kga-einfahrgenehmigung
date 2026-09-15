@@ -3,17 +3,17 @@
 @layer components {
     .c-fab-refresh {
         position: fixed;
-        inset-block-end: 30px;
-        inset-inline-end: 30px;
+        inset-block-end: 1.875rem; // 30px
+        inset-inline-end: 1.875rem; // 30px
         background-color: var(--color-bg-white);
         color: var(--color-primary);
-        border: 2px solid var(--color-primary);
-        border-radius: 30px;
-        padding-inline: 20px;
-        block-size: 50px;
+        border: 0.125rem solid var(--color-primary); // 2px
+        border-radius: 1.875rem; // 30px
+        padding-inline: 1.25rem; // 20px
+        block-size: 3.125rem; // 50px
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 0.625rem; // 10px
         font-weight: 800;
         font-size: 0.95rem;
         box-shadow: 0 10px 25px

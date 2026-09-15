@@ -7,41 +7,39 @@
     .o-grid--2-cols {
         grid-template-columns: 1fr 1fr;
     }
-
     .o-grid--2-1 {
         grid-template-columns: 2fr 1fr;
     }
-
     .o-grid--auto-right {
         grid-template-columns: 1fr auto;
     }
 
+    // FIX: Clamp mit rem Werten
     .o-grid--auto-fit-sm {
         grid-template-columns: repeat(
             auto-fit,
-            minmax(clamp(150px, 15vw, 180px), 1fr)
+            minmax(clamp(9.375rem, 15vw, 11.25rem), 1fr)
         );
     }
 
     .o-grid--auto-fit {
         grid-template-columns: repeat(
             auto-fit,
-            minmax(clamp(240px, 20vw, 280px), 1fr)
+            minmax(clamp(15rem, 20vw, 17.5rem), 1fr)
         );
     }
 
     .o-grid--auto-fit-lg {
         grid-template-columns: repeat(
             auto-fit,
-            minmax(clamp(320px, 25vw, 400px), 1fr)
+            minmax(clamp(20rem, 25vw, 25rem), 1fr)
         );
     }
 
     .o-grid--sidebar {
         grid-template-columns: 1.6fr 1fr;
     }
-
     .o-grid--user-management {
-        grid-template-columns: 200px 1.2fr 1fr;
-    }
+        grid-template-columns: 12.5rem 1.2fr 1fr;
+    } // 200px
 }

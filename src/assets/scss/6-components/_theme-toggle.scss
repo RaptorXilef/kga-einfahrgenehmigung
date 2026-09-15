@@ -5,9 +5,9 @@
         background-color: var(--color-bg-white);
         border: 1px solid var(--color-border);
         color: var(--color-text-main);
-        border-radius: 30px;
-        padding-block: 6px;
-        padding-inline: 14px;
+        border-radius: 1.875rem; // 30px
+        padding-block: 0.375rem; // 6px
+        padding-inline: 0.875rem; // 14px
         display: flex;
         align-items: center;
         gap: var(--space-s);
@@ -23,7 +23,7 @@
             transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
             box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.03125rem; // 0.5px
     }
 
     .c-theme-toggle:hover {

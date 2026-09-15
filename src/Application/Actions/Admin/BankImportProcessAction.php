@@ -56,6 +56,7 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                     }
                 }
 
+                // Flache Log-Generierung ohne HTML
                 $flattenForLog = function (array $categories): string {
                     $parts = [];
                     foreach ($categories as $cat => $items) {
