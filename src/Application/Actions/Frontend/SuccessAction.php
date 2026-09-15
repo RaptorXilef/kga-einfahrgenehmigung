@@ -8,6 +8,7 @@ use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\SuccessRequest;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
@@ -71,7 +72,7 @@ final readonly class SuccessAction implements ViewActionInterface
         // Dynamisches Datum laden und formatieren
         $dueDate = $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y');
 
-        $this->renderer->render('frontend/checkout_success', [
+        $html = $this->renderer->render('frontend/checkout_success', [
             'dueDate' => $dueDate,
             'epcData' => \urlencode($epcData),
             'method' => $method,
@@ -80,6 +81,6 @@ final readonly class SuccessAction implements ViewActionInterface
             'usage' => $usage,
         ]);
 
-        return null;
+        return new HtmlResponse($html);
     }
 }

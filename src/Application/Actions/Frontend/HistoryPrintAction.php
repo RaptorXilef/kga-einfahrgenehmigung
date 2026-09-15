@@ -9,6 +9,7 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\SimpleCodeRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\HolidayHtmlPresenter;
@@ -54,7 +55,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
 
         // Vergleicht die E-Mails via Normalisierung (+ Aliase) für höchste Zuverlässigkeit
         if ($permit instanceof Permit && Sanitizer::normalizeEmail($permit->getOwnerEmail()) === Sanitizer::normalizeEmail($emailInSession)) {
-            $this->renderer->render('frontend/history_print_view', [
+            $html = $this->renderer->render('frontend/history_print_view', [
                 'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
                     $this->holidayService->getHolidaysInRange($permit->getValidFrom(), $permit->getValidUntil()),
                 ),
@@ -64,7 +65,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
                 'permit' => $permit,
             ]);
 
-            return null;
+            return new HtmlResponse($html);
         }
 
         return new RedirectResponse('history');

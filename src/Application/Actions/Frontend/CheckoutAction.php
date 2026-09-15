@@ -8,6 +8,7 @@ use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\SimpleTokenRequest;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
@@ -56,7 +57,7 @@ final readonly class CheckoutAction implements ViewActionInterface
         $dtVon = new DateTimeImmutable($tempData['datum_von'] ?? 'now');
         $dtBis = new DateTimeImmutable($tempData['datum_bis'] ?? 'now');
 
-        $this->renderer->render('frontend/checkout_summary', [
+        $html = $this->renderer->render('frontend/checkout_summary', [
             'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
                 $this->holidayService->getHolidaysInRange($dtVon, $dtBis),
             ),
@@ -67,6 +68,6 @@ final readonly class CheckoutAction implements ViewActionInterface
             'token' => $token,
         ]);
 
-        return null;
+        return new HtmlResponse($html);
     }
 }

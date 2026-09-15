@@ -9,6 +9,7 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\SimpleCodeRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
@@ -47,9 +48,9 @@ final readonly class CheckPermitAction implements ViewActionInterface
         try {
             $dto = SimpleCodeRequest::fromArray($request->get);
         } catch (ValidationException) {
-            $this->renderer->render('frontend/check_search');
+            $html = $this->renderer->render('frontend/check_search');
 
-            return null;
+            return new HtmlResponse($html);
         }
 
         $code = $dto->code;
@@ -65,9 +66,9 @@ final readonly class CheckPermitAction implements ViewActionInterface
 
         if (!$permit instanceof Permit) {
             $this->sessionManager->addFlash('error', "Code '{$code}' nicht gefunden.");
-            $this->renderer->render('frontend/check_search');
+            $html = $this->renderer->render('frontend/check_search');
 
-            return null;
+            return new HtmlResponse($html);
         }
 
         // Standard-Daten für die Header-Navigation (falls eingeloggt)
@@ -111,7 +112,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
         // Config auslesen
         $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
         // Pfade angepasst auf Unterordner check/
-        $this->renderer->render(
+        $html = $this->renderer->render(
             $showAdminView ? 'frontend/check_admin' : 'frontend/check_public',
             \array_merge($adminData, [
                 'allowedToday' => $nextAllowedSlotText,
@@ -135,7 +136,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
             ]),
         );
 
-        return null;
+        return new HtmlResponse($html);
     }
 
     /**

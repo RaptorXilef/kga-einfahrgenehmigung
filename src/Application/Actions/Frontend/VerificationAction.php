@@ -7,6 +7,7 @@ namespace App\Application\Actions\Frontend;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
@@ -39,11 +40,11 @@ final readonly class VerificationAction implements ViewActionInterface
 
         // 2. Wenn kein Token vorhanden ist -> Zeige das leere Eingabeformular
         if ($token === '') {
-            $this->renderer->render('frontend/verify_input', [
+            $html = $this->renderer->render('frontend/verify_input', [
                 'isError' => isset($request->get['error']),
             ]);
 
-            return null;
+            return new HtmlResponse($html);
         }
 
         // --- Ab hier: Ein Token wurde gesendet, wir prüfen es! ---

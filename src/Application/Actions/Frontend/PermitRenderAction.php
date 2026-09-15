@@ -44,7 +44,6 @@ final readonly class PermitRenderAction implements ViewActionInterface
             $this->sessionManager->setFormStartTime(\time());
         }
 
-        // FIX: Wir fangen den String auf und verpacken ihn in eine HTTP-Response!
         $html = $this->renderer->render('frontend/formular', [
             'agreements' => $this->getParsedAgreements(),
             'formData' => $this->sessionManager->getFormData(),

@@ -8,6 +8,7 @@ use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\ViewRenderRequest;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
@@ -33,12 +34,12 @@ final readonly class HistoryRenderAction implements ViewActionInterface
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();
 
         if ($emailInSession === '') {
-            $this->renderer->render('frontend/history_login', [
+            $html = $this->renderer->render('frontend/history_login', [
                 'isSuccess' => $dto->isSuccess,
                 'step' => $dto->step,
             ]);
 
-            return null;
+            return new HtmlResponse($html);
         }
 
         $permits = $this->permitService->getHistoryByEmail($emailInSession);
@@ -52,7 +53,6 @@ final readonly class HistoryRenderAction implements ViewActionInterface
                 if (Sanitizer::normalizeEmail($p->getOwnerEmail()) !== $normalizedSessionEmail) {
                     continue;
                 }
-
                 $permits[] = $p;
             }
         }
@@ -64,7 +64,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
             $overdueLevels[$permit->code->value] = $this->permitService->getOverdueLevel($permit);
         }
 
-        $this->renderer->render('frontend/history_list', [
+        $html = $this->renderer->render('frontend/history_list', [
             'currentArchiveYear' => $loadedYear,
             'email' => $emailInSession,
             'isSuccess' => $dto->isSuccess,
@@ -72,6 +72,6 @@ final readonly class HistoryRenderAction implements ViewActionInterface
             'permits' => $permits,
         ]);
 
-        return null;
+        return new HtmlResponse($html);
     }
 }

@@ -10,6 +10,7 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\SimpleCodeRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Storage\RoleRepositoryInterface;
@@ -52,7 +53,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
 
         $this->auditLogger->log('PERMIT_PRINT', "Druckvorschau für Genehmigung '{$code}' aufgerufen.");
 
-        $this->renderer->render('admin/print_view', [
+        $html = $this->renderer->render('admin/print_view', [
             'auth' => $this->auth,
             'roleRepository' => $this->roleRepository,
             'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
@@ -65,6 +66,6 @@ final readonly class AdminPrintAction implements ViewActionInterface
             'userRepository' => $this->userRepository,
         ]);
 
-        return null;
+        return new HtmlResponse($html);
     }
 }

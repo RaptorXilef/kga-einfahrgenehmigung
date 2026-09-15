@@ -6,6 +6,7 @@ namespace App\Application\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Storage\RoleRepositoryInterface;
@@ -44,13 +45,13 @@ final class RequireLoginMiddleware implements MiddlewareInterface
                 && $this->roleRepository instanceof RoleRepositoryInterface
                 && $this->userRepository instanceof UserRepositoryInterface
             ) {
-                $this->renderer->render('admin_login', [
+                $html = $this->renderer->render('admin/login', [
                     'auth' => $this->auth,
                     'roleRepository' => $this->roleRepository,
                     'userRepository' => $this->userRepository,
                 ]);
 
-                return null;
+                return new HtmlResponse($html);
             }
 
             return new RedirectResponse('index');
