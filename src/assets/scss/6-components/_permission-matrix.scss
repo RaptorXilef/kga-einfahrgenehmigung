@@ -80,6 +80,12 @@
         font-style: italic;
     }
 
+    /* FIX: Von .p-controls zu sauberem BEM Element migriert */
+    .c-tree-item__controls {
+        display: flex;
+        align-items: center;
+    }
+
     .c-switch {
         --switch-bg: var(--color-border);
         --switch-thumb-x: 4px;

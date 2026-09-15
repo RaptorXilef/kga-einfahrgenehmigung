@@ -258,18 +258,18 @@ use App\Infrastructure\Config\Config;
     </div>
 
     <dialog id="qrModal"
-            class="c-modal">
+            class="c-modal js-qr-modal">
         <div class="c-modal__dialog">
             <h4 class="c-modal__title u-margin-block-end-s">QR-Code scannen</h4>
-            <code id="qrModalCode" class="c-license-plate u-margin-block-end-m c-voucher-qr-code"></code>
+            <code id="qrModalCode" class="c-license-plate u-margin-block-end-m c-voucher-qr-code js-qr-modal-code"></code>
 
             <div class="c-box u-margin-block-none u-flex u-align-center u-justify-center c-voucher-qr-box">
                 <img id="qrModalImg"
                      src=""
                      alt="QR Code"
-                     class="c-voucher-qr-img">
+                     class="c-voucher-qr-img js-qr-modal-img">
                 <div id="qrModalLoader"
-                     class="u-color-muted">Wird generiert...</div>
+                     class="u-color-muted js-qr-modal-loader">Wird generiert...</div>
             </div>
 
             <button type="button"

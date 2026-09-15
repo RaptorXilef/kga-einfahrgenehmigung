@@ -11,42 +11,61 @@ export class VoucherManager {
         this.copyButtons = this.container.querySelectorAll('.js-copy-link');
 
         // Modal-Elemente auflösen
-        this.modal = document.getElementById('qrModal');
-        this.modalImg = document.getElementById('qrModalImg');
-        this.modalLoader = document.getElementById('qrModalLoader');
-        this.modalCode = document.getElementById('qrModalCode');
+        this.modal = document.querySelector('.js-qr-modal');
+        this.modalImg = document.querySelector('.js-qr-modal-img');
+        this.modalLoader = document.querySelector('.js-qr-modal-loader');
+        this.modalCode = document.querySelector('.js-qr-modal-code');
         this.closeBtn = this.modal?.querySelector('.js-close-modal');
+
+        this.abortController = new AbortController();
 
         this.init();
     }
 
     init() {
+        const options = { signal: this.abortController.signal };
+
         this.qrButtons.forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showQr(btn.dataset.code, btn.dataset.url);
-            });
+            btn.addEventListener(
+                'click',
+                (e) => {
+                    e.preventDefault();
+                    this.showQr(btn.dataset.code, btn.dataset.url);
+                },
+                options
+            );
         });
 
         this.copyButtons.forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.copyLink(btn.dataset.url, btn);
-            });
+            btn.addEventListener(
+                'click',
+                (e) => {
+                    e.preventDefault();
+                    this.copyLink(btn.dataset.url, btn);
+                },
+                options
+            );
         });
 
         if (this.closeBtn) {
-            this.closeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.closeQr();
-            });
+            this.closeBtn.addEventListener(
+                'click',
+                (e) => {
+                    e.preventDefault();
+                    this.closeQr();
+                },
+                options
+            );
         }
 
         if (this.modal) {
-            this.modal.addEventListener('click', (e) => {
-                // Ein nativer Klick auf das <dialog> Element (den ::backdrop) schließt das Modal
-                if (e.target === this.modal) this.closeQr();
-            });
+            this.modal.addEventListener(
+                'click',
+                (e) => {
+                    if (e.target === this.modal) this.closeQr();
+                },
+                options
+            );
         }
     }
 
@@ -63,13 +82,8 @@ export class VoucherManager {
 
         // Die QR-Code API url-encoded aufrufen
         const encodedUrl = encodeURIComponent(url);
-
-        // TODO ARCHITEKTUR NOTIZ (Kritisch):
-        // Das Senden von Gutschein-URLs an api.qrserver.com speichert diese Klartext-URLs
-        // in fremden Server-Logs. Dies ist ein massives Sicherheits- und Datenschutzrisiko!
-        // Lösung für das Backend-Team: Ersetzt diese URL durch einen lokalen PHP-Endpoint, z.B.:
-        // const qrUrl = `${window.KGA_CONFIG.baseUrl}api/generate_qr?data=${encodedUrl}`;
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodedUrl}`;
+        const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
+        const qrUrl = `${baseUrl}api/generate_qr?data=${encodedUrl}`;
 
         // Wir blenden das Bild erst ein, wenn die externe API es fertig gerendert hat
         this.modalImg.onload = () => {
@@ -81,7 +95,7 @@ export class VoucherManager {
         this.modalImg.onerror = () => {
             this.modalImg.hidden = true;
             this.modalLoader.hidden = false;
-            this.modalLoader.innerText = 'Fehler: QR-Code API nicht erreichbar.';
+            this.modalLoader.innerText = 'Fehler: QR-Code konnte nicht generiert werden.';
             this.modalLoader.classList.add('is-error');
         };
 
@@ -159,5 +173,9 @@ export class VoucherManager {
         }
 
         document.body.removeChild(textArea);
+    }
+
+    destroy() {
+        this.abortController.abort();
     }
 }

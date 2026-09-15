@@ -4,13 +4,16 @@
 export class DashboardStats {
     constructor(container) {
         this.container = container;
-        this.canvas = this.container.querySelector('#yearlyStatsChart');
-        this.btnMonth = this.container.querySelector('#chartToggleMonth');
-        this.btnYear = this.container.querySelector('#chartToggleYear');
+
+        // FIX: Strikte JS Hooks anstatt harter IDs
+        this.canvas = this.container.querySelector('.js-yearly-stats-chart');
+        this.btnMonth = this.container.querySelector('.js-chart-toggle-month');
+        this.btnYear = this.container.querySelector('.js-chart-toggle-year');
+
+        this.abortController = new AbortController();
 
         const dataScript = this.container.querySelector('#chart-data');
 
-        // Defensive Error Boundary bei JSON Injektion
         try {
             this.chartData = dataScript ? JSON.parse(dataScript.textContent || '{}') : null;
         } catch {
@@ -37,8 +40,8 @@ export class DashboardStats {
                     {
                         label: 'Umsatz Soll (€)',
                         data: this.chartData.monthRevenue,
-                        backgroundColor: 'rgba(52, 152, 219, 0.6)',
-                        borderColor: '#3498db',
+                        backgroundColor: 'var(--color-primary-soft, rgba(52, 152, 219, 0.6))',
+                        borderColor: 'var(--color-primary, #3498db)',
                         borderWidth: 2,
                         borderRadius: 5,
                         yAxisID: 'y',
@@ -46,8 +49,8 @@ export class DashboardStats {
                     {
                         label: 'Anzahl Genehmigungen',
                         data: this.chartData.monthCounts,
-                        borderColor: '#6366f1',
-                        backgroundColor: '#6366f1',
+                        borderColor: 'var(--color-success, #6366f1)',
+                        backgroundColor: 'var(--color-success, #6366f1)',
                         borderWidth: 3,
                         type: 'line',
                         tension: 0.3,
@@ -83,7 +86,7 @@ export class DashboardStats {
                     y: {
                         type: 'linear',
                         position: 'left',
-                        grid: { color: '#f1f5f9' },
+                        grid: { color: 'var(--color-border)' },
                         title: { display: true, text: 'Euro (€)', font: { weight: 'bold' } },
                     },
                     y1: {
@@ -96,35 +99,49 @@ export class DashboardStats {
             },
         });
 
-        // Event Listeners für die Toggle-Buttons
+        const options = { signal: this.abortController.signal };
+
         if (this.btnMonth && this.btnYear) {
-            this.btnMonth.addEventListener('click', (e) => {
-                e.preventDefault();
-                // FIX: Early Exit Guard verhindert TypeErrors bei defektem oder leerem JSON
-                if (!this.currentChart || !this.chartData) return;
+            this.btnMonth.addEventListener(
+                'click',
+                (e) => {
+                    e.preventDefault();
+                    if (!this.currentChart || !this.chartData) return;
 
-                this.btnMonth.classList.replace('c-button--secondary', 'c-button--primary');
-                this.btnYear.classList.replace('c-button--primary', 'c-button--secondary');
+                    this.btnMonth.classList.replace('c-button--secondary', 'c-button--primary');
+                    this.btnYear.classList.replace('c-button--primary', 'c-button--secondary');
 
-                this.currentChart.data.labels = this.chartData.monthLabels;
-                this.currentChart.data.datasets[0].data = this.chartData.monthRevenue;
-                this.currentChart.data.datasets[1].data = this.chartData.monthCounts;
-                this.currentChart.update();
-            });
+                    this.currentChart.data.labels = this.chartData.monthLabels;
+                    this.currentChart.data.datasets[0].data = this.chartData.monthRevenue;
+                    this.currentChart.data.datasets[1].data = this.chartData.monthCounts;
+                    this.currentChart.update();
+                },
+                options
+            );
 
-            this.btnYear.addEventListener('click', (e) => {
-                e.preventDefault();
-                // FIX: Early Exit Guard
-                if (!this.currentChart || !this.chartData) return;
+            this.btnYear.addEventListener(
+                'click',
+                (e) => {
+                    e.preventDefault();
+                    if (!this.currentChart || !this.chartData) return;
 
-                this.btnYear.classList.replace('c-button--secondary', 'c-button--primary');
-                this.btnMonth.classList.replace('c-button--primary', 'c-button--secondary');
+                    this.btnYear.classList.replace('c-button--secondary', 'c-button--primary');
+                    this.btnMonth.classList.replace('c-button--primary', 'c-button--secondary');
 
-                this.currentChart.data.labels = this.chartData.yearLabels;
-                this.currentChart.data.datasets[0].data = this.chartData.yearRevenue;
-                this.currentChart.data.datasets[1].data = this.chartData.yearCounts;
-                this.currentChart.update();
-            });
+                    this.currentChart.data.labels = this.chartData.yearLabels;
+                    this.currentChart.data.datasets[0].data = this.chartData.yearRevenue;
+                    this.currentChart.data.datasets[1].data = this.chartData.yearCounts;
+                    this.currentChart.update();
+                },
+                options
+            );
         }
+    }
+
+    destroy() {
+        if (this.currentChart) {
+            this.currentChart.destroy();
+        }
+        this.abortController.abort();
     }
 }

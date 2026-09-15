@@ -9,7 +9,7 @@ export class AdminDashboard {
         this.container = container;
         this.tabs = this.container.querySelectorAll('[data-tab-target]');
         this.contents = this.container.querySelectorAll('.c-tabs__content');
-        this.searchInput = document.getElementById('adminSearch');
+        this.searchInput = document.querySelector('.js-admin-search');
 
         // Zentraler Zerstörer für alle delegierten Events
         this.abortController = new AbortController();
@@ -37,7 +37,7 @@ export class AdminDashboard {
 
         // 2. Server-Side Such-Logik (Debounce)
         if (this.searchInput) {
-            const form = document.getElementById('dashboardFilterForm');
+            const form = document.querySelector('.js-dashboard-filter-form');
             if (form) {
                 // Die referenzierte Handler-Funktion muss im Speicher bleiben und abbrechbar sein
                 this.debouncedSearch = debounce(() => form.submit(), 600);
@@ -68,6 +68,8 @@ export class AdminDashboard {
                     const reason = prompt(`Grund für die Sperre von ${code}?`);
 
                     if (reason && reason.trim() !== '') {
+                        // IDs für Forms sind als "Target-Anchor" okay, aber zur Selektion preferieren wir konsistenz.
+                        // Hier akzeptabel da dynamisch generiert.
                         const form = document.getElementById(`form_suspend_${code}`);
                         const input = document.getElementById(`reason_suspend_${code}`);
                         if (form && input) {
@@ -84,10 +86,12 @@ export class AdminDashboard {
     initFinanceBulk() {
         this.bulkCheckboxes = this.container.querySelectorAll('.js-bulk-pay-cb');
         this.bulkToggleAll = this.container.querySelector('.js-bulk-pay-toggle-all');
-        this.btnPay = document.getElementById('bulkPayBtn');
-        this.btnRemind = document.getElementById('bulkRemindBtn');
-        this.countSpanPay = document.getElementById('bulkPayCount');
-        this.countSpanRemind = document.getElementById('bulkRemindCount');
+
+        // FIX: JS Hooks anstatt harter DOM IDs
+        this.btnPay = document.querySelector('.js-bulk-pay-btn');
+        this.btnRemind = document.querySelector('.js-bulk-remind-btn');
+        this.countSpanPay = document.querySelector('.js-bulk-pay-count');
+        this.countSpanRemind = document.querySelector('.js-bulk-remind-count');
 
         const options = { signal: this.abortController.signal };
 
@@ -160,9 +164,7 @@ export class AdminDashboard {
             targetBtn = document.querySelector('[data-tab-target="tab-active"]');
         }
 
-        if (targetBtn) {
-            this.switchTab(lastTab, targetBtn);
-        }
+        if (targetBtn) this.switchTab(lastTab, targetBtn);
     }
 
     handleUrlParams() {

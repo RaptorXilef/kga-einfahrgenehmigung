@@ -67,25 +67,27 @@ if ($auth->hasPermission('finance.view')) {
                                 form="bulk-action-form"
                                 formaction="<?php echo $settings['base_url']; ?>mark_as_paid"
                                 id="bulkPayBtn"
-                                class="c-button c-button--success c-button--small u-hidden"
+                                class="c-button c-button--success c-button--small js-bulk-pay-btn"
+                                hidden
                                 data-confirm-click="Sollen die ausgewählten Genehmigungen jetzt als BEZAHLT markiert werden?">
                             <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                                  class="c-icon c-button__icon"
                                  loading="lazy"
                                  alt="">
-                            <span id="bulkPayCount">0</span> als Bezahlt markieren
+                            <span class="js-bulk-pay-count">0</span> als Bezahlt markieren
                         </button>
 
                         <button type="submit"
                                 form="bulk-action-form"
                                 formaction="<?php echo $settings['base_url']; ?>send_reminder"
                                 id="bulkRemindBtn"
-                                class="c-button c-button--danger c-button--small u-hidden"
+                                class="c-button c-button--danger c-button--small js-bulk-remind-btn"
+                                hidden
                                 data-confirm-click="Ausgewählte Pächter jetzt an Zahlung erinnern (sofern kein Cooldown aktiv ist)?">
                             <img src="<?php echo $asset->url('assets/img/icons/icon-bell.webp'); ?>"
                                  class="c-icon c-button__icon"
                                  loading="lazy"
-                                 alt=""> <span id="bulkRemindCount">0</span> erinnern
+                                 alt=""> <span class="js-bulk-remind-count">0</span> erinnern
                         </button>
                     <?php } ?>
                     <span class="c-badge c-badge--danger">OFFEN: <?php echo \count($allUnpaid); ?></span>
@@ -155,7 +157,7 @@ if ($auth->hasPermission('finance.view')) {
 
                 <form method="POST"
                       id="bulk-action-form"
-                      class="u-margin-block-none">
+                      class="js-bulk-action-form u-margin-block-none">
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -164,14 +166,12 @@ if ($auth->hasPermission('finance.view')) {
                         <thead>
                             <tr>
                                 <?php if ($hasBulkRight) { ?>
-                                    <th class="c-table__header-cell u-text-center"
-                                        style="--col-width: 40px; inline-size: var(--col-width);">
-                                        <label class="c-checkbox u-margin-block-none"
-                                               title="Alle auswählen"
-                                               style="justify-content: center;">
+                                    <th class="c-table__header-cell u-text-center">
+                                        <!-- FIX: Inline Styles margin-block-start und justify-content durch u-Klassen ersetzt -->
+                                        <label class="c-checkbox u-margin-block-none u-justify-center"
+                                               title="Alle auswählen">
                                             <input type="checkbox"
-                                                   class="js-bulk-pay-toggle-all c-checkbox__input"
-                                                   style="margin-block-start: 0;">
+                                                   class="js-bulk-pay-toggle-all c-checkbox__input u-margin-block-start-none">
                                         </label>
                                     </th>
                                 <?php } ?>
