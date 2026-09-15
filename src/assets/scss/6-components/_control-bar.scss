@@ -9,8 +9,8 @@
 
     .c-control-bar {
         background-color: var(--color-bg-white);
-        border-radius: 12px;
-        border: 1px solid var(--color-border);
+        border-radius: 0.75rem; // 12px
+        border: 0.0625rem solid var(--color-border); // 1px
         display: inline-flex;
         flex-wrap: wrap;
         gap: var(--space-m);
@@ -24,13 +24,13 @@
     }
 
     .c-control-bar__input {
-        block-size: 34px;
-        border-radius: 6px;
+        block-size: 2.125rem; // 34px
+        border-radius: 0.375rem; // 6px
         padding-inline: var(--space-s);
         font-size: clamp(0.8rem, 1vw, 0.85rem);
         inline-size: auto;
-        min-inline-size: 135px;
-        border: 1px solid var(--color-border);
+        min-inline-size: 8.4375rem; // 135px
+        border: 0.0625rem solid var(--color-border); // 1px
         background-color: var(--color-bg-light);
         color: var(--color-text-main);
         display: inline-block;
@@ -48,10 +48,10 @@
     }
 
     .c-control-bar__search {
-        --c-input-pr: 42px;
-        --c-input-pl: 14px;
-        --c-input-radius: 30px;
-        --c-input-height: 38px;
+        --c-input-pr: 2.625rem; // 42px
+        --c-input-pl: 0.875rem; // 14px
+        --c-input-radius: 1.875rem; // 30px
+        --c-input-height: 2.375rem; // 38px
 
         position: relative;
         margin-inline-start: auto;
@@ -60,7 +60,7 @@
 
     .c-control-bar__search-icon {
         position: absolute;
-        inset-inline-end: 15px;
+        inset-inline-end: 0.9375rem; // 15px
         inset-block-start: 50%;
         translate: 0 -50%;
         pointer-events: none;
