@@ -1,12 +1,11 @@
-/**
- * Übersetzt das rohe Markdown der CHANGELOG.md über externe Libraries in sicheres HTML.
- */
 export class ChangelogRenderer {
     constructor(container) {
         this.container = container;
-        this.contentArea = this.container.querySelector('#content-area');
 
-        const scriptEl = this.container.querySelector('#raw-markdown');
+        // FIX: Strikte BEM JS-Hooks
+        this.contentArea = this.container.querySelector('.js-content-area');
+        const scriptEl = this.container.querySelector('.js-raw-markdown');
+
         this.rawMarkdown = scriptEl ? scriptEl.textContent : '';
 
         this.init();
@@ -19,10 +18,9 @@ export class ChangelogRenderer {
             return;
         }
 
-        // Wir erwarten, dass marked und DOMPurify über das CDN in der PHTML geladen wurden
-        if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-            const html = marked.parse(this.rawMarkdown);
-            this.contentArea.innerHTML = DOMPurify.sanitize(html);
+        if (typeof window.marked !== 'undefined' && typeof window.DOMPurify !== 'undefined') {
+            const html = window.marked.parse(this.rawMarkdown);
+            this.contentArea.innerHTML = window.DOMPurify.sanitize(html);
         } else {
             this.contentArea.innerHTML =
                 '<div class="c-alert c-alert--danger u-text-center">Fehler: Markdown Parser nicht geladen.</div>';

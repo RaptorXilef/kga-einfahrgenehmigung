@@ -8,11 +8,14 @@ export class CheckoutPayment {
     constructor(container) {
         this.container = container;
         this.wireBtns = this.container.querySelectorAll('.js-finalize-wire');
-        this.paypalContainer = this.container.querySelector('#paypal-button-container');
 
-        const dataScript = this.container.querySelector('#payment-data');
+        // FIX: Strikte JS Hooks anstatt harter IDs
+        this.paypalContainer = this.container.querySelector('.js-paypal-button-container');
+        const dataScript = this.container.querySelector('.js-payment-data');
 
-        // Defensive Error Boundary bei JSON Injektion
+        // FIX: Zentraler Controller für GC
+        this.abortController = new AbortController();
+
         try {
             this.paymentData = dataScript ? JSON.parse(dataScript.textContent || '{}') : {};
         } catch {
@@ -23,14 +26,19 @@ export class CheckoutPayment {
     }
 
     init() {
+        const options = { signal: this.abortController.signal };
+
         this.wireBtns.forEach((btn) => {
-            btn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                // Lock State verhindert doppelte POST-Requests bei ungeduldigen Klicks
-                if (btn.disabled) return;
-                btn.disabled = true;
-                await this.finalizeWire(btn);
-            });
+            btn.addEventListener(
+                'click',
+                async (e) => {
+                    e.preventDefault();
+                    if (btn.disabled) return;
+                    btn.disabled = true;
+                    await this.finalizeWire(btn);
+                },
+                options
+            );
         });
 
         if (
@@ -47,12 +55,14 @@ export class CheckoutPayment {
         params.append('token', this.paymentData.token);
         params.append('csrf_token', this.paymentData.csrfToken);
 
+        // Abgesichert via API Singleton Signal
         const data = await api.post('api/finalize_wire', params);
+
         if (data.success) {
             window.location.href = `success?code=${data.code}&method=wire`;
         } else {
             notifier.show(`Fehler beim Abschluss: ${data.error}`, 'error');
-            if (btn) btn.disabled = false; // Lock aufheben bei Fehler
+            if (btn) btn.disabled = false;
         }
     }
 
@@ -64,7 +74,7 @@ export class CheckoutPayment {
                     params.append('token', this.paymentData.token);
                     params.append('csrf_token', this.paymentData.csrfToken);
 
-                    const orderData = await api.post('api/create_order_for_token', params);
+                    const orderData = await api.post('api/create_order', params);
                     if (orderData.success) {
                         return orderData.id;
                     } else {
@@ -95,6 +105,11 @@ export class CheckoutPayment {
                     );
                 },
             })
-            .render('#paypal-button-container');
+            // FIX: Übergabe der echten DOM-Referenz statt eines ID-Strings!
+            .render(this.paypalContainer);
+    }
+
+    destroy() {
+        this.abortController.abort();
     }
 }

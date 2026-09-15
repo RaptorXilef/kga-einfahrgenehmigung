@@ -1,19 +1,18 @@
-/**
- * Logik für den Bank-CSV Import: Dynamische Vorschau der ausgewählten Spalten.
- */
 export class BankImport {
     constructor(container) {
         this.container = container;
         this.selectors = this.container.querySelectorAll('.js-bank-selector');
 
-        // JSON-Daten aus dem HTML-Template sicher auslesen
-        const dataScript = this.container.querySelector('#bank-preview-data');
+        // FIX: GC Controller
+        this.abortController = new AbortController();
 
-        // Defensive Error Boundary bei fehlerhaftem JSON vom Backend
+        // FIX: JS Hook
+        const dataScript = this.container.querySelector('.js-bank-preview-data');
+
         try {
             this.rowData = dataScript ? JSON.parse(dataScript.textContent || '[]') : [];
         } catch (error) {
-            console.error('[BankImport] Fataler Fehler beim Parsen der Vorschau-Daten.', error);
+            console.error('[BankImport] Fataler Fehler beim Parsen.', error);
             this.rowData = [];
         }
 
@@ -23,16 +22,20 @@ export class BankImport {
     }
 
     init() {
+        const options = { signal: this.abortController.signal };
+
         this.selectors.forEach((select) => {
-            select.addEventListener('change', (e) => this.updatePreview(e.target));
-            this.updatePreview(select); // Initiale Vorschau laden
+            select.addEventListener('change', (e) => this.updatePreview(e.target), options);
+            this.updatePreview(select);
         });
     }
 
     updatePreview(selectElement) {
         const selectedIndex = parseInt(selectElement.value, 10);
-        const targetId = selectElement.getAttribute('data-preview-target');
-        const targetDisplay = document.getElementById(targetId);
+        const targetClass = selectElement.getAttribute('data-preview-target');
+
+        // FIX: Strikte Klassenselektion statt getElementById
+        const targetDisplay = this.container.querySelector(`.${targetClass}`);
 
         if (targetDisplay) {
             const value =
@@ -41,5 +44,9 @@ export class BankImport {
                     : '[LEER]';
             targetDisplay.innerText = value;
         }
+    }
+
+    destroy() {
+        this.abortController.abort();
     }
 }

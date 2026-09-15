@@ -31,7 +31,7 @@ $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
 <div class="c-tab-content-container o-container o-container--medium u-padding-block-xl js-checkout-payment">
 
     <script type="application/json"
-            id="payment-data"
+            class="js-payment-data"
             nonce="<?php echo $cspNonce; ?>">
     <?php echo \json_encode([
         'token' => $token,
@@ -117,8 +117,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
             </div>
 
             <?php if ($isPayPalEnabled && (float) ($tempData['preis'] ?? 0) > 0.0) { ?>
-                <div id="paypal-button-container"
-                     class="c-payment-gateway u-margin-block-end-l"></div>
+                <div class="c-payment-gateway u-margin-block-end-l js-paypal-button-container"></div>
                 <div class="u-text-center u-margin-block-m u-color-muted u-text-sm u-font-semibold">
                     — ODER ALTERNATIV —
                 </div>

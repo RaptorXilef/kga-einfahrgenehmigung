@@ -46,13 +46,12 @@ if (!$headersExist) {
                 <form method="POST"
                       action="<?php echo $settings['base_url']; ?>bank_import_analyze"
                       enctype="multipart/form-data"
-                      id="bankCsvForm">
+                      class="js-bankCsvForm">
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
-                    <div class="c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-block-xl c-box c-box--dashed"
-                         id="csvDropzone">
+                    <div class="c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-block-xl c-box c-box--dashed js-csvDropzone">
                         <span class="u-text-3xl u-display-block u-margin-block-end-s">
                             <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                         </span>
@@ -74,8 +73,7 @@ if (!$headersExist) {
                         <input type="file"
                                name="bank_csv"
                                accept=".csv,text/csv"
-                               class="u-hidden"
-                               id="bankCsvInput">
+                               class="u-hidden js-bankCsvInput"
                     </div>
                 </form>
             <?php } else { ?>
@@ -87,7 +85,7 @@ if (!$headersExist) {
 
                 <!-- JSON Daten Container für das BankImport.js Modul -->
                 <script type="application/json"
-                        id="bank-preview-data"
+                        class="js-bank-preview-data"
                         nonce="<?php echo $cspNonce; ?>">
                 <?php echo \json_encode($bank_row_preview, \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT) ?: '[]'; ?>
 
@@ -107,9 +105,8 @@ if (!$headersExist) {
                         <div class="c-form-group">
                             <label class="c-form-label"
                                    for="col_id">Permit-ID / Verwendungszweck</label>
-                            <select id="col_id"
-                                    name="col_id"
-                                    class="c-form-select js-bank-selector"
+                            <select name="col_id"
+                                    class="c-form-select js-bank-selector js-col_id"
                                     data-preview-target="preview_id"
                                     autocomplete="off">
                                 <?php foreach ($bank_headers as $idx => $name) { ?>
@@ -125,17 +122,15 @@ if (!$headersExist) {
                                      class="c-icon c-button__icon"
                                      loading="lazy"
                                      alt="">
-                                <strong id="preview_id"
-                                        class="u-color-primary">---</strong>
+                                <strong class="u-color-primary js-preview_id">---</strong>
                             </div>
                         </div>
 
                         <div class="c-form-group">
                             <label class="c-form-label"
                                    for="col_amount">Zahlungsbetrag (€)</label>
-                            <select id="col_amount"
-                                    name="col_amount"
-                                    class="c-form-select js-bank-selector"
+                            <select name="col_amount"
+                                    class="c-form-select js-bank-selector js-col_amount"
                                     data-preview-target="preview_amount"
                                     autocomplete="off">
                                 <?php foreach ($bank_headers as $idx => $name) { ?>
@@ -151,17 +146,15 @@ if (!$headersExist) {
                                      class="c-icon c-button__icon"
                                      loading="lazy"
                                      alt="">
-                                <strong id="preview_amount"
-                                        class="u-color-success">---</strong>
+                                <strong class="u-color-success js-preview_amount">---</strong>
                             </div>
                         </div>
 
                         <div class="c-form-group">
                             <label class="c-form-label"
                                    for="col_date">Buchungstag / Datum</label>
-                            <select id="col_date"
-                                    name="col_date"
-                                    class="c-form-select js-bank-selector"
+                            <select name="col_date"
+                                    class="c-form-select js-bank-selector js-col_date"
                                     data-preview-target="preview_date"
                                     autocomplete="off">
                                 <?php foreach ($bank_headers as $idx => $name) { ?>
@@ -177,8 +170,7 @@ if (!$headersExist) {
                                      class="c-icon c-button__icon"
                                      loading="lazy"
                                      alt="">
-                                <strong id="preview_date"
-                                        class="u-color-main">---</strong>
+                                <strong class="u-color-main js-preview_date">---</strong>
                             </div>
                         </div>
                     </div>
