@@ -22,7 +22,7 @@ describe('PermitFormHandler', () => {
         };
 
         document.body.innerHTML = `
-      <form id="permitForm">
+      <form class="js-permit-form">
         <div class="c-form-group">
           <label for="typ">Fahrzeugtyp</label>
           <select id="typ" name="typ">

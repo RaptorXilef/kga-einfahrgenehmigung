@@ -8,6 +8,7 @@ use App\Application\Attribute\Route;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\System\SystemInfoInterface;
 use App\Core\Service\AuthService;
@@ -35,11 +36,11 @@ final readonly class SystemChangelogAction implements ViewActionInterface, Requi
 
     public function execute(ServerRequest $request): mixed
     {
-        $this->renderer->render('admin/changelog', [
+        $html = $this->renderer->render('admin/changelog', [
             'auth' => $this->auth,
             'markdownContent' => $this->sysInfo->getChangelog(),
         ]);
 
-        return null;
+        return new HtmlResponse($html);
     }
 }

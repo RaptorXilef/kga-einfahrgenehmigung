@@ -87,7 +87,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     </header>
                     <div class="c-card__body">
 
-                        <form id="permitForm"
+                        <form class="js-permit-form"
                               method="POST"
                               action="<?php echo $settings['base_url']; ?>create_manual">
                             <input type="hidden"

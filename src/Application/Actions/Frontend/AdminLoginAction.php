@@ -9,6 +9,7 @@ use App\Application\Contracts\ActionInterface;
 use App\Application\DTO\AdminLoginRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
@@ -25,7 +26,7 @@ final readonly class AdminLoginAction implements ActionInterface
     public function __construct(
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
-        private RoleRepositoryInterface $roleRepository, // FIX
+        private RoleRepositoryInterface $roleRepository,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
@@ -36,13 +37,13 @@ final readonly class AdminLoginAction implements ActionInterface
     {
         // Sauberer GET-Handler: Rendert einfach das Formular
         if ($request->getMethod() === 'GET') {
-            $this->renderer->render('admin/login', [
+            $html = $this->renderer->render('admin/login', [
                 'auth' => $this->auth,
                 'roleRepository' => $this->roleRepository,
                 'userRepository' => $this->userRepository,
             ]);
 
-            return null;
+            return new HtmlResponse($html);
         }
 
         // Ab hier: Verarbeitung des POST-Logins
@@ -50,9 +51,8 @@ final readonly class AdminLoginAction implements ActionInterface
             $dto = AdminLoginRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             $this->rescueFormData($request);
-            $this->renderForm($e->getMessage());
 
-            return null;
+            return $this->renderForm($e->getMessage());
         }
 
         try {
@@ -66,14 +66,12 @@ final readonly class AdminLoginAction implements ActionInterface
             }
 
             $this->rescueFormData($request);
-            $this->renderForm('Benutzername oder Passwort ist falsch.');
 
-            return null;
+            return $this->renderForm('Benutzername oder Passwort ist falsch.');
         } catch (RuntimeException $e) {
             $this->rescueFormData($request);
-            $this->renderForm($e->getMessage());
 
-            return null;
+            return $this->renderForm($e->getMessage());
         }
     }
 
@@ -84,16 +82,18 @@ final readonly class AdminLoginAction implements ActionInterface
         $_SESSION['form_data'] = $postData;
     }
 
-    private function renderForm(string $message): void
+    private function renderForm(string $message): HtmlResponse
     {
         if ($message !== '') {
             $this->sessionManager->addFlash('error', $message);
         }
 
-        $this->renderer->render('admin/login', [
+        $html = $this->renderer->render('admin/login', [
             'auth' => $this->auth,
             'roleRepository' => $this->roleRepository,
             'userRepository' => $this->userRepository,
         ]);
+
+        return new HtmlResponse($html);
     }
 }

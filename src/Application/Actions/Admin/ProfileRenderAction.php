@@ -8,6 +8,7 @@ use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
@@ -48,7 +49,7 @@ final readonly class ProfileRenderAction implements ViewActionInterface
         $userRoleId = $user ? $user->roleId : 'guest';
         $role = $roles[$userRoleId] ?? null;
 
-        $this->renderer->render('admin/profile', [
+        $html = $this->renderer->render('admin/profile', [
             'auth' => $this->auth,
             'role' => $role ? $role->name : $userRoleId,
             'roleRepository' => $this->roleRepository,
@@ -58,6 +59,6 @@ final readonly class ProfileRenderAction implements ViewActionInterface
             'userRepository' => $this->userRepository,
         ]);
 
-        return null;
+        return new HtmlResponse($html);
     }
 }

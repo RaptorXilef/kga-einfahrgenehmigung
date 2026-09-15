@@ -29,8 +29,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
         <section class="c-control-bar">
             <form method="POST"
                   action="<?php echo $settings['base_url']; ?>filter_dashboard"
-                  id="dashboardFilterForm"
-                  class="js-dashboard-filter-form u-flex u-align-center u-gap-s u-flex-wrap u-inline-size-100 u-justify-center u-margin-none">
+                  class="js-dashboard-filter-form u-flex u-align-center u-gap-s u-flex-wrap u-inline-size-100 u-justify-center u-margin-none js-dashboard-filter-form">
                 <input type="hidden"
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -94,14 +93,13 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                     </span>
                 <!-- name="q" und value aus PHP für Server-Side Search -->
                     <input type="text"
-                           id="adminSearch"
                            name="q"
                            aria-label="Schnellsuche"
                            autocomplete="off"
                            value="<?php echo \htmlspecialchars($currentQ); ?>"
                            placeholder="Schnellsuche..."
                            title="Suchen Sie nach Namen, KFZ oder SmartCode"
-                           class="c-form-input js-admin-search">
+                           class="c-form-input js-admin-search js-admin-search">
                 </div>
 
                 <?php if (!empty($sessionFilters)) { ?>
@@ -125,14 +123,14 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 if (filterStart.value && filterEnd.value && filterStart.value > filterEnd.value) {
                     filterEnd.value = filterStart.value;
                 }
-                document.getElementById('dashboardFilterForm').submit();
+                document.getElementById('js-dashboard-filter-form').submit();
             });
 
             filterEnd.addEventListener('change', () => {
                 if (filterStart.value && filterEnd.value && filterEnd.value < filterStart.value) {
                     filterStart.value = filterEnd.value;
                 }
-                document.getElementById('dashboardFilterForm').submit();
+                document.getElementById('js-dashboard-filter-form').submit();
             });
         }
     });

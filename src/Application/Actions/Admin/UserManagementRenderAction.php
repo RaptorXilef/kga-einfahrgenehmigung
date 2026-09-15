@@ -8,6 +8,7 @@ use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\RoleRepositoryInterface;
@@ -31,7 +32,7 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        $this->renderer->render('admin/users', [
+        $html = $this->renderer->render('admin/users', [
             'auth' => $this->auth,
             'roleRepository' => $this->roleRepository,
             'roles' => $this->roleRepository->loadAll(),
@@ -42,6 +43,6 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
             'users' => $this->userRepository->loadAll(),
         ]);
 
-        return null;
+        return new HtmlResponse($html);
     }
 }

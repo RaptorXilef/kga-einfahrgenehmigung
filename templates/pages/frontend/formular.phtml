@@ -157,8 +157,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <!-- HAUPT-FORMULAR -->
                 <form action="index"
                       method="POST"
-                      id="permitForm"
-                      class="c-form">
+                      class="c-form js-permit-form">
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
