@@ -7,10 +7,7 @@ namespace App\Application\DTO;
 use App\Application\Exception\ValidationException;
 
 /**
- * Generisches DTO für Aktionen, die nur eine einzige ID oder einen Code benötigen
- * (z.B. Löschen, Umschalten, als bezahlt markieren).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Generisches DTO für Aktionen, die nur eine einzige ID oder einen Code benötigen.
  */
 final readonly class SimpleIdentifierRequest
 {
@@ -19,13 +16,16 @@ final readonly class SimpleIdentifierRequest
     ) {
     }
 
-    // TODO DOCBLOCK
     public static function fromArray(array $post, string $keyName): self
     {
         $identifier = \trim((string) ($post[$keyName] ?? ''));
 
-        if ($identifier === '') {
-            throw ValidationException::withMessage("Fehler: Fehlender Parameter ($keyName).");
+        // FIX: Strikte Regex-Prüfung gegen Path-Traversal (erlaubt nur alphanumerisch, Bindestriche, Unterstriche)
+        // Ausnahme: Wenn es ein Datum ist (für Mail-Logs), sind auch Leerzeichen und Doppelpunkte erlaubt
+        $pattern = \str_contains($keyName, 'timestamp') ? '/^[a-zA-Z0-9_\-\s:]+$/' : '/^[a-zA-Z0-9_\-]+$/';
+
+        if ($identifier === '' || !\preg_match($pattern, $identifier)) {
+            throw ValidationException::withMessage("Fehler: Ungültiger oder fehlender Parameter ($keyName).");
         }
 
         return new self($identifier);

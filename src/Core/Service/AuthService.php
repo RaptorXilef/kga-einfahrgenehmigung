@@ -68,6 +68,7 @@ final readonly class AuthService
             }
         }
 
+        // Timing-Attack-Prevention Dummy Hash
         \password_verify($password, '$2y$10$abcdefghijklmnopqrstuvABCDEFGHIJKLMNOPQRSTUV');
         $this->rateLimiter->recordFailedAttempt($ip);
 
@@ -121,14 +122,10 @@ final readonly class AuthService
     {
         $roles = $this->roleRepository->loadAll();
         $rolePerms = isset($roles[$roleId]) ? $roles[$roleId]->permissions : [];
-
         $structure = $this->config->get('structure', []);
-        if (!\is_array($structure)) {
-            $structure = [];
-        }
 
         $compiler = new PermissionCompiler();
-        $this->sessionManager->setPermissions($compiler->compile($structure, $rolePerms));
+        $this->sessionManager->setPermissions($compiler->compile(\is_array($structure) ? $structure : [], $rolePerms));
     }
 
     public function getUsername(): string
@@ -144,13 +141,6 @@ final readonly class AuthService
     public function getRole(): string
     {
         return $this->sessionManager->getAdminGroup();
-    }
-
-    public function getRoleName(string $roleId): string
-    {
-        $roles = $this->roleRepository->loadAll();
-
-        return isset($roles[$roleId]) ? $roles[$roleId]->name : $roleId;
     }
 
     public function generateId(string $prefix = ''): string
@@ -180,10 +170,9 @@ final readonly class AuthService
 
         $bdUser = \is_string($backdoor['user'] ?? null) ? $backdoor['user'] : '';
         $bdPass = \is_string($backdoor['pass'] ?? null) ? $backdoor['pass'] : '';
-        $bdLabel = \is_string($backdoor['label'] ?? null) ? $backdoor['label'] : 'System-Inhaber';
 
         if ($identifier === $bdUser && $bdUser !== '' && \password_verify($password, $bdPass)) {
-            $this->setupSession('sys_backdoor', 'admin', $bdLabel);
+            $this->setupSession('sys_backdoor', 'admin', \is_string($backdoor['label'] ?? null) ? $backdoor['label'] : 'System-Inhaber');
             $this->rateLimiter->clearAttempts($ip);
 
             return true;
@@ -211,7 +200,12 @@ final readonly class AuthService
             $saPass = \is_string($adminCfg['pass'] ?? null) ? $adminCfg['pass'] : '';
             $saLabel = \is_string($adminCfg['label'] ?? null) ? $adminCfg['label'] : 'Systembetreuer';
 
-            if ($password === $saPass || \password_verify($password, $saPass)) {
+            // FIX: Verhindere "Pass the Hash". Prüfe strikt, ob es sich um einen Hash handelt!
+            $isHash = \str_starts_with($saPass, '$2y$') || \str_starts_with($saPass, '$argon');
+
+            $isValid = $isHash ? \password_verify($password, $saPass) : $password === $saPass;
+
+            if ($isValid) {
                 $this->setupSession('sys_superadmin', 'admin', $saLabel);
                 $this->rateLimiter->clearAttempts($ip);
 

@@ -12,7 +12,6 @@ use App\Contracts\System\JsonHelperInterface;
 
 /**
  * Zentraler Service für das Rendering von PHTML-Templates.
- * Sammelt globale System-Variablen und injiziert sie sicher in den View-Scope.
  */
 final readonly class TemplateRenderer
 {
@@ -25,7 +24,10 @@ final readonly class TemplateRenderer
     ) {
     }
 
-    public function render(string $templatePath, array $data = []): void
+    /**
+     * FIX: Gibt nun das fertige HTML als String zurück, anstatt es mit 'echo' auszugeben!
+     */
+    public function render(string $templatePath, array $data = []): string
     {
         $appRoot = \rtrim((string) $this->config->get('root_path'), '/\\');
 
@@ -35,9 +37,8 @@ final readonly class TemplateRenderer
             'config' => $this->config,
             'imageStorage' => $this->imageStorage,
             'jsonHelper' => $this->jsonHelper,
-            'asset' => $this->assetHelper, // AssetHelper injiziert!
+            'asset' => $this->assetHelper,
             'settings' => $this->getGlobalSettings(),
-            // FIX: Den CSP Nonce für alle Templates verfügbar machen
             'cspNonce' => \defined('CSP_NONCE') ? CSP_NONCE : '',
         ];
 
@@ -53,13 +54,15 @@ final readonly class TemplateRenderer
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
         $content = \ob_get_clean();
 
-        // 2. Hat die Seite eine $layout Variable gesetzt? (z.B. $layout = 'admin';)
+        // 2. Layout Rendern
         if (isset($layout) && \is_string($layout) && \file_exists($appRoot . "/templates/layouts/{$layout}.phtml")) {
+            \ob_start();
             include $appRoot . "/templates/layouts/{$layout}.phtml";
-        } else {
-            // Fallback für alte Templates, die ihr <html> Gerüst noch selbst mitbringen
-            echo $content;
+
+            return \ob_get_clean() ?: '';
         }
+
+        return $content ?: '';
     }
 
     private function getGlobalSettings(): array

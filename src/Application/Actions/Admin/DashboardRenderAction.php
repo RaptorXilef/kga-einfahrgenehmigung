@@ -9,6 +9,7 @@ use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\DashboardViewRequest;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
@@ -149,7 +150,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         }
 
         // 6. View rendern
-        $this->renderer->render('admin/dashboard', [
+        $html = $this->renderer->render('admin/dashboard', [
             'allowedLimits' => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
             'allPermits' => $allHistoricalAndActive,
             'allReleaseNotes' => $allReleaseNotes,
@@ -184,6 +185,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'collectiveTransfers' => $this->sessionManager->getCollectiveTransfers(),
         ]);
 
-        return null;
+        return new HtmlResponse($html);
     }
 }

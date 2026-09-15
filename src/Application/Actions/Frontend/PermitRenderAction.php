@@ -8,6 +8,7 @@ use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\ViewRenderRequest;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
@@ -43,7 +44,8 @@ final readonly class PermitRenderAction implements ViewActionInterface
             $this->sessionManager->setFormStartTime(\time());
         }
 
-        $this->renderer->render('frontend/formular', [
+        // FIX: Wir fangen den String auf und verpacken ihn in eine HTTP-Response!
+        $html = $this->renderer->render('frontend/formular', [
             'agreements' => $this->getParsedAgreements(),
             'formData' => $this->sessionManager->getFormData(),
             'hasActiveVouchers' => $this->checkAvailableVouchers(),
@@ -52,7 +54,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
             'flashes' => $flashes,
         ]);
 
-        return null;
+        return new HtmlResponse($html);
     }
 
     private function checkAvailableVouchers(): bool
