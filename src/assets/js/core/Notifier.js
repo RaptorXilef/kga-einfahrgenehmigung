@@ -1,27 +1,39 @@
 /**
  * Zentraler Notification-Service (Toasts) als Singleton.
- * Ersetzt verstreute Inline-Toast-Logiken durch eine einheitliche, moderne API (WAI-ARIA konform).
+ * Implementiert eine Warteschlange (Queue), um abgerissene CSS-Transitions
+ * und stumme Screenreader-Announcements bei schnellen Aufrufen zu verhindern.
  */
 
 class NotifierService {
     constructor() {
         this.baseUrl = window.KGA_CONFIG?.baseUrl || '/';
-        // Speichere Timer-IDs, um Memory Leaks durch Zombie-Closures zu verhindern
-        this.hideTimeout = null;
-        this.removeTimeout = null;
+        this.queue = [];
+        this.isShowing = false;
     }
 
     show(message, type = 'success') {
-        // Alte Timer stoppen!
-        if (this.hideTimeout) clearTimeout(this.hideTimeout);
-        if (this.removeTimeout) clearTimeout(this.removeTimeout);
+        // Nachricht in die Warteschlange einreihen
+        this.queue.push({ message, type });
 
-        // Alte Toasts entfernen, falls noch sichtbar
-        const existingToast = document.querySelector('.c-toast');
-        if (existingToast) existingToast.remove();
+        // Wenn gerade kein Toast angezeigt wird, Queue-Verarbeitung starten
+        if (!this.isShowing) {
+            this.#processQueue();
+        }
+    }
+
+    #processQueue() {
+        // Abbruch, wenn die Warteschlange leer ist
+        if (this.queue.length === 0) {
+            this.isShowing = false;
+            return;
+        }
+
+        this.isShowing = true;
+
+        // Ältestes Element aus der Queue holen
+        const { message, type } = this.queue.shift();
 
         const toast = document.createElement('div');
-        // FIX: Saubere BEM Modifikatoren statt Inline-Styles
         toast.className = `c-toast c-toast--${type}`;
 
         // A11Y: Screenreader-Fokus & Live-Announcements
@@ -35,11 +47,12 @@ class NotifierService {
             icon.src = `${this.baseUrl}assets/img/icons/${iconName}`;
             icon.className = 'c-icon c-toast__icon';
             icon.alt = '';
+            // Decorative Icons müssen für Screenreader versteckt werden
             icon.setAttribute('aria-hidden', 'true');
             toast.appendChild(icon);
         }
 
-        // Sicheres Einfügen der Nachricht als Text!
+        // Sicheres Einfügen der Nachricht als Textknoten zur XSS-Prävention!
         const msgContainer = document.createElement('span');
         msgContainer.className = 'c-toast__msg js-toast-msg';
         msgContainer.textContent = message;
@@ -47,10 +60,16 @@ class NotifierService {
 
         document.body.appendChild(toast);
 
-        // Slide-Out Animation nach 3 Sekunden
-        this.hideTimeout = setTimeout(() => {
+        // Slide-Out Animation nach 3 Sekunden garantierter Sichtbarkeit
+        setTimeout(() => {
             toast.classList.add('is-hidden');
-            this.removeTimeout = setTimeout(() => toast.remove(), 400); // Gematcht auf CSS-Transition
+
+            // Auf das Ende der CSS-Transition warten (400ms matcht CSS), dann Knoten restlos entfernen
+            setTimeout(() => {
+                toast.remove();
+                // Rekursiv den nächsten Toast in der Queue aufrufen
+                this.#processQueue();
+            }, 400);
         }, 3000);
     }
 }
