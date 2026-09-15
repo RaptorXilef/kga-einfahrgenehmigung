@@ -227,7 +227,7 @@ if ($auth->hasPermission('system.roles.manage')) {
 
                         <form method="POST"
                               action="save_role"
-                              class="permission-container">
+                              class="js-permission-form">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">

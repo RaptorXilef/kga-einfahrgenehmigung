@@ -4,28 +4,34 @@
         inline-size: 1em;
         block-size: 1em;
         vertical-align: middle;
-        margin-block-start: -2px;
+        margin-block-start: -0.125rem; // -2px
         object-fit: contain;
     }
 
     .c-icon--inline {
-        inline-size: 18px;
-        block-size: 18px;
+        inline-size: 1.125rem; // 18px
+        block-size: 1.125rem;
         opacity: 0.7;
     }
 
+    /* NEU: Ersetzt die Inline-Styles in den PHTML-Tabellen */
+    .c-icon--sm {
+        inline-size: 1.5rem; // 24px
+        block-size: 1.5rem;
+    }
+
     .c-icon--md {
-        inline-size: 48px;
-        block-size: 48px;
+        inline-size: 3rem; // 48px
+        block-size: 3rem;
     }
 
     .c-icon--lg {
-        inline-size: 64px;
-        block-size: 64px;
+        inline-size: 4rem; // 64px
+        block-size: 4rem;
     }
 
     .c-icon--xl {
-        inline-size: 80px;
-        block-size: 80px;
+        inline-size: 5rem; // 80px
+        block-size: 5rem;
     }
 }

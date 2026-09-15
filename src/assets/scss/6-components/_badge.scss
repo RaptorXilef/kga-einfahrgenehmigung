@@ -2,17 +2,17 @@
     .c-badge {
         background-color: var(--color-border);
         color: var(--color-text-main);
-        padding-block: 4px;
+        padding-block: 0.25rem; // 4px
         padding-inline: var(--space-s);
-        border-radius: 20px;
+        border-radius: 1.25rem; // 20px
         font-size: 0.75rem;
         font-weight: 700;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 0.25rem; // 4px
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.03125rem; // 0.5px
     }
 
     .c-badge--primary {
@@ -58,14 +58,14 @@
     }
 
     .c-badge--fixed {
-        min-inline-size: 100px;
-        block-size: 32px;
+        min-inline-size: 6.25rem; // 100px
+        block-size: 2rem; // 32px
     }
 
     .c-date-indicator {
         background-color: var(--color-bg-white);
-        border: 2px solid var(--color-primary);
-        border-radius: 30px;
+        border: 0.125rem solid var(--color-primary); // 2px
+        border-radius: 1.875rem; // 30px
         padding-block: var(--space-s);
         padding-inline: var(--space-m);
         box-shadow: var(--shadow-sm);

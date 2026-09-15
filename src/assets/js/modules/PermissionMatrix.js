@@ -34,7 +34,7 @@ export class PermissionMatrix {
         if (radio) radio.checked = true;
 
         // B. Initialen Zustand der Matrizen (Master/Locks) berechnen
-        const permissionContainers = this.container.querySelectorAll('.permission-container');
+        const permissionContainers = this.container.querySelectorAll('.js-permission-form');
         permissionContainers.forEach((wrapper) => {
             const masterCb = wrapper.querySelector('input[data-master-toggle="true"]');
             if (masterCb) this.applyMasterState(wrapper, masterCb.checked);
@@ -50,8 +50,9 @@ export class PermissionMatrix {
 
                 // 2. MASTER TOGGLE (Gott Modus)
                 if (e.target.matches('[data-master-toggle="true"]')) {
+                    // FIX: Auch hier auf js-permission-form prüfen
                     this.applyMasterState(
-                        e.target.closest('.permission-container'),
+                        e.target.closest('.js-permission-form'),
                         e.target.checked
                     );
                 }

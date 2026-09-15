@@ -107,9 +107,9 @@ if ($auth->hasPermission('permits.view')) {
                                     <td class="c-table__data-cell u-text-center"
                                         data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>">
                                         <div>
+                                            <!-- FIX: Inline Styles entfernt, c-icon--sm hinzugefügt -->
                                             <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                                 class="c-icon <?php echo ($permit->getValidUntil() < $now) ? 'u-grayscale u-opacity-50' : ''; ?>"
-                                                 style="--icon-size: 24px; inline-size: var(--icon-size); block-size: var(--icon-size);"
+                                                 class="c-icon c-icon--sm <?php echo ($permit->getValidUntil() < $now) ? 'u-grayscale u-opacity-50' : ''; ?>"
                                                  title="<?php echo $vLabel; ?>"
                                                  loading="lazy"
                                                  alt="">
