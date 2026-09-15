@@ -42,6 +42,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                        class="c-control-bar__label">
                     <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
                          class="c-icon"
+                         loading="lazy"
                          alt="">
                     ZEITRAUM:
                 </label>
@@ -89,7 +90,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 
                 <div class="c-control-bar__search">
                     <span class="c-control-bar__search-icon">
-                        <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt="">
+                        <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" loading="lazy" alt="">
                     </span>
                     <!-- name="q" und value aus PHP für Server-Side Search -->
                     <input type="text"

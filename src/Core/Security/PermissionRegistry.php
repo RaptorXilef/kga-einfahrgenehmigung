@@ -6,6 +6,7 @@ namespace App\Core\Security;
 
 /**
  * Array aller Permissions (Modular & Flach nach TwoKinds-Standard)
+ * Emojis entfernt und durch Icon-Keys ersetzt.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -15,13 +16,15 @@ final class PermissionRegistry
     {
         return [
             'access' => [
-                'label' => '🏠 Basis-Zugriff',
+                'label' => 'Basis-Zugriff',
+                'icon' => 'icon-home.webp',
                 'children' => [
                     'admin' => ['label' => 'Zugriff auf das Admin-Dashboard', 'key' => 'admin.access'],
                 ],
             ],
             'permits' => [
-                'label' => '📄 Genehmigungen',
+                'label' => 'Genehmigungen',
+                'icon' => 'icon-document.webp',
                 'key' => 'permits.manage',
                 'children' => [
                     'view' => ['label' => 'Alle Genehmigungen ansehen', 'key' => 'permits.view'],
@@ -31,7 +34,8 @@ final class PermissionRegistry
                 ],
             ],
             'finance' => [
-                'label' => '💰 Finanzen & Abrechnung',
+                'label' => 'Finanzen & Abrechnung',
+                'icon' => 'icon-money.webp',
                 'key' => 'finance.manage',
                 'children' => [
                     'view' => ['label' => 'Zahlungsübersicht ansehen', 'key' => 'finance.view'],
@@ -41,7 +45,8 @@ final class PermissionRegistry
                 ],
             ],
             'vouchers' => [
-                'label' => '🎟️ Gutscheine',
+                'label' => 'Gutscheine',
+                'icon' => 'icon-voucher.webp',
                 'key' => 'vouchers.manage',
                 'children' => [
                     'view' => ['label' => 'Übersicht ansehen', 'key' => 'vouchers.view'],
@@ -51,7 +56,8 @@ final class PermissionRegistry
                 ],
             ],
             'stats' => [
-                'label' => '📊 Statistiken',
+                'label' => 'Statistiken',
+                'icon' => 'icon-chart.webp',
                 'key' => 'stats.view',
                 'children' => [
                     'charts' => ['label' => 'Wachstums-Diagramme', 'key' => 'stats.charts'],
@@ -59,14 +65,16 @@ final class PermissionRegistry
                 ],
             ],
             'privacy' => [
-                'label' => '🛡️ Datenschutz (Sichtbarkeit)',
+                'label' => 'Datenschutz (Sichtbarkeit)',
+                'icon' => 'icon-privacy.webp',
                 'children' => [
                     'finance' => ['label' => 'Sensible Umsätze/Preise einblenden', 'key' => 'privacy.finance.view'],
                     'emails' => ['label' => 'E-Mail-Adressen im Klartext zeigen', 'key' => 'privacy.emails.view'],
                 ],
             ],
             'system' => [
-                'label' => '⚙️ Systemverwaltung',
+                'label' => 'Systemverwaltung',
+                'icon' => 'icon-settings.webp',
                 'key' => 'system.manage',
                 'children' => [
                     'users' => ['label' => 'Benutzer verwalten', 'key' => 'system.users.manage'],
@@ -78,7 +86,8 @@ final class PermissionRegistry
                 ],
             ],
             'templates' => [
-                'label' => '🎟️ Genehmigungs-Vorlagen',
+                'label' => 'Genehmigungs-Vorlagen',
+                'icon' => 'icon-template.webp',
                 'key' => 'template.manage',
                 'children' => [
                     'std_7' => ['label' => 'Ausnahme 7 Tage', 'key' => 'template.std_7'],

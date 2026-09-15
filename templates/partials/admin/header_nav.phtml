@@ -51,6 +51,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                     <div class="c-group-badge">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
                              class="c-icon"
+                             loading="lazy"
                              alt="Role Icon">
                         <span class="c-group-badge__label"><?php echo \htmlspecialchars($roleName); ?></span>
                     </div>
@@ -58,7 +59,7 @@ $currentPage = $path === '' ? 'admin' : $path;
 
                 <?php if ($auth->hasPermission('system.manage')) { ?>
                     <a href="users" class="c-tabs__btn <?php echo $currentPage === 'users' ? 'is-active' : ''; ?>">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon c-tabs__icon" alt=""> Benutzer-Verwaltung
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Benutzer-Verwaltung
                     </a>
                 <?php } ?>
             </div>
@@ -71,6 +72,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                             class="c-button c-button--secondary c-button--small js-show-all-release-notes">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-free.webp'); ?>"
                              class="c-icon c-button__icon"
+                             loading="lazy"
                              alt=""> Was ist neu?
                     </button>
                 <?php } ?>
@@ -81,6 +83,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                         title="Design wechseln">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-sun.webp'); ?>"
                          class="c-icon c-theme-toggle__icon js-theme-icon"
+                         loading="lazy"
                          alt="">
                     <span class="js-theme-text">Light</span>
                 </button>
@@ -89,6 +92,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                      title="Automatische Abmeldung bei Inaktivität">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>"
                          class="c-icon c-button__icon"
+                         loading="lazy"
                          alt=""> <span id="ui-session-timer">20:00</span>
                 </div>
 
@@ -98,6 +102,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                         class="c-button c-button--small c-button--danger-outline">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-cross-mark.webp'); ?>"
                          class="c-icon c-button__icon"
+                         loading="lazy"
                          alt=""> Abmelden
                 </button>
             </div>
@@ -107,12 +112,12 @@ $currentPage = $path === '' ? 'admin' : $path;
         <div class="c-header-nav__bottom">
             <?php if ($auth->hasPermission('admin.access')) { ?>
                 <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'is-active' : ''; ?>">
-                    <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon c-tabs__icon" alt=""> Dashboard
+                    <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Dashboard
                 </a>
             <?php } ?>
 
             <a href="check" class="c-tabs__btn u-margin-inline-start-auto" target="_blank">
-                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon c-tabs__icon" alt=""> Check
+                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Check
             </a>
         </div>
     </div>
@@ -123,7 +128,7 @@ $currentPage = $path === '' ? 'admin' : $path;
     <div class="c-modal__dialog">
         <h3 class="c-modal__title">
             <span class="u-text-xl">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-warning.webp'); ?>" class="c-icon c-button__icon" alt="">
+                <img src="<?php echo $asset->url('assets/img/icons/icon-warning.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
             </span> Inaktivität erkannt
         </h3>
         <p class="u-color-muted u-margin-block-start-s">Aus Sicherheitsgründen werden Sie in <br><strong

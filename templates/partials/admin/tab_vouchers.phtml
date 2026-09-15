@@ -30,6 +30,7 @@ use App\Infrastructure\Config\Config;
                     <h3 class="u-margin-block-none">
                         <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                              class="c-icon"
+                             loading="lazy"
                              alt=""> Offene Gutscheincodes
                     </h3>
                     <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
@@ -82,6 +83,7 @@ use App\Infrastructure\Config\Config;
                                                         data-url="<?php echo \htmlspecialchars($url); ?>">
                                                     <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
                                                          class="c-icon c-button__icon"
+                                                         loading="lazy"
                                                          alt=""> QR
                                                 </button>
                                                 <code class="u-display-block u-margin-block-start-s u-text-xs u-font-bold">
@@ -102,7 +104,7 @@ use App\Infrastructure\Config\Config;
                                                 </span>
                                                 <?php if ($v->multiUse) { ?>
                                                     <span class="c-badge c-badge--outline">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>" class="c-icon" alt="">
+                                                        <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>" class="c-icon" loading="lazy" alt="">
                                                         &nbsp;Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
                                                     </span>
                                                 <?php } else { ?>
@@ -128,7 +130,7 @@ use App\Infrastructure\Config\Config;
                                             <div class="u-margin-block-start-s">
                                                 <span class="u-text-link js-copy-link u-text-xs u-font-semibold u-cursor-pointer u-flex u-align-center u-gap-xs u-display-inline-block" data-url="<?php echo $url; ?>">
                                                     Link kopieren
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>" class="c-icon" alt="">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>" class="c-icon" loading="lazy" alt="">
                                                 </span>
                                             </div>
                                         </td>
@@ -153,6 +155,7 @@ use App\Infrastructure\Config\Config;
                                                                     title="Aktivieren">
                                                                 <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
                                                                      class="c-icon c-button__icon"
+                                                                     loading="lazy"
                                                                      alt="">
                                                             </button>
                                                         <?php } else { ?>
@@ -161,6 +164,7 @@ use App\Infrastructure\Config\Config;
                                                                     title="Sperren">
                                                                 <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
                                                                      class="c-icon c-button__icon"
+                                                                     loading="lazy"
                                                                      alt="">
                                                             </button>
                                                         <?php } ?>
@@ -183,6 +187,7 @@ use App\Infrastructure\Config\Config;
                                                                 title="Löschen">
                                                             <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
                                                                  class="c-icon c-button__icon"
+                                                                 loading="lazy"
                                                                  alt="">
                                                         </button>
                                                     </form>
@@ -203,6 +208,7 @@ use App\Infrastructure\Config\Config;
                     <h3 class="u-margin-block-none">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
                              class="c-icon"
+                             loading="lazy"
                              alt=""> Archiv
                     </h3>
                     <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">

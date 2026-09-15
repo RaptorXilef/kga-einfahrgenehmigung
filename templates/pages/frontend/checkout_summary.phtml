@@ -44,6 +44,7 @@ $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
     <div class="u-text-center u-margin-block-end-l">
         <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
              alt="Erfolg"
+             loading="lazy"
              class="c-icon c-icon--lg u-margin-block-end-m">
         <h1 class="u-margin-none u-color-success">E-Mail bestätigt!</h1>
         <p class="u-text-muted u-text-lg u-margin-block-start-xs">Bitte prüfen Sie Ihre Daten ein letztes Mal und
@@ -104,6 +105,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
             <div class="c-box c-box--highlight u-text-sm u-margin-block-end-l">
                 <strong><img src="<?php echo $asset->url('assets/img/icons/icon-alarm-clock.webp'); ?>"
                          class="c-icon c-button__icon"
+                         loading="lazy"
                          alt=""> Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>
                 Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>
                 <span class="u-color-dark"><?php echo $opening ?? ''; ?></span>
@@ -126,12 +128,14 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
                 <a href="permit_edit?token=<?php echo $token; ?>" class="c-button c-button--secondary c-button--responsive">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>"
                          class="c-icon c-button__icon"
+                         loading="lazy"
                          alt=""> Daten korrigieren
                 </a>
                 <?php if ((float) ($tempData['preis'] ?? 0) <= 0.0) { ?>
                     <button class="c-button c-button--success c-button--responsive js-finalize-wire">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-check-mark-button.webp'); ?>"
                              class="c-icon c-button__icon"
+                             loading="lazy"
                              alt=""> Kostenlos abschließen
                     </button>
                 <?php } else { ?>

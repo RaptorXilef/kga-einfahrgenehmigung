@@ -101,9 +101,10 @@ export class ReleaseNotes {
 
         // Titel und Badge dynamisch anpassen
         if (this.titleElement) {
-            this.titleElement.innerText = isUnread
-                ? '🚀 Neu seit Ihrem letzten Login'
-                : '📚 Release Notes Historie';
+            // Emojis entfernt und durch WebP-Icons ersetzt + Lazy Loading!
+            this.titleElement.innerHTML = isUnread
+                ? `<img src="${window.KGA_CONFIG.baseUrl}assets/img/icons/icon-rocket.webp" class="c-icon c-button__icon" loading="lazy" alt=""> Neu seit Ihrem letzten Login`
+                : `<img src="${window.KGA_CONFIG.baseUrl}assets/img/icons/icon-book.webp" class="c-icon c-button__icon" loading="lazy" alt=""> Release Notes Historie`;
         }
 
         if (this.badgeElement) {

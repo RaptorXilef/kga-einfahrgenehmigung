@@ -20,6 +20,7 @@ use App\Infrastructure\Config\Config;
             <div class="c-test-indicator__badge">
                 <img src="<?php echo $asset->url('assets/img/icons/status-warning.webp'); ?>"
                      class="c-icon"
+                     loading="lazy"
                      alt=""> Test-System
             </div>
 
@@ -32,6 +33,7 @@ use App\Infrastructure\Config\Config;
                 <div class="c-test-indicator__admin-badge">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-locked-with-key.webp'); ?>"
                          class="c-icon c-button__icon"
+                         loading="lazy"
                          alt=""> Admin Bypass Aktiv
                 </div>
             <?php } ?>

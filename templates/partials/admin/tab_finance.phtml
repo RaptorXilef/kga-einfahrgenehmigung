@@ -59,6 +59,7 @@ if ($auth->hasPermission('finance.view')) {
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <h3 class="u-margin-block-none"><img src="<?php echo $asset->url('assets/img/icons/icon-money-bag.webp'); ?>"
                          class="c-icon c-button__icon"
+                         loading="lazy"
                          alt=""> Zahlungsüberwachung</h3>
                 <div class="u-flex u-align-center u-gap-m">
                     <?php if ($hasBulkRight && $totalCount > 0) { ?>
@@ -70,6 +71,7 @@ if ($auth->hasPermission('finance.view')) {
                                 data-confirm-click="Sollen die ausgewählten Genehmigungen jetzt als BEZAHLT markiert werden?">
                             <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                                  class="c-icon c-button__icon"
+                                 loading="lazy"
                                  alt="">
                             <span id="bulkPayCount">0</span> als Bezahlt markieren
                         </button>
@@ -82,6 +84,7 @@ if ($auth->hasPermission('finance.view')) {
                                 data-confirm-click="Ausgewählte Pächter jetzt an Zahlung erinnern (sofern kein Cooldown aktiv ist)?">
                             <img src="<?php echo $asset->url('assets/img/icons/icon-bell.webp'); ?>"
                                  class="c-icon c-button__icon"
+                                 loading="lazy"
                                  alt=""> <span id="bulkRemindCount">0</span> erinnern
                         </button>
                     <?php } ?>
@@ -100,7 +103,7 @@ if ($auth->hasPermission('finance.view')) {
                             <div class="c-alert__content">
                                 <h4 class="u-margin-block-start-none u-margin-block-end-s u-flex u-align-center u-gap-s">
                                     <span class="u-text-xl">
-                                        <img src="<?php echo $asset->url('assets/img/icons/icon-warning.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                        <img src="<?php echo $asset->url('assets/img/icons/icon-warning.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                     </span>
                                     Manuelle Zahlungszuordnung erforderlich
                                 </h4>
@@ -222,7 +225,7 @@ if ($auth->hasPermission('finance.view')) {
                                                     </label>
                                                 <?php } else { ?>
                                                     <span title="Gesperrt" class="u-opacity-50">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/icon_prohibited.webp'); ?>" class="c-icon" alt="">
+                                                        <img src="<?php echo $asset->url('assets/img/icons/icon_prohibited.webp'); ?>" class="c-icon" loading="lazy" alt="">
                                                     </span>
                                                 <?php } ?>
                                             </td>
@@ -245,6 +248,7 @@ if ($auth->hasPermission('finance.view')) {
                                                 <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
                                                      class="c-icon c-icon--md"
                                                      title="<?php echo $vLabel; ?>"
+                                                     loading="lazy"
                                                      alt="">
                                             </div>
                                             <div class="u-margin-block-start-xs">
@@ -273,7 +277,7 @@ if ($auth->hasPermission('finance.view')) {
                                             data-sort-val="<?php echo $deadline->format('Y-m-d'); ?>">
                                             <?php if ($overdueLevel === 2) { ?>
                                                 <span class="c-badge c-badge--danger u-text-nowrap">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon_police-car-light.webp'); ?>" class="c-icon" alt=""> <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon_police-car-light.webp'); ?>" class="c-icon" loading="lazy" alt=""> <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
                                                 </span>
                                             <?php } elseif ($overdueLevel === 1) { ?>
                                                 <span class="c-badge c-badge--warning u-text-nowrap">MAHNFRIST ABGELAUFEN</span>
@@ -311,7 +315,7 @@ if ($auth->hasPermission('finance.view')) {
                                                 <!-- Buttons analog wie zuvor ... -->
                                                 <?php if ($auth->hasPermission('finance.view')) { ?>
                                                     <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                                        <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                                     </a>
                                                 <?php } ?>
                                                 <?php if ($auth->hasPermission('permits.suspend')) { ?>
@@ -322,6 +326,7 @@ if ($auth->hasPermission('finance.view')) {
                                                                 title="Wieder freigeben">
                                                             <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
                                                                  class="c-icon c-button__icon"
+                                                                 loading="lazy"
                                                                  alt="">
                                                         </button>
                                                     <?php } else { ?>
@@ -331,6 +336,7 @@ if ($auth->hasPermission('finance.view')) {
                                                                 title="Sperren">
                                                             <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
                                                                  class="c-icon c-button__icon"
+                                                                 loading="lazy"
                                                                  alt="">
                                                         </button>
                                                     <?php } ?>
@@ -343,6 +349,7 @@ if ($auth->hasPermission('finance.view')) {
                                                             title="Einzeln als Bezahlt markieren">
                                                         <img src="<?php echo $asset->url('assets/img/icons/icon-check-mark.webp'); ?>"
                                                              class="c-icon c-button__icon"
+                                                             loading="lazy"
                                                              alt="">
                                                     </button>
                                                     <form method="POST"
@@ -359,6 +366,7 @@ if ($auth->hasPermission('finance.view')) {
                                                                 title="Zahlungserinnerung senden <?php echo $isOnCooldown ? '(Cooldown aktiv)' : ''; ?>">
                                                             <img src="<?php echo $asset->url('assets/img/icons/icon-bell.webp'); ?>"
                                                                  class="c-icon c-button__icon"
+                                                                 loading="lazy"
                                                                  alt="">
                                                         </button>
                                                     </form>

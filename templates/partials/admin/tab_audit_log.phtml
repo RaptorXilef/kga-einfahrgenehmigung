@@ -65,6 +65,7 @@ if ($auth->hasPermission('system.logs.view')) {
                     <h3 class="u-margin-block-none">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                              class="c-icon"
+                             loading="lazy"
                              alt=""> Administrator-Aktivitäten
                     </h3>
                     <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
@@ -130,6 +131,7 @@ if ($auth->hasPermission('system.logs.view')) {
                                     <td class="c-table__data-cell">
                                         <div class="u-flex u-align-center u-gap-s">
                                             <img src="<?php echo $avatar; ?>"
+                                                 loading="lazy"
                                                  class="c-icon c-icon--md u-border-radius-circle">
                                             <div>
                                                 <strong class="u-text-sm u-color-main"><?php echo \htmlspecialchars($log->username); ?></strong><br>

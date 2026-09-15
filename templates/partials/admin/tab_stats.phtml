@@ -65,6 +65,7 @@ $chartDataPayload = [
             <div class="c-date-indicator">
                 <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
                      class="c-icon c-icon--inline"
+                     loading="lazy"
                      alt="">
                 <div>
                     <span class="c-date-indicator__label">Berichtszeitraum</span>
@@ -119,6 +120,7 @@ $chartDataPayload = [
                 ?>
                                 <div class="c-badge c-badge--success u-font-bold u-text-xs">
                                     <img src="<?php echo $settings['base_url'] . $icon; ?>"
+                                         loading="lazy"
                                          class="c-icon c-icon--inline u-margin-inline-end-xs"> <?php echo $count; ?>
                                     <small class="u-font-semibold u-margin-inline-start-xs"><?php echo $label; ?></small>
                                 </div>
@@ -151,7 +153,7 @@ $chartDataPayload = [
                 <details class="c-accordion u-margin-block-none">
                     <summary class="c-accordion__summary u-font-bold u-border-none">
                         <span class="c-accordion__title">
-                            <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" alt=""> Wachstums-Trend & Jahresvergleich
+                            <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" loading="lazy" alt=""> Wachstums-Trend & Jahresvergleich
                         </span>
                     </summary>
                     <div class="c-accordion__body c-box c-box--subtle u-margin-block-none">
@@ -174,6 +176,7 @@ $chartDataPayload = [
             <h3 class="u-margin-block-end-m u-flex u-align-center u-gap-s">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
                      class="c-icon c-icon--md"
+                     loading="lazy"
                      alt=""> Historische Jahresabschlüsse
             </h3>
 
@@ -181,7 +184,7 @@ $chartDataPayload = [
                 <details class="c-accordion">
                     <summary class="c-accordion__summary">
                         <span class="c-accordion__title">
-                            <img src="<?php echo $asset->url('assets/img/icons/icon-tear-off-calendar.webp'); ?>" class="c-icon" alt="">
+                            <img src="<?php echo $asset->url('assets/img/icons/icon-tear-off-calendar.webp'); ?>" class="c-icon" loading="lazy" alt="">
                             Geschäftsjahr <strong><?php echo $year; ?></strong>
                         </span>
                         <div class="c-accordion__meta">
@@ -252,6 +255,7 @@ $chartDataPayload = [
                 <a href="<?php echo $loadUrl; ?>" class="c-button c-button--secondary">
                     <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
                          class="c-icon c-button__icon"
+                         loading="lazy"
                          alt="">
                     &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
                 </a>

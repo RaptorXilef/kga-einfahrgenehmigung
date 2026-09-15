@@ -40,6 +40,7 @@ $now = new \DateTimeImmutable('today');
             <h2 class="u-margin-block-none u-flex u-align-center u-gap-s">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
                      class="c-icon c-icon--md"
+                     loading="lazy"
                      alt=""> Meine Genehmigungen
             </h2>
             <p class="u-color-muted u-margin-block-start-xs u-margin-block-end-none u-text-sm">Angemeldet als: <strong
@@ -51,6 +52,7 @@ $now = new \DateTimeImmutable('today');
                  title="Automatische Abmeldung bei Inaktivität">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>"
                      class="c-icon c-button__icon"
+                     loading="lazy"
                      alt=""> <span id="ui-session-timer">20:00</span>
             </div>
             <button type="button"
@@ -81,7 +83,7 @@ $now = new \DateTimeImmutable('today');
                             <td colspan="5"
                                 class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
                                 <span class="u-text-2xl u-opacity-50">
-                                    <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                    <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                 </span><br>
                                 <p class="u-margin-block-start-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum
                                     gefunden.</p>
@@ -152,6 +154,7 @@ $now = new \DateTimeImmutable('today');
                                              class="c-icon <?php echo $isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
                                              style="--icon-size: 24px; inline-size: var(--icon-size); block-size: var(--icon-size);"
                                              title="<?php echo $vLabel; ?>"
+                                             loading="lazy"
                                              alt="">
                                     </div>
                                     <div class="u-margin-block-start-xs">
@@ -172,7 +175,7 @@ $now = new \DateTimeImmutable('today');
                                                 </span>
                                             <?php } else { ?>
                                                 <span class="c-badge <?php echo ($remaining <= 1 && !$isFuture) ? 'c-badge--danger' : 'c-badge--primary'; ?>">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>" class="c-icon c-button__icon" alt=""> <?php echo $countdownText; ?>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt=""> <?php echo $countdownText; ?>
                                                 </span>
                                             <?php } ?>
                                         </div>
@@ -201,15 +204,16 @@ $now = new \DateTimeImmutable('today');
                                                         title="Antrag stornieren">
                                                     <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
                                                          class="c-icon c-button__icon"
+                                                         loading="lazy"
                                                          alt="">
                                                 </button>
                                             </form>
                                         <?php } ?>
                                         <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--icon-only" title="Status / Prüfseite öffnen">
-                                            <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                            <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                         </a>
                                         <a href="history_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--icon-only" title="Dokument anzeigen">
-                                            <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                            <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                         </a>
                                     </div>
                                 </td>
@@ -224,7 +228,7 @@ $now = new \DateTimeImmutable('today');
             <?php $lastYear = (int) \date('Y') - 1;
 if ($currentArchiveYear !== $lastYear) { ?>
                 <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--secondary">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>" class="c-icon c-button__icon" alt=""> Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen
+                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt=""> Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen
                 </a>
             <?php } else { ?>
                 <p class="u-text-xs u-color-muted u-margin-block-none">Archiv des Vorjahres (<?php echo $lastYear; ?>) ist geladen.</p>

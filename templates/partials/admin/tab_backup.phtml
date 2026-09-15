@@ -43,7 +43,7 @@ if ($auth->hasPermission('system.backup.manage')) {
             <header class="u-margin-bottom-m u-flex u-align-center u-justify-between u-flex-wrap u-gap-m">
                 <div class="u-flex u-align-center u-gap-s">
                     <span class="u-text-xl">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-package.webp'); ?>" class="c-icon c-button__icon" alt="">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-package.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                     </span>
                     <div>
                         <h3 class="u-margin-none">Manuelle Sicherung & Resets</h3>
@@ -53,11 +53,11 @@ if ($auth->hasPermission('system.backup.manage')) {
                 <?php if ($ftpEnabled) { ?>
                     <span class="c-badge c-badge--success"
                           title="Backups werden zusätzlich auf einen externen Server gespiegelt.">
-                          <img src="<?php echo $asset->url('assets/img/icons/icon-cloud.webp'); ?>" class="c-icon c-button__icon" alt=""> FTP Offsite-Backup aktiv
+                          <img src="<?php echo $asset->url('assets/img/icons/icon-cloud.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt=""> FTP Offsite-Backup aktiv
                     </span>
                 <?php } else { ?>
                     <span class="c-badge c-badge--outline">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-floppy-disk.webp'); ?>" class="c-icon c-button__icon" alt=""> Nur lokale Backups
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-floppy-disk.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt=""> Nur lokale Backups
                     </span>
                 <?php } ?>
             </header>
@@ -92,6 +92,7 @@ if ($auth->hasPermission('system.backup.manage')) {
                         <h4 class="u-margin-none u-text-lg">
                             <img src="<?php echo $asset->url('assets/img/icons/icon-wastebasket.webp'); ?>"
                                  class="c-icon c-button__icon"
+                                 loading="lazy"
                                  alt=""> Tabelle leeren (Truncate)
                         </h4>
                     </div>
@@ -125,7 +126,7 @@ if ($auth->hasPermission('system.backup.manage')) {
         <div class="u-margin-top-xl">
             <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
                 <span class="u-text-xl">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-floppy-disk.webp'); ?>" class="c-icon c-button__icon" alt="">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-floppy-disk.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                 </span>
                 <div>
                     <h3 class="u-margin-none">Verfügbare Backups zur Wiederherstellung</h3>
@@ -138,7 +139,7 @@ if ($auth->hasPermission('system.backup.manage')) {
                 <div class="c-card c-card--primary">
                     <div class="c-card__body u-padding-around-l u-text-center u-color-muted">
                         <span class="u-text-2xl u-display-block u-margin-bottom-s">
-                            <img src="<?php echo $asset->url('assets/img/icons/icon-package.webp'); ?>" class="c-icon c-button__icon" alt="">
+                            <img src="<?php echo $asset->url('assets/img/icons/icon-package.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                         </span>
                         Es sind noch keine ZIP-Archive vorhanden.
                     </div>

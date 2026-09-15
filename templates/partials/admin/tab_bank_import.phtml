@@ -30,6 +30,7 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
             <h3 class="u-margin-block-none">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-bank.webp'); ?>"
                      class="c-icon c-button__icon"
+                     loading="lazy"
                      alt=""> Automatischer Bank-Kontoauszugs-Abgleich
             </h3>
             <p class="u-color-muted">Laden Sie die CSV-Datei Ihrer Bank hoch, um offene Permits automatisch auf
@@ -53,7 +54,7 @@ if (!$headersExist) {
                     <div class="c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-block-xl c-box c-box--dashed"
                          id="csvDropzone">
                         <span class="u-text-3xl u-display-block u-margin-block-end-s">
-                            <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>" class="c-icon c-button__icon" alt="">
+                            <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                         </span>
                         <strong class="c-dropzone__text js-preview-text u-text-lg">
                             CSV-Datei hierher ziehen oder klicken zum Auswählen</strong>
@@ -122,6 +123,7 @@ if (!$headersExist) {
                                  class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
                                 <img src="<?php echo $asset->url('assets/img/icons/icon-eye.webp'); ?>"
                                      class="c-icon c-button__icon"
+                                     loading="lazy"
                                      alt="">
                                 <strong id="preview_id"
                                         class="u-color-primary">---</strong>
@@ -147,6 +149,7 @@ if (!$headersExist) {
                                  class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
                                 <img src="<?php echo $asset->url('assets/img/icons/icon-eye.webp'); ?>"
                                      class="c-icon c-button__icon"
+                                     loading="lazy"
                                      alt="">
                                 <strong id="preview_amount"
                                         class="u-color-success">---</strong>
@@ -172,6 +175,7 @@ if (!$headersExist) {
                                  class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
                                 <img src="<?php echo $asset->url('assets/img/icons/icon-eye.webp'); ?>"
                                      class="c-icon c-button__icon"
+                                     loading="lazy"
                                      alt="">
                                 <strong id="preview_date"
                                         class="u-color-main">---</strong>
@@ -186,6 +190,7 @@ if (!$headersExist) {
                                 class="c-button c-button--primary">Abgleich starten & Permits aktivieren
                             <img src="<?php echo $asset->url('assets/img/icons/icon-rocket.webp'); ?>"
                                  class="c-icon c-button__icon"
+                                 loading="lazy"
                                  alt="">
                         </button>
 

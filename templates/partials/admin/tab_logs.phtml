@@ -39,6 +39,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                     <h3 class="u-margin-block-none">
                         <img src="<?php echo $asset->url('assets/img/icons/nav-logs.webp'); ?>"
                              class="c-icon"
+                             loading="lazy"
                              alt=""> E-Mail Versand-Log
                     </h3>
                     <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">Verlauf der letzten
@@ -87,6 +88,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                             <div class="u-flex u-align-center u-gap-xs">
                                                 <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
                                                      class="c-icon c-icon--inline"
+                                                     loading="lazy"
                                                      alt="">
                                                 <span class="u-font-bold u-text-sm">
                                                     <?php echo \str_replace('@', '<wbr>@', \htmlspecialchars($log->recipient)); ?>
@@ -119,7 +121,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                         <div class="u-flex u-gap-xs u-justify-end u-align-center u-text-nowrap">
                                             <span class="c-badge c-badge--<?php echo $isSuccess ? 'success' : 'danger'; ?> c-badge--fixed">
                                                 <?php $statusIcon = $isSuccess ? 'status-success' : 'status-invalid'; ?>
-                                                <img src="<?php echo $asset->url("assets/img/icons/{$statusIcon}.webp"); ?>" class="c-icon" alt="">
+                                                <img src="<?php echo $asset->url("assets/img/icons/{$statusIcon}.webp"); ?>" class="c-icon" loading="lazy" alt="">
                                                 <?php echo $isSuccess ? 'GESENDET' : 'FEHLER'; ?>
                                             </span>
                                             <form method="POST"
@@ -137,6 +139,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                                         title="Erneut senden">
                                                     <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
                                                          class="c-icon c-button__icon"
+                                                         loading="lazy"
                                                          alt="">
                                                 </button>
                                             </form>

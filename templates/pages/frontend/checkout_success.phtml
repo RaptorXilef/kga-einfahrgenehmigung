@@ -33,6 +33,7 @@ $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
         <div class="c-card__body c-card__body--xl">
             <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                  alt="Erfolg"
+                 loading="lazy"
                  class="c-icon c-icon--xl u-margin-block-end-l">
             <h1 class="u-margin-block-start-none u-color-success u-text-2xl">Antrag erfolgreich!</h1>
             <p class="u-color-muted u-text-lg">Ihr Antrag wurde sicher an uns übermittelt.</p>
@@ -85,6 +86,7 @@ $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
                         <div class="u-text-center">
                             <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=10&data=<?php echo $epcData; ?>"
                                  alt="GiroCode wird erstellt, bitte warten"
+                                 loading="lazy"
                                  class="c-qr-box">
                             <div class="u-text-xs u-color-muted u-font-semibold u-margin-block-start-xs">Banking-App
                                 Scan</div>
@@ -97,6 +99,7 @@ $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
                 <p class="u-margin-block-end-m u-text-sm">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
                          class="c-icon c-icon--inline u-margin-inline-end-xs"
+                         loading="lazy"
                          alt="">
                     Wir haben Ihnen diese Informationen soeben auch an <strong class="u-color-dark"><?php echo \htmlspecialchars($permit->getOwnerEmail() ?: 'Ihre E-Mail-Adresse'); ?></strong>
                     gesendet.

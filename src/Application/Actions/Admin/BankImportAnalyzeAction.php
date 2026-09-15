@@ -98,68 +98,52 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
         // --- SIMPLE MODUS --- (Führt den Import direkt aus)
         $res = $this->importService->processCsv($tempPath, $guessedId, $guessedAmount, $guessedDate);
 
-        if (\file_exists($tempPath)) {
-            @\unlink($tempPath);
-        }
-
         if (($res['success'] ?? false) === true) {
-            $erfolgreichCount = (int) ($res['erfolgreich_count'] ?? 0);
-            $uebersprungenCount = (int) ($res['uebersprungen_count'] ?? 0);
-            $fehlerhaftCount = (int) ($res['fehlerhaft_count'] ?? 0);
+            $baseUrl = $this->config->getBaseUrl(); // Icon-URL Prefix
 
-            // Kennzeichen- und Sammelüberweisungen aus dem Service in die Session schieben
-            $fehlerhaftDetails = $res['fehlerhaft_details'] ?? [];
-
-            if (!empty($res['sammel_transfers'])) {
-                foreach ($res['sammel_transfers'] as $transfer) {
-                    $this->sessionManager->addCollectiveTransfer($transfer);
-                }
-            }
-
-            // Flache Darstellung für die Audit-Logs (ohne HTML)
-            $flattenForLog = function (array $categories): string {
-                $parts = [];
+            // Formatiert Arrays mit Kategorien sauber als strukturierte HTML-Liste
+            $formatList = function (array $categories): string {
+                $html = '<ul class="u-margin-block-xs u-padding-inline-start-m">';
                 foreach ($categories as $cat => $items) {
                     if (\is_numeric($cat)) {
-                        $parts[] = (string) $items;
+                        $html .= '<li>' . \htmlspecialchars((string) $items) . '</li>';
                     } else {
-                        $parts[] = $cat . ': ' . \implode(', ', (array) $items);
+                        $html .= '<li class="u-margin-block-end-xs"><strong class="u-font-bold"><em>' . \htmlspecialchars((string) $cat) . '</em></strong>:';
+                        $html .= '<ul class="u-margin-block-start-none u-margin-block-end-xs u-padding-inline-start-m">';
+                        foreach ((array) $items as $item) {
+                            $html .= '<li>' . \htmlspecialchars((string) $item) . '</li>';
+                        }
+                        $html .= '</ul></li>';
                     }
                 }
+                $html .= '</ul>';
 
-                return \implode(' | ', $parts);
+                return $html;
             };
 
-            $logDetails = [];
+            $htmlDetails = [];
+
+            // Emojis durch <img src="...webp"> ersetzt
             if (!empty($res['erfolgreich_details'])) {
-                $logDetails[] = 'Freigeschaltet: [' . $flattenForLog($res['erfolgreich_details']) . ']';
+                $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/status-success.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Freigeschaltet:</strong>' . $formatList($res['erfolgreich_details']) . '</div>';
             }
+
             if (!empty($res['uebersprungen_details'])) {
-                $logDetails[] = 'Übersprungen: [' . $flattenForLog($res['uebersprungen_details']) . ']';
+                $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/icon-skip.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
             }
+
             if (!empty($fehlerhaftDetails)) {
-                $logDetails[] = 'Fehlerhaft: [' . $flattenForLog($fehlerhaftDetails) . ']';
+                $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/status-invalid.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($fehlerhaftDetails) . '</div>';
             }
 
-            $logStr = "CSV-Import abgeschlossen: {$erfolgreichCount} erfolgreich, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.";
-            if ($logDetails !== []) {
-                $logStr .= ' | ' . \implode(' | ', $logDetails);
-            }
+            $msg = "<div class=\"u-margin-bottom-m\">Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.</div>";
+            $fullMsg = $msg . \implode('', $htmlDetails);
 
-            $this->auditLogger->log('BANK_IMPORT', $logStr);
-
-            // Saubere Plaintext-Rückmeldung für das UI (Details stehen im Audit-Log und der Finance-Tab-UI)
-            $msg = "Bank-Abgleich beendet: {$erfolgreichCount} freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft. Details siehe Audit-Log.";
-            if (!empty($res['sammel_transfers'])) {
-                $msg .= ' Es wurden Sammelüberweisungen zur manuellen Prüfung gefunden.';
-            }
-
-            $this->sessionManager->addFlash('success', $msg);
+            $this->sessionManager->addFlash('success', $fullMsg);
         } else {
             $this->sessionManager->addFlash('error', (string) ($res['message'] ?? 'Fehler bei der CSV-Verarbeitung.'));
         }
 
-        // Springt nach dem automatischen Import direkt ins Finanz-Tab zurück
         return new RedirectResponse('admin?focus=tab-finance');
     }
 }

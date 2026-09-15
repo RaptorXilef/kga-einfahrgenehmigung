@@ -26,6 +26,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                 <h3 class="u-margin-block-none">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                          class="c-icon"
+                         loading="lazy"
                          alt=""> Neues Benutzerkonto anlegen
                 </h3>
             </header>
@@ -80,7 +81,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                             <img class="c-avatar-dropzone__img js-preview-img u-hidden"
                                  alt="">
                             <span class="c-dropzone__text js-preview-text u-opacity-50">
-                                <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon c-icon--md" alt="">
+                                <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon c-icon--md" loading="lazy" alt="">
                             </span>
                             <div class="c-dropzone__overlay">Ablegen</div>
                             <input type="file"
@@ -111,6 +112,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                              aria-controls="card-body-<?php echo $userId; ?>">
                             <img src="<?php echo $userImage; ?>"
                                  class="c-avatar c-avatar--sm"
+                                 loading="lazy"
                                  alt="">
                             <div>
                                 <strong class="u-text-lg u-color-main"><?php echo \htmlspecialchars((string) $displayLogin); ?></strong>
@@ -134,6 +136,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                                     class="c-button c-button--danger c-button--icon-only">
                                 <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
                                      class="c-icon c-button__icon"
+                                     loading="lazy"
                                      alt="">
                             </button>
                         </form>
@@ -151,6 +154,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                                     <div class="u-position-relative u-display-inline-block">
                                         <img src="<?php echo $userImage; ?>"
                                              class="c-avatar c-avatar--lg u-margin-block-end-s js-preview-img"
+                                             loading="lazy"
                                              alt="">
                                         <div class="c-dropzone__overlay u-margin-block-end-s u-border-radius-m">Foto
                                             ablegen</div>
@@ -242,6 +246,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                                     <p class="u-color-muted u-text-sm u-margin-block-start-xs u-margin-block-none">
                                         <img src="<?php echo $asset->url('assets/img/icons/icon-information.webp'); ?>"
                                              class="c-icon c-button__icon"
+                                             loading="lazy"
                                              alt=""> Änderungen an der Rolle wirken sich sofort auf die Berechtigungen
                                         aus.
                                     </p>

@@ -27,7 +27,8 @@ if ($auth->hasPermission('system.roles.manage')) {
      * Rekursive Funktion zum Rendern des Permission-Baums
      */
     if (!\function_exists('renderPermissionNode')) {
-        function renderPermissionNode(array $nodes, array $rolePerms, int $depth = 0): void
+        // Wir übergeben den $asset Helper, um die Icons laden zu können
+        function renderPermissionNode(array $nodes, array $rolePerms, int $depth = 0, ?AssetHelperInterface $asset = null): void
         {
             foreach ($nodes as $id => $node) {
                 $key = $node['key'] ?? null;
@@ -40,12 +41,13 @@ if ($auth->hasPermission('system.roles.manage')) {
                     <div class="c-tree-item <?php echo $depth === 0 ? 'c-tree-item--root' : ''; ?> <?php echo !$key ? 'c-tree-item--category' : ''; ?>">
                         <div class="c-tree-item__label-wrapper u-flex u-flex-column">
                             <span class="c-tree-item__label <?php echo $depth === 0 ? 'c-tree-item__label--root' : ''; ?>">
+                                <?php if (isset($node['icon']) && $asset !== null) { ?>
+                                    <img src="<?php echo $asset->url('assets/img/icons/' . $node['icon']); ?>" class="c-icon c-icon--inline u-margin-inline-end-xs" loading="lazy" alt="">
+                                <?php } ?>
                                 <?php echo \htmlspecialchars((string) ($node['label'] ?? $id)); ?>
                             </span>
                             <?php if ($key) { ?>
-                                <span class="c-tree-item__sublabel">
-                                    <?php echo \htmlspecialchars((string) $key); ?>
-                                </span>
+                                <span class="c-tree-item__sublabel"><?php echo \htmlspecialchars((string) $key); ?></span>
                             <?php } else { ?>
                                 <span class="c-tree-item__sublabel c-tree-item__sublabel--category">
                                     Kategorie
@@ -67,7 +69,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                         </div>
                     </div>
                     <?php if ($hasChildren) {
-                        \renderPermissionNode($node['children'], $rolePerms, $depth + 1);
+                        \renderPermissionNode($node['children'], $rolePerms, $depth + 1, $asset);
                     } ?>
                 </div>
     <?php
@@ -82,6 +84,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                 <h3 class="u-margin-block-none">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-package.webp'); ?>"
                          class="c-icon c-button__icon"
+                         loading="lazy"
                          alt=""> Neue Rolle erstellen
                 </h3>
             </header>
@@ -133,6 +136,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                              aria-controls="card-body-<?php echo $roleId; ?>">
                             <img src="<?php echo $roleImage; ?>"
                                  class="c-avatar c-avatar--sm c-avatar--role"
+                                 loading="lazy"
                                  alt="">
                             <div>
                                 <strong class="u-text-lg"><?php echo \htmlspecialchars($rData->name); ?></strong>
@@ -154,6 +158,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                                         class="c-button c-button--danger c-button--icon-only">
                                     <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
                                          class="c-icon c-button__icon"
+                                         loading="lazy"
                                          alt="">
                                 </button>
                             </form>
@@ -172,6 +177,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                             <div class="u-position-relative u-display-inline-block">
                                 <img src="<?php echo $roleImage; ?>"
                                      class="c-avatar c-avatar--lg c-avatar--role u-margin-block-end-s js-preview-img"
+                                     loading="lazy"
                                      alt="">
                                 <div class="c-dropzone__overlay u-margin-block-end-s u-border-radius-m">Foto ablegen
                                 </div>
@@ -237,7 +243,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                                      class="c-box c-box--danger-soft u-margin-block-end-l u-padding-around-m u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
                                     <div class="u-flex u-align-center u-gap-m">
                                         <span class="u-text-2xl">
-                                            <img src="<?php echo $asset->url('assets/img/icons/icon-crown.webp'); ?>" class="c-icon c-button__icon" alt="">
+                                            <img src="<?php echo $asset->url('assets/img/icons/icon-crown.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                         </span>
                                         <div>
                                             <strong class="u-color-danger">Vollständiger System-Zugriff</strong>
@@ -273,6 +279,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                                         class="c-button c-button--primary c-button--large u-inline-size-100 u-font-bold">
                                     <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
                                          class="c-icon c-button__icon"
+                                         loading="lazy"
                                          alt=""> RECHTE FÜR <?php echo \strtoupper($rData->name); ?> SPEICHERN
                                 </button>
                             </div>

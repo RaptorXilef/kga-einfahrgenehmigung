@@ -34,6 +34,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
                 <h1 class="u-margin-none u-text-start">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                          class="c-icon c-icon--md"
+                         loading="lazy"
                          alt="">
                     Mein Profil
                 </h1>
@@ -58,6 +59,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
                          class="c-avatar-dropzone c-avatar-dropzone--large u-margin-inline-auto u-margin-block-end-m u-position-relative">
                         <img src="<?php echo $userImage; ?>"
                              class="c-avatar c-avatar--xl js-preview-img"
+                             loading="lazy"
                              alt="">
                         <div class="c-dropzone__overlay u-border-radius-circle">Foto ablegen</div>
                     </div>
@@ -72,6 +74,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
                             data-target="avatar-input">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-camera.webp'); ?>"
                              class="c-icon c-button__icon"
+                             loading="lazy"
                              alt=""> Bild ändern
                     </button>
 

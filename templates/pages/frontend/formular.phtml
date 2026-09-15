@@ -56,6 +56,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <div class="u-margin-block-end-m u-flex u-justify-center">
                     <img src="<?php echo $settings['base_url'] . $logoFile; ?>"
                          alt="<?php echo \htmlspecialchars($config->get('vereins_name')); ?>"
+                         loading="lazy"
                          class="c-logo">
                 </div>
             <?php } ?>
@@ -69,6 +70,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <div class="c-alert c-alert--success c-alert--large u-margin-block-end-l">
                     <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                          class="c-icon c-icon--lg u-margin-block-end-m"
+                         loading="lazy"
                          alt="">
                     <h2 class="u-margin-none u-color-success-dark">E-Mail bestätigen!</h2>
 
@@ -114,7 +116,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <!-- GUTSCHEIN EINGABE / ANZEIGE -->
                 <?php if ($prefill) { ?>
                     <div class="c-voucher-alert">
-                        <span class="u-text-xl"><img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" alt=""></span>
+                        <span class="u-text-xl"><img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" loading="lazy" alt=""></span>
                         <div>
                             <strong>Aktivierungscode aktiv: <?php echo $prefill['code']; ?></strong><br>
                             <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
@@ -124,7 +126,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
                     <div class="u-text-center u-margin-block-end-l u-flex u-justify-center">
                         <span class="c-voucher-toggle">
-                            <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" alt="">
+                            <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" loading="lazy" alt="">
                             Sie haben einen Aktivierungscode? Dann hier klicken.
                         </span>
                     </div>

@@ -50,6 +50,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
             <div class="u-color-danger">
                 <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
                      class="c-icon c-icon--lg"
+                     loading="lazy"
                      alt="">
                 <h2 class="u-color-danger u-margin-block-start-s u-margin-block-end-xs">ZUTRITT VERWEIGERT</h2>
                 <p class="u-font-semibold u-margin-block-none">Diese Genehmigung ist gesperrt/widerrufen.</p>
@@ -58,13 +59,14 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
             <div class="u-color-success">
                 <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                      class="c-icon c-icon--lg"
+                     loading="lazy"
                      alt="">
                 <h2 class="u-color-success-dark u-margin-block-start-s u-margin-block-end-none">GENEHMIGUNG GÜLTIG</h2>
             </div>
         <?php } elseif ($permit && $isDateValid && !$isTimeAllowed) { ?>
             <div class="u-color-warning">
                 <span class="u-text-4xl">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>" class="c-icon c-button__icon" alt="">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                 </span>
                 <h2 class="u-color-warning u-margin-block-start-s">AKTUELL RUHEZEIT</h2>
                 <?php if (\str_contains($allowedToday, 'Gültigkeit')) { ?>
@@ -81,6 +83,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
             <div class="u-color-muted">
                 <img src="<?php echo $asset->url('assets/img/icons/status-invalid.webp'); ?>"
                      class="c-icon c-icon--lg"
+                     loading="lazy"
                      alt="">
                 <h2 class="u-margin-block-start-s u-margin-block-end-none">GENEHMIGUNG UNGÜLTIG</h2>
             </div>
@@ -96,12 +99,14 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
             <a href="check" class="c-button c-button--secondary">
                 <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
                      class="c-icon c-button__icon"
+                     loading="lazy"
                      alt=""> Neue Prüfung
             </a>
             <?php if ($permit && $auth->hasPermission('permits.print')) { ?>
                 <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--primary">
                     <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
                          class="c-icon c-button__icon"
+                         loading="lazy"
                          alt=""> Drucken
                 </a>
             <?php } ?>
@@ -114,6 +119,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
                 <h3 class="u-margin-block-none">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
                          class="c-icon c-button__icon"
+                         loading="lazy"
                          alt=""> Pächter- & Fahrzeugdaten
                 </h3>
                 <span class="c-badge c-badge--<?php echo $permit->getStatus() === PermitStatus::Bezahlt ? 'success' : 'warning'; ?>">

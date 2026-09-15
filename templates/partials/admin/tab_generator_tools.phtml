@@ -55,6 +55,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div class="u-text-4xl u-margin-block-end-m">
                     <img src="<?php echo $asset->url('assets/img/icons/icon_prohibited.webp'); ?>"
                          class="c-icon c-button__icon"
+                         loading="lazy"
                          alt="">
                 </div>
                 <h3 class="u-margin-block-none">Keine Berechtigung</h3>
@@ -78,6 +79,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
                             <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                                  class="c-icon"
+                                 loading="lazy"
                                  alt=""> Genehmigung ausstellen
                         </h3>
                         <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
@@ -217,7 +219,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                            for="zweck_select">
                                         <span>Einfahrts-Grund *</span>
                                         <span class="u-text-link u-cursor-pointer" id="toggle_zweck_btn">
-                                            <img src="<?php echo $asset->url('assets/img/icons/icon-crayon.webp'); ?>" class="c-icon" alt=""> Manuell
+                                            <img src="<?php echo $asset->url('assets/img/icons/icon-crayon.webp'); ?>" class="c-icon" loading="lazy" alt=""> Manuell
                                         </span>
                                     </label>
                                     <select name="zweck"
@@ -315,6 +317,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
                             <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                                  class="c-icon"
+                                 loading="lazy"
                                  alt=""> Gutscheincode generieren
                         </h3>
                         <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
@@ -413,6 +416,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 <summary class="u-cursor-pointer u-font-semibold u-color-primary">
                                     <img src="<?php echo $asset->url('assets/img/icons/icon-plus.webp'); ?>"
                                          class="c-icon c-button__icon"
+                                         loading="lazy"
                                          alt=""> Vorgaben für Pächter (Vorbefüllung)
                                 </summary>
                                 <div class="u-margin-block-start-m u-border-block-start u-padding-block-start-m">
@@ -573,6 +577,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                             class="c-button c-button--primary">
                                         <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                                              class="c-icon c-button__icon u-filter-invert"
+                                             loading="lazy"
                                              alt=""> Code Generieren
                                     </button>
                                 </div>
