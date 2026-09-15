@@ -29,7 +29,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
         <section class="c-control-bar">
             <form method="POST"
                   action="<?php echo $settings['base_url']; ?>filter_dashboard"
-                  class="js-dashboard-filter-form u-flex u-align-center u-gap-s u-flex-wrap u-inline-size-100 u-justify-center u-margin-none js-dashboard-filter-form">
+                  class="js-dashboard-filter-form u-flex u-align-center u-gap-s u-flex-wrap u-inline-size-100 u-justify-center u-margin-none">
                 <input type="hidden"
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -45,11 +45,12 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                          alt="">
                     ZEITRAUM:
                 </label>
+                <!-- Die ID bleibt für das "for"-Attribut des Labels (A11y), JS greift über die Klasse zu -->
                 <input type="date"
                        id="filter_start"
                        name="start"
                        value="<?php echo \htmlspecialchars($currentStart); ?>"
-                       class="c-control-bar__input"
+                       class="c-control-bar__input js-filter-start"
                        autocomplete="off">
 
                 <label for="filter_end"
@@ -58,7 +59,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                        id="filter_end"
                        name="end"
                        value="<?php echo \htmlspecialchars($currentEnd); ?>"
-                       class="c-control-bar__input"
+                       class="c-control-bar__input js-filter-end"
                        autocomplete="off">
 
                 <label for="filter_type"
@@ -91,7 +92,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                     <span class="c-control-bar__search-icon">
                         <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" loading="lazy" alt="">
                     </span>
-                <!-- name="q" und value aus PHP für Server-Side Search -->
+                    <!-- name="q" und value aus PHP für Server-Side Search -->
                     <input type="text"
                            name="q"
                            aria-label="Schnellsuche"
@@ -99,7 +100,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                            value="<?php echo \htmlspecialchars($currentQ); ?>"
                            placeholder="Schnellsuche..."
                            title="Suchen Sie nach Namen, KFZ oder SmartCode"
-                           class="c-form-input js-admin-search js-admin-search">
+                           class="c-form-input js-admin-search">
                 </div>
 
                 <?php if (!empty($sessionFilters)) { ?>
@@ -115,22 +116,24 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 
     <script nonce="<?php echo $cspNonce; ?>">
     document.addEventListener('DOMContentLoaded', () => {
-        const filterStart = document.getElementById('filter_start');
-        const filterEnd = document.getElementById('filter_end');
+        // FIX: Strikte JS Hooks anstelle von getElementById, um Abstürze zu verhindern
+        const filterStart = document.querySelector('.js-filter-start');
+        const filterEnd = document.querySelector('.js-filter-end');
+        const form = document.querySelector('.js-dashboard-filter-form');
 
-        if (filterStart && filterEnd) {
+        if (filterStart && filterEnd && form) {
             filterStart.addEventListener('change', () => {
                 if (filterStart.value && filterEnd.value && filterStart.value > filterEnd.value) {
                     filterEnd.value = filterStart.value;
                 }
-                document.getElementById('js-dashboard-filter-form').submit();
+                form.submit();
             });
 
             filterEnd.addEventListener('change', () => {
                 if (filterStart.value && filterEnd.value && filterEnd.value < filterStart.value) {
                     filterStart.value = filterEnd.value;
                 }
-                document.getElementById('js-dashboard-filter-form').submit();
+                form.submit();
             });
         }
     });
