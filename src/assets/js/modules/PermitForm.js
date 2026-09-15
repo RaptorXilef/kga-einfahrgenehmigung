@@ -5,7 +5,6 @@ import { notifier } from '../core/Notifier.js';
  * Modulares Management des Antragsformulars (Frontend & Admin).
  * Übernimmt dynamische Sichtbarkeiten, API-Preis-Berechnung, Feiertagsprüfung
  * und Datums-Synchronisation (Start-/Enddatum).
- * Scope-basiert: Kann mehrfach pro Seite instanziiert werden.
  */
 export class PermitForm {
     constructor(container) {
@@ -52,6 +51,7 @@ export class PermitForm {
         // Config sicher abrufen
         this.config = window.KGA_CONFIG || { vehicleConfig: {} };
         this.templates = window.KGA_TEMPLATES || {};
+
         this.voucherMultiCb = this.container.querySelector('#v_multi');
         this.voucherMaxWrap = this.container.querySelector('#v_max_wrap');
 
@@ -304,19 +304,66 @@ export class PermitForm {
         if (currentFetchId !== this.dateFetchId) return;
 
         if (res.success) {
-            // "Fail-Safe" statt "Fail-Open". Wenn DOMPurify fehlt, blockieren wir HTML.
-            const sanitize = (html) => {
-                if (typeof window.DOMPurify !== 'undefined') return window.DOMPurify.sanitize(html);
-                console.warn(
-                    '[Security] DOMPurify fehlt. HTML-Injektion sicherheitshalber blockiert.'
-                );
-                return '⚠️ Anzeige aus Sicherheitsgründen blockiert.';
-            };
+            // Sicheres DOM-Building ohne DOMPurify/innerHTML
+            this.openingEl.textContent = '';
 
-            this.openingEl.innerHTML = sanitize(res.openingHours);
+            const title = document.createElement('strong');
+            title.className = 'u-font-bold u-display-block';
+            title.textContent = '⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):';
+            this.openingEl.appendChild(title);
 
-            if (res.holidayNotice && this.holidayEl) {
-                this.holidayEl.innerHTML = sanitize(res.holidayNotice);
+            const subtitle = document.createElement('span');
+            subtitle.className = 'u-display-block u-margin-block-end-xs';
+            subtitle.textContent =
+                'Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:';
+            this.openingEl.appendChild(subtitle);
+
+            const timesContainer = document.createElement('div');
+            timesContainer.className = 'u-color-primary u-font-bold';
+
+            if (res.openingData && res.openingData.length > 0) {
+                const isMulti = res.openingData.length > 1;
+                res.openingData.forEach((block) => {
+                    const blockDiv = document.createElement('div');
+
+                    if (isMulti) {
+                        blockDiv.className = 'u-margin-block-end-xs';
+                        const labelSpan = document.createElement('span');
+                        labelSpan.className = 'u-color-primary';
+                        labelSpan.textContent = `${block.from} - ${block.to}: `;
+                        blockDiv.appendChild(labelSpan);
+                        blockDiv.appendChild(document.createElement('br'));
+                    }
+
+                    block.hours_text.forEach((text, index) => {
+                        const parts = text.split(':');
+                        const span = document.createElement('span');
+                        span.className = 'u-text-nowrap';
+
+                        if (parts.length === 2) {
+                            const strong = document.createElement('strong');
+                            strong.className = 'u-font-bold';
+                            strong.textContent = parts[0] + ':';
+                            span.appendChild(strong);
+                            span.appendChild(document.createTextNode(parts[1]));
+                        } else {
+                            span.textContent = text;
+                        }
+
+                        blockDiv.appendChild(span);
+                        if (index < block.hours_text.length - 1) {
+                            const separator = document.createElement('span');
+                            separator.innerHTML = ' &nbsp;|&nbsp; '; // Safe HTML entity insertion
+                            blockDiv.appendChild(separator);
+                        }
+                    });
+                    timesContainer.appendChild(blockDiv);
+                });
+            }
+            this.openingEl.appendChild(timesContainer);
+
+            if (res.holidays && res.holidays.length > 0) {
+                this.holidayEl.innerHTML = `🚫 An folgenden Feier- und Ruhetagen ist die Einfahrt untersagt:<br>${res.holidays.join(', ')}.`;
                 this.holidayEl.hidden = false;
             } else if (this.holidayEl) {
                 this.holidayEl.hidden = true;
@@ -324,9 +371,9 @@ export class PermitForm {
 
             if (this.dateInfoContainer) this.dateInfoContainer.hidden = false;
         } else {
-            // Silent-Failure beheben und UI bei Netzwerkfehler zurücksetzen
-            this.openingEl.innerHTML =
-                '<span class="u-text-muted">Zeitraum konnte aufgrund eines Netzwerkfehlers nicht geprüft werden.</span>';
+            this.openingEl.textContent =
+                'Zeitraum konnte aufgrund eines Netzwerkfehlers nicht geprüft werden.';
+            this.openingEl.className = 'u-text-muted';
             if (this.holidayEl) this.holidayEl.hidden = true;
             notifier.show(
                 'Netzwerkfehler: Einfahrtszeiten konnten nicht abgefragt werden.',
@@ -352,23 +399,22 @@ export class PermitForm {
         this.priceDisplay.classList.remove('c-price-display--free', 'c-price-display--error');
 
         if (res.success) {
-            // "Fail-Safe" Sicherheitsmechanismus
-            const sanitize = (html) => {
-                if (typeof window.DOMPurify !== 'undefined') return window.DOMPurify.sanitize(html);
-                console.warn(
-                    '[Security] DOMPurify fehlt. HTML-Injektion sicherheitshalber blockiert.'
-                );
-                return '⚠️ Anzeige aus Sicherheitsgründen blockiert.';
-            };
-
-            // Frontend Darstellung (mit Rabatt-HTML)
             if (this.priceDisplay.tagName !== 'SPAN' && res.discountText) {
-                const rawHtml = `
-                    <div class="c-price-original">Original: ${res.original.toFixed(2).replace('.', ',')} €</div>
-                    <div>Gebühr: ${res.formatted}</div>
-                    <div class="c-price-discount-hint">${res.discountText} angewendet</div>
-                `;
-                this.priceDisplay.innerHTML = sanitize(rawHtml);
+                // Sicheres DOM-Building ohne DOMPurify
+                this.priceDisplay.textContent = '';
+
+                const orig = document.createElement('div');
+                orig.className = 'c-price-original';
+                orig.textContent = `Original: ${res.original.toFixed(2).replace('.', ',')} €`;
+
+                const fee = document.createElement('div');
+                fee.textContent = `Gebühr: ${res.formatted}`;
+
+                const hint = document.createElement('div');
+                hint.className = 'c-price-discount-hint';
+                hint.textContent = `${res.discountText} angewendet`;
+
+                this.priceDisplay.append(orig, fee, hint);
             } else {
                 // Admin Darstellung (Reiner Text im Span)
                 this.priceDisplay.innerText =

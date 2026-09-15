@@ -9,13 +9,12 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\ApiDateInfoRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
-use App\Application\View\HolidayHtmlPresenter;
 use App\Core\Service\HolidayService;
 use Throwable;
 
 /**
- * Action für den API-Aufruf zur Abfrage der erlaubten Einfahrtszeiten
- * und Ruhetage für einen gewählten Zeitraum.
+ * Action für den API-Aufruf zur Abfrage der erlaubten Einfahrtszeiten.
+ * Liefert STRUKTURIERTE DATEN (JSON) anstatt HTML.
  */
 #[Route('POST', '/api/get_date_info')]
 final readonly class GetDateInfoAction implements ViewActionInterface
@@ -33,17 +32,12 @@ final readonly class GetDateInfoAction implements ViewActionInterface
             $holidays = $this->holidayService->getHolidaysInRange($dto->von, $dto->bis);
             $openingData = $this->holidayService->getOpeningHoursDataForDateRange($dto->von, $dto->bis);
 
-            $openingHtml = '<strong class="u-font-bold">⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>' .
-                'Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>' .
-                '<span class="u-color-primary u-font-bold">' .
-                HolidayHtmlPresenter::formatOpeningHours($openingData) . '</span>';
-
             return JsonResponse::success([
-                'openingHours' => $openingHtml,
-                'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice($holidays),
+                'openingData' => $openingData,
+                'holidays' => $holidays,
             ]);
         } catch (Throwable $e) {
             return JsonResponse::error($e->getMessage());
         }
     }
-}
+}♦

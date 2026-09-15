@@ -51,51 +51,11 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 $fehlerhaftDetails = $res['fehlerhaft_details'] ?? [];
 
                 if (!empty($res['sammel_transfers'])) {
-                    $sammelList = [];
-                    $kennzeichenList = [];
                     foreach ($res['sammel_transfers'] as $transfer) {
                         $this->sessionManager->addCollectiveTransfer($transfer);
-                        $entry = \implode(', ', $transfer['codes']) . ' (' . \number_format($transfer['amount'], 2, ',', '.') . ' €)';
-                        if (($transfer['type'] ?? 'sammel') === 'kennzeichen') {
-                            $kennzeichenList[] = $entry;
-                        } else {
-                            $sammelList[] = $entry;
-                        }
-                    }
-                    if (!empty($sammelList)) {
-                        $fehlerhaftDetails['Sammelüberweisungen (Manuell prüfen)'] = $sammelList;
-                    }
-                    if (!empty($kennzeichenList)) {
-                        $fehlerhaftDetails['Kennzeichen erkannt (Manuell prüfen)'] = $kennzeichenList;
                     }
                 }
 
-                // Formatiert Arrays mit Kategorien sauber als strukturierte HTML-Liste
-                $formatList = function (array $categories): string {
-                    $html = '<ul class="u-margin-block-xs u-padding-inline-start-m">';
-                    foreach ($categories as $cat => $items) {
-                        if (\is_numeric($cat)) {
-                            // Flache Liste (z.B. bei Erfolgreich)
-                            $html .= '<li>' . \htmlspecialchars((string) $items) . '</li>';
-                        } else {
-                            // Kategorisierte Liste (z.B. "Fehlt auf Auszug")
-                            $html .= '<li class="u-margin-block-end-xs"><strong class="u-font-bold"><em>' . \htmlspecialchars((string) $cat) . '</em></strong>:';
-                            $html .= '<ul class="u-margin-block-start-none u-margin-block-end-xs u-padding-inline-start-m">';
-                            foreach ((array) $items as $item) {
-                                $html .= '<li>' . \htmlspecialchars((string) $item) . '</li>';
-                            }
-                            $html .= '</ul></li>';
-                        }
-                    }
-                    $html .= '</ul>';
-
-                    return $html;
-                };
-
-                $htmlDetails = [];
-                $logDetails = [];
-
-                // Flache Darstellung für die Log-Einträge ohne HTML-Tags
                 $flattenForLog = function (array $categories): string {
                     $parts = [];
                     foreach ($categories as $cat => $items) {
@@ -109,26 +69,16 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                     return \implode(' | ', $parts);
                 };
 
-                // 2. Übersprungene Datensätze
+                $logDetails = [];
                 if (!empty($res['erfolgreich_details'])) {
-                    $htmlDetails[] = '<div class="u-margin-bottom-s">✅ <strong>Freigeschaltet:</strong>' . $formatList($res['erfolgreich_details']) . '</div>';
                     $logDetails[] = 'Freigeschaltet: [' . $flattenForLog($res['erfolgreich_details']) . ']';
                 }
-
-                // 3. Fehlerhafte Datensätze
                 if (!empty($res['uebersprungen_details'])) {
-                    $htmlDetails[] = '<div class="u-margin-bottom-s">⏭️ <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
                     $logDetails[] = 'Übersprungen: [' . $flattenForLog($res['uebersprungen_details']) . ']';
                 }
-
-                // 4. Formatierungsfehler in der CSV
                 if (!empty($fehlerhaftDetails)) {
-                    $htmlDetails[] = '<div class="u-margin-bottom-s">❌ <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($fehlerhaftDetails) . '</div>';
                     $logDetails[] = 'Fehlerhaft: [' . $flattenForLog($fehlerhaftDetails) . ']';
                 }
-
-                $msg = "<div class=\"u-margin-bottom-m\">Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.</div>";
-                $fullMsg = $msg . \implode('', $htmlDetails);
 
                 $logStr = "CSV-Import abgeschlossen: {$erfolgreichCount} erfolgreich, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.";
                 if ($logDetails !== []) {
@@ -136,7 +86,14 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 }
 
                 $this->auditLogger->log('BANK_IMPORT', $logStr);
-                $this->sessionManager->addFlash('success', $fullMsg);
+
+                // Saubere Plaintext-Rückmeldung
+                $msg = "Bank-Abgleich beendet: {$erfolgreichCount} freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft. Details siehe Audit-Log.";
+                if (!empty($res['sammel_transfers'])) {
+                    $msg .= ' Es wurden Sammelüberweisungen zur manuellen Prüfung gefunden.';
+                }
+
+                $this->sessionManager->addFlash('success', $msg);
             } else {
                 $this->sessionManager->addFlash('error', (string) ($res['message'] ?? 'Fehler bei der CSV-Verarbeitung.'));
             }
