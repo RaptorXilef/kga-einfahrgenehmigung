@@ -343,7 +343,7 @@ export class PermitForm {
                         if (parts.length === 2) {
                             const strong = document.createElement('strong');
                             strong.className = 'u-font-bold';
-                            strong.textContent = parts[0] + ':';
+                            strong.textContent = `${parts[0]}:`;
                             span.appendChild(strong);
                             span.appendChild(document.createTextNode(parts[1]));
                         } else {

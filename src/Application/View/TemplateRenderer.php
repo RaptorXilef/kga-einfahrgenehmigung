@@ -25,7 +25,7 @@ final readonly class TemplateRenderer
     }
 
     /**
-     * FIX: Gibt nun das fertige HTML als String zurück, anstatt es mit 'echo' auszugeben!
+     * Gibt nun das fertige HTML als String zurück, anstatt es mit 'echo' auszugeben!
      */
     public function render(string $templatePath, array $data = []): string
     {

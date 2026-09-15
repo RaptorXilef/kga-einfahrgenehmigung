@@ -12,8 +12,10 @@ use App\Application\DTO\BankImportProcessRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\BankImportService;
+use Throwable;
 
 #[Route('POST', '/bank_import_process')]
 #[RequiresAuth]
@@ -23,6 +25,7 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
         private AuditLoggerService $auditLogger,
         private BankImportService $importService,
         private SessionManager $sessionManager,
+        private ConfigInterface $config,
     ) {
     }
 
@@ -57,7 +60,6 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
 
                 $baseUrl = $this->config->getBaseUrl();
 
-                // FIX: Erweiterte HTML-Liste wiederhergestellt
                 $formatList = function (array $categories): string {
                     $html = '<ul class="u-margin-block-xs u-padding-inline-start-m">';
                     foreach ($categories as $cat => $items) {
@@ -128,6 +130,11 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
             }
 
             // Bei Fehler auch dorthin zurückspringen, wo der User gestartet ist
+            return new RedirectResponse('admin?focus=tab-finance');
+        } catch (Throwable $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            // Zwingendes Return hinzugefügt, um Interface-Vorgaben zu erfüllen!
             return new RedirectResponse('admin?focus=tab-finance');
         }
     }

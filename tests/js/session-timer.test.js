@@ -17,7 +17,6 @@ describe('SessionTimer', () => {
     let container;
     let modal;
     let modalTimer;
-    let btnStay;
 
     beforeEach(() => {
         // Fake Timers aktivieren für Zeitsprünge
@@ -25,17 +24,16 @@ describe('SessionTimer', () => {
 
         // DOM Setup (Nachbau aus header_nav.phtml)
         document.body.innerHTML = `
-            <span id="ui-session-timer">20:00</span>
-            <dialog id="session-warning-modal" class="c-modal">
-                <strong id="modal-session-countdown">03:00</strong>
-                <button id="btn-session-stay">Bleiben</button>
+            <span class="js-session-timer">20:00</span>
+            <dialog class="c-modal js-session-warning-modal">
+                <strong class="js-session-countdown">03:00</strong>
+                <button class="js-session-stay">Bleiben</button>
             </dialog>
         `;
 
-        container = document.getElementById('ui-session-timer');
-        modal = document.getElementById('session-warning-modal');
-        modalTimer = document.getElementById('modal-session-countdown');
-        btnStay = document.getElementById('btn-session-stay');
+        container = document.querySelector('.js-session-timer');
+        modal = document.querySelector('.js-session-warning-modal');
+        modalTimer = document.querySelector('.js-session-countdown');
 
         // JSDOM hat oft noch keine native Dialog-API implementiert, daher mocken wir sie ans Element
         modal.showModal = vi.fn(function () {
@@ -86,7 +84,7 @@ describe('SessionTimer', () => {
         vi.advanceTimersByTime(17 * 60 * 1000 + 1000);
         expect(modal.open).toBe(true);
 
-        // Klick auf "Bleiben" simulieren
+        // Aufruf der Methode direkt, anstatt Click Event aufzubauen
         await timerInstance.stayLoggedIn();
 
         // Prüfen, ob API aufgerufen wurde

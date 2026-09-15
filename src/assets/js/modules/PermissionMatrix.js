@@ -216,12 +216,13 @@ export class PermissionMatrix {
                         `[data-tab-target="${parentTabContent.id}"]`
                     );
                     if (tabBtn) {
-                        document
-                            .querySelectorAll('.c-tabs__btn')
-                            .forEach((b) => b.classList.remove('is-active'));
-                        document
-                            .querySelectorAll('.c-tabs__content')
-                            .forEach((c) => c.classList.remove('is-active'));
+                        document.querySelectorAll('.c-tabs__btn').forEach((b) => {
+                            b.classList.remove('is-active');
+                        });
+                        document.querySelectorAll('.c-tabs__content').forEach((c) => {
+                            c.classList.remove('is-active');
+                        });
+
                         tabBtn.classList.add('is-active');
                         parentTabContent.classList.add('is-active');
                     }
