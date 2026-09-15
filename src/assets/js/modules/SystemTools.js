@@ -2,23 +2,27 @@ import { notifier } from '../core/Notifier.js';
 
 /**
  * Modul zur Ausführung manueller System-Tasks (Cronjobs).
- * Ersetzt die alte executeCron() Inline-Funktion in tab_system.phtml.
  */
 export class SystemTools {
     constructor(container) {
         this.container = container;
+        this.abortController = new AbortController();
         this.init();
     }
 
     init() {
         // Event-Delegation für alle Cron-Buttons im Container
-        this.container.addEventListener('click', (e) => {
-            const btn = e.target.closest('.js-cron-btn');
-            if (btn) {
-                e.preventDefault();
-                this.executeCron(btn.dataset.url);
-            }
-        });
+        this.container.addEventListener(
+            'click',
+            (e) => {
+                const btn = e.target.closest('.js-cron-btn');
+                if (btn) {
+                    e.preventDefault();
+                    this.executeCron(btn.dataset.url);
+                }
+            },
+            { signal: this.abortController.signal }
+        );
     }
 
     async executeCron(url) {
@@ -33,11 +37,12 @@ export class SystemTools {
         }
 
         try {
-            // Cron-URLs erfordern zwingend GET und haben eigene Tokens,
-            // daher nutzen wir hier nativ fetch anstatt der KGA-API.
-            const response = await fetch(url, { method: 'GET' });
+            // Native fetch API absichern durch AbortSignal des Moduls (für Abbrüche beim Tab-Wechsel)
+            const response = await fetch(url, {
+                method: 'GET',
+                signal: this.abortController.signal,
+            });
 
-            // Strikter HTTP Status Guard vor dem JSON Parsing (verhindert irreführende SyntaxErrors)
             if (!response.ok) {
                 throw new Error(`HTTP Error: Der Server antwortete mit Status ${response.status}`);
             }
@@ -57,11 +62,17 @@ export class SystemTools {
                 notifier.show(`Fehler:\n\n${data.error || msg}`, 'error');
             }
         } catch (err) {
-            notifier.show(
-                'Netzwerk- oder Serverfehler bei der Ausführung. Bitte prüfen Sie die PHP Logs.',
-                'error'
-            );
-            console.error('[SystemTools]', err);
+            if (err.name !== 'AbortError') {
+                notifier.show(
+                    'Netzwerk- oder Serverfehler bei der Ausführung. Bitte prüfen Sie die PHP Logs.',
+                    'error'
+                );
+                console.error('[SystemTools]', err);
+            }
         }
+    }
+
+    destroy() {
+        this.abortController.abort();
     }
 }

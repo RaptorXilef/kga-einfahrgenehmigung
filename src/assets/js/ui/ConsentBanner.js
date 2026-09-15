@@ -5,6 +5,7 @@
 export class ConsentBanner {
     constructor(container) {
         this.container = container;
+        this.abortController = new AbortController();
 
         // Defensive Error Boundary für JSON Konfiguration
         try {
@@ -32,8 +33,9 @@ export class ConsentBanner {
         try {
             const cookieVal = this.getCookie();
             if (!cookieVal) {
+                // Native Eigenschaft statt utility-Klasse
                 this.container.hidden = false;
-                this.container.classList.remove('u-hidden'); // Rückwärtskompatibilität
+
                 // A11Y Dialog-Semantik setzen
                 this.container.setAttribute('role', 'dialog');
                 this.container.setAttribute('aria-modal', 'false'); // Non-blocking
@@ -43,26 +45,46 @@ export class ConsentBanner {
             }
         } catch {
             this.container.hidden = false;
-            this.container.classList.remove('u-hidden');
         }
 
+        const options = { signal: this.abortController.signal };
+
         // Event-Prevention hinzufügen, um unbeabsichtigte Form-Submits zu blockieren
-        this.btnAcceptAll?.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.acceptAll();
-        });
-        this.btnAcceptEssential?.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.acceptEssential();
-        });
-        this.btnSaveSelection?.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.saveSelection();
-        });
-        this.btnToggleDetails?.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.toggleDetails();
-        });
+        this.btnAcceptAll?.addEventListener(
+            'click',
+            (e) => {
+                e.preventDefault();
+                this.acceptAll();
+            },
+            options
+        );
+
+        this.btnAcceptEssential?.addEventListener(
+            'click',
+            (e) => {
+                e.preventDefault();
+                this.acceptEssential();
+            },
+            options
+        );
+
+        this.btnSaveSelection?.addEventListener(
+            'click',
+            (e) => {
+                e.preventDefault();
+                this.saveSelection();
+            },
+            options
+        );
+
+        this.btnToggleDetails?.addEventListener(
+            'click',
+            (e) => {
+                e.preventDefault();
+                this.toggleDetails();
+            },
+            options
+        );
     }
 
     setCookie(value) {
@@ -101,6 +123,7 @@ export class ConsentBanner {
     acceptAll() {
         this.setCookie({ essential: true, analytics: true });
     }
+
     acceptEssential() {
         this.setCookie({ essential: true, analytics: false });
     }
@@ -110,13 +133,11 @@ export class ConsentBanner {
     }
 
     toggleDetails() {
-        const isCurrentlyHidden =
-            this.detailsContainer.hidden || this.detailsContainer.classList.contains('u-hidden');
+        const isCurrentlyHidden = this.detailsContainer.hidden;
+
         if (isCurrentlyHidden) {
             this.detailsContainer.hidden = false;
-            this.detailsContainer.classList.remove('u-hidden');
             this.btnSaveSelection.hidden = false;
-            this.btnSaveSelection.classList.remove('u-hidden');
             this.btnToggleDetails.innerText = this.config.texts.hide_details;
             this.btnToggleDetails.setAttribute('aria-expanded', 'true');
         } else {
@@ -152,5 +173,9 @@ export class ConsentBanner {
 
         window.gtag('js', new Date());
         window.gtag('config', this.gaId, { anonymize_ip: true });
+    }
+
+    destroy() {
+        this.abortController.abort();
     }
 }

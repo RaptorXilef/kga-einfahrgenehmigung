@@ -13,6 +13,9 @@ export class ReleaseNotes {
         this.titleElement = this.container.querySelector('.js-release-notes-title');
         this.badgeElement = this.container.querySelector('.js-release-notes-badge');
 
+        // Zentraler Controller für restlose Garbage Collection
+        this.abortController = new AbortController();
+
         const unreadScript = document.getElementById('release-notes-unread-data');
         const allScript = document.getElementById('release-notes-all-data');
 
@@ -39,39 +42,52 @@ export class ReleaseNotes {
     }
 
     init() {
-        // Event Listener für die beiden "Schließen" Buttons
+        const options = { signal: this.abortController.signal };
+
         this.closeBtns.forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                // Modal über State-Klasse schließen
-                this.container.close();
+            btn.addEventListener(
+                'click',
+                (e) => {
+                    e.preventDefault();
+                    // Modal über State-Klasse schließen
+                    this.container.close();
 
-                // Wenn wir gerade unread notes angezeigt haben, als gelesen in DB markieren!
-                if (this.showingUnread && this.unreadNotes.length > 0) {
-                    // Wir übergeben immer die höchste (neueste) Versionsnummer, die im Array an Position 0 steht
-                    this.markAsRead(this.unreadNotes[0].version);
-                    this.unreadNotes = []; // Leeren, damit beim nächsten Klick auf "Alle" nicht neu in DB gespeichert wird
-                }
-            });
+                    // Wenn wir gerade unread notes angezeigt haben, als gelesen in DB markieren!
+                    if (this.showingUnread && this.unreadNotes.length > 0) {
+                        // Wir übergeben immer die höchste (neueste) Versionsnummer, die im Array an Position 0 steht
+                        this.markAsRead(this.unreadNotes[0].version);
+                        this.unreadNotes = []; // Leeren, damit beim nächsten Klick auf "Alle" nicht neu in DB gespeichert wird
+                    }
+                },
+                options
+            );
         });
 
-        this.container.addEventListener('click', (e) => {
-            if (e.target === this.container) {
-                this.container.close();
-                if (this.showingUnread && this.unreadNotes.length > 0) {
-                    this.markAsRead(this.unreadNotes[0].version);
-                    this.unreadNotes = [];
+        this.container.addEventListener(
+            'click',
+            (e) => {
+                if (e.target === this.container) {
+                    this.container.close();
+                    if (this.showingUnread && this.unreadNotes.length > 0) {
+                        this.markAsRead(this.unreadNotes[0].version);
+                        this.unreadNotes = [];
+                    }
                 }
-            }
-        });
+            },
+            options
+        );
 
         // Event Listener für manuelles Öffnen durch den Button im Dashboard
         this.triggerBtns.forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                // Manuelles Öffnen -> Zeige IMMER alle Notes an und deaktiviere den DB-Speicher-Trigger
-                this.openModal(this.allNotes, false);
-            });
+            btn.addEventListener(
+                'click',
+                (e) => {
+                    e.preventDefault();
+                    // Manuelles Öffnen -> Zeige IMMER alle Notes an und deaktiviere den DB-Speicher-Trigger
+                    this.openModal(this.allNotes, false);
+                },
+                options
+            );
         });
 
         // Automatisches Öffnen nach Login (Wenn ungelesene Notes vorhanden sind)
@@ -89,10 +105,10 @@ export class ReleaseNotes {
                 ? '🚀 Neu seit Ihrem letzten Login'
                 : '📚 Release Notes Historie';
         }
+
         if (this.badgeElement) {
+            // Native [hidden] Attribut Nutzung statt .u-hidden
             this.badgeElement.hidden = !isUnread;
-            // Fallback für evtl. verbleibendes HTML
-            this.badgeElement.classList.toggle('u-hidden', !isUnread);
         }
 
         // Rendern des Markdowns (Mit Fallback falls CDN blockiert)
@@ -135,5 +151,9 @@ export class ReleaseNotes {
         } catch (e) {
             console.error('[ReleaseNotes] Konnte Changelog nicht als gelesen markieren', e);
         }
+    }
+
+    destroy() {
+        this.abortController.abort();
     }
 }

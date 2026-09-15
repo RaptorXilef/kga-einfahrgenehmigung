@@ -6,6 +6,15 @@
 export class PermissionMatrix {
     constructor(container) {
         this.container = container;
+        this.abortController = new AbortController();
+
+        // A11y: Visuell versteckter Announcer für Screenreader einrichten
+        this.a11yAnnouncer = document.createElement('div');
+        this.a11yAnnouncer.className = 'u-visually-hidden';
+        this.a11yAnnouncer.setAttribute('aria-live', 'polite');
+        this.a11yAnnouncer.setAttribute('aria-atomic', 'true');
+        this.container.appendChild(this.a11yAnnouncer);
+
         this.init();
     }
 
@@ -31,23 +40,29 @@ export class PermissionMatrix {
             if (masterCb) this.applyMasterState(wrapper, masterCb.checked);
         });
 
-        // C. Event-Delegation für Checkboxen
-        this.container.addEventListener('change', (e) => {
-            // 1. UI Toggle wechseln
-            if (e.target.name === 'ui_mode_toggle') {
-                this.updateUiMode(e.target.value);
-            }
+        // Event-Delegation an AbortController binden!
+        this.container.addEventListener(
+            'change',
+            (e) => {
+                if (e.target.name === 'ui_mode_toggle') {
+                    this.updateUiMode(e.target.value);
+                }
 
-            // 2. MASTER TOGGLE (Gott Modus)
-            if (e.target.matches('[data-master-toggle="true"]')) {
-                this.applyMasterState(e.target.closest('.permission-container'), e.target.checked);
-            }
+                // 2. MASTER TOGGLE (Gott Modus)
+                if (e.target.matches('[data-master-toggle="true"]')) {
+                    this.applyMasterState(
+                        e.target.closest('.permission-container'),
+                        e.target.checked
+                    );
+                }
 
-            // 3. SMART TREE Logik (Einzelne Rechte - TwoKinds-Style)
-            if (e.target.matches('[data-perm-check="true"]')) {
-                this.handlePermissionChange(e.target);
-            }
-        });
+                // 3. SMART TREE Logik
+                if (e.target.matches('[data-perm-check="true"]')) {
+                    this.handlePermissionChange(e.target);
+                }
+            },
+            { signal: this.abortController.signal }
+        );
 
         // D. Fokus-Sprung ausführen (falls ?focus= in URL)
         this.handleUrlFocus();
@@ -81,10 +96,17 @@ export class PermissionMatrix {
     /**
      * Hilfsmethode für kurzes visuelles Feedback (Grün für An, Rot für Aus)
      */
-    triggerHighlight(element, isActive) {
+    triggerHighlight(element, isActive, labelText = '') {
         if (!element) return;
         const className = isActive ? 'is-auto-active' : 'is-auto-inactive';
         element.classList.add(className);
+
+        // A11y Feedback für den Screenreader generieren
+        if (labelText) {
+            const stateText = isActive ? 'aktiviert' : 'deaktiviert';
+            this.a11yAnnouncer.textContent = `Abhängige Berechtigung ${labelText} wurde automatisch ${stateText}.`;
+        }
+
         setTimeout(() => element.classList.remove(className), 800);
     }
 
@@ -141,7 +163,12 @@ export class PermissionMatrix {
 
                     if (parentCb.checked !== allChecked) {
                         parentCb.checked = allChecked;
-                        this.triggerHighlight(parentCb.closest('.c-tree-item'), allChecked);
+                        const labelText = parentCb.value; // Der Key der Berechtigung
+                        this.triggerHighlight(
+                            parentCb.closest('.c-tree-item'),
+                            allChecked,
+                            labelText
+                        );
                     }
                 }
             }
@@ -165,7 +192,7 @@ export class PermissionMatrix {
         descendantCheckboxes.forEach((cb) => {
             if (cb !== checkbox && cb.checked !== isChecked) {
                 cb.checked = isChecked;
-                this.triggerHighlight(cb.closest('.c-tree-item'), isChecked);
+                this.triggerHighlight(cb.closest('.c-tree-item'), isChecked, cb.value);
             }
         });
 
@@ -188,13 +215,12 @@ export class PermissionMatrix {
                         `[data-tab-target="${parentTabContent.id}"]`
                     );
                     if (tabBtn) {
-                        document.querySelectorAll('.c-tabs__btn').forEach((b) => {
-                            b.classList.remove('is-active');
-                        });
-                        document.querySelectorAll('.c-tabs__content').forEach((c) => {
-                            c.classList.remove('is-active');
-                        });
-
+                        document
+                            .querySelectorAll('.c-tabs__btn')
+                            .forEach((b) => b.classList.remove('is-active'));
+                        document
+                            .querySelectorAll('.c-tabs__content')
+                            .forEach((c) => c.classList.remove('is-active'));
                         tabBtn.classList.add('is-active');
                         parentTabContent.classList.add('is-active');
                     }
@@ -212,5 +238,10 @@ export class PermissionMatrix {
                 }, 400);
             }
         }
+    }
+
+    destroy() {
+        this.abortController.abort();
+        if (this.a11yAnnouncer) this.a11yAnnouncer.remove();
     }
 }

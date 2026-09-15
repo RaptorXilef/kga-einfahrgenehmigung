@@ -9,10 +9,15 @@
  */
 export function debounce(func, wait = 250) {
     let timeout;
-    return function (...args) {
+    const debounced = function (...args) {
         clearTimeout(timeout);
         timeout = setTimeout(() => func.apply(this, args), wait);
     };
+
+    // Ermöglicht das Abbrechen des Timers (Wichtig für Garbage Collection!)
+    debounced.cancel = () => clearTimeout(timeout);
+
+    return debounced;
 }
 
 /**

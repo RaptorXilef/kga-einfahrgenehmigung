@@ -39,7 +39,7 @@ export class AdminDashboard {
         if (this.searchInput) {
             const form = document.getElementById('dashboardFilterForm');
             if (form) {
-                // Die referenzierte Handler-Funktion muss im Speicher bleiben
+                // Die referenzierte Handler-Funktion muss im Speicher bleiben und abbrechbar sein
                 this.debouncedSearch = debounce(() => form.submit(), 600);
                 this.searchInput.addEventListener('input', this.debouncedSearch, options);
             }
@@ -116,11 +116,9 @@ export class AdminDashboard {
             if (this.countSpanRemind) this.countSpanRemind.innerText = checkedCount;
 
             const isHidden = checkedCount === 0;
+            // Strikte Nutzung von nativen Properties statt verbotener .u-hidden Klassen
             this.btnPay.hidden = isHidden;
             this.btnRemind.hidden = isHidden;
-            // Fallback für verbleibendes HTML, das evtl. noch die Klasse nutzt
-            this.btnPay.classList.toggle('u-hidden', isHidden);
-            this.btnRemind.classList.toggle('u-hidden', isHidden);
         }
     }
 
@@ -129,7 +127,6 @@ export class AdminDashboard {
         const target = document.getElementById(tabId);
         if (!target) return;
 
-        // LINTER FIX: Explizite Blöcke verhindern implizites Return in forEach
         this.contents.forEach((c) => {
             c.classList.remove('is-active');
         });
@@ -187,6 +184,10 @@ export class AdminDashboard {
     }
 
     destroy() {
+        // Verhindert Phantom-Formular-Submits nach dem Verlassen der Seite
+        if (this.debouncedSearch && typeof this.debouncedSearch.cancel === 'function') {
+            this.debouncedSearch.cancel();
+        }
         // Tötet alle delegierten Events sofort und restlos
         this.abortController.abort();
     }
