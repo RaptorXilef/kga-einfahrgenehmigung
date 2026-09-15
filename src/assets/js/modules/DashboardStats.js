@@ -40,8 +40,8 @@ export class DashboardStats {
                     {
                         label: 'Umsatz Soll (€)',
                         data: this.chartData.monthRevenue,
-                        backgroundColor: 'var(--color-primary-soft, rgba(52, 152, 219, 0.6))',
-                        borderColor: 'var(--color-primary, #3498db)',
+                        backgroundColor: 'rgba(52, 152, 219, 0.6)',
+                        borderColor: '#3498db',
                         borderWidth: 2,
                         borderRadius: 5,
                         yAxisID: 'y',
@@ -49,8 +49,8 @@ export class DashboardStats {
                     {
                         label: 'Anzahl Genehmigungen',
                         data: this.chartData.monthCounts,
-                        borderColor: 'var(--color-success, #6366f1)',
-                        backgroundColor: 'var(--color-success, #6366f1)',
+                        borderColor: '#6366f1',
+                        backgroundColor: '#6366f1',
                         borderWidth: 3,
                         type: 'line',
                         tension: 0.3,
@@ -86,7 +86,7 @@ export class DashboardStats {
                     y: {
                         type: 'linear',
                         position: 'left',
-                        grid: { color: 'var(--color-border)' },
+                        grid: { color: 'rgba(0,0,0,0.05)' },
                         title: { display: true, text: 'Euro (€)', font: { weight: 'bold' } },
                     },
                     y1: {

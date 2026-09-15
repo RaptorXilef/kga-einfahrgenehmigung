@@ -14,7 +14,6 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\BankImportService;
-use Throwable;
 
 #[Route('POST', '/bank_import_process')]
 #[RequiresAuth]
@@ -56,7 +55,43 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                     }
                 }
 
-                // Flache Log-Generierung ohne HTML
+                $baseUrl = $this->config->getBaseUrl();
+
+                // FIX: Erweiterte HTML-Liste wiederhergestellt
+                $formatList = function (array $categories): string {
+                    $html = '<ul class="u-margin-block-xs u-padding-inline-start-m">';
+                    foreach ($categories as $cat => $items) {
+                        if (\is_numeric($cat)) {
+                            $html .= '<li>' . \htmlspecialchars((string) $items) . '</li>';
+                        } else {
+                            $html .= '<li class="u-margin-block-end-xs"><strong class="u-font-bold"><em>' . \htmlspecialchars((string) $cat) . '</em></strong>:';
+                            $html .= '<ul class="u-margin-block-start-none u-margin-block-end-xs u-padding-inline-start-m">';
+                            foreach ((array) $items as $item) {
+                                $html .= '<li>' . \htmlspecialchars((string) $item) . '</li>';
+                            }
+                            $html .= '</ul></li>';
+                        }
+                    }
+                    $html .= '</ul>';
+
+                    return $html;
+                };
+
+                $htmlDetails = [];
+                if (!empty($res['erfolgreich_details'])) {
+                    $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/status-success.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Freigeschaltet:</strong>' . $formatList($res['erfolgreich_details']) . '</div>';
+                }
+                if (!empty($res['uebersprungen_details'])) {
+                    $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/icon-skip.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
+                }
+                if (!empty($fehlerhaftDetails)) {
+                    $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/status-invalid.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($fehlerhaftDetails) . '</div>';
+                }
+
+                $msg = "<div class=\"u-margin-bottom-m\">Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.</div>";
+                $fullMsg = $msg . \implode('', $htmlDetails);
+
+                // Audit Log (Flach)
                 $flattenForLog = function (array $categories): string {
                     $parts = [];
                     foreach ($categories as $cat => $items) {
@@ -87,22 +122,10 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 }
 
                 $this->auditLogger->log('BANK_IMPORT', $logStr);
-
-                // Saubere Plaintext-Rückmeldung
-                $msg = "Bank-Abgleich beendet: {$erfolgreichCount} freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft. Details siehe Audit-Log.";
-                if (!empty($res['sammel_transfers'])) {
-                    $msg .= ' Es wurden Sammelüberweisungen zur manuellen Prüfung gefunden.';
-                }
-
-                $this->sessionManager->addFlash('success', $msg);
+                $this->sessionManager->addFlash('success', $fullMsg);
             } else {
                 $this->sessionManager->addFlash('error', (string) ($res['message'] ?? 'Fehler bei der CSV-Verarbeitung.'));
             }
-
-            // Direkt zum Finanzen-Tab springen
-            return new RedirectResponse('admin?focus=tab-finance');
-        } catch (Throwable $e) {
-            $this->sessionManager->addFlash('error', $e->getMessage());
 
             // Bei Fehler auch dorthin zurückspringen, wo der User gestartet ist
             return new RedirectResponse('admin?focus=tab-finance');

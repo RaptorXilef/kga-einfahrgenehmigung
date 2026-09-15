@@ -40,4 +40,4 @@ final readonly class GetDateInfoAction implements ViewActionInterface
             return JsonResponse::error($e->getMessage());
         }
     }
-}♦
+}

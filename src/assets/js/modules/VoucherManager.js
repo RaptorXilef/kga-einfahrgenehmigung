@@ -73,7 +73,6 @@ export class VoucherManager {
         if (!this.modal) return;
 
         this.modalCode.innerText = code;
-
         this.modalImg.hidden = true;
         this.modalLoader.hidden = false;
         this.modalLoader.classList.remove('is-error');
@@ -82,8 +81,11 @@ export class VoucherManager {
 
         // Die QR-Code API url-encoded aufrufen
         const encodedUrl = encodeURIComponent(url);
-        const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
-        const qrUrl = `${baseUrl}api/generate_qr?data=${encodedUrl}`;
+
+        // FIX: Zurück auf externe API, da das lokale PHP Script noch fehlt!
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodedUrl}`;
+        // const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
+        // const qrUrl = `${baseUrl}api/generate_qr?data=${encodedUrl}`;
 
         // Wir blenden das Bild erst ein, wenn die externe API es fertig gerendert hat
         this.modalImg.onload = () => {
