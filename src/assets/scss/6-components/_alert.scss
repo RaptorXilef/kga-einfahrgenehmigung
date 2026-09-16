@@ -80,7 +80,7 @@
     }
 
     .c-alert__footer {
-        font-size: 0.95rem;
+        font-size: var(--text-md);
         opacity: 0.8;
         border-block-start: var(--border-s) solid
             color-mix(in oklch, var(--color-text-main) 10%, transparent);

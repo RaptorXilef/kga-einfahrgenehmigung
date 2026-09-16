@@ -2,7 +2,7 @@
 
 @layer components {
     .c-tree-wrapper {
-        transition: all 0.3s ease;
+        transition: all var(--time-base) ease;
     }
 
     .c-tree-wrapper.is-master-active {
@@ -12,7 +12,7 @@
     }
 
     .c-tree-node {
-        transition: all 0.2s;
+        transition: all var(--time-fast);
         margin-inline-start: calc(var(--depth, 0) * var(--space-xl));
     }
 
@@ -21,7 +21,7 @@
     }
 
     .c-tree-item {
-        transition: background-color 0.2s;
+        transition: background-color var(--time-fast);
         padding-block: var(--space-s);
         padding-inline: 0;
         border-block-end: var(
@@ -70,7 +70,7 @@
 
     .c-tree-item__sublabel {
         display: block;
-        font-size: 0.75rem;
+        font-size: var(--text-xs);
         color: var(--color-text-muted);
         font-family: var(--font-mono, monospace);
         margin-block-start: 0.125rem;
@@ -124,7 +124,7 @@
         cursor: pointer;
         inset: 0;
         background-color: var(--switch-bg);
-        transition: background-color 0.4s;
+        transition: background-color var(--time-slow);
         border-radius: var(--radius-pill);
     }
 
@@ -137,7 +137,8 @@
         translate: var(--switch-thumb-x) -50%;
         background-color: var(--color-bg-white);
         will-change: translate;
-        transition: translate 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        transition: translate var(--time-slow)
+            cubic-bezier(0.18, 0.89, 0.32, 1.28);
         border-radius: var(--radius-circle);
         z-index: z('switch');
         box-shadow: 0 0.125rem 0.25rem
@@ -151,11 +152,11 @@
         inset-inline-end: var(--switch-text-inset-end);
         inset-block-start: 50%;
         translate: 0 -50%;
-        font-size: 0.65rem;
+        font-size: var(--text-xs);
         font-weight: 900;
         color: var(--switch-text-color);
         transition:
-            color 0.3s,
-            inset 0.3s;
+            color var(--time-base),
+            inset var(--time-base);
     }
 }

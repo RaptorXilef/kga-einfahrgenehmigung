@@ -2,7 +2,7 @@
     .c-table {
         inline-size: 100%;
         border-collapse: collapse;
-        font-size: 0.95rem;
+        font-size: var(--text-md);
     }
 
     .c-table__header-cell {
@@ -12,7 +12,7 @@
         padding-inline: 1rem;
         border-block-end: var(--border-m) solid var(--color-border);
         text-align: start;
-        font-size: 0.75rem;
+        font-size: var(--text-xs);
         text-transform: uppercase;
         font-weight: 700;
         letter-spacing: 0.03125rem;
@@ -49,7 +49,7 @@
     .c-table__label--total {
         color: var(--color-text-main);
         font-weight: 700;
-        font-size: 1.05rem;
+        font-size: var(--text-md);
         padding-block: var(--space-m);
         border-block-start: var(--border-m) solid var(--color-border);
     }
@@ -60,7 +60,7 @@
 
     .c-table__value--highlight {
         font-weight: 800;
-        font-size: 1.1rem;
+        font-size: var(--text-lg);
         color: var(--color-primary);
     }
 
@@ -73,13 +73,13 @@
         font-weight: 700;
         text-transform: uppercase;
         font-family: var(--font-mono, monospace);
-        font-size: 1.05rem;
+        font-size: var(--text-md);
     }
 
     .c-table__value--total {
         font-weight: 800;
         color: var(--color-primary);
-        font-size: 1.4rem;
+        font-size: var(--text-2xl);
         padding-block: var(--space-m);
         border-block-start: var(--border-m) solid var(--color-border);
     }
@@ -91,7 +91,7 @@
 
         cursor: pointer;
         user-select: none;
-        transition: color 0.2s;
+        transition: color var(--time-fast);
         color: var(--sortable-color);
     }
 
@@ -114,7 +114,7 @@
         vertical-align: middle;
         color: var(--sort-icon-color);
         transition:
-            opacity 0.2s,
-            color 0.2s;
+            opacity var(--time-fast),
+            color var(--time-fast);
     }
 }

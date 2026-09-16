@@ -15,16 +15,16 @@
         align-items: center;
         gap: 0.625rem;
         font-weight: 800;
-        font-size: 0.95rem;
+        font-size: var(--text-md);
         box-shadow: 0 0.625rem 1.5625rem
             color-mix(in oklch, var(--color-primary) 30%, transparent);
         cursor: pointer;
         z-index: z('fab');
         will-change: translate, box-shadow;
         transition:
-            translate 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-            background-color 0.2s ease,
-            box-shadow 0.2s ease;
+            translate var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
+            background-color var(--time-fast) ease,
+            box-shadow var(--time-fast) ease;
     }
 
     .c-fab-refresh:hover {

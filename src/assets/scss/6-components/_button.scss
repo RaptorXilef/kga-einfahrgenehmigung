@@ -20,11 +20,11 @@
         cursor: pointer;
         will-change: translate, box-shadow;
         transition:
-            background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-            color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-            border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-            translate 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-            box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
+            color var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
+            border-color var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
+            translate var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
+            box-shadow var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1);
         text-decoration: none;
         box-shadow: var(--btn-shadow);
         gap: var(--space-s);
@@ -129,7 +129,7 @@
         block-size: 2.125rem;
         padding-inline: var(--space-m);
         border-radius: var(--radius-l);
-        font-size: 0.85rem;
+        font-size: var(--text-sm);
     }
 
     .c-button--small-icon-only {
@@ -140,13 +140,13 @@
     .c-button--submit {
         padding-block: var(--space-m);
         block-size: auto;
-        font-size: 1.1rem;
+        font-size: var(--text-lg);
     }
 
     .c-button--large {
         padding-block: var(--space-m);
         block-size: auto;
-        font-size: 1.1rem;
+        font-size: var(--text-lg);
         inline-size: 100%;
     }
 

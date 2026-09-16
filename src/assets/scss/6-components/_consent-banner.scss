@@ -36,14 +36,14 @@
 
     .c-consent-banner__text {
         margin-block-start: 0;
-        font-size: 0.9rem;
+        font-size: var(--text-sm);
         color: var(--color-text-main);
         line-height: 1.5;
     }
 
     .c-consent-banner__links {
         margin-block-start: var(--space-s);
-        font-size: 0.85rem;
+        font-size: var(--text-sm);
     }
 
     .c-consent-banner__actions {
@@ -89,7 +89,7 @@
         color: var(--color-text-muted);
         padding-block: var(--space-xs);
         padding-inline: var(--space-xs);
-        font-size: 0.85rem;
+        font-size: var(--text-sm);
         text-decoration: underline;
     }
 }

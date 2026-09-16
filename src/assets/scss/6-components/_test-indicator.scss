@@ -51,7 +51,7 @@
         padding-inline: 0.75rem;
         border-radius: var(--radius-s);
         font-weight: 800;
-        font-size: 0.75rem;
+        font-size: var(--text-xs);
         letter-spacing: 0.0625rem;
         text-transform: uppercase;
         border: var(--border-s) solid
@@ -63,7 +63,7 @@
     }
 
     .c-test-indicator__text {
-        font-size: 0.85rem;
+        font-size: var(--text-sm);
         font-weight: 600;
         text-shadow: 0 var(--border-s) 0
             color-mix(in oklch, var(--color-bg-white) 40%, transparent);
@@ -89,7 +89,7 @@
         padding-block: 0.125rem;
         padding-inline: 0.625rem;
         border-radius: var(--radius-s);
-        font-size: 0.75rem;
+        font-size: var(--text-xs);
         font-weight: 700;
         box-shadow: 0 var(--border-m) var(--radius-s)
             color-mix(in oklch, var(--color-text-main) 20%, transparent);

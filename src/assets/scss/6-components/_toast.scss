@@ -11,15 +11,15 @@
         padding-block: var(--space-s);
         padding-inline: var(--space-l);
         border-radius: var(--radius-pill);
-        font-size: 0.9rem;
+        font-size: var(--text-sm);
         font-weight: 600;
         box-shadow: var(--shadow-md);
         z-index: z('toast');
         display: flex;
         align-items: center;
         gap: var(--space-s);
-        animation: toastSlideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28)
-            forwards;
+        animation: toastSlideUp var(--time-slow)
+            cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
         will-change: translate, opacity;
     }
 
@@ -38,7 +38,7 @@
     .c-toast.is-hidden {
         opacity: 0;
         translate: -50% var(--space-l);
-        transition: all 0.4s ease;
+        transition: all var(--time-slow) ease;
     }
 
     .c-toast__icon {

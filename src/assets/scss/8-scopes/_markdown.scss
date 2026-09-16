@@ -46,7 +46,7 @@
         padding-inline: 0.4em;
         border-radius: var(--radius-s);
         font-family: monospace;
-        font-size: 0.85em;
+        font-size: var(--text-sm);
         border: var(--border-s) solid var(--color-border);
         color: var(--color-danger);
     }

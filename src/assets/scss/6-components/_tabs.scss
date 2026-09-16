@@ -32,12 +32,12 @@
         border-radius: var(--radius-xl);
         font-weight: 600;
         color: var(--color-text-main);
-        transition: all 0.2s ease;
+        transition: all var(--time-fast) ease;
         display: inline-flex;
         align-items: center;
         gap: var(--space-s);
         text-decoration: none;
-        font-size: 0.9rem;
+        font-size: var(--text-sm);
         white-space: nowrap;
     }
 
@@ -70,7 +70,8 @@
 
     .c-tabs__content.is-active {
         display: block;
-        animation: tabsSlideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: tabsSlideUp var(--time-base) cubic-bezier(0.4, 0, 0.2, 1)
+            forwards;
         will-change: opacity, translate;
     }
 

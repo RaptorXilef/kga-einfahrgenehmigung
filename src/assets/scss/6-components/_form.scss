@@ -17,8 +17,8 @@
         padding-inline-end: var(--c-input-padding-end);
         font-size: clamp(0.9rem, 0.8rem + 0.5vw, 1rem);
         transition:
-            border-color 0.2s ease-in-out,
-            box-shadow 0.2s ease-in-out;
+            border-color var(--time-fast) ease-in-out,
+            box-shadow var(--time-fast) ease-in-out;
         color: var(--color-text-main);
         block-size: var(--c-input-height-val);
         inline-size: 100%;
@@ -167,14 +167,14 @@
         background: none;
         border: none;
         cursor: pointer;
-        font-size: 1.2rem;
+        font-size: var(--text-xl);
         padding: 0;
         outline: none;
         opacity: 0.5;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: opacity 0.2s ease;
+        transition: opacity var(--time-fast) ease;
     }
 
     .c-form-input--short {

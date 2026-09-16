@@ -10,28 +10,28 @@
     }
 
     .u-text-xs {
-        font-size: 0.75rem !important;
+        font-size: var(--text-xs) !important;
     }
     .u-text-sm {
-        font-size: 0.85rem !important;
+        font-size: var(--text-sm) !important;
     }
     .u-text-md {
-        font-size: 1rem !important;
+        font-size: var(--text-md) !important;
     }
     .u-text-lg {
-        font-size: 1.15rem !important;
+        font-size: var(--text-lg) !important;
     }
     .u-text-xl {
-        font-size: 1.3rem !important;
+        font-size: var(--text-xl) !important;
     }
     .u-text-2xl {
-        font-size: 2rem !important;
+        font-size: var(--text-2xl) !important;
     }
     .u-text-3xl {
-        font-size: 3rem !important;
+        font-size: var(--text-3xl) !important;
     }
     .u-text-4xl {
-        font-size: 4rem !important;
+        font-size: var(--text-4xl) !important;
     }
 
     .u-font-semibold {
@@ -109,7 +109,7 @@
         color: var(--color-primary);
         text-decoration: underline;
         font-weight: 500;
-        transition: color 0.2s ease;
+        transition: color var(--time-fast) ease;
     }
     .u-text-link:hover {
         color: color-mix(in oklch, var(--color-primary) 80%, oklch(0 0 0));

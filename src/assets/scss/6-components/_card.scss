@@ -65,7 +65,7 @@
         border-radius: var(--radius-xxl);
         outline: var(--border-l) solid var(--card-outline-color);
         outline-offset: var(--border-m);
-        transition: outline 0.3s;
+        transition: outline var(--time-base);
     }
 
     .c-category-card.is-closed {
@@ -89,7 +89,7 @@
         border-start-end-radius: var(--radius-xxl);
         border-end-start-radius: var(--card-header-radius);
         border-end-end-radius: var(--card-header-radius);
-        transition: border-radius 0.2s;
+        transition: border-radius var(--time-fast);
     }
 
     .c-category-card__body {

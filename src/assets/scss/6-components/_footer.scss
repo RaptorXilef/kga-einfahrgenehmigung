@@ -9,7 +9,7 @@
     }
 
     .c-footer__content {
-        font-size: 0.85rem;
+        font-size: var(--text-sm);
         color: var(--color-text-muted);
         display: flex;
         flex-direction: column;
@@ -48,7 +48,7 @@
 
     .c-footer__links {
         margin-block-start: var(--space-s);
-        font-size: 0.8rem;
+        font-size: var(--text-sm);
         display: flex;
         gap: var(--space-m);
         justify-content: center;

@@ -16,7 +16,7 @@
         cursor: pointer;
         color: var(--color-primary);
         font-weight: 600;
-        font-size: 0.95rem;
+        font-size: var(--text-md);
         display: inline-flex;
         align-items: center;
         gap: 0.3125rem;
@@ -33,8 +33,8 @@
 
     .c-voucher-container {
         transition:
-            max-block-size 0.3s ease-out,
-            opacity 0.3s ease-out;
+            max-block-size var(--time-base) ease-out,
+            opacity var(--time-base) ease-out;
         max-block-size: 0;
         opacity: 0;
         overflow: hidden;

@@ -16,6 +16,12 @@
         @each $name, $value in $tokens-radius {
             --radius-#{$name}: #{$value};
         }
+        @each $name, $value in $tokens-font-size {
+            --text-#{$name}: #{$value};
+        }
+        @each $name, $value in $tokens-time {
+            --time-#{$name}: #{$value};
+        }
         @each $name, $value in $tokens-layout {
             --layout-#{$name}: #{$value};
         }

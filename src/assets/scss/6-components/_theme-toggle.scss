@@ -12,17 +12,17 @@
         align-items: center;
         gap: var(--space-s);
         cursor: pointer;
-        font-size: 0.85rem;
+        font-size: var(--text-sm);
         font-weight: 800;
         box-shadow: var(--shadow-sm);
         will-change:
             translate, box-shadow, background-color, border-color, color;
         transition:
-            background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-            color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-            border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-            translate 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-            box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
+            color var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
+            border-color var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
+            translate var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
+            box-shadow var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1);
         text-transform: uppercase;
         letter-spacing: 0.03125rem;
     }
@@ -38,7 +38,7 @@
     }
 
     .c-theme-toggle__icon {
-        transition: filter 0.2s ease;
+        transition: filter var(--time-fast) ease;
         filter: var(--toggle-icon-filter);
     }
 }

@@ -10,8 +10,8 @@
         border: var(--border-m) dashed var(--dropzone-border-color);
         background-color: var(--dropzone-bg);
         transition:
-            background-color 0.2s ease,
-            border-color 0.2s ease;
+            background-color var(--time-fast) ease,
+            border-color var(--time-fast) ease;
     }
 
     .c-dropzone--preview {
@@ -43,9 +43,9 @@
         align-items: center;
         justify-content: center;
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: var(--text-sm);
         opacity: var(--overlay-opacity);
-        transition: opacity 0.2s;
+        transition: opacity var(--time-fast);
         pointer-events: none;
         z-index: z('dropzone-overlay');
         border-radius: inherit;
@@ -53,13 +53,13 @@
 
     .c-dropzone__text {
         transition:
-            font-size 0.2s,
-            opacity 0.2s,
-            color 0.2s;
+            font-size var(--time-fast),
+            opacity var(--time-fast),
+            color var(--time-fast);
     }
 
     .c-dropzone__text.is-filled {
-        font-size: 1.2rem;
+        font-size: var(--text-xl);
         opacity: 1;
         color: var(--color-primary);
     }

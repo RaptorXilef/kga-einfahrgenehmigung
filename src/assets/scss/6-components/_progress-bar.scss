@@ -12,6 +12,6 @@
         background-color: var(--color-primary);
         block-size: 100%;
         inline-size: var(--progress-width, 0%);
-        transition: inline-size 0.6s ease-in-out;
+        transition: inline-size var(--time-slower) ease-in-out;
     }
 }
