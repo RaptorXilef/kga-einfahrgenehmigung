@@ -1,7 +1,10 @@
+@use '../2-tools/mixins' as *;
+
 @layer components {
     .c-theme-toggle {
         --toggle-icon-filter: none;
 
+        @include button-reset;
         background-color: var(--color-bg-white);
         border: var(--border-s) solid var(--color-border);
         color: var(--color-text-main);
@@ -11,20 +14,22 @@
         display: flex;
         align-items: center;
         gap: var(--space-s);
-        cursor: pointer;
         font-size: var(--text-sm);
         font-weight: var(--font-weight-extrabold);
         box-shadow: var(--shadow-sm);
         will-change:
             translate, box-shadow, background-color, border-color, color;
-        transition:
-            background-color var(--time-fast) var(--ease-base),
-            color var(--time-fast) var(--ease-base),
-            border-color var(--time-fast) var(--ease-base),
-            translate var(--time-fast) var(--ease-base),
-            box-shadow var(--time-fast) var(--ease-base);
         text-transform: uppercase;
         letter-spacing: var(--letter-spacing-wide);
+
+        @include transition-fast(
+            background-color,
+            color,
+            border-color,
+            translate,
+            box-shadow
+        );
+        @include focus-ring();
     }
 
     .c-theme-toggle:hover {
@@ -38,7 +43,7 @@
     }
 
     .c-theme-toggle__icon {
-        transition: filter var(--time-fast) ease;
+        @include transition-fast(filter);
         filter: var(--toggle-icon-filter);
     }
 }

@@ -1,3 +1,5 @@
+@use '../2-tools/mixins' as *;
+
 @layer components {
     .c-accordion {
         margin-block-end: var(--space-s);
@@ -15,6 +17,14 @@
         align-items: center;
         box-shadow: var(--shadow-sm);
         list-style: none;
+
+        @include transition-fast(background-color, border-color, box-shadow);
+        @include focus-ring();
+    }
+
+    .c-accordion__summary:hover {
+        background-color: var(--color-bg-white);
+        border-color: var(--color-primary);
     }
 
     .c-accordion__summary::-webkit-details-marker {

@@ -17,7 +17,7 @@
         border-radius: var(--c-input-radius-val);
         padding-inline-start: var(--c-input-padding-start);
         padding-inline-end: var(--c-input-padding-end);
-        font-size: var(--text-md); /* Verhindert Auto-Zoom in iOS */
+        font-size: var(--text-md);
         color: var(--color-text-main);
         block-size: var(--c-input-height-val);
         inline-size: var(--size-full);
@@ -25,20 +25,22 @@
 
         @include transition-fast(border-color, box-shadow);
         @include focus-ring(var(--color-primary), 0);
+    }
 
-        /* UI Fix: Konsistentes, dezentes Date-Picker Icon */
-        &::-webkit-calendar-picker-indicator {
-            cursor: pointer;
-            padding: var(--space-xs);
-            inline-size: var(--size-icon-md);
-            block-size: var(--size-icon-md);
-            opacity: var(--opacity-50);
-            @include transition-fast(opacity);
+    /* UI Fix: Konsistentes, dezentes Date-Picker Icon - STRIKT FLACH */
+    .c-form-input::-webkit-calendar-picker-indicator,
+    .c-form-select::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        padding: var(--space-xs);
+        inline-size: var(--size-icon-md);
+        block-size: var(--size-icon-md);
+        opacity: var(--opacity-50);
+        @include transition-fast(opacity);
+    }
 
-            &:hover {
-                opacity: var(--opacity-100);
-            }
-        }
+    .c-form-input::-webkit-calendar-picker-indicator:hover,
+    .c-form-select::-webkit-calendar-picker-indicator:hover {
+        opacity: var(--opacity-100);
     }
 
     .c-form-input:focus,
@@ -153,7 +155,6 @@
         scale: 1.2;
         cursor: pointer;
         flex-shrink: 0;
-
         @include focus-ring();
     }
 
