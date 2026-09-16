@@ -1,7 +1,9 @@
 @layer components {
     .c-form-input,
     .c-form-select {
-        --c-input-padding-inline: var(--c-input-px, 0.875rem); // 14px
+        --c-input-padding-inline: var(
+            --space-m
+        ); // Ersetzt harte 14px durch Token
         --c-input-padding-start: var(
             --c-input-pl,
             var(--c-input-padding-inline)
@@ -28,14 +30,14 @@
     .c-form-input:focus,
     .c-form-select:focus {
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 0.25rem var(--color-primary-soft); // 4px
+        box-shadow: 0 0 0 var(--space-xs) var(--color-primary-soft); // Token statt 4px
         outline: none;
     }
 
     .c-form-input--small,
     .c-form-select--small {
         --c-input-height: 2.125rem; // 34px
-        --c-input-px: 0.625rem; // 10px
+        --c-input-padding-inline: var(--space-s); // Token statt 10px
         font-size: clamp(0.8rem, 0.75rem + 0.5vw, 0.85rem);
     }
 
@@ -43,7 +45,7 @@
         appearance: none;
         background-image: var(--icon-select-arrow);
         background-repeat: no-repeat;
-        background-position: calc(100% - 0.875rem) center; /* 14px */
+        background-position: calc(100% - var(--space-m)) center; /* Token */
         padding-inline-end: 2.5rem; // 40px
     }
 
@@ -123,16 +125,15 @@
         border-color: color-mix(in oklch, var(--color-danger) 20%, transparent);
     }
 
-    /* Neuer konsolidierter BEM-Block für Checkboxes und Radios */
     .c-checkbox {
         display: flex;
-        gap: 12px;
+        gap: var(--space-m);
         align-items: flex-start;
         cursor: pointer;
     }
 
     .c-checkbox__input {
-        margin-block-start: 4px;
+        margin-block-start: var(--space-xs);
         scale: 1.2;
         cursor: pointer;
         flex-shrink: 0;
@@ -164,7 +165,7 @@
 
     .c-password-toggle__btn {
         position: absolute;
-        inset-inline-end: 0.625rem; // 10px
+        inset-inline-end: var(--space-s); // Token statt 10px
         background: none;
         border: none;
         cursor: pointer;

@@ -127,7 +127,7 @@
     .c-button--small {
         min-inline-size: 34px;
         block-size: 34px;
-        padding-inline: 12px;
+        padding-inline: var(--space-m);
         border-radius: 8px;
         font-size: 0.85rem;
     }
@@ -144,7 +144,7 @@
     }
 
     .c-button--large {
-        padding-block: 15px;
+        padding-block: var(--space-m);
         block-size: auto;
         font-size: 1.1rem;
         inline-size: 100%;

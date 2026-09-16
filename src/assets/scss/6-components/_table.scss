@@ -51,7 +51,7 @@
         color: var(--color-text-main);
         font-weight: 700;
         font-size: 1.05rem;
-        padding-block: 18px;
+        padding-block: var(--space-m);
         border-block-start: 2px solid var(--color-border);
     }
 
@@ -81,7 +81,7 @@
         font-weight: 800;
         color: var(--color-primary);
         font-size: 1.4rem;
-        padding-block: 18px;
+        padding-block: var(--space-m);
         border-block-start: 2px solid var(--color-border);
     }
 
@@ -110,7 +110,7 @@
     .c-sort-icon {
         opacity: var(--sort-icon-opacity);
         font-size: 1.1em;
-        margin-inline-start: 4px;
+        margin-inline-start: var(--space-xs);
         display: inline-block;
         vertical-align: middle;
         color: var(--sort-icon-color);

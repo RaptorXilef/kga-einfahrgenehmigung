@@ -2,7 +2,7 @@
     .c-badge {
         background-color: var(--color-border);
         color: var(--color-text-main);
-        padding-block: 0.25rem; // 4px
+        padding-block: var(--space-xs);
         padding-inline: var(--space-s);
         border-radius: 1.25rem; // 20px
         font-size: 0.75rem;
@@ -10,7 +10,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.25rem; // 4px
+        gap: var(--space-xs);
         text-transform: uppercase;
         letter-spacing: 0.03125rem; // 0.5px
     }

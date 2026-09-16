@@ -75,7 +75,7 @@
         font-weight: 700;
         color: var(--color-text-dark);
         font-size: 1.05rem;
-        margin-block-end: 2px;
+        margin-block-end: var(--space-xs);
     }
 
     .c-action-card__desc {
