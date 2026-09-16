@@ -14,25 +14,27 @@
         grid-template-columns: 1fr auto;
     }
 
-    // FIX: Clamp mit rem Werten
     .o-grid--auto-fit-sm {
         grid-template-columns: repeat(
             auto-fit,
-            minmax(clamp(9.375rem, 15vw, 11.25rem), 1fr)
+            minmax(clamp(var(--size-panel-md), 15vw, var(--size-panel-lg)), 1fr)
         );
     }
 
     .o-grid--auto-fit {
         grid-template-columns: repeat(
             auto-fit,
-            minmax(clamp(15rem, 20vw, 17.5rem), 1fr)
+            minmax(
+                clamp(var(--size-panel-lg), 20vw, var(--size-panel-2xl)),
+                1fr
+            )
         );
     }
 
     .o-grid--auto-fit-lg {
         grid-template-columns: repeat(
             auto-fit,
-            minmax(clamp(20rem, 25vw, 25rem), 1fr)
+            minmax(clamp(var(--size-panel-2xl), 25vw, 25rem), 1fr)
         );
     }
 
@@ -40,6 +42,6 @@
         grid-template-columns: 1.6fr 1fr;
     }
     .o-grid--user-management {
-        grid-template-columns: 12.5rem 1.2fr 1fr;
-    } // 200px
+        grid-template-columns: var(--size-panel-lg) 1.2fr 1fr;
+    }
 }

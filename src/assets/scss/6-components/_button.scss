@@ -20,11 +20,11 @@
         cursor: pointer;
         will-change: translate, box-shadow;
         transition:
-            background-color var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
-            color var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
-            border-color var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
-            translate var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
-            box-shadow var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1);
+            background-color var(--time-fast) var(--ease-base),
+            color var(--time-fast) var(--ease-base),
+            border-color var(--time-fast) var(--ease-base),
+            translate var(--time-fast) var(--ease-base),
+            box-shadow var(--time-fast) var(--ease-base);
         text-decoration: none;
         box-shadow: var(--btn-shadow);
         gap: var(--space-s);

@@ -27,8 +27,7 @@
     }
 
     .c-modal[open] .c-modal__dialog {
-        animation: modalSlideUp var(--time-base)
-            cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+        animation: modalSlideUp var(--time-base) var(--ease-bounce) forwards;
     }
 
     @keyframes modalSlideUp {

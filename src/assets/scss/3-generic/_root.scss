@@ -40,13 +40,16 @@
         @each $name, $value in $tokens-time {
             --time-#{$name}: #{$value};
         }
+        @each $name, $value in $tokens-ease {
+            --ease-#{$name}: #{$value};
+        }
         @each $name, $value in $tokens-layout {
             --layout-#{$name}: #{$value};
         }
 
         --font-sans: 'Inter', -apple-system, sans-serif;
 
-        /* Zentrale Schatten Hierarchie */
+        /* Zentrale Schatten Hierarchie (Keine Magic Numbers mehr) */
         --shadow-none: none;
         --shadow-inset: inset 0 var(--border-s) var(--border-m)
             color-mix(

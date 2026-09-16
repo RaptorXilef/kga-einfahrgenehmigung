@@ -2,7 +2,7 @@
 
 @layer components {
     .c-tree-wrapper {
-        transition: all var(--time-base) ease;
+        transition: all var(--time-base) var(--ease-base);
     }
 
     .c-tree-wrapper.is-master-active {
@@ -72,7 +72,7 @@
         display: block;
         font-size: var(--text-xs);
         color: var(--color-text-muted);
-        font-family: var(--font-mono, monospace);
+        font-family: var(--font-mono);
         margin-block-start: var(--border-m);
     }
 
@@ -137,8 +137,7 @@
         translate: var(--switch-thumb-x) calc(var(--size-half) * -1);
         background-color: var(--color-bg-white);
         will-change: translate;
-        transition: translate var(--time-slow)
-            cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        transition: translate var(--time-slow) var(--ease-bounce);
         border-radius: var(--radius-circle);
         z-index: z('switch');
         box-shadow: var(--shadow-sm);

@@ -13,7 +13,7 @@
     .c-stat-card__value {
         font-size: clamp(1.5rem, 3vw, 2.2rem);
         font-weight: var(--font-weight-bold);
-        margin-block-start: 0.3125rem;
+        margin-block-start: var(--border-xl);
         color: var(--color-text-main);
     }
 
@@ -32,13 +32,13 @@
     .c-stat-card__footer {
         display: flex;
         justify-content: center;
-        gap: 0.3125rem;
+        gap: var(--border-xl);
         flex-wrap: wrap;
         align-items: center;
-        margin-block-start: 0.625rem;
+        margin-block-start: var(--radius-xl);
     }
 
     .c-stat-chart {
-        max-block-size: 21.875rem;
+        max-block-size: var(--size-panel-4xl);
     }
 }

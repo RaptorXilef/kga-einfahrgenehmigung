@@ -18,8 +18,7 @@
         display: flex;
         align-items: center;
         gap: var(--space-s);
-        animation: toastSlideUp var(--time-slow)
-            cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+        animation: toastSlideUp var(--time-slow) var(--ease-bounce) forwards;
         will-change: translate, opacity;
     }
 
@@ -42,8 +41,8 @@
     }
 
     .c-toast__icon {
-        inline-size: var(--size-icon-xs);
-        block-size: var(--size-icon-xs);
+        inline-size: var(--space-m);
+        block-size: var(--space-m);
         filter: brightness(0) invert(1);
         flex-shrink: 0;
     }

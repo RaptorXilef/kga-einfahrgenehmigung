@@ -5,14 +5,14 @@
     }
 
     .o-container--small {
-        max-inline-size: 31.25rem; // 500px
+        max-inline-size: var(--size-panel-5xl);
     }
 
     .o-container--medium {
-        max-inline-size: 40.625rem; // 650px
+        max-inline-size: var(--size-panel-6xl);
     }
 
     .o-container--large {
-        max-inline-size: 46.875rem; // 750px
+        max-inline-size: var(--size-panel-7xl);
     }
 }

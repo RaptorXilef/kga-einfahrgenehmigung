@@ -28,10 +28,10 @@
         box-shadow: var(--card-shadow);
         will-change: translate, box-shadow;
         transition:
-            translate var(--time-base) cubic-bezier(0.4, 0, 0.2, 1),
-            box-shadow var(--time-base) ease,
-            background-color var(--time-base) ease,
-            border-color var(--time-base) ease;
+            translate var(--time-base) var(--ease-base),
+            box-shadow var(--time-base) var(--ease-base),
+            background-color var(--time-base) var(--ease-base),
+            border-color var(--time-base) var(--ease-base);
         text-align: start;
         text-decoration: none;
         color: inherit;
@@ -96,8 +96,8 @@
         color: var(--icon-color);
         border-radius: var(--radius-xl);
         transition:
-            background-color var(--time-base) ease,
-            color var(--time-base) ease;
+            background-color var(--time-base) var(--ease-base),
+            color var(--time-base) var(--ease-base);
         flex-shrink: 0;
     }
 }

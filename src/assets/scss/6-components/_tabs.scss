@@ -69,8 +69,7 @@
 
     .c-tabs__content.is-active {
         display: block;
-        animation: tabsSlideUp var(--time-base) cubic-bezier(0.4, 0, 0.2, 1)
-            forwards;
+        animation: tabsSlideUp var(--time-base) var(--ease-base) forwards;
         will-change: opacity, translate;
     }
 

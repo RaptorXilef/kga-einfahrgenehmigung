@@ -84,7 +84,7 @@
     }
 
     .c-session-pill {
-        font-family: monospace;
+        font-family: var(--font-mono);
         font-size: var(--text-sm);
         background-color: var(--color-bg-white);
         border: var(--border-s) solid var(--color-border);

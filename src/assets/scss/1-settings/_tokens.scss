@@ -123,6 +123,7 @@ $tokens-opacity: (
     '25': 0.25,
     '50': 0.5,
     '75': 0.75,
+    '80': 0.8,
     '100': 1,
 );
 
@@ -157,6 +158,8 @@ $tokens-size: (
     'panel-3xl': 18.75rem,
     'panel-4xl': 21.875rem,
     'panel-5xl': 40.625rem,
+    'panel-6xl': 40.625rem,
+    'panel-7xl': 46.875rem,
 );
 
 $tokens-mix: (
@@ -180,6 +183,11 @@ $tokens-time: (
     'base': 0.3s,
     'slow': 0.4s,
     'slower': 0.6s,
+);
+
+$tokens-ease: (
+    'base': cubic-bezier(0.4, 0, 0.2, 1),
+    'bounce': cubic-bezier(0.18, 0.89, 0.32, 1.28),
 );
 
 // Zentrale Layout-Magic-Numbers (Barrierefrei konvertiert in rem)

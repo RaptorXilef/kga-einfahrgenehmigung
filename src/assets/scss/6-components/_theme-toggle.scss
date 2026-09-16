@@ -6,8 +6,8 @@
         border: var(--border-s) solid var(--color-border);
         color: var(--color-text-main);
         border-radius: var(--radius-pill);
-        padding-block: 0.375rem;
-        padding-inline: 0.875rem;
+        padding-block: var(--space-xs);
+        padding-inline: var(--space-m);
         display: flex;
         align-items: center;
         gap: var(--space-s);
@@ -18,13 +18,13 @@
         will-change:
             translate, box-shadow, background-color, border-color, color;
         transition:
-            background-color var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
-            color var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
-            border-color var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
-            translate var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
-            box-shadow var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1);
+            background-color var(--time-fast) var(--ease-base),
+            color var(--time-fast) var(--ease-base),
+            border-color var(--time-fast) var(--ease-base),
+            translate var(--time-fast) var(--ease-base),
+            box-shadow var(--time-fast) var(--ease-base);
         text-transform: uppercase;
-        letter-spacing: 0.03125rem;
+        letter-spacing: var(--letter-spacing-wide);
     }
 
     .c-theme-toggle:hover {

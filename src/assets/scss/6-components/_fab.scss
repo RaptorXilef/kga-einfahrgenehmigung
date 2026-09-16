@@ -21,7 +21,7 @@
         z-index: z('fab');
         will-change: translate, box-shadow;
         transition:
-            translate var(--time-fast) cubic-bezier(0.4, 0, 0.2, 1),
+            translate var(--time-fast) var(--ease-base),
             background-color var(--time-fast) ease,
             box-shadow var(--time-fast) ease;
     }
