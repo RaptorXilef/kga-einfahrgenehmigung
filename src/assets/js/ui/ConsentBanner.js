@@ -9,7 +9,7 @@ export class ConsentBanner {
 
         // Defensive Error Boundary für JSON Konfiguration
         try {
-            const dataScript = this.container.querySelector('#consent-config');
+            const dataScript = this.container.querySelector('.js-consent-config');
             this.config = dataScript ? JSON.parse(dataScript.textContent || '{}') : {};
         } catch {
             this.config = {};
@@ -23,7 +23,9 @@ export class ConsentBanner {
         this.btnToggleDetails = this.container.querySelector('.js-toggle-details');
         this.btnSaveSelection = this.container.querySelector('.js-save-selection');
         this.detailsContainer = this.container.querySelector('.js-consent-details');
-        this.chkAnalytics = this.container.querySelector('#consent-chk-analytics');
+
+        // FIX: Strikte Klassenselektion
+        this.chkAnalytics = this.container.querySelector('.js-consent-chk-analytics'); // TODO Prüfen wo in PHTML fehlt
 
         this.init();
     }

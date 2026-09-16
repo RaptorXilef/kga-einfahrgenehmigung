@@ -68,10 +68,11 @@ export class AdminDashboard {
                     const reason = prompt(`Grund für die Sperre von ${code}?`);
 
                     if (reason && reason.trim() !== '') {
-                        // IDs für Forms sind als "Target-Anchor" okay, aber zur Selektion preferieren wir konsistenz.
-                        // Hier akzeptabel da dynamisch generiert.
-                        const form = document.getElementById(`form_suspend_${code}`);
-                        const input = document.getElementById(`reason_suspend_${code}`);
+                        // FIX: Strikte Selektion via CSS-Attribut und BEM-Klasse statt Element-ID
+                        const form = document.querySelector(
+                            `.js-form-suspend[data-code="${code}"]`
+                        );
+                        const input = form?.querySelector('.js-reason-suspend');
                         if (form && input) {
                             input.value = reason;
                             form.submit();
@@ -128,7 +129,7 @@ export class AdminDashboard {
 
     switchTab(tabId, activeBtn) {
         if (!tabId || !activeBtn) return;
-        const target = document.getElementById(tabId);
+        const target = document.getElementById(tabId); // Target-ID für Tabs ist i.O. (Anchor-Pattern)
         if (!target) return;
 
         this.contents.forEach((c) => {
@@ -144,7 +145,7 @@ export class AdminDashboard {
         try {
             localStorage.setItem('lastAdminTab', tabId);
         } catch {
-            // Ignore blockierte Storage
+            // Ignore
         }
     }
 

@@ -247,14 +247,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
             <?php if ($auth->hasPermission('stats.view')) { ?>
                 <div id="tab-stats"
-                     class="c-tabs__content">
+                     class="js-dashboard-stats c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_stats.phtml'; ?>
                 </div>
             <?php } ?>
 
             <?php if ($auth->hasPermission('finance.bank_import')) { ?>
                 <div id="tab-bank-import"
-                     class="c-tabs__content <?php echo isset($bank_headers) ? 'is-active' : ''; ?>">
+                     class="js-bank-import c-tabs__content <?php echo isset($bank_headers) ? 'is-active' : ''; ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_bank_import.phtml'; ?>
                 </div>
             <?php } ?>
@@ -275,7 +275,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
             <?php if ($auth->hasPermission('vouchers.view')) { ?>
                 <div id="tab-vouchers"
-                     class="c-tabs__content">
+                     class="js-voucher-manager c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_vouchers.phtml'; ?>
                 </div>
             <?php } ?>
@@ -292,8 +292,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             <?php } ?>
 
             <?php if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('system.update.execute')) { ?>
-                <div id="tab-system"
-                     class="c-tabs__content">
+                <div class="js-system-tools c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_system.phtml'; ?>
                 </div>
             <?php } ?>
@@ -327,7 +326,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     </script>
 
     <dialog id="release-notes-modal"
-            class="c-modal">
+            class="js-release-notes-modal c-modal">
         <div class="c-modal__dialog c-modal__dialog--large c-card c-card--primary u-padding-none u-flex-column">
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <h3 class="u-margin-none u-flex u-align-center u-gap-s js-release-notes-title">
@@ -347,7 +346,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             </header>
             <div class="c-card__body u-padding-block-l u-text-start u-overflow-y-auto u-flex-grow-1">
                 <div id="release-notes-content"
-                     class="s-markdown"></div>
+                     class="js-release-notes-content s-markdown"></div>
             </div>
             <footer class="c-card__footer u-text-center">
                 <button type="button"
@@ -360,12 +359,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
     <script type="application/json"
             id="release-notes-unread-data"
+            class="js-release-notes-unread-data"
             nonce="<?php echo $cspNonce; ?>">
     <?php echo \json_encode($unreadReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
     </script>
     <script type="application/json"
-            id="release-notes-all-data"
+            class="js-release-notes-all-data"
             nonce="<?php echo $cspNonce; ?>">
     <?php echo \json_encode($allReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 

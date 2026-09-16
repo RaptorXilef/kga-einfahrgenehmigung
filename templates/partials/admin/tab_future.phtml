@@ -205,7 +205,7 @@ if ($auth->hasPermission('permits.view')) {
                                                     <form id="form_suspend_<?php echo $permit->code; ?>"
                                                           method="POST"
                                                           action="<?php echo $settings['base_url']; ?>suspend_permit"
-                                                          class="u-hidden">
+                                                          class="u-hidden js-form-suspend[data-code=<?php echo $permit->code; ?>]"">
                                                         <input type="hidden"
                                                                name="csrf_token"
                                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -217,7 +217,8 @@ if ($auth->hasPermission('permits.view')) {
                                                                value="suspend_permit">
                                                         <input type="hidden"
                                                                name="reason"
-                                                               id="reason_suspend_<?php echo $permit->code; ?>">
+                                                               id="reason_suspend_<?php echo $permit->code; ?>"
+                                                               class="js-reason-suspend">
                                                     </form>
                                                 <?php } ?>
                                             <?php } ?>

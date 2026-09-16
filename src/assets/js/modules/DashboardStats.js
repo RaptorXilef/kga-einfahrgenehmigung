@@ -5,14 +5,14 @@ export class DashboardStats {
     constructor(container) {
         this.container = container;
 
-        // FIX: Strikte JS Hooks anstatt harter IDs
         this.canvas = this.container.querySelector('.js-yearly-stats-chart');
         this.btnMonth = this.container.querySelector('.js-chart-toggle-month');
         this.btnYear = this.container.querySelector('.js-chart-toggle-year');
 
         this.abortController = new AbortController();
 
-        const dataScript = this.container.querySelector('#chart-data');
+        // FIX: Strikte Klassenselektion statt ID
+        const dataScript = this.container.querySelector('.js-chart-data');
 
         try {
             this.chartData = dataScript ? JSON.parse(dataScript.textContent || '{}') : null;

@@ -122,8 +122,7 @@ if ($auth->hasPermission('finance.view')) {
                                                      class="c-box c-box--subtle u-margin-block-start-xs u-font-mono u-text-sm u-color-warning">
                                                     <?php echo \htmlspecialchars($ct['purpose']); ?>
                                                 </div>
-                                                <div
-                                                     class="u-flex u-align-center u-gap-s u-flex-wrap u-margin-block-start-s">
+                                                <div class="u-flex u-align-center u-gap-s u-flex-wrap u-margin-block-start-s">
                                                     <span class="u-text-xs u-font-bold u-color-warning u-text-uppercase">
                                                         <?php echo ($ct['type'] ?? 'sammel') === 'kennzeichen' ? 'Kennzeichen-Match:' : 'Mehrere Codes:'; ?>
                                                     </span>
@@ -154,6 +153,8 @@ if ($auth->hasPermission('finance.view')) {
                 <?php } ?>
                 <!-- ENDE AUFGABEN-LISTE -->
 
+                <!-- ZENTRALES FORMULAR FÜR BULK-AKTIONEN -->
+                <!-- Die ID bleibt, da das 'form' Attribut im HTML nativ nur auf IDs verlinken kann (z.B. form="bulk-action-form") -->
                 <form method="POST"
                       id="bulk-action-form"
                       class="js-bulk-action-form u-margin-block-none">
@@ -166,7 +167,6 @@ if ($auth->hasPermission('finance.view')) {
                             <tr>
                                 <?php if ($hasBulkRight) { ?>
                                     <th class="c-table__header-cell u-text-center">
-                                        <!-- FIX: Inline Styles margin-block-start und justify-content durch u-Klassen ersetzt -->
                                         <label class="c-checkbox u-margin-block-none u-justify-center"
                                                title="Alle auswählen">
                                             <input type="checkbox"
@@ -311,7 +311,6 @@ if ($auth->hasPermission('finance.view')) {
                                         <!-- 6. Aktionen -->
                                         <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                                             <div class="u-flex u-gap-xs u-justify-end u-flex-wrap">
-                                                <!-- Buttons analog wie zuvor ... -->
                                                 <?php if ($auth->hasPermission('finance.view')) { ?>
                                                     <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
                                                         <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
@@ -321,7 +320,7 @@ if ($auth->hasPermission('finance.view')) {
                                                     <?php if ($is_suspended) { ?>
                                                         <button type="button"
                                                                 class="c-button c-button--success c-button--small c-button--icon-only js-submit-form"
-                                                                data-target="form_unsuspend_<?php echo $permit->code; ?>"
+                                                                data-target=".js-form-unsuspend[data-code='<?php echo $permit->code; ?>']"
                                                                 title="Wieder freigeben">
                                                             <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
                                                                  class="c-icon c-button__icon"
@@ -343,7 +342,7 @@ if ($auth->hasPermission('finance.view')) {
                                                 <?php if ($hasBulkRight) { ?>
                                                     <button type="button"
                                                             class="c-button c-button--success c-button--small c-button--icon-only js-submit-form"
-                                                            data-target="single_pay_<?php echo $permit->code; ?>"
+                                                            data-target=".js-form-single-pay[data-code='<?php echo $permit->code; ?>']"
                                                             data-confirm-click="Zahlung für <?php echo $permit->code; ?> bestätigen?"
                                                             title="Einzeln als Bezahlt markieren">
                                                         <img src="<?php echo $asset->url('assets/img/icons/icon-check-mark.webp'); ?>"
@@ -379,12 +378,13 @@ if ($auth->hasPermission('finance.view')) {
                     </table>
                 </form>
 
+                <!-- VERSTECKTE EINZEL-FORMULARE (JETZT ENTKOPPELT VIA BEM KLASSEN) -->
                 <?php foreach ($unpaidPermits as $permit) { ?>
                     <?php if ($hasBulkRight) { ?>
-                        <form id="single_pay_<?php echo $permit->code; ?>"
-                              method="POST"
+                        <form method="POST"
                               action="<?php echo $settings['base_url']; ?>mark_as_paid"
-                              class="u-hidden">
+                              class="u-hidden js-form-single-pay"
+                              data-code="<?php echo $permit->code; ?>">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -394,10 +394,10 @@ if ($auth->hasPermission('finance.view')) {
                         </form>
                     <?php } ?>
                     <?php if ($auth->hasPermission('permits.suspend')) { ?>
-                        <form id="form_unsuspend_<?php echo $permit->code; ?>"
-                              method="POST"
+                        <form method="POST"
                               action="<?php echo $settings['base_url']; ?>unsuspend_permit"
-                              class="u-hidden">
+                              class="u-hidden js-form-unsuspend"
+                              data-code="<?php echo $permit->code; ?>">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -408,10 +408,10 @@ if ($auth->hasPermission('finance.view')) {
                                    name="action"
                                    value="unsuspend_permit">
                         </form>
-                        <form id="form_suspend_<?php echo $permit->code; ?>"
-                              method="POST"
+                        <form method="POST"
                               action="<?php echo $settings['base_url']; ?>suspend_permit"
-                              class="u-hidden">
+                              class="u-hidden js-form-suspend"
+                              data-code="<?php echo $permit->code; ?>">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -423,7 +423,7 @@ if ($auth->hasPermission('finance.view')) {
                                    value="suspend_permit">
                             <input type="hidden"
                                    name="reason"
-                                   id="reason_suspend_<?php echo $permit->code; ?>">
+                                   class="js-reason-suspend">
                         </form>
                     <?php } ?>
                 <?php } ?>

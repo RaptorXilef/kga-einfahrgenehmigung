@@ -50,13 +50,17 @@ document.addEventListener('DOMContentLoaded', () => {
     mountSingle('.js-consent-banner', ConsentBanner);
     mount('.js-theme-toggle', ThemeToggle);
 
-    // Lazy Loading
+    // Lazy Loading - Strikte JS Hooks
     lazyMount('.js-avatar-dropzone', () => import('./ui/DragDropZone.js'), 'DragDropZone');
     lazyMount('.js-sort-table', () => import('./ui/TableSorter.js'), 'TableSorter');
 
     lazyMount('.js-permit-form', () => import('./modules/PermitForm.js'), 'PermitForm');
-    lazyMountSingle('#tab-system', () => import('./modules/SystemTools.js'), 'SystemTools');
-    lazyMountSingle('#tab-vouchers', () => import('./modules/VoucherManager.js'), 'VoucherManager');
+    lazyMountSingle('.js-system-tools', () => import('./modules/SystemTools.js'), 'SystemTools');
+    lazyMountSingle(
+        '.js-voucher-manager',
+        () => import('./modules/VoucherManager.js'),
+        'VoucherManager'
+    );
     lazyMountSingle(
         '.js-checkout-payment',
         () => import('./modules/CheckoutPayment.js'),
@@ -68,16 +72,28 @@ document.addEventListener('DOMContentLoaded', () => {
         'ChangelogRenderer'
     );
     lazyMountSingle(
-        '#release-notes-modal',
+        '.js-release-notes-modal',
         () => import('./modules/ReleaseNotes.js'),
         'ReleaseNotes'
     );
 
     // Admin-Module
-    lazyMountSingle('.l-admin', () => import('./modules/PermissionMatrix.js'), 'PermissionMatrix');
-    lazyMountSingle('.l-admin', () => import('./modules/AdminDashboard.js'), 'AdminDashboard');
-    lazyMountSingle('#tab-stats', () => import('./modules/DashboardStats.js'), 'DashboardStats');
-    lazyMountSingle('#tab-bank-import', () => import('./modules/BankImport.js'), 'BankImport');
+    lazyMountSingle(
+        '.js-permission-matrix',
+        () => import('./modules/PermissionMatrix.js'),
+        'PermissionMatrix'
+    );
+    lazyMountSingle(
+        '.js-admin-dashboard',
+        () => import('./modules/AdminDashboard.js'),
+        'AdminDashboard'
+    );
+    lazyMountSingle(
+        '.js-dashboard-stats',
+        () => import('./modules/DashboardStats.js'),
+        'DashboardStats'
+    );
+    lazyMountSingle('.js-bank-import', () => import('./modules/BankImport.js'), 'BankImport');
 
     // Akku- und Netzwerk-Schonung. Nur pingen, wenn Tab aktiv ist!
     if (document.body.classList.contains('l-public-body')) {

@@ -53,7 +53,8 @@ export class ConfirmClick {
 export class RemoteSubmit {
     constructor(button) {
         this.button = button;
-        this.targetId = this.button.dataset.target;
+        // Erwartet nun einen echten Selektor im HTML: data-target=".js-mein-formular"
+        this.targetSelector = this.button.dataset.target;
         this.abortController = new AbortController();
         this.init();
     }
@@ -62,13 +63,15 @@ export class RemoteSubmit {
             'click',
             (e) => {
                 e.preventDefault();
-                const form = document.getElementById(this.targetId);
+                const form = document.querySelector(this.targetSelector);
                 if (form) {
                     if (typeof form.requestSubmit === 'function') {
                         form.requestSubmit();
                     } else {
                         form.submit();
                     }
+                } else {
+                    console.warn(`[RemoteSubmit] Formular ${this.targetSelector} nicht gefunden.`);
                 }
             },
             { signal: this.abortController.signal }
@@ -82,7 +85,8 @@ export class RemoteSubmit {
 export class TriggerClick {
     constructor(button) {
         this.button = button;
-        this.targetId = this.button.dataset.target;
+        // Erwartet nun einen echten Selektor im HTML: data-target=".js-mein-button"
+        this.targetSelector = this.button.dataset.target;
         this.abortController = new AbortController();
         this.init();
     }
@@ -91,7 +95,7 @@ export class TriggerClick {
             'click',
             (e) => {
                 e.preventDefault();
-                const target = document.getElementById(this.targetId);
+                const target = document.querySelector(this.targetSelector);
                 if (target) target.click();
             },
             { signal: this.abortController.signal }

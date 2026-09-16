@@ -59,7 +59,7 @@ $chartDataPayload = [
 ?>
 
 <?php if ($auth->hasPermission('stats.view')) { ?>
-    <div class="c-tab-content-container">
+    <div class="c-tab-content-container js-dashboard-stats">
 
         <div class="u-flex u-align-center u-gap-s u-margin-block-end-m">
             <div class="c-date-indicator">
@@ -144,6 +144,7 @@ $chartDataPayload = [
             <!-- JSON Daten Container für das DashboardStats.js Modul -->
             <script type="application/json"
                     id="chart-data"
+                    class="js-chart-data"
                     nonce="<?php echo $cspNonce; ?>">
             <?php echo \json_encode($chartDataPayload, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 

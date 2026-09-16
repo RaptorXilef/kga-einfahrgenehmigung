@@ -8,7 +8,8 @@ import { api } from '../core/Api.js';
 export class ReleaseNotes {
     constructor(container) {
         this.container = container;
-        this.contentArea = this.container.querySelector('#release-notes-content');
+        // Strikte js-* Selektoren
+        this.contentArea = this.container.querySelector('.js-release-notes-content');
         this.closeBtns = this.container.querySelectorAll('.js-close-release-notes');
         this.titleElement = this.container.querySelector('.js-release-notes-title');
         this.badgeElement = this.container.querySelector('.js-release-notes-badge');
@@ -16,8 +17,9 @@ export class ReleaseNotes {
         // Zentraler Controller für restlose Garbage Collection
         this.abortController = new AbortController();
 
-        const unreadScript = document.getElementById('release-notes-unread-data');
-        const allScript = document.getElementById('release-notes-all-data');
+        // Strikte Selektoren für die Config/JSON Container
+        const unreadScript = document.querySelector('.js-release-notes-unread-data');
+        const allScript = document.querySelector('.js-release-notes-all-data');
 
         // Defensive Error Boundaries bei JSON Injektion
         try {
