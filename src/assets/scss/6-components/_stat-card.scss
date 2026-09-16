@@ -11,7 +11,7 @@
     }
 
     .c-stat-card__value {
-        font-size: clamp(1.5rem, 3vw, 2.2rem);
+        font-size: clamp(var(--text-2xl), var(--vw-3), var(--text-stat));
         font-weight: var(--font-weight-bold);
         margin-block-start: var(--border-xl);
         color: var(--color-text-main);

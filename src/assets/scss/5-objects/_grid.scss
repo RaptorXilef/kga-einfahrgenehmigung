@@ -5,19 +5,22 @@
     }
 
     .o-grid--2-cols {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: var(--ratio-1) var(--ratio-1);
     }
     .o-grid--2-1 {
-        grid-template-columns: 2fr 1fr;
+        grid-template-columns: var(--ratio-2) var(--ratio-1);
     }
     .o-grid--auto-right {
-        grid-template-columns: 1fr auto;
+        grid-template-columns: var(--ratio-1) var(--size-auto);
     }
 
     .o-grid--auto-fit-sm {
         grid-template-columns: repeat(
             auto-fit,
-            minmax(clamp(var(--size-panel-md), 15vw, var(--size-panel-lg)), 1fr)
+            minmax(
+                clamp(var(--size-panel-md), var(--vw-15), var(--size-panel-lg)),
+                var(--ratio-1)
+            )
         );
     }
 
@@ -25,8 +28,12 @@
         grid-template-columns: repeat(
             auto-fit,
             minmax(
-                clamp(var(--size-panel-lg), 20vw, var(--size-panel-2xl)),
-                1fr
+                clamp(
+                    var(--size-panel-lg),
+                    var(--vw-20),
+                    var(--size-panel-2xl)
+                ),
+                var(--ratio-1)
             )
         );
     }
@@ -34,14 +41,23 @@
     .o-grid--auto-fit-lg {
         grid-template-columns: repeat(
             auto-fit,
-            minmax(clamp(var(--size-panel-2xl), 25vw, 25rem), 1fr)
+            minmax(
+                clamp(
+                    var(--size-panel-2xl),
+                    var(--vw-25),
+                    var(--size-panel-8xl)
+                ),
+                var(--ratio-1)
+            )
         );
     }
 
     .o-grid--sidebar {
-        grid-template-columns: 1.6fr 1fr;
+        grid-template-columns: var(--ratio-1-6) var(--ratio-1);
     }
     .o-grid--user-management {
-        grid-template-columns: var(--size-panel-lg) 1.2fr 1fr;
+        grid-template-columns: var(--size-panel-lg) var(--ratio-1-2) var(
+                --ratio-1
+            );
     }
 }

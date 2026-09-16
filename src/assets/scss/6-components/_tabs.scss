@@ -41,8 +41,8 @@
     }
 
     .c-tabs__icon {
-        inline-size: 1.2em;
-        block-size: 1.2em;
+        inline-size: var(--scale-120);
+        block-size: var(--scale-120);
     }
 
     .c-tabs__btn:hover {

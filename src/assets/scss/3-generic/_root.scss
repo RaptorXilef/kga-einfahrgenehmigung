@@ -34,6 +34,15 @@
         @each $name, $value in $tokens-size {
             --size-#{$name}: #{$value};
         }
+        @each $name, $value in $tokens-scale {
+            --scale-#{$name}: #{$value};
+        }
+        @each $name, $value in $tokens-ratio {
+            --ratio-#{$name}: #{$value};
+        }
+        @each $name, $value in $tokens-viewport {
+            --vw-#{$name}: #{$value};
+        }
         @each $name, $value in $tokens-mix {
             --mix-#{$name}: #{$value};
         }
@@ -49,7 +58,7 @@
 
         --font-sans: 'Inter', -apple-system, sans-serif;
 
-        /* Zentrale Schatten Hierarchie (Keine Magic Numbers mehr) */
+        /* Zentrale Schatten Hierarchie */
         --shadow-none: none;
         --shadow-inset: inset 0 var(--border-s) var(--border-m)
             color-mix(

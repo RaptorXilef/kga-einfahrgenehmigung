@@ -33,8 +33,8 @@
     }
 
     .c-button__icon {
-        inline-size: 1.2em;
-        block-size: 1.2em;
+        inline-size: var(--scale-120);
+        block-size: var(--scale-120);
         flex-shrink: 0;
         margin: 0;
     }

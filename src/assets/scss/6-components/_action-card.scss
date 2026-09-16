@@ -14,7 +14,7 @@
         --icon-bg: var(--color-bg-light);
         --icon-color: inherit;
 
-        flex: 1 1 300px;
+        flex: 1 1 var(--size-panel-3xl);
         min-inline-size: var(--size-panel-2xl);
         background-color: var(--card-bg);
         border: var(--border-m) solid var(--card-border);
