@@ -37,7 +37,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <div>
                     <h3 class="u-margin-block-none">
-                        <img src="<?php echo $asset->url('assets/img/icons/nav-logs.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/logs.webp'); ?>"
                              class="c-icon"
                              loading="lazy"
                              alt=""> E-Mail Versand-Log
@@ -86,7 +86,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                     <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
                                         <td class="c-table__data-cell">
                                             <div class="u-flex u-align-center u-gap-xs">
-                                                <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
+                                                <img src="<?php echo $asset->url('assets/img/icons/envelope.webp'); ?>"
                                                      class="c-icon c-icon--inline"
                                                      loading="lazy"
                                                      alt="">
@@ -120,7 +120,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                     <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                                         <div class="u-flex u-gap-xs u-justify-end u-align-center u-text-nowrap">
                                             <span class="c-badge c-badge--<?php echo $isSuccess ? 'success' : 'danger'; ?> c-badge--fixed">
-                                                <?php $statusIcon = $isSuccess ? 'status-success' : 'status-invalid'; ?>
+                                                <?php $statusIcon = $isSuccess ? 'success' : 'error'; ?>
                                                 <img src="<?php echo $asset->url("assets/img/icons/{$statusIcon}.webp"); ?>" class="c-icon" loading="lazy" alt="">
                                                 <?php echo $isSuccess ? 'GESENDET' : 'FEHLER'; ?>
                                             </span>
@@ -137,7 +137,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                                 <button type="submit"
                                                         class="c-button c-button--primary c-button--icon-only"
                                                         title="Erneut senden">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
+                                                    <img src="<?php echo $asset->url('assets/img/icons/sync.webp'); ?>"
                                                          class="c-icon c-button__icon"
                                                          loading="lazy"
                                                          alt="">

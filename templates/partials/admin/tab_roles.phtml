@@ -72,7 +72,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                         \renderPermissionNode($node['children'], $rolePerms, $depth + 1, $asset);
                     } ?>
                 </div>
-    <?php
+<?php
             }
         }
     } ?>
@@ -82,7 +82,7 @@ if ($auth->hasPermission('system.roles.manage')) {
         <section class="c-card c-card--primary">
             <header class="c-card__header">
                 <h3 class="u-margin-block-none">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-package.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/package.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
                          alt=""> Neue Rolle erstellen
@@ -90,6 +90,7 @@ if ($auth->hasPermission('system.roles.manage')) {
             </header>
             <div class="c-card__body u-padding-around-l">
                 <form method="POST"
+                      id="createRoleForm"
                       action="save_role"
                       class="o-grid o-grid--auto-fit u-gap-m u-align-end">
                     <input type="hidden"
@@ -127,7 +128,7 @@ if ($auth->hasPermission('system.roles.manage')) {
 
         <div class="u-flex u-flex-column u-gap-m">
             <?php foreach ($roles as $roleId => $rData) {
-                $roleImage = $imageStorage->getImageUrl('role', $roleId, 'icon-shield.webp');
+                $roleImage = $imageStorage->getImageUrl('role', $roleId, 'shield.webp');
                 ?>
                 <div class="c-category-card is-closed"
                      id="card-<?php echo $roleId; ?>">
@@ -155,8 +156,9 @@ if ($auth->hasPermission('system.roles.manage')) {
                                        name="group_id"
                                        value="<?php echo $roleId; ?>">
                                 <button type="submit"
-                                        class="c-button c-button--danger c-button--icon-only">
-                                    <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
+                                        class="c-button c-button--danger c-button--icon-only"
+                                        title="Rolle löschen">
+                                    <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
                                          class="c-icon c-button__icon"
                                          loading="lazy"
                                          alt="">
@@ -170,6 +172,7 @@ if ($auth->hasPermission('system.roles.manage')) {
 
                         <!-- Avatar / Icon Dropzone analog zu Benutzerverwaltung -->
                         <form method="POST"
+                              id="uploadRoleImageForm_<?php echo $roleId; ?>"
                               action="upload_role_image"
                               enctype="multipart/form-data"
                               class="u-text-center c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit c-box c-box--dashed u-padding-around-s u-border-radius-m u-margin-block-end-l">
@@ -188,6 +191,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                             <input type="hidden"
                                    name="group_id"
                                    value="<?php echo $roleId; ?>">
+                            <label for="file-role-<?php echo \md5($roleId); ?>" class="u-visually-hidden">Bild auswählen</label>
                             <input type="file"
                                    name="avatar"
                                    class="u-hidden"
@@ -195,11 +199,12 @@ if ($auth->hasPermission('system.roles.manage')) {
                                    accept="image/*">
                             <button type="button"
                                     class="c-button c-button--secondary c-button--small u-inline-size-100 js-trigger-click"
-                                    data-target="file-role-<?php echo \md5($roleId); ?>">Bild ändern</button>
+                                    data-target="#file-role-<?php echo \md5($roleId); ?>">Bild ändern</button>
                         </form>
 
                         <div class="u-margin-block-end-l">
                             <form method="POST"
+                                  id="renameRoleForm_<?php echo $roleId; ?>"
                                   action="rename_role"
                                   class="u-flex u-gap-s u-align-end">
                                 <input type="hidden"
@@ -226,6 +231,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                         <div class="u-border-block-start u-margin-block-end-l"></div>
 
                         <form method="POST"
+                              id="saveRoleForm_<?php echo $roleId; ?>"
                               action="save_role"
                               class="js-permission-form">
                             <input type="hidden"
@@ -243,7 +249,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                                      class="c-box c-box--danger-soft u-margin-block-end-l u-padding-around-m u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
                                     <div class="u-flex u-align-center u-gap-m">
                                         <span class="u-text-2xl">
-                                            <img src="<?php echo $asset->url('assets/img/icons/icon-crown.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+                                            <img src="<?php echo $asset->url('assets/img/icons/crown.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                         </span>
                                         <div>
                                             <strong class="u-color-danger">Vollständiger System-Zugriff</strong>
@@ -271,13 +277,13 @@ if ($auth->hasPermission('system.roles.manage')) {
                             </div>
 
                             <div class="c-tree-wrapper <?php echo \in_array('*', $rData->permissions, true) ? 'is-master-active' : ''; ?>">
-                                <?php \renderPermissionNode($structure, $rData->permissions); ?>
+                                <?php \renderPermissionNode($structure, $rData->permissions, 0, $asset); ?>
                             </div>
 
                             <div class="u-margin-block-start-xl">
                                 <button type="submit"
                                         class="c-button c-button--primary c-button--large u-inline-size-100 u-font-bold">
-                                    <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
+                                    <img src="<?php echo $asset->url('assets/img/icons/shield.webp'); ?>"
                                          class="c-icon c-button__icon"
                                          loading="lazy"
                                          alt=""> RECHTE FÜR <?php echo \strtoupper($rData->name); ?> SPEICHERN

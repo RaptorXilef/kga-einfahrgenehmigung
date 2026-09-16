@@ -183,7 +183,8 @@ if ($auth->hasPermission('permits.view')) {
                                                 <?php if ($is_suspended) { ?>
                                                     <form method="POST"
                                                           action="<?php echo $settings['base_url']; ?>unsuspend_permit"
-                                                          class="u-margin-block-none">
+                                                          class="u-margin-block-none js-form-unsuspend"
+                                                          data-code="<?php echo $permit->code; ?>">
                                                         <input type="hidden"
                                                                name="csrf_token"
                                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">

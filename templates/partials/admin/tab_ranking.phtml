@@ -18,7 +18,7 @@ $plots = $periodStats['plots'] ?? [];
         <section class="c-card c-card--primary">
             <header class="c-card__header">
                 <h3 class="u-margin-block-none">
-                    <img src="<?php echo $asset->url('assets/img/icons/nav-ranking.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/ranking.webp'); ?>"
                          class="c-icon"
                          loading="lazy"
                          alt=""> Parzellen-Ranking (Top 30)
@@ -51,20 +51,20 @@ $plots = $periodStats['plots'] ?? [];
                                     class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
                                     Keine Daten im Zeitraum gefunden.</td>
                             </tr>
-                            <?php } else {
-                                $rank = 1;
-                                $firstPlot = \reset($plots);
-                                $maxCount = $firstPlot['count'] > 0 ? $firstPlot['count'] : 1;
+                        <?php } else {
+                            $rank = 1;
+                            $firstPlot = \reset($plots);
+                            $maxCount = $firstPlot['count'] > 0 ? $firstPlot['count'] : 1;
 
-                                foreach (\array_slice($plots, 0, 30, true) as $pNum => $data) {
-                                    $perc = ($data['count'] / $maxCount) * 100;
-                                    ?>
+                            foreach (\array_slice($plots, 0, 30, true) as $pNum => $data) {
+                                $perc = ($data['count'] / $maxCount) * 100;
+                                ?>
                                 <tr class="u-hover-fade">
                                     <!-- RANG -->
                                     <td class="c-table__data-cell u-text-center">
                                         <?php if ($rank <= 3) { ?>
                                             <div class="u-text-xl">
-                                                <img src="<?php echo $asset->url('assets/img/icons/icon_trophy.webp'); ?>"
+                                                <img src="<?php echo $asset->url('assets/img/icons/trophy.webp'); ?>"
                                                      class="c-icon"
                                                      loading="lazy"
                                                      alt="">
@@ -118,7 +118,7 @@ $plots = $periodStats['plots'] ?? [];
                                     </td>
                                 </tr>
                         <?php }
-                                } ?>
+                            } ?>
                     </tbody>
                 </table>
             </div>

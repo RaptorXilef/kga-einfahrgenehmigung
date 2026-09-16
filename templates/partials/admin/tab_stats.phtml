@@ -63,7 +63,7 @@ $chartDataPayload = [
 
         <div class="u-flex u-align-center u-gap-s u-margin-block-end-m">
             <div class="c-date-indicator">
-                <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
+                <img src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
                      class="c-icon c-icon--inline"
                      loading="lazy"
                      alt="">
@@ -112,7 +112,7 @@ $chartDataPayload = [
                 }
                 if ($typeKey === '__legacy__') {
                     $label = 'Sonstige / Ehem.';
-                    $icon = 'assets/img/icons/status-invalid.webp';
+                    $icon = 'assets/img/icons/warning.webp';
                 } else {
                     $label = $vConfig[$typeKey]['label'] ?? $typeKey;
                     $icon = $vConfig[$typeKey]['icon'] ?? '';
@@ -121,7 +121,8 @@ $chartDataPayload = [
                                 <div class="c-badge c-badge--success u-font-bold u-text-xs">
                                     <img src="<?php echo $settings['base_url'] . $icon; ?>"
                                          loading="lazy"
-                                         class="c-icon c-icon--inline u-margin-inline-end-xs"> <?php echo $count; ?>
+                                         class="c-icon c-icon--inline u-margin-inline-end-xs"
+                                         alt=""> <?php echo $count; ?>
                                     <small class="u-font-semibold u-margin-inline-start-xs"><?php echo $label; ?></small>
                                 </div>
                             <?php } ?>
@@ -146,23 +147,24 @@ $chartDataPayload = [
                     id="chart-data"
                     class="js-chart-data"
                     nonce="<?php echo $cspNonce; ?>">
-            <?php echo \json_encode($chartDataPayload, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
-
+                <?php echo \json_encode($chartDataPayload, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
             </script>
 
             <section class="c-card c-card--primary u-margin-block-end-l">
                 <details class="c-accordion u-margin-block-none">
                     <summary class="c-accordion__summary u-font-bold u-border-none">
                         <span class="c-accordion__title">
-                            <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" loading="lazy" alt=""> Wachstums-Trend & Jahresvergleich
+                            <img src="<?php echo $asset->url('assets/img/icons/stats.webp'); ?>" class="c-icon" loading="lazy" alt=""> Wachstums-Trend & Jahresvergleich
                         </span>
                     </summary>
                     <div class="c-accordion__body c-box c-box--subtle u-margin-block-none">
                         <div class="u-flex u-gap-xs u-margin-block-end-m u-justify-end">
                             <div class="c-box u-padding-inline-s u-padding-block-xs u-display-inline-flex">
-                                <button id="chartToggleMonth"
+                                <button type="button"
+                                        id="chartToggleMonth"
                                         class="c-button c-button--primary c-button--small js-chart-toggle-month">Monatlich</button>
-                                <button id="chartToggleYear"
+                                <button type="button"
+                                        id="chartToggleYear"
                                         class="c-button c-button--secondary c-button--small js-chart-toggle-year">Jährlich</button>
                             </div>
                         </div>
@@ -175,7 +177,7 @@ $chartDataPayload = [
 
         <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
             <h3 class="u-margin-block-end-m u-flex u-align-center u-gap-s">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
+                <img src="<?php echo $asset->url('assets/img/icons/document.webp'); // scroll?>"
                      class="c-icon c-icon--md"
                      loading="lazy"
                      alt=""> Historische Jahresabschlüsse
@@ -185,7 +187,7 @@ $chartDataPayload = [
                 <details class="c-accordion">
                     <summary class="c-accordion__summary">
                         <span class="c-accordion__title">
-                            <img src="<?php echo $asset->url('assets/img/icons/icon-tear-off-calendar.webp'); ?>" class="c-icon" loading="lazy" alt="">
+                            <img src="<?php echo $asset->url('assets/img/icons/calendar.webp'); ?>" class="c-icon" loading="lazy" alt="">
                             Geschäftsjahr <strong><?php echo $year; ?></strong>
                         </span>
                         <div class="c-accordion__meta">
@@ -222,13 +224,13 @@ $chartDataPayload = [
 
                     if ($tKey === '__legacy__') {
                         $vLabel = 'Sonstige';
-                        $vIcon = 'assets/img/icons/status-invalid.webp';
+                        $vIcon = 'assets/img/icons/warning.webp';
                     } else {
                         $vLabel = $vConfig[$tKey]['label'] ?? $tKey;
                         $vIcon = $vConfig[$tKey]['icon'] ?? '';
                     }
                     // Wir bauen uns ein Array von HTML-Schnipseln
-                    $typeItems[] = '<span><img src="' . $settings['base_url'] . $vIcon . '" class="c-icon c-icon--inline u-margin-inline-end-xs"> ' . $count . ' ' . $vLabel . '</span>';
+                    $typeItems[] = '<span><img src="' . $settings['base_url'] . $vIcon . '" alt="" class="c-icon c-icon--inline u-margin-inline-end-xs"> ' . $count . ' ' . $vLabel . '</span>';
                 }
                 // Wir verbinden die Schnipsel mit einem Trennstrich
                 echo \implode(' <span class="u-opacity-50">|</span> ', $typeItems);
@@ -254,7 +256,7 @@ $chartDataPayload = [
             $loadUrl = '?' . \http_build_query($queryParams);
             ?>
                 <a href="<?php echo $loadUrl; ?>" class="c-button c-button--secondary">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/inbox.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
                          alt="">

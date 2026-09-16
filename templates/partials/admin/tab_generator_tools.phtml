@@ -53,7 +53,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         <div class="c-card c-card--danger u-text-center">
             <div class="c-card__body c-card__body--xl">
                 <div class="u-text-4xl u-margin-block-end-m">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon_prohibited.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/blocked.webp'); // prohibited?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
                          alt="">
@@ -77,7 +77,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <section class="c-card c-card--success u-margin-block-none">
                     <header class="c-card__header u-bg-light">
                         <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
-                            <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
+                            <img src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
                                  class="c-icon"
                                  loading="lazy"
                                  alt=""> Genehmigung ausstellen
@@ -223,7 +223,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                            for="zweck_select">
                                         <span>Einfahrts-Grund *</span>
                                         <span class="u-text-link u-cursor-pointer js-pf-toggle-zweck" id="toggle_zweck_btn">
-                                            <img src="<?php echo $asset->url('assets/img/icons/icon-crayon.webp'); ?>" class="c-icon" loading="lazy" alt=""> Manuell
+                                            <img src="<?php echo $asset->url('assets/img/icons/edit.webp'); ?>" class="c-icon" loading="lazy" alt=""> Manuell
                                         </span>
                                     </label>
                                     <select name="zweck"
@@ -320,7 +320,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <section class="c-card c-card--voucher u-margin-block-none u-flex-grow-1">
                     <header class="c-card__header u-bg-light">
                         <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
-                            <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
+                            <img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
                                  class="c-icon"
                                  loading="lazy"
                                  alt=""> Gutscheincode generieren
@@ -330,7 +330,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     </header>
                     <div class="c-card__body">
                         <!-- Die Klasse js-permit-form wird hier ebenfalls genutzt für die Synchronisierung -->
-                        <form method="POST"
+                        <form id="voucherCreateForm"
+                              method="POST"
                               class="js-permit-form"
                               action="<?php echo $settings['base_url']; ?>create_voucher">
                             <input type="hidden"
@@ -364,7 +365,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     </select>
                                 </div>
                                 <div class="c-form-group js-pf-voucher-value-wrap"
-                                     id="v_val_wrap">
+                                     id="v_val_wrap"
                                      hidden>
                                     <label class="c-form-label"
                                            for="v_val">Wert (Zahl) *</label>
@@ -422,7 +423,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             <!-- Einklappbare Vorbefüllung (Prefill) -->
                             <details class="c-box c-box--subtle u-margin-block-end-m">
                                 <summary class="u-cursor-pointer u-font-semibold u-color-primary">
-                                    <img src="<?php echo $asset->url('assets/img/icons/icon-plus.webp'); ?>"
+                                    <img src="<?php echo $asset->url('assets/img/icons/plus.webp'); ?>"
                                          class="c-icon c-button__icon"
                                          loading="lazy"
                                          alt=""> Vorgaben für Pächter (Vorbefüllung)
@@ -541,6 +542,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     </div>
 
                                     <div class="c-form-group js-pf-firma-wrapper"
+                                         id="v_firma_wrapper"
                                          hidden>
                                         <label class="c-form-label"
                                                for="v_firma">Firma / Lieferant</label>
@@ -585,7 +587,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <div class="u-color-muted u-text-xs">* Pflichtfelder</div>
                                     <button type="submit"
                                             class="c-button c-button--primary">
-                                        <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
+                                        <img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
                                              class="c-icon c-button__icon u-filter-invert"
                                              loading="lazy"
                                              alt=""> Code Generieren
@@ -603,5 +605,4 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
 <script nonce="<?php echo $cspNonce; ?>">
 window.KGA_TEMPLATES = <?php echo \json_encode($tplMetadata); ?>;
-
 </script>
