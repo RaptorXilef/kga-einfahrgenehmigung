@@ -32,6 +32,25 @@ if (typeof window.KGA_TEMPLATES === 'undefined') {
     window.KGA_TEMPLATES = {};
 }
 
+// 1. Service Worker Registrierung (Non-Blocking)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
+        navigator.serviceWorker
+            .register(`${baseUrl}sw.js`)
+            .then((registration) => {
+                console.info(
+                    '[PWA] Service Worker erfolgreich registriert. Scope:',
+                    registration.scope
+                );
+            })
+            .catch((error) => {
+                console.error('[PWA] Service Worker Registrierung fehlgeschlagen:', error);
+            });
+    });
+}
+
+// 2. DOM Hydration
 document.addEventListener('DOMContentLoaded', () => {
     // Globale Mini-Logiken
     mount('form[data-confirm]', ConfirmSubmit);
@@ -97,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     lazyMountSingle('.js-bank-import', () => import('./modules/BankImport.js'), 'BankImport');
 
-    // Akku- und Netzwerk-Schonung. Strikte BEM-Kopplung (keine l- Klassen in JS!)
+    // Akku- und Netzwerk-Schonung. Strikte BEM-Kopplung
     const publicForm = document.querySelector('.js-permit-form');
     if (publicForm) {
         setInterval(
