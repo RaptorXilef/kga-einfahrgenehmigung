@@ -28,7 +28,7 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
     <section class="c-card c-card--success">
         <header class="c-card__header u-text-center u-padding-block-l">
             <h3 class="u-margin-block-none">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-bank.webp'); ?>"
+                <img src="<?php echo $asset->url('assets/img/icons/bank.webp'); ?>"
                      class="c-icon c-button__icon"
                      loading="lazy"
                      alt=""> Automatischer Bank-Kontoauszugs-Abgleich
@@ -43,19 +43,20 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
 
 if (!$headersExist) {
     ?>
+                <!-- Formular benötigt ID für a11y focus und JS class für das Verhalten -->
                 <form method="POST"
                       action="<?php echo $settings['base_url']; ?>bank_import_analyze"
                       enctype="multipart/form-data"
                       id="bankCsvForm"
-                      class="js-bankCsvForm">
+                      class="js-bank-csv-form">
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                     <div id="csvDropzone"
-                         class="c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-block-xl c-box c-box--dashed js-csvDropzone">
+                         class="c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-block-xl c-box c-box--dashed js-csv-dropzone">
                         <span class="u-text-3xl u-display-block u-margin-block-end-s">
-                            <img src="<?php echo $asset->url('assets/img/icons/icon-page-facing-up.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+                            <img src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                         </span>
                         <strong class="c-dropzone__text js-preview-text u-text-lg">
                             CSV-Datei hierher ziehen oder klicken zum Auswählen</strong>
@@ -72,10 +73,11 @@ if (!$headersExist) {
                             <?php } ?>
                         </div>
 
+                        <label for="bankCsvInput" class="u-visually-hidden">Bank CSV Datei hochladen</label>
                         <input type="file"
                                name="bank_csv"
                                accept=".csv,text/csv"
-                               class="u-hidden js-bankCsvInput"
+                               class="u-hidden js-bank-csv-input"
                                id="bankCsvInput">
                     </div>
                 </form>
@@ -91,13 +93,13 @@ if (!$headersExist) {
                         id="bank-preview-data"
                         class="js-bank-preview-data"
                         nonce="<?php echo $cspNonce; ?>">
-                <?php echo \json_encode($bank_row_preview, \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT) ?: '[]'; ?>
-
+                    <?php echo \json_encode($bank_row_preview, \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT) ?: '[]'; ?>
                 </script>
 
                 <form method="POST"
+                      id="bankProcessForm"
                       action="<?php echo $settings['base_url']; ?>bank_import_process"
-                      class="c-form">
+                      class="c-form js-bank-process-form">
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -109,10 +111,11 @@ if (!$headersExist) {
                         <div class="c-form-group">
                             <label class="c-form-label"
                                    for="col_id">Permit-ID / Verwendungszweck</label>
+                            <!-- Klassen-Verknüpfung für JS -->
                             <select id="col_id"
                                     name="col_id"
-                                    class="c-form-select js-bank-selector js-col_id"
-                                    data-preview-target="preview_id"
+                                    class="c-form-select js-bank-selector"
+                                    data-preview-target="js-preview-id"
                                     autocomplete="off">
                                 <?php foreach ($bank_headers as $idx => $name) { ?>
                                     <option value="<?php echo $idx; ?>"
@@ -121,14 +124,14 @@ if (!$headersExist) {
                                     </option>
                                 <?php } ?>
                             </select>
-                            <div
-                                 class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
-                                <img src="<?php echo $asset->url('assets/img/icons/icon-eye.webp'); ?>"
+                            <div class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
+                                <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
                                      class="c-icon c-button__icon"
                                      loading="lazy"
                                      alt="">
+                                <!-- ID für Anchor, Klasse für JS -->
                                 <strong id="preview_id"
-                                        class="u-color-primary js-preview_id">---</strong>
+                                        class="u-color-primary js-preview-id">---</strong>
                             </div>
                         </div>
 
@@ -137,8 +140,8 @@ if (!$headersExist) {
                                    for="col_amount">Zahlungsbetrag (€)</label>
                             <select id="col_amount"
                                     name="col_amount"
-                                    class="c-form-select js-bank-selector js-col_amount"
-                                    data-preview-target="preview_amount"
+                                    class="c-form-select js-bank-selector"
+                                    data-preview-target="js-preview-amount"
                                     autocomplete="off">
                                 <?php foreach ($bank_headers as $idx => $name) { ?>
                                     <option value="<?php echo $idx; ?>"
@@ -147,14 +150,13 @@ if (!$headersExist) {
                                     </option>
                                 <?php } ?>
                             </select>
-                            <div
-                                 class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
-                                <img src="<?php echo $asset->url('assets/img/icons/icon-eye.webp'); ?>"
+                            <div class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
+                                <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
                                      class="c-icon c-button__icon"
                                      loading="lazy"
                                      alt="">
                                 <strong id="preview_amount"
-                                        class="u-color-success js-preview_amount">---</strong>
+                                        class="u-color-success js-preview-amount">---</strong>
                             </div>
                         </div>
 
@@ -163,8 +165,8 @@ if (!$headersExist) {
                                    for="col_date">Buchungstag / Datum</label>
                             <select id="col_date"
                                     name="col_date"
-                                    class="c-form-select js-bank-selector js-col_date"
-                                    data-preview-target="preview_date"
+                                    class="c-form-select js-bank-selector"
+                                    data-preview-target="js-preview-date"
                                     autocomplete="off">
                                 <?php foreach ($bank_headers as $idx => $name) { ?>
                                     <option value="<?php echo $idx; ?>"
@@ -173,14 +175,13 @@ if (!$headersExist) {
                                     </option>
                                 <?php } ?>
                             </select>
-                            <div
-                                 class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
-                                <img src="<?php echo $asset->url('assets/img/icons/icon-eye.webp'); ?>"
+                            <div class="c-box c-box--subtle u-margin-block-start-s u-padding-block-s u-padding-inline-m u-text-xs">
+                                <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
                                      class="c-icon c-button__icon"
                                      loading="lazy"
                                      alt="">
                                 <strong id="preview_date"
-                                        class="u-color-main js-preview_date">---</strong>
+                                        class="u-color-main js-preview-date">---</strong>
                             </div>
                         </div>
                     </div>
@@ -190,12 +191,11 @@ if (!$headersExist) {
                         <a href="admin" class="c-button c-button--secondary">✕ Abbrechen</a>
                         <button type="submit"
                                 class="c-button c-button--primary">Abgleich starten & Permits aktivieren
-                            <img src="<?php echo $asset->url('assets/img/icons/icon-rocket.webp'); ?>"
+                            <img src="<?php echo $asset->url('assets/img/icons/rocket.webp'); ?>"
                                  class="c-icon c-button__icon"
                                  loading="lazy"
                                  alt="">
                         </button>
-
                     </div>
                 </form>
             <?php } ?>

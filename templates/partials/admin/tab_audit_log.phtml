@@ -63,7 +63,7 @@ if ($auth->hasPermission('system.logs.view')) {
             <header class="c-card__header u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
                 <div>
                     <h3 class="u-margin-block-none">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>"
                              class="c-icon"
                              loading="lazy"
                              alt=""> Administrator-Aktivitäten
@@ -73,9 +73,11 @@ if ($auth->hasPermission('system.logs.view')) {
                 </div>
                 <form method="GET"
                       action="?"
+                      id="auditFilterForm"
                       class="u-flex u-align-center u-gap-s u-margin-block-none">
-                    <span class="u-text-sm u-font-bold u-color-muted">FILTER:</span>
+                    <label for="audit_filter_select" class="u-text-sm u-font-bold u-color-muted">FILTER:</label>
                     <select name="audit_filter"
+                            id="audit_filter_select"
                             class="c-form-select js-auto-submit-select c-button--small">
                         <?php foreach ($filterOptions as $val => $label) { ?>
                             <option value="<?php echo $val; ?>"
@@ -111,7 +113,7 @@ if ($auth->hasPermission('system.logs.view')) {
                             </tr>
                         <?php } else { ?>
                             <?php foreach ($auditLogs as $log) {
-                                $avatar = $imageStorage->getImageUrl('user', $log->userId, 'icon-user-default.webp');
+                                $avatar = $imageStorage->getImageUrl('user', $log->userId, 'user.webp');
                                 ?>
                                 <tr class="u-hover-fade">
                                     <td class="c-table__data-cell u-text-nowrap">
@@ -132,7 +134,8 @@ if ($auth->hasPermission('system.logs.view')) {
                                         <div class="u-flex u-align-center u-gap-s">
                                             <img src="<?php echo $avatar; ?>"
                                                  loading="lazy"
-                                                 class="c-icon c-icon--md u-border-radius-circle">
+                                                 class="c-icon c-icon--md u-border-radius-circle"
+                                                 alt="">
                                             <div>
                                                 <strong class="u-text-sm u-color-main"><?php echo \htmlspecialchars($log->username); ?></strong><br>
                                                 <small class="u-color-muted u-font-mono u-text-xs"

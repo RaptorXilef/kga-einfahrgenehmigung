@@ -43,7 +43,7 @@ if ($auth->hasPermission('permits.view')) {
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <div>
                     <h3 class="u-margin-block-none">
-                        <img src="<?php echo $asset->url('assets/img/icons/status-expired.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/expired.webp'); ?>"
                              class="c-icon"
                              loading="lazy"
                              alt=""> Historisches Archiv
@@ -81,7 +81,7 @@ if ($auth->hasPermission('permits.view')) {
                             <?php foreach ($expiredPermits as $permit) {
                                 $vKey = $permit->getVehicleType();
                                 $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
-                                $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
+                                $iconPath = $vCfg['icon'] ?? 'assets/img/icons/warning.webp';
                                 $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
                                 <tr class="u-hover-fade u-opacity-75">
@@ -116,7 +116,7 @@ if ($auth->hasPermission('permits.view')) {
                                             data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>">
                                             <?php if ($permit->getOwnerEmail()) { ?>
                                                 <div class="u-flex u-align-center u-gap-xs">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
+                                                    <img src="<?php echo $asset->url('assets/img/icons/envelope.webp'); ?>"
                                                          class="c-icon c-icon--inline"
                                                          loading="lazy"
                                                          alt="">
@@ -145,12 +145,12 @@ if ($auth->hasPermission('permits.view')) {
                                         <div class="u-flex u-gap-xs u-justify-end">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
                                                 <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Drucken">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                                 </a>
                                             <?php } ?>
                                             <?php if ($auth->hasPermission('permits.view')) { ?>
                                                 <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                                 </a>
                                             <?php } ?>
                                         </div>
@@ -171,7 +171,7 @@ if ($auth->hasPermission('permits.view')) {
     $loadUrl = '?' . \http_build_query($queryParams);
     ?>
                 <a href="<?php echo $loadUrl; ?>" class="c-button c-button--secondary">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+                    <img src="<?php echo $asset->url('assets/img/icons/inbox.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                     &nbsp; Daten aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
                 </a>
                 <p class="u-text-sm u-color-muted u-margin-block-start-s u-margin-block-none">
