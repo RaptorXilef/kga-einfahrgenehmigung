@@ -1,5 +1,6 @@
 /**
  * Initialisiert Chart.js für die Jahres-/Monatsstatistiken und steuert das Toggling.
+ * Nutzt CSS-Variablen (OKLCH Tokens) für nahtlosen Darkmode-Support (Stand 2026).
  */
 export class DashboardStats {
     constructor(container) {
@@ -24,9 +25,15 @@ export class DashboardStats {
         }
     }
 
+    /**
+     * Holt die aktuellen CSS-Tokens dynamisch aus dem Root-Element.
+     */
+    #getCssVariable(varName) {
+        return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    }
+
     init() {
         // Aktive Chart-Instanz zwingend zerstören, um Ghosting/Memory Leaks bei Neuladen zu verhindern
-        // FIX: Verhindert "Canvas is already in use" Absturz
         if (window.Chart) {
             const existingChart = window.Chart.getChart(this.canvas);
             if (existingChart) {
@@ -38,6 +45,13 @@ export class DashboardStats {
             this.currentChart.destroy();
         }
 
+        // Dynamische OKLCH Tokens aus dem CSS auslesen! Keine harten HEX-Werte mehr!
+        const colorPrimary = this.#getCssVariable('--color-primary');
+        const colorPrimarySoft = this.#getCssVariable('--color-primary-soft');
+        const colorSuccess = this.#getCssVariable('--color-success');
+        const colorTextMain = this.#getCssVariable('--color-text-main');
+        const colorBorder = this.#getCssVariable('--color-border');
+
         // Chart initialisieren (Standardmäßig Monatlich)
         this.currentChart = new window.Chart(this.canvas, {
             type: 'bar',
@@ -47,8 +61,8 @@ export class DashboardStats {
                     {
                         label: 'Umsatz Soll (€)',
                         data: this.chartData.monthRevenue,
-                        backgroundColor: 'rgba(52, 152, 219, 0.6)',
-                        borderColor: '#3498db',
+                        backgroundColor: colorPrimarySoft,
+                        borderColor: colorPrimary,
                         borderWidth: 2,
                         borderRadius: 5,
                         yAxisID: 'y',
@@ -56,8 +70,8 @@ export class DashboardStats {
                     {
                         label: 'Anzahl Genehmigungen',
                         data: this.chartData.monthCounts,
-                        borderColor: '#6366f1',
-                        backgroundColor: '#6366f1',
+                        borderColor: colorSuccess,
+                        backgroundColor: colorSuccess,
                         borderWidth: 3,
                         type: 'line',
                         tension: 0.3,
@@ -69,8 +83,12 @@ export class DashboardStats {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                color: colorTextMain, // Textfarbe dynamisch anpassen
                 plugins: {
-                    legend: { position: 'bottom' },
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: colorTextMain },
+                    },
                     tooltip: {
                         callbacks: {
                             label: (context) => {
@@ -90,17 +108,33 @@ export class DashboardStats {
                     },
                 },
                 scales: {
+                    x: {
+                        ticks: { color: colorTextMain },
+                        grid: { color: colorBorder },
+                    },
                     y: {
                         type: 'linear',
                         position: 'left',
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        title: { display: true, text: 'Euro (€)', font: { weight: 'bold' } },
+                        grid: { color: colorBorder },
+                        ticks: { color: colorTextMain },
+                        title: {
+                            display: true,
+                            text: 'Euro (€)',
+                            color: colorTextMain,
+                            font: { weight: 'bold' },
+                        },
                     },
                     y1: {
                         type: 'linear',
                         position: 'right',
                         grid: { drawOnChartArea: false },
-                        title: { display: true, text: 'Menge', font: { weight: 'bold' } },
+                        ticks: { color: colorTextMain },
+                        title: {
+                            display: true,
+                            text: 'Menge',
+                            color: colorTextMain,
+                            font: { weight: 'bold' },
+                        },
                     },
                 },
             },

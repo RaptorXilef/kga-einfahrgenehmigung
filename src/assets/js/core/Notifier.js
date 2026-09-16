@@ -64,12 +64,20 @@ class NotifierService {
         setTimeout(() => {
             toast.classList.add('is-hidden');
 
-            // Auf das Ende der CSS-Transition warten (400ms matcht CSS), dann Knoten restlos entfernen
-            setTimeout(() => {
-                toast.remove();
-                // Rekursiv den nächsten Toast in der Queue aufrufen
-                this.#processQueue();
-            }, 400);
+            // ARCHITEKTUR-FIX: Niemals setTimeout für CSS-Transitions nutzen!
+            // Wir lauschen stattdessen auf das native Event des Browsers.
+            toast.addEventListener(
+                'transitionend',
+                (e) => {
+                    // Sicherstellen, dass wir auf die Haupt-Animation reagieren (translate)
+                    if (e.propertyName === 'translate' || e.propertyName === 'opacity') {
+                        toast.remove();
+                        // Rekursiv den nächsten Toast in der Queue aufrufen
+                        this.#processQueue();
+                    }
+                },
+                { once: true }
+            );
         }, 3000);
     }
 }

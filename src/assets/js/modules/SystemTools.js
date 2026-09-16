@@ -25,14 +25,49 @@ export class SystemTools {
         );
     }
 
+    /**
+     * Erzeugt dynamisch einen barrierefreien HTML5-Dialog,
+     * um das blockierende I/O prompt()/confirm() zu ersetzen.
+     */
+    async #promptConfirm(message) {
+        return new Promise((resolve) => {
+            const dialog = document.createElement('dialog');
+            dialog.className = 'c-modal';
+            dialog.innerHTML = `
+        <div class="c-modal__dialog">
+          <h3 class="c-modal__title">Aktion bestätigen</h3>
+          <p class="u-color-muted u-margin-block-start-s">${message}</p>
+          <div class="u-flex u-gap-s u-margin-block-start-l">
+            <button type="button" class="c-button c-button--secondary u-flex-grow-1 js-prompt-cancel">Abbrechen</button>
+            <button type="button" class="c-button c-button--primary u-flex-grow-1 js-prompt-confirm">Ausführen</button>
+          </div>
+        </div>
+      `;
+            document.body.appendChild(dialog);
+            dialog.showModal();
+
+            const btnCancel = dialog.querySelector('.js-prompt-cancel');
+            const btnConfirm = dialog.querySelector('.js-prompt-confirm');
+
+            const cleanup = (value) => {
+                dialog.close();
+                dialog.remove();
+                resolve(value);
+            };
+
+            btnCancel.addEventListener('click', () => cleanup(false));
+            btnConfirm.addEventListener('click', () => cleanup(true));
+            dialog.addEventListener('cancel', () => cleanup(false));
+        });
+    }
+
     async executeCron(url) {
-        // Das confirm() lassen wir bewusst stehen, da es kritische Aktionen
-        // sicher blockiert, bis der Nutzer zustimmt.
-        if (
-            !confirm(
-                'Möchten Sie diesen System-Task jetzt manuell ausführen? Dies kann einen Moment dauern.'
-            )
-        ) {
+        // ARCHITEKTUR-FIX: Das blockierende window.confirm() durch unseren nativen Dialog ersetzen!
+        const isConfirmed = await this.#promptConfirm(
+            'Möchten Sie diesen System-Task jetzt manuell ausführen? Dies kann einen Moment dauern.'
+        );
+
+        if (!isConfirmed) {
             return;
         }
 
