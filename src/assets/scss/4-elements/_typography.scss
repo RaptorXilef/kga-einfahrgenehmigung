@@ -1,0 +1,20 @@
+@use '../2-tools/mixins' as *;
+
+@layer elements {
+    a {
+        color: var(--color-primary);
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+        transition: color var(--time-fast) var(--ease-base);
+
+        &:hover {
+            color: color-mix(
+                in oklch,
+                var(--color-primary) var(--mix-80),
+                oklch(0 0 0)
+            );
+        }
+
+        @include focus-ring();
+    }
+}

@@ -1,0 +1,66 @@
+@use 'sass:list';
+@use '../1-settings/tokens' as *;
+
+@layer tools {
+    // Strikter barrierefreier Fokus-Ring für alle interaktiven Elemente
+    @mixin focus-ring($color: var(--color-primary), $offset: var(--space-xs)) {
+        &:focus-visible {
+            outline: var(--border-m) solid $color;
+            outline-offset: $offset;
+        }
+    }
+
+    // Standardisierter Hover-Lift für Cards und Buttons
+    @mixin hover-lift(
+        $translate: calc(var(--border-s) * -1),
+        $shadow: var(--shadow-md)
+    ) {
+        translate: 0 $translate;
+        box-shadow: $shadow;
+    }
+
+    // Absolutes Zentrieren mit logischen Properties
+    @mixin absolute-center {
+        position: absolute;
+        inset-block-start: 50%;
+        inset-inline-start: 50%;
+        translate: -50% -50%;
+    }
+
+    // Dynamische Transition-Generatoren
+    @mixin transition-fast($properties...) {
+        $transitions: ();
+        @each $prop in $properties {
+            $transitions: list.append(
+                $transitions,
+                #{$prop} var(--time-fast) var(--ease-base),
+                comma
+            );
+        }
+        transition: $transitions;
+    }
+
+    @mixin transition-base($properties...) {
+        $transitions: ();
+        @each $prop in $properties {
+            $transitions: list.append(
+                $transitions,
+                #{$prop} var(--time-base) var(--ease-base),
+                comma
+            );
+        }
+        transition: $transitions;
+    }
+
+    @mixin transition-slow($properties...) {
+        $transitions: ();
+        @each $prop in $properties {
+            $transitions: list.append(
+                $transitions,
+                #{$prop} var(--time-slow) var(--ease-base),
+                comma
+            );
+        }
+        transition: $transitions;
+    }
+}

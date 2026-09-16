@@ -1,0 +1,7 @@
+@layer elements {
+    img {
+        max-inline-size: 100%;
+        block-size: auto;
+        font-style: italic; // Sichert semantische Trennung bei fehlerhaft geladenen Bildern (Alt-Text)
+    }
+}
