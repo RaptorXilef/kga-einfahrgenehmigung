@@ -126,13 +126,19 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php } elseif ($hasActiveVouchers) { ?>
                     <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
                     <div class="u-text-center u-margin-block-end-l u-flex u-justify-center">
-                        <span class="c-voucher-toggle js-voucher-toggle">
-                            <img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>" class="c-icon" loading="lazy" alt="">
+                        <button type="button"
+                                class="c-voucher-toggle js-voucher-toggle u-border-none"
+                                style="background: transparent; padding: 0; font: inherit;">
+                            <img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
+                                 class="c-icon"
+                                 loading="lazy"
+                                 alt="">
                             Sie haben einen Aktivierungscode? Dann hier klicken.
-                        </span>
+                        </button>
                     </div>
 
-                    <div class="c-voucher-container js-voucher-container c-box c-box--dashed o-container o-container--small u-margin-inline-auto">
+                    <div
+                         class="c-voucher-container js-voucher-container c-box c-box--dashed o-container o-container--small u-margin-inline-auto">
                         <!-- Formular nur für den Gutschein-Check -->
                         <form method="GET"
                               id="voucherRedeemForm"
@@ -385,9 +391,9 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                         <span class="c-checkbox__label">
                                             <?php echo $agree['label_html']; ?>
                                             <?php if ($agree['required']) { ?>
-                                                <span class="c-checkbox__required" title="Pflichtfeld">*</span>
-                                            <?php } ?>
-                                            </span>
+                                                <span class="c-checkbox__required" title="Pflichtfeld" aria-hidden="true">*</span>
+                                    <?php } ?>
+                                    </span>
                                     </label>
                                 <?php } ?>
                             </div>

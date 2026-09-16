@@ -73,8 +73,9 @@ unset($_SESSION['form_data']);
                                required
                                autocomplete="current-password">
                         <button type="button"
-                                tabindex="-1"
-                                class="c-password-toggle__btn">
+                                class="c-password-toggle__btn"
+                                aria-label="Passwort im Klartext anzeigen"
+                                aria-pressed="false">
                             <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
                                  class="c-icon"
                                  loading="lazy"

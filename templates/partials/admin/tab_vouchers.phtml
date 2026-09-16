@@ -129,10 +129,16 @@ use App\Infrastructure\Config\Config;
                                             </div>
 
                                             <div class="u-margin-block-start-s">
-                                                <span class="u-text-link js-copy-link u-text-xs u-font-semibold u-cursor-pointer u-flex u-align-center u-gap-xs u-display-inline-block" data-url="<?php echo $url; ?>">
+                                                <button type="button"
+                                                        class="u-text-link js-copy-link u-text-xs u-font-semibold u-cursor-pointer u-flex u-align-center u-gap-xs u-display-inline-block u-border-none"
+                                                        style="background: transparent; padding: 0; font-family: inherit;"
+                                                        data-url="<?php echo $url; ?>">
                                                     Link kopieren
-                                                    <img src="<?php echo $asset->url('assets/img/icons/copy.webp'); ?>" class="c-icon" loading="lazy" alt="">
-                                                </span>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/copy.webp'); ?>"
+                                                         class="c-icon"
+                                                         loading="lazy"
+                                                         alt="">
+                                                </button>
                                             </div>
                                         </td>
                                         <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
@@ -262,9 +268,12 @@ use App\Infrastructure\Config\Config;
 
     <!-- Das Modal liegt nun AUSSERHALB des c-tab-content-container, um globales Styling/Positioning beizubehalten -->
     <dialog id="qrModal"
-            class="c-modal js-qr-modal">
+            class="c-modal js-qr-modal"
+            aria-labelledby="qrModalTitle"
+            aria-modal="true">
         <div class="c-modal__dialog">
-            <h4 class="c-modal__title u-margin-block-end-s">QR-Code scannen</h4>
+            <h4 id="qrModalTitle"
+                class="c-modal__title u-margin-block-end-s">QR-Code scannen</h4>
             <code id="qrModalCode"
                   class="c-license-plate u-margin-block-end-m c-voucher-qr-code js-qr-modal-code"></code>
 
