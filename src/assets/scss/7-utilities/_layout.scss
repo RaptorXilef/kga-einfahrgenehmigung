@@ -1,5 +1,11 @@
 @layer utilities {
+    // Nativer DOM-Standard (wird vom Browser verstanden und ist A11y sicher)
     [hidden] {
+        display: none !important;
+    }
+
+    // Fallback-Utility für explizites Verstecken via Klasse
+    .u-hidden {
         display: none !important;
     }
 
@@ -15,10 +21,6 @@
     }
     .u-block-size-100 {
         block-size: 100% !important;
-    }
-
-    .u-hidden {
-        display: none !important;
     }
 
     .u-overflow-x-auto {
@@ -63,6 +65,7 @@
         text-decoration: none !important;
     }
 
+    // Barrierefreies Verstecken (Nur für Screenreader lesbar)
     .u-visually-hidden {
         position: absolute !important;
         inline-size: var(--border-s) !important;

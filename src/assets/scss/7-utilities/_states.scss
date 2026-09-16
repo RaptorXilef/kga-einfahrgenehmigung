@@ -1,0 +1,24 @@
+@layer utilities {
+    // Globale State-Klassen für JS DOM-Manipulation (BEM Namespace: is-)
+
+    .is-success {
+        color: var(--color-success) !important;
+    }
+
+    .is-error {
+        color: var(--color-danger) !important;
+    }
+
+    // Globale State-Klassen für PHP Page-Backgrounds (ehemals .state-bg-*)
+    .is-state-valid {
+        background-color: var(--color-success-soft) !important;
+    }
+
+    .is-state-rest {
+        background-color: var(--color-warning-soft) !important;
+    }
+
+    .is-state-error {
+        background-color: var(--color-danger-soft) !important;
+    }
+}
