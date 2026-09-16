@@ -32,22 +32,28 @@ if (typeof window.KGA_TEMPLATES === 'undefined') {
     window.KGA_TEMPLATES = {};
 }
 
-// 1. Service Worker Registrierung (Non-Blocking)
+// 1. Service Worker Registrierung (Non-Blocking & Secure Context Only)
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
-        navigator.serviceWorker
-            .register(`${baseUrl}sw.php`)
-            .then((registration) => {
-                console.info(
-                    '[PWA] Service Worker erfolgreich registriert. Scope:',
-                    registration.scope
-                );
-            })
-            .catch((error) => {
-                console.error('[PWA] Service Worker Registrierung fehlgeschlagen:', error);
-            });
-    });
+    if (window.isSecureContext) {
+        window.addEventListener('load', () => {
+            const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
+            navigator.serviceWorker
+                .register(`${baseUrl}sw.php`)
+                .then((registration) => {
+                    console.info(
+                        '[PWA] Service Worker erfolgreich registriert. Scope:',
+                        registration.scope
+                    );
+                })
+                .catch((error) => {
+                    console.error('[PWA] Service Worker Registrierung fehlgeschlagen:', error);
+                });
+        });
+    } else {
+        console.warn(
+            '[PWA] Service Worker übersprungen: Die Umgebung läuft über ungesichertes HTTP (Kein Secure Context).'
+        );
+    }
 }
 
 // 2. DOM Hydration
