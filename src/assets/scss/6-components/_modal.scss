@@ -5,15 +5,15 @@
         border: none;
         background: transparent;
         padding: var(--space-l);
-        max-inline-size: 100%;
-        max-block-size: 100%;
+        max-inline-size: var(--size-full);
+        max-block-size: var(--size-full);
         margin: auto;
     }
 
     .c-modal::backdrop {
         background-color: color-mix(
             in oklch,
-            var(--color-text-main) 70%,
+            var(--color-text-main) var(--mix-70),
             transparent
         );
         backdrop-filter: blur(0.125rem);
@@ -47,18 +47,22 @@
         padding: var(--space-xl);
         text-align: center;
         max-inline-size: var(--layout-modal-sm);
-        inline-size: 100%;
+        inline-size: var(--size-full);
         border-block-start: var(--border-xl) solid var(--color-warning);
         border-radius: var(--radius-xxl);
         box-shadow: 0 1.25rem 1.5625rem -0.3125rem
-            color-mix(in oklch, var(--color-text-main) 20%, transparent);
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-20),
+                transparent
+            );
         display: flex;
         flex-direction: column;
     }
 
     .c-modal__dialog--large {
         max-inline-size: var(--layout-max-width);
-        max-block-size: 90vh;
+        max-block-size: var(--size-screen-90);
     }
 
     .c-modal__title {
@@ -68,7 +72,7 @@
         justify-content: center;
         gap: var(--space-s);
         font-size: var(--text-xl);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         color: var(--color-text-main);
     }
 }

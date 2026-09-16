@@ -72,7 +72,7 @@
 
     .c-action-card__title {
         display: block !important;
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         color: var(--color-text-dark);
         font-size: var(--text-md);
         margin-block-end: var(--space-xs);

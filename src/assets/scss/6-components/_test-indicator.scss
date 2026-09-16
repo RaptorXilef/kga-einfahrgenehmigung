@@ -31,7 +31,11 @@
         inset-block-start: 0;
         z-index: z('test-indicator');
         box-shadow: 0 0.125rem 0.625rem
-            color-mix(in oklch, var(--color-text-main) 15%, transparent);
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-15),
+                transparent
+            );
     }
 
     .c-test-indicator__content {
@@ -44,18 +48,22 @@
     .c-test-indicator__badge {
         background-color: color-mix(
             in oklch,
-            var(--color-bg-white) 90%,
+            var(--color-bg-white) var(--mix-90),
             transparent
         );
         padding-block: 0.125rem;
         padding-inline: 0.75rem;
         border-radius: var(--radius-s);
-        font-weight: 800;
+        font-weight: var(--font-weight-extrabold);
         font-size: var(--text-xs);
         letter-spacing: 0.0625rem;
         text-transform: uppercase;
         border: var(--border-s) solid
-            color-mix(in oklch, var(--color-text-main) 10%, transparent);
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-10),
+                transparent
+            );
         box-shadow: var(--shadow-sm);
         display: flex;
         align-items: center;
@@ -64,15 +72,19 @@
 
     .c-test-indicator__text {
         font-size: var(--text-sm);
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
         text-shadow: 0 var(--border-s) 0
-            color-mix(in oklch, var(--color-bg-white) 40%, transparent);
+            color-mix(
+                in oklch,
+                var(--color-bg-white) var(--mix-40),
+                transparent
+            );
     }
 
     .c-test-indicator__text code {
         background-color: color-mix(
             in oklch,
-            var(--color-bg-white) 40%,
+            var(--color-bg-white) var(--mix-40),
             transparent
         );
         padding-block: 0.125rem;
@@ -80,7 +92,11 @@
         border-radius: var(--radius-xs);
         font-family: monospace;
         border: var(--border-s) solid
-            color-mix(in oklch, var(--color-text-main) 5%, transparent);
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-5),
+                transparent
+            );
     }
 
     .c-test-indicator__admin-badge {
@@ -90,8 +106,12 @@
         padding-inline: 0.625rem;
         border-radius: var(--radius-s);
         font-size: var(--text-xs);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         box-shadow: 0 var(--border-m) var(--radius-s)
-            color-mix(in oklch, var(--color-text-main) 20%, transparent);
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-20),
+                transparent
+            );
     }
 }

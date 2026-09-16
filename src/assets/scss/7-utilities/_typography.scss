@@ -35,13 +35,13 @@
     }
 
     .u-font-semibold {
-        font-weight: 600 !important;
+        font-weight: var(--font-weight-semibold) !important;
     }
     .u-font-bold {
-        font-weight: 700 !important;
+        font-weight: var(--font-weight-bold) !important;
     }
     .u-font-extrabold {
-        font-weight: 800 !important;
+        font-weight: var(--font-weight-extrabold) !important;
     }
     .u-font-mono {
         font-family: monospace !important;
@@ -81,14 +81,14 @@
     .u-color-success-dark {
         color: color-mix(
             in oklch,
-            var(--color-success) 60%,
+            var(--color-success) var(--mix-60),
             oklch(0 0 0)
         ) !important;
     }
     .u-color-warning {
         color: color-mix(
             in oklch,
-            var(--color-warning) 70%,
+            var(--color-warning) var(--mix-70),
             oklch(0 0 0)
         ) !important;
     }
@@ -108,10 +108,14 @@
     .u-text-link {
         color: var(--color-primary);
         text-decoration: underline;
-        font-weight: 500;
+        font-weight: var(--font-weight-medium);
         transition: color var(--time-fast) ease;
     }
     .u-text-link:hover {
-        color: color-mix(in oklch, var(--color-primary) 80%, oklch(0 0 0));
+        color: color-mix(
+            in oklch,
+            var(--color-primary) var(--mix-80),
+            oklch(0 0 0)
+        );
     }
 }

@@ -82,7 +82,7 @@
         padding-inline: 1.25rem;
         background-color: color-mix(
             in oklch,
-            var(--color-text-main) 2%,
+            var(--color-text-main) var(--mix-2),
             transparent
         );
         border-start-start-radius: var(--radius-xxl);

@@ -1,6 +1,6 @@
 @layer components {
     .c-table {
-        inline-size: 100%;
+        inline-size: var(--size-full);
         border-collapse: collapse;
         font-size: var(--text-md);
     }
@@ -14,7 +14,7 @@
         text-align: start;
         font-size: var(--text-xs);
         text-transform: uppercase;
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         letter-spacing: 0.03125rem;
     }
 
@@ -30,7 +30,7 @@
         word-break: break-word;
         white-space: normal;
         display: inline-block;
-        max-inline-size: 100%;
+        max-inline-size: var(--size-full);
     }
 
     .c-table__row--danger {
@@ -48,36 +48,36 @@
 
     .c-table__label--total {
         color: var(--color-text-main);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         font-size: var(--text-md);
         padding-block: var(--space-m);
         border-block-start: var(--border-m) solid var(--color-border);
     }
 
     .c-table__value {
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
     }
 
     .c-table__value--highlight {
-        font-weight: 800;
+        font-weight: var(--font-weight-extrabold);
         font-size: var(--text-lg);
         color: var(--color-primary);
     }
 
     .c-table__value--danger {
-        font-weight: 800;
+        font-weight: var(--font-weight-extrabold);
         color: var(--color-danger);
     }
 
     .c-table__value--code {
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         text-transform: uppercase;
         font-family: var(--font-mono, monospace);
         font-size: var(--text-md);
     }
 
     .c-table__value--total {
-        font-weight: 800;
+        font-weight: var(--font-weight-extrabold);
         color: var(--color-primary);
         font-size: var(--text-2xl);
         padding-block: var(--space-m);

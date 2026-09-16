@@ -4,14 +4,14 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        min-block-size: 100vh;
+        min-block-size: var(--size-screen-h);
     }
 
     .c-tab-content-container {
         max-inline-size: var(--layout-max-width);
         margin-inline: auto;
-        padding-inline: var(--space-l); // Strikte Token Nutzung
-        inline-size: 100%;
+        padding-inline: var(--space-l);
+        inline-size: var(--size-full);
         display: block;
     }
 }

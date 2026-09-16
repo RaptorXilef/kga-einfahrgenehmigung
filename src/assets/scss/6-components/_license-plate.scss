@@ -1,7 +1,7 @@
 @layer components {
     .c-license-plate {
         font-size: var(--text-sm);
-        font-weight: 800;
+        font-weight: var(--font-weight-extrabold);
         background-color: var(--color-bg-white);
         border: var(--border-s) solid var(--color-text-main);
         padding-block: 0.125rem;

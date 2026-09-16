@@ -3,7 +3,7 @@
         border-radius: var(--radius-circle);
         object-fit: cover;
         flex-shrink: 0;
-        max-inline-size: 100%;
+        max-inline-size: var(--size-full);
     }
 
     .c-avatar--xs {
@@ -74,8 +74,8 @@
     }
 
     .c-avatar-dropzone__img {
-        inline-size: 100%;
-        block-size: 100%;
+        inline-size: var(--size-full);
+        block-size: var(--size-full);
         object-fit: cover;
     }
 }

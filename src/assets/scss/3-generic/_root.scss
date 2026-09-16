@@ -19,6 +19,15 @@
         @each $name, $value in $tokens-font-size {
             --text-#{$name}: #{$value};
         }
+        @each $name, $value in $tokens-font-weight {
+            --font-weight-#{$name}: #{$value};
+        }
+        @each $name, $value in $tokens-size {
+            --size-#{$name}: #{$value};
+        }
+        @each $name, $value in $tokens-mix {
+            --mix-#{$name}: #{$value};
+        }
         @each $name, $value in $tokens-time {
             --time-#{$name}: #{$value};
         }
@@ -28,10 +37,18 @@
 
         --font-sans: 'Inter', -apple-system, sans-serif;
         --shadow-sm: 0 var(--border-s) var(--border-l)
-            color-mix(in oklch, var(--color-text-main) 10%, transparent);
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-10),
+                transparent
+            );
         --shadow-md: 0 var(--radius-s) var(--radius-m)
             calc(var(--border-s) * -1)
-            color-mix(in oklch, var(--color-text-main) 10%, transparent);
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-10),
+                transparent
+            );
         --icon-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
     }
 

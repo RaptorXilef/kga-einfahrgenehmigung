@@ -21,7 +21,7 @@
             box-shadow var(--time-fast) ease-in-out;
         color: var(--color-text-main);
         block-size: var(--c-input-height-val);
-        inline-size: 100%;
+        inline-size: var(--size-full);
         display: block;
     }
 
@@ -48,7 +48,7 @@
     }
 
     .c-form-label {
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
         color: var(--color-text-muted);
         margin-block-end: var(--space-s);
         display: flex;
@@ -90,7 +90,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.75rem;
+        font-size: var(--text-xs);
     }
 
     .c-price-display {
@@ -101,10 +101,10 @@
         padding-inline: var(--space-m);
         border-radius: var(--radius-xxl);
         border: var(--border-s) solid
-            color-mix(in oklch, var(--color-primary) 20%, transparent);
+            color-mix(in oklch, var(--color-primary) var(--mix-20), transparent);
         box-shadow: var(--shadow-sm);
         text-align: center;
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 
     .c-price-display--free {
@@ -112,7 +112,7 @@
         background-color: var(--color-success-soft);
         border-color: color-mix(
             in oklch,
-            var(--color-success) 20%,
+            var(--color-success) var(--mix-20),
             transparent
         );
     }
@@ -120,7 +120,11 @@
     .c-price-display--error {
         color: var(--color-danger);
         background-color: var(--color-danger-soft);
-        border-color: color-mix(in oklch, var(--color-danger) 20%, transparent);
+        border-color: color-mix(
+            in oklch,
+            var(--color-danger) var(--mix-20),
+            transparent
+        );
     }
 
     .c-checkbox {
@@ -146,7 +150,7 @@
 
     .c-checkbox__required {
         color: var(--color-danger);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         margin-inline-start: 0.125rem;
     }
 
@@ -158,7 +162,7 @@
 
     .c-password-toggle__input {
         padding-inline-end: 2.5rem;
-        inline-size: 100%;
+        inline-size: var(--size-full);
     }
 
     .c-password-toggle__btn {

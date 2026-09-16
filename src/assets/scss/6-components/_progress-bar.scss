@@ -3,14 +3,14 @@
         background-color: var(--color-bg-light);
         block-size: 0.5rem;
         border-radius: var(--radius-xl);
-        inline-size: 100%;
+        inline-size: var(--size-full);
         overflow: hidden;
         border: var(--border-s) solid var(--color-border);
     }
 
     .c-progress-bar__fill {
         background-color: var(--color-primary);
-        block-size: 100%;
+        block-size: var(--size-full);
         inline-size: var(--progress-width, 0%);
         transition: inline-size var(--time-slower) ease-in-out;
     }

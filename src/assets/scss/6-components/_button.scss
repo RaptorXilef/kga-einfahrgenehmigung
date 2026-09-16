@@ -45,7 +45,7 @@
         --btn-shadow: var(--shadow-md);
         --btn-border: color-mix(
             in oklch,
-            var(--color-border) 80%,
+            var(--color-border) var(--mix-80),
             var(--color-text-main)
         );
     }
@@ -54,13 +54,13 @@
         --btn-bg: var(--color-primary);
         --btn-color: var(--color-bg-white);
         --btn-border: transparent;
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
     }
 
     .c-button--primary:hover {
         --btn-bg: color-mix(
             in oklch,
-            var(--color-primary) 80%,
+            var(--color-primary) var(--mix-80),
             var(--color-text-main)
         );
     }
@@ -73,12 +73,12 @@
         --btn-bg: var(--color-success-soft);
         --btn-color: color-mix(
             in oklch,
-            var(--color-success) 40%,
+            var(--color-success) var(--mix-40),
             var(--color-text-main)
         );
         --btn-border: color-mix(
             in oklch,
-            var(--color-success) 40%,
+            var(--color-success) var(--mix-40),
             transparent
         );
     }
@@ -86,7 +86,7 @@
     .c-button--success:hover {
         --btn-bg: color-mix(
             in oklch,
-            var(--color-success-soft) 80%,
+            var(--color-success-soft) var(--mix-80),
             var(--color-text-main)
         );
     }
@@ -95,16 +95,20 @@
         --btn-bg: var(--color-danger-soft);
         --btn-color: color-mix(
             in oklch,
-            var(--color-danger) 20%,
+            var(--color-danger) var(--mix-20),
             var(--color-text-main)
         );
-        --btn-border: color-mix(in oklch, var(--color-danger) 40%, transparent);
+        --btn-border: color-mix(
+            in oklch,
+            var(--color-danger) var(--mix-40),
+            transparent
+        );
     }
 
     .c-button--danger:hover {
         --btn-bg: color-mix(
             in oklch,
-            var(--color-danger-soft) 80%,
+            var(--color-danger-soft) var(--mix-80),
             var(--color-text-main)
         );
     }
@@ -147,7 +151,7 @@
         padding-block: var(--space-m);
         block-size: auto;
         font-size: var(--text-lg);
-        inline-size: 100%;
+        inline-size: var(--size-full);
     }
 
     .c-button--responsive {

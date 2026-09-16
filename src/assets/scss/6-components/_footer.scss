@@ -31,7 +31,7 @@
         padding-block: var(--space-xs);
         padding-inline: var(--space-s);
         border-radius: var(--radius-pill);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         border: var(--border-s) solid var(--color-border);
         text-decoration: none;
     }
@@ -41,7 +41,7 @@
         color: var(--color-primary);
         border-color: color-mix(
             in oklch,
-            var(--color-primary) 20%,
+            var(--color-primary) var(--mix-20),
             transparent
         );
     }

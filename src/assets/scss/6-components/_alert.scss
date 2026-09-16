@@ -4,7 +4,7 @@
         padding-inline: var(--space-l);
         border-radius: var(--radius-xxl);
         margin-block-end: var(--space-xl);
-        font-weight: 500;
+        font-weight: var(--font-weight-medium);
         border: var(--border-s) solid transparent;
         display: flex;
         align-items: center;
@@ -14,7 +14,7 @@
     }
 
     .c-alert__content {
-        inline-size: 100%;
+        inline-size: var(--size-full);
         text-align: start;
         line-height: 1.6;
     }
@@ -23,12 +23,12 @@
         background-color: var(--color-success-soft);
         color: color-mix(
             in oklch,
-            var(--color-success) 40%,
+            var(--color-success) var(--mix-40),
             var(--color-text-main)
         );
         border-color: color-mix(
             in oklch,
-            var(--color-success) 40%,
+            var(--color-success) var(--mix-40),
             transparent
         );
     }
@@ -37,22 +37,26 @@
         background-color: var(--color-danger-soft);
         color: color-mix(
             in oklch,
-            var(--color-danger) 40%,
+            var(--color-danger) var(--mix-40),
             var(--color-text-main)
         );
-        border-color: color-mix(in oklch, var(--color-danger) 40%, transparent);
+        border-color: color-mix(
+            in oklch,
+            var(--color-danger) var(--mix-40),
+            transparent
+        );
     }
 
     .c-alert--warning {
         background-color: var(--color-warning-soft);
         color: color-mix(
             in oklch,
-            var(--color-warning) 40%,
+            var(--color-warning) var(--mix-40),
             var(--color-text-main)
         );
         border-color: color-mix(
             in oklch,
-            var(--color-warning) 40%,
+            var(--color-warning) var(--mix-40),
             transparent
         );
     }
@@ -61,12 +65,12 @@
         background-color: var(--color-primary-soft);
         color: color-mix(
             in oklch,
-            var(--color-primary) 40%,
+            var(--color-primary) var(--mix-40),
             var(--color-text-main)
         );
         border-color: color-mix(
             in oklch,
-            var(--color-primary) 40%,
+            var(--color-primary) var(--mix-40),
             transparent
         );
     }
@@ -83,8 +87,12 @@
         font-size: var(--text-md);
         opacity: 0.8;
         border-block-start: var(--border-s) solid
-            color-mix(in oklch, var(--color-text-main) 10%, transparent);
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-10),
+                transparent
+            );
         padding-block-start: var(--space-xl);
-        inline-size: 100%;
+        inline-size: var(--size-full);
     }
 }

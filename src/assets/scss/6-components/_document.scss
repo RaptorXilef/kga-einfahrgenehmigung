@@ -9,7 +9,7 @@
     .c-document__title {
         color: var(--color-primary);
         border-block-end: var(--border-m) solid
-            color-mix(in oklch, var(--color-border) 50%, transparent);
+            color-mix(in oklch, var(--color-border) var(--mix-50), transparent);
         padding-block-end: 0.625rem;
         margin-block-start: 0;
     }

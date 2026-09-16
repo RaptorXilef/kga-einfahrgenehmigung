@@ -3,7 +3,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        inline-size: 100%;
+        inline-size: var(--size-full);
     }
 
     .c-tabs__nav {
@@ -19,8 +19,12 @@
         border-radius: var(--radius-huge);
         border: var(--border-s) solid var(--color-border);
         box-shadow: inset 0 var(--border-s) var(--border-m)
-            color-mix(in oklch, var(--color-text-main) 5%, transparent);
-        max-inline-size: 100%;
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-5),
+                transparent
+            );
+        max-inline-size: var(--size-full);
     }
 
     .c-tabs__btn {
@@ -30,7 +34,7 @@
         background-color: transparent;
         cursor: pointer;
         border-radius: var(--radius-xl);
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
         color: var(--color-text-main);
         transition: all var(--time-fast) ease;
         display: inline-flex;
@@ -51,7 +55,7 @@
         background-color: var(--color-primary-soft);
         border-color: color-mix(
             in oklch,
-            var(--color-primary) 20%,
+            var(--color-primary) var(--mix-20),
             transparent
         );
     }
@@ -65,7 +69,7 @@
 
     .c-tabs__content {
         display: none;
-        inline-size: 100%;
+        inline-size: var(--size-full);
     }
 
     .c-tabs__content.is-active {

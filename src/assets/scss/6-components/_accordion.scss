@@ -37,7 +37,7 @@
     .c-accordion__body {
         background-color: color-mix(
             in oklch,
-            var(--color-text-main) 2%,
+            var(--color-text-main) var(--mix-2),
             transparent
         );
         border: var(--border-s) solid var(--color-border);

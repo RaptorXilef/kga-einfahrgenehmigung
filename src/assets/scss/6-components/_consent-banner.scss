@@ -5,14 +5,18 @@
         position: fixed;
         inset-block-end: 0;
         inset-inline-start: 0;
-        inline-size: 100%;
+        inline-size: var(--size-full);
         background-color: var(--color-bg-white);
         border-block-start: var(--border-s) solid var(--color-border);
         padding-block: var(--space-l);
         padding-inline: var(--space-l);
         z-index: z('consent-banner');
         box-shadow: 0 -0.3125rem 1.5625rem
-            color-mix(in oklch, var(--color-text-main) 5%, transparent);
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-5),
+                transparent
+            );
     }
 
     .c-consent-banner__dialog {
@@ -56,7 +60,7 @@
     .c-consent-banner__details {
         margin-block-start: var(--space-l);
         border-block-start: var(--border-s) solid
-            color-mix(in oklch, var(--color-border) 50%, transparent);
+            color-mix(in oklch, var(--color-border) var(--mix-50), transparent);
         padding-block-start: var(--space-m);
     }
 
@@ -68,7 +72,7 @@
         padding-block: var(--space-s);
         padding-inline: var(--space-m);
         border-radius: var(--radius-m);
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         cursor: pointer;
         border: none;
     }

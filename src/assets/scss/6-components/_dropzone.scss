@@ -35,14 +35,14 @@
         inset: 0;
         background-color: color-mix(
             in oklch,
-            var(--color-primary) 90%,
+            var(--color-primary) var(--mix-90),
             transparent
         );
         color: var(--color-bg-white);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 700;
+        font-weight: var(--font-weight-bold);
         font-size: var(--text-sm);
         opacity: var(--overlay-opacity);
         transition: opacity var(--time-fast);
