@@ -37,7 +37,7 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
         navigator.serviceWorker
-            .register(`${baseUrl}sw.js`)
+            .register(`${baseUrl}sw.php`)
             .then((registration) => {
                 console.info(
                     '[PWA] Service Worker erfolgreich registriert. Scope:',

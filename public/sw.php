@@ -1,13 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
 /**
- * KGA Einfahrts-Manager - Service Worker
+ * KGA Einfahrts-Manager - Service Worker (Dynamisch)
  *
+ * Diese Datei wird von PHP verarbeitet, um die Versionsnummer sicher aus der
+ * package.json (außerhalb des public-Ordners) auszulesen.
+ * An den Browser wird sie als reines JavaScript ausgeliefert.
+ */
+
+// 1. ZWINGEND: Dem Browser mitteilen, dass dies eine JavaScript-Datei ist
+\header('Content-Type: application/javascript; charset=utf-8');
+
+// 2. KRITISCH: Den Service Worker niemals vom Browser cachen lassen!
+// Der Browser führt bei jedem Seitenaufruf einen Byte-Vergleich dieser Datei durch.
+// Ändert sich die Version in der package.json, ändert sich das ausgegebene JS.
+// Der Browser erkennt den Unterschied und installiert den neuen Service Worker sofort.
+\header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+\header('Pragma: no-cache');
+\header('Expires: 0');
+
+// 3. Version aus package.json auslesen
+$root = \dirname(__DIR__);
+$version = 'v0.0.0';
+$packageJsonPath = $root . '/package.json';
+
+if (\file_exists($packageJsonPath)) {
+    try {
+        $pkgData = \json_decode(\file_get_contents($packageJsonPath), true, 512, \JSON_THROW_ON_ERROR);
+        if (\is_array($pkgData) && isset($pkgData['version'])) {
+            $version = 'v' . $pkgData['version'];
+        }
+    } catch (\Throwable $e) {
+        // Fallback bleibt v0.0.0
+    }
+}
+?>
+/**
  * Strategie:
  * - Statische Assets (/assets/*): Cache-First, Fallback Network.
  * - HTML-Seiten: Network-First, Fallback Cache.
  * - API & Admin: STRICTLY Network Only (Bypass Cache).
  */
 
-const CACHE_VERSION = 'v1.0.0'; // <- Hier bei Updates einfach v1.0.1 draus machen!
+const CACHE_VERSION = '<?php echo \htmlspecialchars($version, \ENT_QUOTES, ';
+UTF - 8;
+('); ?>');
 const STATIC_CACHE = `kga-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `kga-dynamic-${CACHE_VERSION}`;
 
@@ -27,7 +66,7 @@ self.addEventListener('install', (event) => {
     self.skipWaiting();
     event.waitUntil(
         caches.open(STATIC_CACHE).then((cache) => {
-            console.info('[SW] Pre-Caching gestartet...');
+            console.info(`[SW] Pre-Caching gestartet für Version: ${CACHE_VERSION}`);
             return cache.addAll(PRECACHE_ASSETS);
         })
     );
@@ -39,7 +78,6 @@ self.addEventListener('activate', (event) => {
         caches
             .keys()
             .then((keys) => {
-                // FIX: Array sauber filtern und mappen, damit ein garantiertes Array of Promises entsteht
                 const invalidKeys = keys.filter(
                     (key) => key !== STATIC_CACHE && key !== DYNAMIC_CACHE
                 );
@@ -60,7 +98,7 @@ self.addEventListener('fetch', (event) => {
     // Grundregel 1: Nur GET-Requests cachen. POST/PUT/DELETE niemals abfangen!
     if (event.request.method !== 'GET') return;
 
-    const url = new URL(event.request.url);
+    const url = new window.URL(event.request.url);
 
     // API & Admin umgehen den Cache komplett
     const networkOnlyRoutes = ['/api/', '/admin', '/check', '/checkout', '/success'];
@@ -76,25 +114,23 @@ self.addEventListener('fetch', (event) => {
                 if (cachedResponse) return cachedResponse;
 
                 // Wenn nicht im Cache: Aus dem Netz laden und dynamisch für später cachen
-                return (
-                    fetch(event.request)
-                        .then((networkResponse) => {
-                            // Gültige Antworten cachen
-                            if (
-                                networkResponse &&
-                                networkResponse.status === 200 &&
-                                networkResponse.type === 'basic'
-                            ) {
-                                const responseToCache = networkResponse.clone();
-                                caches.open(DYNAMIC_CACHE).then((cache) => {
-                                    cache.put(event.request, responseToCache);
-                                });
-                            }
-                            return networkResponse;
-                        })
-                        // Optional: Fallback-Image für fehlende WebP-Bilder
-                        .catch(() => null)
-                );
+                return fetch(event.request)
+                    .then((networkResponse) => {
+                        // Gültige Antworten cachen
+                        if (
+                            networkResponse &&
+                            networkResponse.status === 200 &&
+                            networkResponse.type === 'basic'
+                        ) {
+                            const responseToCache = networkResponse.clone();
+                            caches.open(DYNAMIC_CACHE).then((cache) => {
+                                cache.put(event.request, responseToCache);
+                            });
+                        }
+                        return networkResponse;
+                    })
+                    // Optional: Fallback-Image für fehlende WebP-Bilder
+                    .catch(() => null);
             })
         );
         return;
