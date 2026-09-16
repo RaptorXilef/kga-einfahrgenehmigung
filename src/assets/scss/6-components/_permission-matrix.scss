@@ -1,8 +1,9 @@
 @use '../1-settings/z-index' as *;
+@use '../2-tools/mixins' as *;
 
 @layer components {
     .c-tree-wrapper {
-        transition: all var(--time-base) var(--ease-base);
+        @include transition-base(all);
     }
 
     .c-tree-wrapper.is-master-active {
@@ -12,7 +13,7 @@
     }
 
     .c-tree-node {
-        transition: all var(--time-fast);
+        @include transition-fast(all);
         margin-inline-start: calc(var(--depth, 0) * var(--space-xl));
     }
 
@@ -21,7 +22,7 @@
     }
 
     .c-tree-item {
-        transition: background-color var(--time-fast);
+        @include transition-fast(background-color);
         padding-block: var(--space-s);
         padding-inline: 0;
         border-block-end: var(
@@ -59,13 +60,13 @@
 
     .c-tree-item__label {
         display: block;
-        font-size: clamp(0.9rem, 1vw, 0.95rem);
+        font-size: var(--text-md);
         color: var(--color-text-main);
         font-weight: var(--font-weight-bold);
     }
 
     .c-tree-item__label--root {
-        font-size: clamp(1rem, 1.2vw, 1.05rem);
+        font-size: var(--text-lg);
     }
 
     .c-tree-item__sublabel {
@@ -113,10 +114,7 @@
     }
 
     .c-switch__input {
-        opacity: var(--opacity-0);
-        inline-size: 0;
-        block-size: 0;
-        position: absolute;
+        @include visually-hidden;
     }
 
     .c-switch__label {
@@ -124,7 +122,7 @@
         cursor: pointer;
         inset: 0;
         background-color: var(--switch-bg);
-        transition: background-color var(--time-slow);
+        @include transition-slow(background-color);
         border-radius: var(--radius-pill);
     }
 
@@ -137,7 +135,7 @@
         translate: var(--switch-thumb-x) calc(var(--size-half) * -1);
         background-color: var(--color-bg-white);
         will-change: translate;
-        transition: translate var(--time-slow) var(--ease-bounce);
+        @include transition-slow(translate);
         border-radius: var(--radius-circle);
         z-index: z('switch');
         box-shadow: var(--shadow-sm);
@@ -153,8 +151,6 @@
         font-size: var(--text-xs);
         font-weight: var(--font-weight-black);
         color: var(--switch-text-color);
-        transition:
-            color var(--time-base),
-            inset var(--time-base);
+        @include transition-base(color, inset);
     }
 }

@@ -1,3 +1,5 @@
+@use '../2-tools/mixins' as *;
+
 @layer components {
     .c-table {
         inline-size: var(--size-full);
@@ -29,9 +31,7 @@
     .c-table__data-cell:has(.c-license-plate) .c-icon {
         inline-size: var(--size-icon-lg) !important;
         block-size: var(--size-icon-lg) !important;
-        opacity: var(
-            --opacity-100
-        ); /* Zwingt verblasste Icons auf Sichtbarkeit */
+        opacity: var(--opacity-100);
     }
 
     .c-table__data-cell:has(.c-license-plate) .c-license-plate {

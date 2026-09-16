@@ -3,7 +3,7 @@
         font-family: var(--font-sans);
         line-height: var(--line-height-relaxed);
         color: var(--color-text-main);
-        padding: clamp(var(--space-m), 3vw, var(--space-xl));
+        padding: clamp(var(--space-m), var(--vw-3), var(--space-xl));
     }
 
     .s-markdown h1,
@@ -18,16 +18,16 @@
 
     .s-markdown h1 {
         color: var(--color-primary);
-        font-size: clamp(1.5rem, 2vw + 0.5rem, 1.8rem);
+        font-size: clamp(var(--text-xl), var(--vw-3), var(--text-3xl));
         border-block-end: var(--border-m) solid var(--color-primary);
     }
 
     .s-markdown h2 {
-        font-size: clamp(1.2rem, 1.5vw + 0.5rem, 1.4rem);
+        font-size: clamp(var(--text-lg), var(--vw-3), var(--text-2xl));
     }
 
     .s-markdown h3 {
-        font-size: clamp(1rem, 1vw + 0.5rem, 1.1rem);
+        font-size: var(--text-xl);
         border-block-end: none;
     }
 
@@ -45,7 +45,7 @@
         padding-block: 0.2em;
         padding-inline: 0.4em;
         border-radius: var(--radius-s);
-        font-family: monospace;
+        font-family: var(--font-mono);
         font-size: var(--text-sm);
         border: var(--border-s) solid var(--color-border);
         color: var(--color-danger);

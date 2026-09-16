@@ -155,6 +155,7 @@
         scale: 1.2;
         cursor: pointer;
         flex-shrink: 0;
+
         @include focus-ring();
     }
 
