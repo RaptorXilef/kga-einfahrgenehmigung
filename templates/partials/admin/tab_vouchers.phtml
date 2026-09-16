@@ -140,7 +140,7 @@ use App\Infrastructure\Config\Config;
                                                     <form method="POST"
                                                           id="toggleVoucher_<?php echo $vCodeStr; ?>"
                                                           action="<?php echo $settings['base_url']; ?><?php echo $isDeactivated ? 'activate_voucher' : 'deactivate_voucher'; ?>"
-                                                          class="u-margin-block-none">
+                                                          class="u-margin-block-none js-form-toggle-voucher">
                                                         <input type="hidden"
                                                                name="csrf_token"
                                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -176,7 +176,7 @@ use App\Infrastructure\Config\Config;
                                                     <form method="POST"
                                                           id="deleteVoucher_<?php echo $vCodeStr; ?>"
                                                           action="<?php echo $settings['base_url']; ?>delete_voucher"
-                                                          class="u-margin-block-none"
+                                                          class="u-margin-block-none js-form-delete-voucher"
                                                           data-confirm="Soll dieser Gutscheincode unwiderruflich gelöscht werden?">
                                                         <input type="hidden"
                                                                name="csrf_token"
@@ -260,19 +260,19 @@ use App\Infrastructure\Config\Config;
     </div>
 
     <dialog id="qrModal"
-            class="c-modal js-qr-modal js-qr-modal">
+            class="c-modal js-qr-modal">
         <div class="c-modal__dialog">
             <h4 class="c-modal__title u-margin-block-end-s">QR-Code scannen</h4>
             <code id="qrModalCode"
-                  class="c-license-plate u-margin-block-end-m c-voucher-qr-code js-qr-modal-code js-qr-modal-code"></code>
+                  class="c-license-plate u-margin-block-end-m c-voucher-qr-code js-qr-modal-code"></code>
 
             <div class="c-box u-margin-block-none u-flex u-align-center u-justify-center c-voucher-qr-box">
                 <img id="qrModalImg"
                      src=""
                      alt="QR Code"
-                     class="c-voucher-qr-img js-qr-modal-img js-qr-modal-img">
+                     class="c-voucher-qr-img js-qr-modal-img">
                 <div id="qrModalLoader"
-                     class="u-color-muted js-qr-modal-loader js-qr-modal-loader">Wird generiert...</div>
+                     class="u-color-muted js-qr-modal-loader">Wird generiert...</div>
             </div>
 
             <button type="button"

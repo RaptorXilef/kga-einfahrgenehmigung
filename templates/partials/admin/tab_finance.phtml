@@ -135,7 +135,7 @@ if ($auth->hasPermission('finance.view')) {
                                             </div>
                                             <form method="POST"
                                                   action="<?php echo $settings['base_url']; ?>dismiss_transfer"
-                                                  class="u-margin-block-none">
+                                                  class="u-margin-block-none js-dismiss-transfer-form">
                                                 <input type="hidden"
                                                        name="csrf_token"
                                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -320,7 +320,7 @@ if ($auth->hasPermission('finance.view')) {
                                                     <?php if ($is_suspended) { ?>
                                                         <button type="button"
                                                                 class="c-button c-button--success c-button--small c-button--icon-only js-submit-form"
-                                                                data-target="#form_unsuspend_<?php echo $permit->code; ?>"
+                                                                data-target=".js-form-unsuspend[data-code='<?php echo $permit->code; ?>']"
                                                                 title="Wieder freigeben">
                                                             <img src="<?php echo $asset->url('assets/img/icons/unlock.webp'); ?>"
                                                                  class="c-icon c-button__icon"
@@ -332,7 +332,7 @@ if ($auth->hasPermission('finance.view')) {
                                                                 class="c-button c-button--danger c-button--small c-button--icon-only js-suspend-btn"
                                                                 data-code="<?php echo $permit->code; ?>"
                                                                 title="Sperren">
-                                                            <img src="<?php echo $asset->url('assets/img/icons/denied.webp'); ?>"
+                                                            <img src="<?php echo $asset->url('assets/img/icons/error.webp'); ?>"
                                                                  class="c-icon c-button__icon"
                                                                  loading="lazy"
                                                                  alt="">
@@ -342,17 +342,17 @@ if ($auth->hasPermission('finance.view')) {
                                                 <?php if ($hasBulkRight) { ?>
                                                     <button type="button"
                                                             class="c-button c-button--success c-button--small c-button--icon-only js-submit-form"
-                                                            data-target="#single_pay_<?php echo $permit->code; ?>"
+                                                            data-target=".js-form-single-pay[data-code='<?php echo $permit->code; ?>']"
                                                             data-confirm-click="Zahlung für <?php echo $permit->code; ?> bestätigen?"
                                                             title="Einzeln als Bezahlt markieren">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/check-mark.webp'); ?>"
+                                                        <img src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
                                                              class="c-icon c-button__icon"
                                                              loading="lazy"
                                                              alt="">
                                                     </button>
                                                     <form method="POST"
                                                           action="<?php echo $settings['base_url']; ?>send_reminder"
-                                                          class="u-margin-block-none">
+                                                          class="u-margin-block-none js-form-send-reminder">
                                                         <input type="hidden"
                                                                name="csrf_token"
                                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">

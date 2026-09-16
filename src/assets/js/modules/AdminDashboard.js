@@ -9,7 +9,7 @@ export class AdminDashboard {
         this.container = container;
         this.tabs = this.container.querySelectorAll('[data-tab-target]');
         this.contents = this.container.querySelectorAll('.c-tabs__content');
-        this.searchInput = document.querySelector('.js-admin-search');
+        this.searchInput = this.container.querySelector('.js-admin-search');
 
         // Zentraler Zerstörer für alle delegierten Events
         this.abortController = new AbortController();
@@ -22,41 +22,12 @@ export class AdminDashboard {
 
     init() {
         const options = { signal: this.abortController.signal };
+
         // --- Datums-Filter Logik aus control_bar.phtml ---
         const filterStart = this.container.querySelector('.js-filter-start');
         const filterEnd = this.container.querySelector('.js-filter-end');
         const filterForm = this.container.querySelector('.js-dashboard-filter-form');
 
-        // 1. Tab-Steuerung
-        this.tabs.forEach((btn) => {
-            btn.addEventListener(
-                'click',
-                (e) => {
-                    e.preventDefault();
-                    this.switchTab(btn.getAttribute('data-tab-target'), btn);
-                },
-                options
-            );
-        });
-
-        // 2. Server-Side Such-Logik (Debounce)
-        if (this.searchInput) {
-            const form = document.querySelector('.js-dashboard-filter-form');
-            if (form) {
-                // Die referenzierte Handler-Funktion muss im Speicher bleiben und abbrechbar sein
-                this.debouncedSearch = debounce(() => form.submit(), 600);
-                this.searchInput.addEventListener('input', this.debouncedSearch, options);
-            }
-
-            if (this.searchInput.value) {
-                const val = this.searchInput.value;
-                this.searchInput.value = '';
-                this.searchInput.value = val;
-                this.searchInput.focus();
-            }
-        }
-
-        // 3. Datums-Filter Logik aus control_bar.phtml
         if (filterStart && filterEnd && filterForm) {
             filterStart.addEventListener(
                 'change',
@@ -88,9 +59,37 @@ export class AdminDashboard {
                 options
             );
         }
+        // -------------------------------------------------------
 
-        // 4. Delegierte Klicks für "Sperren" Buttons
-        // Delegiertes Event an AbortSignal binden!
+        // 1. Tab-Steuerung
+        this.tabs.forEach((btn) => {
+            btn.addEventListener(
+                'click',
+                (e) => {
+                    e.preventDefault();
+                    this.switchTab(btn.getAttribute('data-tab-target'), btn);
+                },
+                options
+            );
+        });
+
+        // 2. Server-Side Such-Logik (Debounce)
+        if (this.searchInput) {
+            const form = this.container.querySelector('.js-dashboard-filter-form');
+            if (form) {
+                this.debouncedSearch = debounce(() => form.submit(), 600);
+                this.searchInput.addEventListener('input', this.debouncedSearch, options);
+            }
+
+            if (this.searchInput.value) {
+                const val = this.searchInput.value;
+                this.searchInput.value = '';
+                this.searchInput.value = val;
+                this.searchInput.focus();
+            }
+        }
+
+        // 3. Delegierte Klicks für "Sperren" Buttons
         this.container.addEventListener(
             'click',
             (e) => {
@@ -105,8 +104,7 @@ export class AdminDashboard {
                     const reason = prompt(`Grund für die Sperre von ${code}?`);
 
                     if (reason && reason.trim() !== '') {
-                        // FIX: Strikte Selektion via CSS-Attribut und BEM-Klasse statt Element-ID
-                        const form = document.querySelector(
+                        const form = this.container.querySelector(
                             `.js-form-suspend[data-code="${code}"]`
                         );
                         const input = form?.querySelector('.js-reason-suspend');
@@ -125,11 +123,10 @@ export class AdminDashboard {
         this.bulkCheckboxes = this.container.querySelectorAll('.js-bulk-pay-cb');
         this.bulkToggleAll = this.container.querySelector('.js-bulk-pay-toggle-all');
 
-        // FIX: JS Hooks anstatt harter DOM IDs
-        this.btnPay = document.querySelector('.js-bulk-pay-btn');
-        this.btnRemind = document.querySelector('.js-bulk-remind-btn');
-        this.countSpanPay = document.querySelector('.js-bulk-pay-count');
-        this.countSpanRemind = document.querySelector('.js-bulk-remind-count');
+        this.btnPay = this.container.querySelector('.js-bulk-pay-btn');
+        this.btnRemind = this.container.querySelector('.js-bulk-remind-btn');
+        this.countSpanPay = this.container.querySelector('.js-bulk-pay-count');
+        this.countSpanRemind = this.container.querySelector('.js-bulk-remind-count');
 
         const options = { signal: this.abortController.signal };
 
@@ -182,7 +179,7 @@ export class AdminDashboard {
         try {
             localStorage.setItem('lastAdminTab', tabId);
         } catch {
-            // Ignore
+            // Ignore blockierte Storage
         }
     }
 
