@@ -27,9 +27,10 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 <?php if ($auth->hasPermission('permits.view')) { ?>
     <div class="c-control-bar-wrapper">
         <section class="c-control-bar">
+            <!-- Native ID für Formular-Targets, js-Klasse für den JS-Controller -->
             <form method="POST"
-                  action="<?php echo $settings['base_url']; ?>filter_dashboard"
                   id="dashboardFilterForm"
+                  action="<?php echo $settings['base_url']; ?>filter_dashboard"
                   class="js-dashboard-filter-form u-flex u-align-center u-gap-s u-flex-wrap u-inline-size-100 u-justify-center u-margin-none">
                 <input type="hidden"
                        name="csrf_token"
@@ -40,13 +41,13 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 
                 <label for="filter_start"
                        class="c-control-bar__label">
-                    <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
                          class="c-icon"
                          loading="lazy"
                          alt="">
                     ZEITRAUM:
                 </label>
-                <!-- Die ID bleibt für das "for"-Attribut des Labels (A11y), JS greift über die Klasse zu -->
+                <!-- Native ID für das <label>, js-Klasse für JS-EventListener -->
                 <input type="date"
                        id="filter_start"
                        name="start"
@@ -91,11 +92,11 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 
                 <div class="c-control-bar__search">
                     <span class="c-control-bar__search-icon">
-                        <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" loading="lazy" alt="">
+                        <img src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>" class="c-icon" loading="lazy" alt="">
                     </span>
+                    <!-- Native ID entfernt da im JS refaktoriert, label wird via aria-label gelöst -->
                     <!-- name="q" und value aus PHP für Server-Side Search -->
                     <input type="text"
-                           id="adminSearch"
                            name="q"
                            aria-label="Schnellsuche"
                            autocomplete="off"
@@ -115,31 +116,4 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
             </form>
         </section>
     </div>
-
-    <?php // TODO Inline JS in JS Dateien auslagern?>
-    <script nonce="<?php echo $cspNonce; ?>">
-    document.addEventListener('DOMContentLoaded', () => {
-        // FIX: Strikte JS Hooks anstelle von getElementById, um Abstürze zu verhindern
-        const filterStart = document.querySelector('.js-filter-start');
-        const filterEnd = document.querySelector('.js-filter-end');
-        const form = document.querySelector('.js-dashboard-filter-form');
-
-        if (filterStart && filterEnd && form) {
-            filterStart.addEventListener('change', () => {
-                if (filterStart.value && filterEnd.value && filterStart.value > filterEnd.value) {
-                    filterEnd.value = filterStart.value;
-                }
-                form.submit();
-            });
-
-            filterEnd.addEventListener('change', () => {
-                if (filterStart.value && filterEnd.value && filterEnd.value < filterStart.value) {
-                    filterStart.value = filterEnd.value;
-                }
-                form.submit();
-            });
-        }
-    });
-
-    </script>
 <?php } ?>

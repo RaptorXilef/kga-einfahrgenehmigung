@@ -26,7 +26,7 @@ $pageTitle = 'Genehmigung prüfen';
     <div class="c-card c-card--primary u-margin-inline-auto">
         <header class="c-card__header u-text-center">
             <h2 class="u-margin-block-none">
-                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
+                <img src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>"
                      class="c-icon c-icon--md"
                      loading="lazy"
                      alt=""> Manuelle Prüfung
@@ -38,10 +38,13 @@ $pageTitle = 'Genehmigung prüfen';
             <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
             <form action="check"
+                  id="checkPermitForm"
                   method="GET"
                   class="c-form">
                 <div class="c-form-group u-margin-block-end-l">
+                    <label for="codeInput" class="u-visually-hidden">SmartCode Eingabe</label>
                     <input type="text"
+                           id="codeInput"
                            name="code"
                            aria-label="Gutscheincode eingeben"
                            class="c-form-input c-form-input--code u-text-center"

@@ -18,7 +18,7 @@ use App\Infrastructure\Config\Config;
         <div class="o-container o-container--large c-test-indicator__content">
 
             <div class="c-test-indicator__badge">
-                <img src="<?php echo $asset->url('assets/img/icons/status-warning.webp'); ?>"
+                <img src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>"
                      class="c-icon"
                      loading="lazy"
                      alt=""> Test-System
@@ -31,7 +31,7 @@ use App\Infrastructure\Config\Config;
 
             <?php if ($config->get('admin_dev_mode')) { ?>
                 <div class="c-test-indicator__admin-badge">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-locked-with-key.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/unlock.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
                          alt=""> Admin Bypass Aktiv

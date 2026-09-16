@@ -48,7 +48,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
     <div class="c-box u-margin-block-end-l u-text-center">
         <?php if ($permit && $permit->isSuspended()) { ?>
             <div class="u-color-danger">
-                <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
+                <img src="<?php echo $asset->url('assets/img/icons/error.webp'); ?>"
                      class="c-icon c-icon--lg"
                      loading="lazy"
                      alt="">
@@ -57,7 +57,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
             </div>
         <?php } elseif ($permit && $isDateValid && $isTimeAllowed) { ?>
             <div class="u-color-success">
-                <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
+                <img src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
                      class="c-icon c-icon--lg"
                      loading="lazy"
                      alt="">
@@ -66,7 +66,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
         <?php } elseif ($permit && $isDateValid && !$isTimeAllowed) { ?>
             <div class="u-color-warning">
                 <span class="u-text-4xl">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+                    <img src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                 </span>
                 <h2 class="u-color-warning u-margin-block-start-s">AKTUELL RUHEZEIT</h2>
                 <?php if (\str_contains($allowedToday, 'Gültigkeit')) { ?>
@@ -81,7 +81,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
             </div>
         <?php } else { ?>
             <div class="u-color-muted">
-                <img src="<?php echo $asset->url('assets/img/icons/status-invalid.webp'); ?>"
+                <img src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>"
                      class="c-icon c-icon--lg"
                      loading="lazy"
                      alt="">
@@ -97,14 +97,14 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
         </div>
         <div class="u-flex u-gap-s">
             <a href="check" class="c-button c-button--secondary">
-                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
+                <img src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>"
                      class="c-icon c-button__icon"
                      loading="lazy"
                      alt=""> Neue Prüfung
             </a>
             <?php if ($permit && $auth->hasPermission('permits.print')) { ?>
                 <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--primary">
-                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
                          alt=""> Drucken
@@ -117,7 +117,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
         <section class="c-card c-card--primary u-shadow-highlight">
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <h3 class="u-margin-block-none">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/copy.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
                          alt=""> Pächter- & Fahrzeugdaten
@@ -206,6 +206,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
                 <?php if ($permit->getStatus() !== PermitStatus::Bezahlt) { ?>
                     <footer class="c-card__footer u-text-center">
                         <form method="POST"
+                              id="markPaidForm"
                               action="<?php echo $settings['base_url']; ?>mark_as_paid"
                               class="u-flex u-justify-center u-margin-block-none"
                               data-confirm="Sind Sie sicher, dass Sie den Status auf Bezahlt ändern möchten?">

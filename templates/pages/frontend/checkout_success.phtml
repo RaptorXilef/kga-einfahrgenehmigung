@@ -11,7 +11,7 @@ use App\Core\Entity\PermitStatus;
  *
  * @var AssetHelperInterface $asset
  * @var Permit $permit         Die bewilligte Genehmigungs-Entität.
- * @var array $settings       Globale UI-Einstellungen.
+ * @var array $settings        Globale UI-Einstellungen.
  * @var bool $requirePayment Gibt an, ob das Ticket erst nach Zahlungseingang gültig ist.
  * @var string $appRoot        Absoluter Pfad.
  * @var string $cspNonce
@@ -31,7 +31,7 @@ $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
 <div class="c-tab-content-container o-container o-container--medium u-padding-block-xl">
     <div class="c-card c-card--success u-text-center">
         <div class="c-card__body c-card__body--xl">
-            <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
+            <img src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
                  alt="Erfolg"
                  loading="lazy"
                  class="c-icon c-icon--xl u-margin-block-end-l">
@@ -97,7 +97,7 @@ $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
 
             <div class="u-margin-block-start-xl u-border-block-start u-padding-block-start-l">
                 <p class="u-margin-block-end-m u-text-sm">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/envelope.webp'); ?>"
                          class="c-icon c-icon--inline u-margin-inline-end-xs"
                          loading="lazy"
                          alt="">

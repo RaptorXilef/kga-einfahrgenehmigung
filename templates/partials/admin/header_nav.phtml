@@ -23,7 +23,7 @@ if (isset($roleRepository) && $auth->isLoggedIn()) {
     $roles = $roleRepository->loadAll();
     $roleName = isset($roles[$roleId]) ? $roles[$roleId]->name : $roleId;
 }
-$userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user', $auth->getUserId(), 'icon-user-default.webp') : '';
+$userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user', $auth->getUserId(), 'user.webp') : '';
 
 // Ermittlung der aktiven Route für die Button-Highlights
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
@@ -49,7 +49,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                         </a>
                     </span>
                     <div class="c-group-badge">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/shield.webp'); ?>"
                              class="c-icon"
                              loading="lazy"
                              alt="Role Icon">
@@ -59,7 +59,7 @@ $currentPage = $path === '' ? 'admin' : $path;
 
                 <?php if ($auth->hasPermission('system.manage')) { ?>
                     <a href="users" class="c-tabs__btn <?php echo $currentPage === 'users' ? 'is-active' : ''; ?>">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Benutzer-Verwaltung
+                        <img src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Benutzer-Verwaltung
                     </a>
                 <?php } ?>
             </div>
@@ -70,7 +70,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                 <?php if (!empty($allReleaseNotes)) { ?>
                     <button type="button"
                             class="c-button c-button--secondary c-button--small js-show-all-release-notes">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-free.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/rocket.webp'); ?>"
                              class="c-icon c-button__icon"
                              loading="lazy"
                              alt=""> Was ist neu?
@@ -81,7 +81,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                 <button type="button"
                         class="c-theme-toggle js-theme-toggle"
                         title="Design wechseln">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-sun.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/sun.webp'); ?>"
                          class="c-icon c-theme-toggle__icon js-theme-icon"
                          loading="lazy"
                          alt="">
@@ -90,18 +90,17 @@ $currentPage = $path === '' ? 'admin' : $path;
 
                 <div class="c-session-pill"
                      title="Automatische Abmeldung bei Inaktivität">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
                          alt="">
-                    <span id="ui-session-timer" class="js-session-timer">20:00</span>
+                    <span class="js-session-timer">20:00</span>
                 </div>
 
                 <!-- Logout -->
                 <button type="button"
-                        id="btn-session-logout"
-                        class="c-button c-button--small c-button--danger-outline">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-cross-mark.webp'); ?>"
+                        class="c-button c-button--small c-button--danger-outline js-session-logout">
+                    <img src="<?php echo $asset->url('assets/img/icons/error.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
                          alt=""> Abmelden
@@ -113,12 +112,12 @@ $currentPage = $path === '' ? 'admin' : $path;
         <div class="c-header-nav__bottom">
             <?php if ($auth->hasPermission('admin.access')) { ?>
                 <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'is-active' : ''; ?>">
-                    <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Dashboard
+                    <img src="<?php echo $asset->url('assets/img/icons/stats.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Dashboard
                 </a>
             <?php } ?>
 
             <a href="check" class="c-tabs__btn u-margin-inline-start-auto" target="_blank">
-                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Check
+                <img src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Check
             </a>
         </div>
     </div>
@@ -128,21 +127,20 @@ $currentPage = $path === '' ? 'admin' : $path;
     <div class="c-modal__dialog">
         <h3 class="c-modal__title">
             <span class="u-text-xl">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-warning.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+                <img src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
             </span> Inaktivität erkannt
         </h3>
         <p class="u-color-muted u-margin-block-start-s">Aus Sicherheitsgründen werden Sie in <br>
-            <strong id="modal-session-countdown"
-                    class="u-color-danger u-text-xl js-session-countdown">
+            <strong class="u-color-danger u-text-xl js-session-countdown">
                 03:00</strong><br> Minuten automatisch abgemeldet.
         </p>
         <div class="o-grid o-grid--2-cols u-margin-block-start-l">
             <!-- Button 1: Bleiben -->
-            <button id="btn-session-stay"
-                    class="c-button c-button--success u-inline-size-100 js-session-stay">Bleiben</button>
+            <button class="c-button c-button--success u-inline-size-100 js-session-stay">Bleiben</button>
 
             <!-- Button 2: Abmelden (Sicheres Formular) -->
             <form method="POST"
+                  id="sessionLogoutForm"
                   action="admin_logout"
                   class="u-margin-block-none u-inline-size-100">
                 <input type="hidden"

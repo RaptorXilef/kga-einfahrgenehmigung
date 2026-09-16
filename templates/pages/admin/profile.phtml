@@ -24,7 +24,7 @@ use App\Core\Service\AuthService;
  * @var string $userId   Die aktive Benutzer-ID.
  * @var string $username Der aktuelle Anzeigename.
  */
-$userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp');
+$userImage = $imageStorage->getImageUrl('user', $userId, 'user.webp');
 ?>
 
 <main class="c-tab-content-container u-padding-block-l">
@@ -32,7 +32,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
         <header class="u-flex u-justify-between u-align-end u-margin-block-end-l">
             <div>
                 <h1 class="u-margin-none u-text-start">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>"
                          class="c-icon c-icon--md"
                          loading="lazy"
                          alt="">
@@ -48,6 +48,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
         <div class="o-grid o-grid--auto-fit-lg u-gap-l u-align-start">
             <aside class="u-flex-grow-1">
                 <form method="POST"
+                      id="profileAvatarForm"
                       action="<?php echo $settings['base_url']; ?>change_own_avatar"
                       enctype="multipart/form-data"
                       class="c-card c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-around-l">
@@ -64,6 +65,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
                         <div class="c-dropzone__overlay u-border-radius-circle">Foto ablegen</div>
                     </div>
 
+                    <label for="avatar-input" class="u-visually-hidden">Avatar auswählen</label>
                     <input type="file"
                            name="avatar"
                            id="avatar-input"
@@ -71,8 +73,8 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
                            accept="image/*">
                     <button type="button"
                             class="c-button c-button--primary u-inline-size-100 js-trigger-click"
-                            data-target="avatar-input">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-camera.webp'); ?>"
+                            data-target="#avatar-input">
+                        <img src="<?php echo $asset->url('assets/img/icons/camera.webp'); ?>"
                              class="c-icon c-button__icon"
                              loading="lazy"
                              alt=""> Bild ändern
@@ -99,6 +101,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
                     </header>
                     <div class="c-card__body">
                         <form method="POST"
+                              id="profileUsernameForm"
                               action="<?php echo $settings['base_url']; ?>change_own_username"
                               class="o-grid o-grid--auto-right u-gap-m">
                             <input type="hidden"
@@ -129,6 +132,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
                     </header>
                     <div class="c-card__body">
                         <form method="POST"
+                              id="profilePasswordForm"
                               action="<?php echo $settings['base_url']; ?>change_own_password"
                               class="u-flex u-flex-column u-gap-m">
                             <input type="hidden"

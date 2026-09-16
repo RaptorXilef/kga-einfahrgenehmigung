@@ -35,13 +35,13 @@ $currentPage = $path === '' ? 'index' : $path;
 
             <div class="u-flex u-align-center u-gap-m">
                 <a href="admin" class="c-button c-button--secondary c-button--small">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt=""> Verwaltung
+                    <img src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt=""> Verwaltung
                 </a>
                 <!-- Theme Toggle -->
                 <button type="button"
                         class="c-theme-toggle js-theme-toggle"
                         title="Design wechseln">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-sun.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/sun.webp'); ?>"
                          class="c-icon c-theme-toggle__icon js-theme-icon"
                          loading="lazy"
                          alt="">
@@ -53,13 +53,13 @@ $currentPage = $path === '' ? 'index' : $path;
         <!-- ZEILE 2: Navigation -->
         <div class="c-header-nav__bottom">
             <a href="index" class="c-tabs__btn <?php echo $currentPage === 'index' ? 'is-active' : ''; ?>">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Antrag
+                <img src="<?php echo $asset->url('assets/img/icons/memo.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Antrag
             </a>
             <a href="history" class="c-tabs__btn <?php echo $currentPage === 'history' ? 'is-active' : ''; ?>">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Verlauf
+                <img src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Verlauf
             </a>
             <a href="check" class="c-tabs__btn u-margin-inline-start-auto <?php echo $currentPage === 'check' ? 'is-active' : ''; ?>">
-                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Check
+                <img src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Check
             </a>
         </div>
     </div>

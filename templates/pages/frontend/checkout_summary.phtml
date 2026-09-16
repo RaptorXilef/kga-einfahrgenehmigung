@@ -34,16 +34,15 @@ $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
             id="payment-data"
             class="js-payment-data"
             nonce="<?php echo $cspNonce; ?>">
-    <?php echo \json_encode([
-        'token' => $token,
-        'csrfToken' => $_SESSION['csrf_token'] ?? '',
-        'isPayPalEnabled' => $isPayPalEnabled,
-    ], \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
-
+        <?php echo \json_encode([
+            'token' => $token,
+            'csrfToken' => $_SESSION['csrf_token'] ?? '',
+            'isPayPalEnabled' => $isPayPalEnabled,
+        ], \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
     </script>
 
     <div class="u-text-center u-margin-block-end-l">
-        <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
+        <img src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
              alt="Erfolg"
              loading="lazy"
              class="c-icon c-icon--lg u-margin-block-end-m">
@@ -104,10 +103,10 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
             </div>
 
             <div class="c-box c-box--highlight u-text-sm u-margin-block-end-l">
-                <strong><img src="<?php echo $asset->url('assets/img/icons/icon-alarm-clock.webp'); ?>"
-                         class="c-icon c-button__icon"
-                         loading="lazy"
-                         alt=""> Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>
+                <strong><img src="<?php echo $asset->url('assets/img/icons/stopwatch.webp'); ?>"
+                             class="c-icon c-button__icon"
+                             loading="lazy"
+                             alt=""> Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>
                 Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>
                 <span class="u-color-dark"><?php echo $opening ?? ''; ?></span>
                 <?php if (!empty($holidayNotice)) { ?>
@@ -127,14 +126,14 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
 
             <div class="u-flex u-gap-m u-flex-wrap u-justify-center u-align-stretch">
                 <a href="permit_edit?token=<?php echo $token; ?>" class="c-button c-button--secondary c-button--responsive">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/memo.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
                          alt=""> Daten korrigieren
                 </a>
                 <?php if ((float) ($tempData['preis'] ?? 0) <= 0.0) { ?>
                     <button class="c-button c-button--success c-button--responsive js-finalize-wire">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-check-mark-button.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
                              class="c-icon c-button__icon"
                              loading="lazy"
                              alt=""> Kostenlos abschließen
