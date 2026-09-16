@@ -64,7 +64,7 @@ $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
                                 <input type="checkbox"
                                        id="consent-chk-<?php echo $group['id']; ?>"
                                        value="1"
-                                       class="c-checkbox__input"
+                                       class="c-checkbox__input <?php echo $group['id'] === 'analytics' ? 'js-consent-chk-analytics' : ''; ?>"
                                        <?php echo $group['required'] ? 'checked disabled' : ''; ?>>
                                 <span class="c-checkbox__label">
                                     <strong class="u-display-block u-text-sm"><?php echo \htmlspecialchars($group['title']); ?></strong>
