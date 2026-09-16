@@ -110,9 +110,8 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
                 }
             }
 
-            $baseUrl = $this->config->getBaseUrl();
+            $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
 
-            // FIX: Erweiterte HTML-Liste wiederhergestellt (mit Icons statt Emojis)
             $formatList = function (array $categories): string {
                 $html = '<ul class="u-margin-block-xs u-padding-inline-start-m">';
                 foreach ($categories as $cat => $items) {
@@ -134,14 +133,15 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
 
             $htmlDetails = [];
 
+            // FIX: Verwendung der neuen atomaren Icons
             if (!empty($res['erfolgreich_details'])) {
-                $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/status-success.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Freigeschaltet:</strong>' . $formatList($res['erfolgreich_details']) . '</div>';
+                $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/success.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Freigeschaltet:</strong>' . $formatList($res['erfolgreich_details']) . '</div>';
             }
             if (!empty($res['uebersprungen_details'])) {
-                $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/icon-skip.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
+                $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/skip.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
             }
             if (!empty($fehlerhaftDetails)) {
-                $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/status-invalid.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($fehlerhaftDetails) . '</div>';
+                $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/warning.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($fehlerhaftDetails) . '</div>';
             }
 
             $msg = "<div class=\"u-margin-bottom-m\">Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.</div>";

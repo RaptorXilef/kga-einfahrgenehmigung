@@ -207,7 +207,7 @@ if ($auth->hasPermission('finance.view')) {
                                     $isOnCooldown = $lastRem !== null && $now < $lastRem->modify("+$cooldownDays days");
                                     $vKey = $permit->getVehicleType();
                                     $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
-                                    $iconPath = $vCfg['icon'] ?? 'assets/img/icons/warning.webp';
+                                    $iconPath = $vCfg['icon'] ?? 'warning.webp';
                                     $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                     ?>
                                     <tr class="u-hover-fade <?php echo ($overdueLevel === 2 || $is_suspended) ? 'c-table__row--danger' : ''; ?>">
@@ -224,7 +224,7 @@ if ($auth->hasPermission('finance.view')) {
                                                     </label>
                                                 <?php } else { ?>
                                                     <span title="Gesperrt" class="u-opacity-50">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/denied.webp'); ?>" class="c-icon" loading="lazy" alt="">
+                                                        <img src="<?php echo $asset->url('assets/img/icons/blocked.webp'); ?>" class="c-icon" loading="lazy" alt="">
                                                     </span>
                                                 <?php } ?>
                                             </td>

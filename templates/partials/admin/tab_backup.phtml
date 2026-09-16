@@ -15,29 +15,27 @@ use App\Infrastructure\Maintenance\BackupService;
  * @var array $settings
  * @var array $backups
  */
+
+// Das HTML <select> Tag erlaubt KEINE <img> Tags in Optionen.
+// Emojis sind hier zwingend notwendig, wenn eine visuelle Identifikation gewünscht ist.
+// Die atomaren WebP-Dateien werden stattdessen für die schicken Badges weiter unten genutzt.
 $targets = [
-    /**
-     * Natives HTML verbietet es, Bilder (<img>) innerhalb eines <select> Dropdowns anzuzeigen - dort ist strikt nur
-     * Text erlaubt. Würde ich dort WebP-Pfade einbauen, würde der Nutzer im Dropdown buchstäblich den Text
-     * <img src="..."> sehen. Emojis sind Textzeichen und daher der einzige native Weg, Dropdowns visuell aufzuwerten.
-     * Ich belasse sie also so, wie sie sind, auch wenn es auf Mac und Android dann anders aussieht.
-     */
-    'all' => ['label' => 'Komplette Datenbank (Alle)', 'icon' => '📦'],
-    'roles' => ['label' => 'Rechte-Rollen', 'icon' => '🛡️'],
-    'magic_links' => ['label' => 'Login-Tokens', 'icon' => '🔗'],
-    'mail_log' => ['label' => 'E-Mail Protokolle', 'icon' => '📧'],
-    'mail_queue' => ['label' => 'Mail-Warteschlange', 'icon' => '📤'],
-    'pending_verification' => ['label' => 'Warteraum (E-Mail)', 'icon' => '✉️'],
-    'permits' => ['label' => 'Genehmigungen', 'icon' => '📄'],
-    'permits_archive' => ['label' => 'Genehmigungs-Archiv', 'icon' => '🗄️'],
-    'permits_cancelled' => ['label' => 'Stornierte Genehmigungen', 'icon' => '🚫'],
-    'users' => ['label' => 'Benutzerkonten', 'icon' => '👥'],
-    'verified_pending' => ['label' => 'Warteraum (Zahlung)', 'icon' => '💳'],
-    'vouchers' => ['label' => 'Gutscheine', 'icon' => '🎟️'],
-    'vouchers_archive' => ['label' => 'Gutschein-Archiv', 'icon' => '📚'],
-    'login_attempts' => ['label' => 'Login-Versuche', 'icon' => '🛡'],
-    'update_migrations' => ['label' => 'Update-Migration-Verlauf', 'icon' => '♻'],
-    'audit_logs' => ['label' => 'Nutzerprotokoll (Audit)', 'icon' => '👁️‍🗨️'],
+    'all' => ['label' => 'Komplette Datenbank (Alle)', 'icon' => 'package.webp', 'emoji' => '📦'],
+    'roles' => ['label' => 'Rechte-Rollen', 'icon' => 'shield.webp', 'emoji' => '🛡️'],
+    'magic_links' => ['label' => 'Login-Tokens', 'icon' => 'link.webp', 'emoji' => '🔗'],
+    'mail_log' => ['label' => 'E-Mail Protokolle', 'icon' => 'envelope.webp', 'emoji' => '📧'],
+    'mail_queue' => ['label' => 'Mail-Warteschlange', 'icon' => 'inbox.webp', 'emoji' => '📤'],
+    'pending_verification' => ['label' => 'Warteraum (E-Mail)', 'icon' => 'envelope.webp', 'emoji' => '✉️'],
+    'permits' => ['label' => 'Genehmigungen', 'icon' => 'document.webp', 'emoji' => '📄'],
+    'permits_archive' => ['label' => 'Genehmigungs-Archiv', 'icon' => 'archive.webp', 'emoji' => '🗄️'],
+    'permits_cancelled' => ['label' => 'Stornierte Genehmigungen', 'icon' => 'blocked.webp', 'emoji' => '🚫'],
+    'users' => ['label' => 'Benutzerkonten', 'icon' => 'user.webp', 'emoji' => '👥'],
+    'verified_pending' => ['label' => 'Warteraum (Zahlung)', 'icon' => 'card.webp', 'emoji' => '💳'],
+    'vouchers' => ['label' => 'Gutscheine', 'icon' => 'voucher.webp', 'emoji' => '🎟️'],
+    'vouchers_archive' => ['label' => 'Gutschein-Archiv', 'icon' => 'archive.webp', 'emoji' => '📚'],
+    'login_attempts' => ['label' => 'Login-Versuche', 'icon' => 'shield.webp', 'emoji' => '🛡'],
+    'update_migrations' => ['label' => 'Update-Migration-Verlauf', 'icon' => 'sync.webp', 'emoji' => '♻'],
+    'audit_logs' => ['label' => 'Nutzerprotokoll (Audit)', 'icon' => 'view.webp', 'emoji' => '👁️‍🗨️'],
 ];
 
 if ($auth->hasPermission('system.backup.manage')) {
@@ -71,7 +69,11 @@ if ($auth->hasPermission('system.backup.manage')) {
             <div class="o-grid o-grid--auto-fit-lg">
                 <div class="c-card c-card--success u-flex-column u-margin-none">
                     <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
-                        <h4 class="u-margin-none u-text-lg">📥 Backup anfertigen</h4>
+                        <h4 class="u-margin-none u-text-lg">
+                            <img src="<?php echo $asset->url('assets/img/icons/import.webp'); ?>"
+                                 class="c-icon c-button__icon"
+                                 loading="lazy"
+                                 alt=""> Backup anfertigen</h4>
                     </div>
                     <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
                         <form method="POST"
@@ -87,7 +89,7 @@ if ($auth->hasPermission('system.backup.manage')) {
                                     class="c-form-select"
                                     required>
                                 <?php foreach ($targets as $key => $data) { ?>
-                                    <option value="<?php echo $key; ?>"><?php echo $data['icon'] . ' ' . $data['label']; ?></option>
+                                    <option value="<?php echo $key; ?>"><?php echo $data['emoji'] . ' ' . $data['label']; ?></option>
                                 <?php } ?>
                             </select>
                             <button type="submit"
@@ -124,7 +126,7 @@ if ($auth->hasPermission('system.backup.manage')) {
                                     if ($key === 'all') {
                                         continue;
                                     } ?>
-                                    <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
+                                    <option value="<?php echo $key; ?>"><?php echo $data['emoji'] . ' ' . $data['label']; ?></option>
                                 <?php } ?>
                             </select>
                             <button type="submit"
@@ -161,6 +163,9 @@ if ($auth->hasPermission('system.backup.manage')) {
                     <?php foreach ($backups as $index => $b) {
                         $formattedDate = \date('d.m.Y — H:i:s', $b['date']);
                         $sizeMb = \round($b['size'] / 1024 / 1024, 2);
+
+                        // Icon passend zum Backup Ziel laden
+                        $targetIcon = $b['target'] === 'all' ? 'package.webp' : ($targets[$b['target']]['icon'] ?? 'document.webp');
                         ?>
                         <div class="c-card c-card--primary u-flex-column u-margin-none">
                             <div class="c-card__header u-flex u-justify-between u-align-center u-padding-around-m u-bg-light">
@@ -168,7 +173,8 @@ if ($auth->hasPermission('system.backup.manage')) {
                                     <h4 class="u-margin-none u-text-lg"><?php echo $formattedDate; ?></h4>
                                     <span class="u-color-muted u-text-sm"><?php echo \htmlspecialchars($b['filename']); ?> (<?php echo $sizeMb; ?> MB)</span>
                                 </div>
-                                <span class="c-badge c-badge--primary">
+                                <span class="c-badge c-badge--primary u-flex u-align-center">
+                                    <img src="<?php echo $asset->url('assets/img/icons/' . $targetIcon); ?>" class="c-icon c-icon--inline u-margin-inline-end-xs" alt="">
                                     <?php echo $b['target'] === 'all' ? 'Voll-Backup' : 'Tabelle: ' . \htmlspecialchars($b['target']); ?>
                                 </span>
                             </div>

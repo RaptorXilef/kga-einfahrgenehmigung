@@ -61,7 +61,8 @@ use App\Infrastructure\Config\Config;
                             <?php } else { ?>
                                 <?php foreach ($vouchers as $v) {
                                     $vCodeStr = $v->code->value;
-                                    $url = $config->getBaseUrl() . 'index?voucher=' . $vCodeStr;
+                                    // URL um den Slash korrigiert, um Fehler bei der QR-Code Generierung zu vermeiden
+                                    $url = \rtrim((string) $config->getBaseUrl(), '/') . '/index?voucher=' . $vCodeStr;
                                     $isValid = $voucherValidities[$vCodeStr] ?? false;
                                     $isDeactivated = $v->isDeactivated();
                                     $isExpired = $v->isExpired(new \DateTimeImmutable());

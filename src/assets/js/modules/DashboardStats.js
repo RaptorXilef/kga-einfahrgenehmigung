@@ -11,7 +11,6 @@ export class DashboardStats {
 
         this.abortController = new AbortController();
 
-        // FIX: Strikte Klassenselektion statt ID
         const dataScript = this.container.querySelector('.js-chart-data');
 
         try {
@@ -27,7 +26,11 @@ export class DashboardStats {
 
     init() {
         // Aktive Chart-Instanz zwingend zerstören, um Ghosting/Memory Leaks bei Neuladen zu verhindern
-        if (this.currentChart instanceof window.Chart) {
+        // FIX: Sicheres Zerstören von existierenden Chart-Instanzen (verhindert "Canvas is already in use")
+        const existingChart = window.Chart.getChart(this.canvas);
+        if (existingChart) {
+            existingChart.destroy();
+        } else if (this.currentChart instanceof window.Chart) {
             this.currentChart.destroy();
         }
 
