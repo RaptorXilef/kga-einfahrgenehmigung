@@ -26,11 +26,15 @@ export class DashboardStats {
 
     init() {
         // Aktive Chart-Instanz zwingend zerstören, um Ghosting/Memory Leaks bei Neuladen zu verhindern
-        // FIX: Sicheres Zerstören von existierenden Chart-Instanzen (verhindert "Canvas is already in use")
-        const existingChart = window.Chart.getChart(this.canvas);
-        if (existingChart) {
-            existingChart.destroy();
-        } else if (this.currentChart instanceof window.Chart) {
+        // FIX: Verhindert "Canvas is already in use" Absturz
+        if (window.Chart) {
+            const existingChart = window.Chart.getChart(this.canvas);
+            if (existingChart) {
+                existingChart.destroy();
+            }
+        }
+
+        if (this.currentChart instanceof window.Chart) {
             this.currentChart.destroy();
         }
 

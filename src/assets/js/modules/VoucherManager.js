@@ -81,13 +81,12 @@ export class VoucherManager {
 
         // Die QR-Code API url-encoded aufrufen
         const encodedUrl = encodeURIComponent(url);
-
-        // FIX: Zurück auf externe API, da das lokale PHP Script noch fehlt!
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodedUrl}`;
         // const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
         // const qrUrl = `${baseUrl}api/generate_qr?data=${encodedUrl}`;
 
-        // Wir blenden das Bild erst ein, wenn die externe API es fertig gerendert hat
+        // Wir blenden das Bild erst ein, wenn die externe API es fertig gerendert hat.
+        // Wird direkt an das DOM-Element gebunden, um NS_BINDING_ABORTED zu vermeiden.
         this.modalImg.onload = () => {
             this.modalLoader.hidden = true;
             this.modalImg.hidden = false;
@@ -101,13 +100,15 @@ export class VoucherManager {
             this.modalLoader.classList.add('is-error');
         };
 
+        // Trigger den Ladevorgang
         this.modalImg.src = qrUrl;
     }
 
     closeQr() {
         if (!this.modal) return;
         this.modal.close();
-        this.modalImg.src = '';
+        // removeAttribute ist sicherer als src='', da letzteres einen fehlerhaften Request auslösen kann
+        this.modalImg.removeAttribute('src');
         this.modalLoader.classList.remove('is-error');
     }
 
@@ -146,7 +147,6 @@ export class VoucherManager {
         }
     }
 
-    // Element Parameter in der Methodensignatur ergänzt
     fallbackCopyText(text, element, callback) {
         const textArea = document.createElement('textarea');
         textArea.value = text;
