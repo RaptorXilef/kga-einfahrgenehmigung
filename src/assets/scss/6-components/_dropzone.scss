@@ -1,4 +1,5 @@
 @use '../1-settings/z-index' as *;
+@use '../2-tools/mixins' as *;
 
 @layer components {
     .c-dropzone {
@@ -9,14 +10,15 @@
         position: relative;
         border: var(--border-m) dashed var(--dropzone-border-color);
         background-color: var(--dropzone-bg);
-        transition:
-            background-color var(--time-fast) ease,
-            border-color var(--time-fast) ease;
+
+        @include transition-fast(background-color, border-color);
     }
 
     .c-dropzone--preview {
         --dropzone-border-color: var(--color-border);
         cursor: pointer;
+
+        @include focus-ring();
     }
 
     .c-dropzone--preview:hover {
@@ -45,17 +47,15 @@
         font-weight: var(--font-weight-bold);
         font-size: var(--text-sm);
         opacity: var(--overlay-opacity);
-        transition: opacity var(--time-fast);
         pointer-events: none;
         z-index: z('dropzone-overlay');
         border-radius: inherit;
+
+        @include transition-fast(opacity);
     }
 
     .c-dropzone__text {
-        transition:
-            font-size var(--time-fast),
-            opacity var(--time-fast),
-            color var(--time-fast);
+        @include transition-fast(font-size, opacity, color);
     }
 
     .c-dropzone__text.is-filled {

@@ -1,3 +1,5 @@
+@use '../2-tools/mixins' as *;
+
 @layer components {
     .c-tabs {
         display: flex;
@@ -31,13 +33,20 @@
         border-radius: var(--radius-xl);
         font-weight: var(--font-weight-semibold);
         color: var(--color-text-main);
-        transition: all var(--time-fast) ease;
         display: inline-flex;
         align-items: center;
         gap: var(--space-s);
         text-decoration: none;
         font-size: var(--text-sm);
         white-space: nowrap;
+
+        @include transition-fast(
+            color,
+            background-color,
+            border-color,
+            box-shadow
+        );
+        @include focus-ring(var(--color-primary), 0);
     }
 
     .c-tabs__icon {
