@@ -513,13 +513,13 @@ export class PermitForm {
             this.zweckSelect.name = 'zweck';
             this.zweckManual.hidden = true;
             this.zweckManual.name = '_unused_zweck';
-            this.toggleZweckBtn.innerHTML = `<img src="${this.config.baseUrl}assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell`;
+            this.toggleZweckBtn.innerHTML = `<img src="${this.config.baseUrl}assets/img/icons/edit.webp" class="c-icon" alt=""> Manuell`;
         } else {
             this.zweckSelect.hidden = true;
             this.zweckSelect.name = '_unused_zweck';
             this.zweckManual.hidden = false;
             this.zweckManual.name = 'zweck';
-            this.toggleZweckBtn.innerHTML = `<img src="${this.config.baseUrl}assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Aus Liste`;
+            this.toggleZweckBtn.innerHTML = `<img src="${this.config.baseUrl}assets/img/icons/open-file-folder.webp" class="c-icon" alt=""> Aus Liste`;
             this.zweckManual.focus();
         }
     }

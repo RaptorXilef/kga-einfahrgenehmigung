@@ -28,7 +28,7 @@ use App\Infrastructure\Config\Config;
             <section class="c-card c-card--primary">
                 <header class="c-card__header">
                     <h3 class="u-margin-block-none">
-                        <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
                              class="c-icon"
                              loading="lazy"
                              alt=""> Offene Gutscheincodes
@@ -81,7 +81,7 @@ use App\Infrastructure\Config\Config;
                                                         title="QR-Code anzeigen"
                                                         data-code="<?php echo \htmlspecialchars($vCodeStr); ?>"
                                                         data-url="<?php echo \htmlspecialchars($url); ?>">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
+                                                    <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
                                                          class="c-icon c-button__icon"
                                                          loading="lazy"
                                                          alt=""> QR
@@ -104,7 +104,7 @@ use App\Infrastructure\Config\Config;
                                                 </span>
                                                 <?php if ($v->multiUse) { ?>
                                                     <span class="c-badge c-badge--outline">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>" class="c-icon" loading="lazy" alt="">
+                                                        <img src="<?php echo $asset->url('assets/img/icons/sync.webp'); ?>" class="c-icon" loading="lazy" alt="">
                                                         &nbsp;Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
                                                     </span>
                                                 <?php } else { ?>
@@ -130,7 +130,7 @@ use App\Infrastructure\Config\Config;
                                             <div class="u-margin-block-start-s">
                                                 <span class="u-text-link js-copy-link u-text-xs u-font-semibold u-cursor-pointer u-flex u-align-center u-gap-xs u-display-inline-block" data-url="<?php echo $url; ?>">
                                                     Link kopieren
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>" class="c-icon" loading="lazy" alt="">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/copy.webp'); ?>" class="c-icon" loading="lazy" alt="">
                                                 </span>
                                             </div>
                                         </td>
@@ -138,6 +138,7 @@ use App\Infrastructure\Config\Config;
                                             <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                                 <?php if ($auth->hasPermission('vouchers.suspend')) { ?>
                                                     <form method="POST"
+                                                          id="toggleVoucher_<?php echo $vCodeStr; ?>"
                                                           action="<?php echo $settings['base_url']; ?><?php echo $isDeactivated ? 'activate_voucher' : 'deactivate_voucher'; ?>"
                                                           class="u-margin-block-none">
                                                         <input type="hidden"
@@ -153,7 +154,7 @@ use App\Infrastructure\Config\Config;
                                                             <button type="submit"
                                                                     class="c-button c-button--success c-button--small c-button--icon-only"
                                                                     title="Aktivieren">
-                                                                <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
+                                                                <img src="<?php echo $asset->url('assets/img/icons/unlock.webp'); ?>"
                                                                      class="c-icon c-button__icon"
                                                                      loading="lazy"
                                                                      alt="">
@@ -162,7 +163,7 @@ use App\Infrastructure\Config\Config;
                                                             <button type="submit"
                                                                     class="c-button c-button--danger c-button--small c-button--icon-only"
                                                                     title="Sperren">
-                                                                <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
+                                                                <img src="<?php echo $asset->url('assets/img/icons/denied.webp'); ?>"
                                                                      class="c-icon c-button__icon"
                                                                      loading="lazy"
                                                                      alt="">
@@ -173,6 +174,7 @@ use App\Infrastructure\Config\Config;
 
                                                 <?php if ($auth->hasPermission('vouchers.delete')) { ?>
                                                     <form method="POST"
+                                                          id="deleteVoucher_<?php echo $vCodeStr; ?>"
                                                           action="<?php echo $settings['base_url']; ?>delete_voucher"
                                                           class="u-margin-block-none"
                                                           data-confirm="Soll dieser Gutscheincode unwiderruflich gelöscht werden?">
@@ -185,7 +187,7 @@ use App\Infrastructure\Config\Config;
                                                         <button type="submit"
                                                                 class="c-button c-button--danger-outline c-button--small c-button--icon-only"
                                                                 title="Löschen">
-                                                            <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
+                                                            <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
                                                                  class="c-icon c-button__icon"
                                                                  loading="lazy"
                                                                  alt="">
@@ -206,7 +208,7 @@ use App\Infrastructure\Config\Config;
             <section class="c-card c-card--dark">
                 <header class="c-card__header">
                     <h3 class="u-margin-block-none">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
                              class="c-icon"
                              loading="lazy"
                              alt=""> Archiv

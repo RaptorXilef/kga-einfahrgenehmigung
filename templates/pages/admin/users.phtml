@@ -25,7 +25,7 @@ $layout = 'admin';
 $pageTitle = 'Benutzer & Rechte - ' . ($settings['vereins_name'] ?? '');
 
 if ($auth->hasPermission('system.manage')) { ?>
-    <main class="c-tab-content-container u-padding-block-l">
+    <main class="c-tab-content-container u-padding-block-l js-permission-matrix">
         <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
         <div class="c-tabs">
@@ -33,7 +33,7 @@ if ($auth->hasPermission('system.manage')) { ?>
                 <?php if ($auth->hasPermission('system.users.manage')) { ?>
                     <button class="c-tabs__btn is-active"
                             data-tab-target="tab-users">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Benutzerverwaltung
@@ -42,7 +42,7 @@ if ($auth->hasPermission('system.manage')) { ?>
                 <?php if ($auth->hasPermission('system.roles.manage')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-roles">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/shield.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Rollen & Rechte

@@ -40,11 +40,13 @@ use App\Core\Entity\Permit;
 <body>
     <div class="c-print-toolbar u-no-print">
         <button type="button"
+                id="closePrintBtn"
                 class="c-button c-button--secondary js-close-window">✕ Druckansicht schließen</button>
         <div class="u-font-extrabold">Druckvorschau: <?php echo \htmlspecialchars($permit->code); ?></div>
         <button type="button"
+                id="doPrintBtn"
                 class="c-button c-button--primary js-print-window">
-            <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
+            <img src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>"
                  class="c-icon c-button__icon"
                  loading="lazy"
                  alt=""> Dokument jetzt drucken
@@ -74,7 +76,6 @@ use App\Core\Entity\Permit;
     ];
 
 // Variablen in den lokalen Scope extrahieren
-// TODO Prüfen ob lieber ohne EXTR_SKIP
 \extract($data, \EXTR_SKIP);
 include $appRoot . '/templates/emails/permit_a4_document.phtml';
 ?>

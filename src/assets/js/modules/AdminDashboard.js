@@ -22,6 +22,10 @@ export class AdminDashboard {
 
     init() {
         const options = { signal: this.abortController.signal };
+        // --- Datums-Filter Logik aus control_bar.phtml ---
+        const filterStart = this.container.querySelector('.js-filter-start');
+        const filterEnd = this.container.querySelector('.js-filter-end');
+        const filterForm = this.container.querySelector('.js-dashboard-filter-form');
 
         // 1. Tab-Steuerung
         this.tabs.forEach((btn) => {
@@ -52,7 +56,40 @@ export class AdminDashboard {
             }
         }
 
-        // 3. Delegierte Klicks für "Sperren" Buttons
+        // 3. Datums-Filter Logik aus control_bar.phtml
+        if (filterStart && filterEnd && filterForm) {
+            filterStart.addEventListener(
+                'change',
+                () => {
+                    if (
+                        filterStart.value &&
+                        filterEnd.value &&
+                        filterStart.value > filterEnd.value
+                    ) {
+                        filterEnd.value = filterStart.value;
+                    }
+                    filterForm.submit();
+                },
+                options
+            );
+
+            filterEnd.addEventListener(
+                'change',
+                () => {
+                    if (
+                        filterStart.value &&
+                        filterEnd.value &&
+                        filterEnd.value < filterStart.value
+                    ) {
+                        filterStart.value = filterEnd.value;
+                    }
+                    filterForm.submit();
+                },
+                options
+            );
+        }
+
+        // 4. Delegierte Klicks für "Sperren" Buttons
         // Delegiertes Event an AbortSignal binden!
         this.container.addEventListener(
             'click',

@@ -16,7 +16,12 @@ use App\Infrastructure\Maintenance\BackupService;
  * @var array $backups
  */
 $targets = [
-    // TODO symbole zu webp dateien ändern!
+    /**
+     * Natives HTML verbietet es, Bilder (<img>) innerhalb eines <select> Dropdowns anzuzeigen - dort ist strikt nur
+     * Text erlaubt. Würde ich dort WebP-Pfade einbauen, würde der Nutzer im Dropdown buchstäblich den Text
+     * <img src="..."> sehen. Emojis sind Textzeichen und daher der einzige native Weg, Dropdowns visuell aufzuwerten.
+     * Ich belasse sie also so, wie sie sind, auch wenn es auf Mac und Android dann anders aussieht.
+     */
     'all' => ['label' => 'Komplette Datenbank (Alle)', 'icon' => '📦'],
     'roles' => ['label' => 'Rechte-Rollen', 'icon' => '🛡️'],
     'magic_links' => ['label' => 'Login-Tokens', 'icon' => '🔗'],

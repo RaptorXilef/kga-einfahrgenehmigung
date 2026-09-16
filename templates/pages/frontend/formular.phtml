@@ -68,7 +68,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
             <!-- Bestätigungs Meldung - E-Mail versandt -->
             <?php if ($success) { ?>
                 <div class="c-alert c-alert--success c-alert--large u-margin-block-end-l">
-                    <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
                          class="c-icon c-icon--lg u-margin-block-end-m"
                          loading="lazy"
                          alt="">
@@ -117,7 +117,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <!-- GUTSCHEIN EINGABE / ANZEIGE -->
                 <?php if ($prefill) { ?>
                     <div class="c-voucher-alert">
-                        <span class="u-text-xl"><img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" loading="lazy" alt=""></span>
+                        <span class="u-text-xl"><img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>" class="c-icon" loading="lazy" alt=""></span>
                         <div>
                             <strong>Aktivierungscode aktiv: <?php echo $prefill['code']; ?></strong><br>
                             <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
@@ -127,7 +127,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
                     <div class="u-text-center u-margin-block-end-l u-flex u-justify-center">
                         <span class="c-voucher-toggle js-voucher-toggle">
-                            <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" loading="lazy" alt="">
+                            <img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>" class="c-icon" loading="lazy" alt="">
                             Sie haben einen Aktivierungscode? Dann hier klicken.
                         </span>
                     </div>
@@ -136,6 +136,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                          class="c-voucher-container js-voucher-container c-box c-box--dashed o-container o-container--small u-margin-inline-auto">
                         <!-- Formular nur für den Gutschein-Check -->
                         <form method="GET"
+                              id="voucherRedeemForm"
                               action="index"
                               class="u-flex u-gap-s u-align-end">
                             <div class="c-form-group u-flex-grow-1">
@@ -244,6 +245,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             </div>
                             <div class="c-form-group">
                                 <label class="c-form-label js-pf-label-kennzeichen"
+                                       id="label_kennzeichen"
                                        for="kennzeichen">Amtl. Kennzeichen (B-ML 9876)</label>
                                 <input type="text"
                                        name="kennzeichen"
@@ -262,6 +264,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
                         <!-- Dynamisches Firmenfeld -->
                         <div class="c-form-group u-margin-block-start-m js-pf-firma-wrapper"
+                             id="firma_wrapper"
                              hidden>
                             <label class="c-form-label"
                                    for="firma">Firma / Lieferant</label>
@@ -317,6 +320,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             <?php $singleKey = \array_key_first($publicTemplates); ?>
                             <input type="hidden"
                                    name="template_key"
+                                   id="template_key"
                                    class="js-pf-template"
                                    value="<?php echo $singleKey; ?>">
                         <?php } ?>
@@ -351,8 +355,10 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         <div id="dynamic-date-info"
                              class="c-box c-box--highlight u-margin-block-start-l u-text-sm js-pf-dynamic-date-info"
                              hidden>
-                            <div class="u-margin-block-end-s js-pf-dynamic-opening"></div>
-                            <div class="c-box c-box--danger-soft js-pf-dynamic-holiday"
+                            <div id="dynamic-opening-hours"
+                                 class="u-margin-block-end-s js-pf-dynamic-opening"></div>
+                            <div id="dynamic-holiday-notice"
+                                 class="c-box c-box--danger-soft js-pf-dynamic-holiday"
                                  hidden></div>
                         </div>
                     </div>
@@ -373,6 +379,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                         <input type="checkbox"
                                                name="agreements[<?php echo $key; ?>]"
                                                value="1"
+                                               id="agree_<?php echo $key; ?>"
                                                class="c-checkbox__input"
                                                <?php echo $agree['required'] ? 'required' : ''; ?>
                                                <?php echo isset($formData['agreements'][$key]) ? 'checked' : ''; ?>>
@@ -380,8 +387,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                             <?php echo $agree['label_html']; ?>
                                             <?php if ($agree['required']) { ?>
                                             <span class="c-checkbox__required" title="Pflichtfeld">*</span>
-                                    <?php } ?>
-                                    </span>
+                                            <?php } ?>
+                                        </span>
                                     </label>
                                 <?php } ?>
                             </div>
@@ -397,7 +404,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                name="hp_contact_website"
                                id="hp_contact_website"
                                tabindex="-1"
-                               autocomplete="off"> <?php // TODO Prüfen, ob bei HoneyPod erlaubt?>
+                               autocomplete="off">
                     </div>
 
                     <button type="submit"

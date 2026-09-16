@@ -57,7 +57,7 @@ if ($auth->hasPermission('finance.view')) {
     <div class="c-tab-content-container">
         <section class="c-card c-card--warning">
             <header class="c-card__header u-flex u-justify-between u-align-center">
-                <h3 class="u-margin-block-none"><img src="<?php echo $asset->url('assets/img/icons/icon-money-bag.webp'); ?>"
+                <h3 class="u-margin-block-none"><img src="<?php echo $asset->url('assets/img/icons/finance.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
                          alt=""> Zahlungsüberwachung</h3>
@@ -70,7 +70,7 @@ if ($auth->hasPermission('finance.view')) {
                                 class="c-button c-button--success c-button--small js-bulk-pay-btn"
                                 hidden
                                 data-confirm-click="Sollen die ausgewählten Genehmigungen jetzt als BEZAHLT markiert werden?">
-                            <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
+                            <img src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
                                  class="c-icon c-button__icon"
                                  loading="lazy"
                                  alt="">
@@ -84,7 +84,7 @@ if ($auth->hasPermission('finance.view')) {
                                 class="c-button c-button--danger c-button--small js-bulk-remind-btn"
                                 hidden
                                 data-confirm-click="Ausgewählte Pächter jetzt an Zahlung erinnern (sofern kein Cooldown aktiv ist)?">
-                            <img src="<?php echo $asset->url('assets/img/icons/icon-bell.webp'); ?>"
+                            <img src="<?php echo $asset->url('assets/img/icons/bell.webp'); ?>"
                                  class="c-icon c-button__icon"
                                  loading="lazy"
                                  alt=""> <span class="js-bulk-remind-count">0</span> erinnern
@@ -105,7 +105,7 @@ if ($auth->hasPermission('finance.view')) {
                             <div class="c-alert__content">
                                 <h4 class="u-margin-block-start-none u-margin-block-end-s u-flex u-align-center u-gap-s">
                                     <span class="u-text-xl">
-                                        <img src="<?php echo $asset->url('assets/img/icons/icon-warning.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+                                        <img src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                     </span>
                                     Manuelle Zahlungszuordnung erforderlich
                                 </h4>
@@ -156,7 +156,6 @@ if ($auth->hasPermission('finance.view')) {
                 <!-- ENDE AUFGABEN-LISTE -->
 
                 <!-- ZENTRALES FORMULAR FÜR BULK-AKTIONEN -->
-                <!-- Die ID bleibt, da das 'form' Attribut im HTML nativ nur auf IDs verlinken kann (z.B. form="bulk-action-form") -->
                 <form method="POST"
                       id="bulk-action-form"
                       class="js-bulk-action-form u-margin-block-none">
@@ -176,8 +175,7 @@ if ($auth->hasPermission('finance.view')) {
                                         </label>
                                     </th>
                                 <?php } ?>
-                                <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung
-                                </th>
+                                <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung</th>
                                 <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
                                 <?php if ($privacyEmail) { ?>
                                     <th class="c-table__header-cell js-sort-header u-text-start">Kontakt (E-Mail)</th>
@@ -209,7 +207,7 @@ if ($auth->hasPermission('finance.view')) {
                                     $isOnCooldown = $lastRem !== null && $now < $lastRem->modify("+$cooldownDays days");
                                     $vKey = $permit->getVehicleType();
                                     $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
-                                    $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
+                                    $iconPath = $vCfg['icon'] ?? 'assets/img/icons/warning.webp';
                                     $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                     ?>
                                     <tr class="u-hover-fade <?php echo ($overdueLevel === 2 || $is_suspended) ? 'c-table__row--danger' : ''; ?>">
@@ -226,7 +224,7 @@ if ($auth->hasPermission('finance.view')) {
                                                     </label>
                                                 <?php } else { ?>
                                                     <span title="Gesperrt" class="u-opacity-50">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/icon_prohibited.webp'); ?>" class="c-icon" loading="lazy" alt="">
+                                                        <img src="<?php echo $asset->url('assets/img/icons/denied.webp'); ?>" class="c-icon" loading="lazy" alt="">
                                                     </span>
                                                 <?php } ?>
                                             </td>
@@ -278,7 +276,7 @@ if ($auth->hasPermission('finance.view')) {
                                             data-sort-val="<?php echo $deadline->format('Y-m-d'); ?>">
                                             <?php if ($overdueLevel === 2) { ?>
                                                 <span class="c-badge c-badge--danger u-text-nowrap">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon_police-car-light.webp'); ?>" class="c-icon" loading="lazy" alt=""> <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
+                                                    <img src="<?php echo $asset->url('assets/img/icons/siren.webp'); ?>" class="c-icon" loading="lazy" alt=""> <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
                                                 </span>
                                             <?php } elseif ($overdueLevel === 1) { ?>
                                                 <span class="c-badge c-badge--warning u-text-nowrap">MAHNFRIST ABGELAUFEN</span>
@@ -315,16 +313,16 @@ if ($auth->hasPermission('finance.view')) {
                                             <div class="u-flex u-gap-xs u-justify-end u-flex-wrap">
                                                 <?php if ($auth->hasPermission('finance.view')) { ?>
                                                     <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+                                                        <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                                     </a>
                                                 <?php } ?>
                                                 <?php if ($auth->hasPermission('permits.suspend')) { ?>
                                                     <?php if ($is_suspended) { ?>
                                                         <button type="button"
                                                                 class="c-button c-button--success c-button--small c-button--icon-only js-submit-form"
-                                                                data-target=".js-form-unsuspend[data-code='<?php echo $permit->code; ?>']"
+                                                                data-target="#form_unsuspend_<?php echo $permit->code; ?>"
                                                                 title="Wieder freigeben">
-                                                            <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
+                                                            <img src="<?php echo $asset->url('assets/img/icons/unlock.webp'); ?>"
                                                                  class="c-icon c-button__icon"
                                                                  loading="lazy"
                                                                  alt="">
@@ -334,7 +332,7 @@ if ($auth->hasPermission('finance.view')) {
                                                                 class="c-button c-button--danger c-button--small c-button--icon-only js-suspend-btn"
                                                                 data-code="<?php echo $permit->code; ?>"
                                                                 title="Sperren">
-                                                            <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
+                                                            <img src="<?php echo $asset->url('assets/img/icons/denied.webp'); ?>"
                                                                  class="c-icon c-button__icon"
                                                                  loading="lazy"
                                                                  alt="">
@@ -344,10 +342,10 @@ if ($auth->hasPermission('finance.view')) {
                                                 <?php if ($hasBulkRight) { ?>
                                                     <button type="button"
                                                             class="c-button c-button--success c-button--small c-button--icon-only js-submit-form"
-                                                            data-target=".js-form-single-pay[data-code='<?php echo $permit->code; ?>']"
+                                                            data-target="#single_pay_<?php echo $permit->code; ?>"
                                                             data-confirm-click="Zahlung für <?php echo $permit->code; ?> bestätigen?"
                                                             title="Einzeln als Bezahlt markieren">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/icon-check-mark.webp'); ?>"
+                                                        <img src="<?php echo $asset->url('assets/img/icons/check-mark.webp'); ?>"
                                                              class="c-icon c-button__icon"
                                                              loading="lazy"
                                                              alt="">
@@ -364,7 +362,7 @@ if ($auth->hasPermission('finance.view')) {
                                                         <button type="submit"
                                                                 class="c-button <?php echo $isOnCooldown ? 'c-button--secondary' : 'c-button--danger'; ?> c-button--small c-button--icon-only"
                                                                 title="Zahlungserinnerung senden <?php echo $isOnCooldown ? '(Cooldown aktiv)' : ''; ?>">
-                                                            <img src="<?php echo $asset->url('assets/img/icons/icon-bell.webp'); ?>"
+                                                            <img src="<?php echo $asset->url('assets/img/icons/bell.webp'); ?>"
                                                                  class="c-icon c-button__icon"
                                                                  loading="lazy"
                                                                  alt="">
@@ -380,10 +378,11 @@ if ($auth->hasPermission('finance.view')) {
                     </table>
                 </form>
 
-                <!-- VERSTECKTE EINZEL-FORMULARE (JETZT ENTKOPPELT VIA BEM KLASSEN) -->
+                <!-- VERSTECKTE EINZEL-FORMULARE -->
                 <?php foreach ($unpaidPermits as $permit) { ?>
                     <?php if ($hasBulkRight) { ?>
                         <form method="POST"
+                              id="single_pay_<?php echo $permit->code; ?>"
                               action="<?php echo $settings['base_url']; ?>mark_as_paid"
                               class="u-hidden js-form-single-pay"
                               data-code="<?php echo $permit->code; ?>">
@@ -397,6 +396,7 @@ if ($auth->hasPermission('finance.view')) {
                     <?php } ?>
                     <?php if ($auth->hasPermission('permits.suspend')) { ?>
                         <form method="POST"
+                              id="form_unsuspend_<?php echo $permit->code; ?>"
                               action="<?php echo $settings['base_url']; ?>unsuspend_permit"
                               class="u-hidden js-form-unsuspend"
                               data-code="<?php echo $permit->code; ?>">
@@ -411,6 +411,7 @@ if ($auth->hasPermission('finance.view')) {
                                    value="unsuspend_permit">
                         </form>
                         <form method="POST"
+                              id="form_suspend_<?php echo $permit->code; ?>"
                               action="<?php echo $settings['base_url']; ?>suspend_permit"
                               class="u-hidden js-form-suspend"
                               data-code="<?php echo $permit->code; ?>">
@@ -425,6 +426,7 @@ if ($auth->hasPermission('finance.view')) {
                                    value="suspend_permit">
                             <input type="hidden"
                                    name="reason"
+                                   id="reason_suspend_<?php echo $permit->code; ?>"
                                    class="js-reason-suspend">
                         </form>
                     <?php } ?>
