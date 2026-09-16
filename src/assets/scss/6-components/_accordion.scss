@@ -7,9 +7,9 @@
         background-color: var(--color-bg-light);
         padding-block: var(--space-m);
         padding-inline: var(--space-m);
-        border-radius: 0.75rem; // 12px
+        border-radius: 0.75rem;
         cursor: pointer;
-        border: 1px solid var(--color-border);
+        border: 0.0625rem solid var(--color-border);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -40,7 +40,7 @@
             var(--color-text-main) 2%,
             transparent
         );
-        border: 1px solid var(--color-border);
+        border: 0.0625rem solid var(--color-border);
         border-block-start: none;
         border-end-start-radius: 0.75rem;
         border-end-end-radius: 0.75rem;

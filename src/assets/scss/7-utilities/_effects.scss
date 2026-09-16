@@ -51,7 +51,7 @@
 
     /* FIX: Dark Mode kompatibler Schatten */
     .u-shadow-highlight {
-        box-shadow: 0 10px 15px -3px
+        box-shadow: 0 0.625rem 0.9375rem -0.1875rem
             color-mix(in oklch, var(--color-text-main) 10%, transparent) !important;
     }
 }

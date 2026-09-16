@@ -10,18 +10,18 @@
         color: var(--color-text-muted);
         padding-block: 0.85rem;
         padding-inline: 1rem;
-        border-block-end: 2px solid var(--color-border);
+        border-block-end: 0.125rem solid var(--color-border);
         text-align: start;
         font-size: 0.75rem;
         text-transform: uppercase;
         font-weight: 700;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.03125rem;
     }
 
     .c-table__data-cell {
         padding-block: 1.25rem;
         padding-inline: 1rem;
-        border-block-end: 1px solid var(--color-border);
+        border-block-end: 0.0625rem solid var(--color-border);
         vertical-align: middle;
     }
 
@@ -43,7 +43,7 @@
     }
 
     .c-table__label {
-        padding-block: 5px;
+        padding-block: 0.3125rem;
         color: var(--color-text-muted);
     }
 
@@ -52,7 +52,7 @@
         font-weight: 700;
         font-size: 1.05rem;
         padding-block: var(--space-m);
-        border-block-start: 2px solid var(--color-border);
+        border-block-start: 0.125rem solid var(--color-border);
     }
 
     .c-table__value {
@@ -82,7 +82,7 @@
         color: var(--color-primary);
         font-size: 1.4rem;
         padding-block: var(--space-m);
-        border-block-start: 2px solid var(--color-border);
+        border-block-start: 0.125rem solid var(--color-border);
     }
 
     .c-table__header-cell.is-sortable {
