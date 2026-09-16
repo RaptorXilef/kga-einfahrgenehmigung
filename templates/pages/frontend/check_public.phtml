@@ -35,14 +35,14 @@ foreach (['webp', 'png', 'jpg', 'jpeg'] as $ext) {
 }
 
 // 2. Status-Farbe bestimmen
-$pageStateClass = 'state-bg-error'; // Default: Ungültig
+$pageStateClass = 'is-state-error'; // Default: Ungültig
 if ($permit) {
     if ($permit->isSuspended()) {
-        $pageStateClass = 'state-bg-error';
+        $pageStateClass = 'is-state-error';
     } elseif ($isDateValid && $isTimeAllowed) {
-        $pageStateClass = 'state-bg-valid';
+        $pageStateClass = 'is-state-valid';
     } elseif ($isDateValid && !$isTimeAllowed) {
-        $pageStateClass = 'state-bg-rest';
+        $pageStateClass = 'is-state-rest';
     }
 }
 

@@ -27,14 +27,14 @@ use App\Infrastructure\Config\Config;
  */
 
 // Status-Farbe bestimmen und dem Layout übergeben
-$pageStateClass = 'state-bg-error'; // Default: Rot
+$pageStateClass = 'is-state-error'; // Default: Rot
 if ($permit) {
     if ($permit->isSuspended()) {
-        $pageStateClass = 'state-bg-error';
+        $pageStateClass = 'is-state-error';
     } elseif ($isDateValid && $isTimeAllowed) {
-        $pageStateClass = 'state-bg-valid'; // Grün
+        $pageStateClass = 'is-state-valid'; // Grün
     } elseif ($isDateValid && !$isTimeAllowed) {
-        $pageStateClass = 'state-bg-rest'; // Gelb/Orange
+        $pageStateClass = 'is-state-rest'; // Gelb/Orange
     }
 }
 
