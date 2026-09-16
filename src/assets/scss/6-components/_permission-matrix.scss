@@ -6,7 +6,7 @@
     }
 
     .c-tree-wrapper.is-master-active {
-        opacity: 0.4;
+        opacity: var(--opacity-50);
         pointer-events: none;
         filter: grayscale(100%);
     }
@@ -73,7 +73,7 @@
         font-size: var(--text-xs);
         color: var(--color-text-muted);
         font-family: var(--font-mono, monospace);
-        margin-block-start: 0.125rem;
+        margin-block-start: var(--border-m);
     }
 
     .c-tree-item__sublabel--category {
@@ -87,7 +87,7 @@
 
     .c-switch {
         --switch-bg: var(--color-border);
-        --switch-thumb-x: 0.25rem;
+        --switch-thumb-x: var(--space-xs);
         --switch-text-content: attr(data-off);
         --switch-text-color: var(--color-text-muted);
         --switch-text-inset-start: auto;
@@ -95,13 +95,13 @@
 
         position: relative;
         display: inline-block;
-        inline-size: 6.25rem;
-        block-size: 2rem;
+        inline-size: var(--size-panel-xs);
+        block-size: var(--size-ui-sm);
     }
 
     .c-switch:has(.c-switch__input:checked) {
         --switch-bg: var(--color-success);
-        --switch-thumb-x: 4.25rem;
+        --switch-thumb-x: calc(var(--size-panel-xs) - var(--size-ui-sm));
         --switch-text-content: attr(data-on);
         --switch-text-color: var(--color-bg-white);
         --switch-text-inset-start: var(--space-m);
@@ -113,7 +113,7 @@
     }
 
     .c-switch__input {
-        opacity: 0;
+        opacity: var(--opacity-0);
         inline-size: 0;
         block-size: 0;
         position: absolute;
@@ -131,8 +131,8 @@
     .c-switch__label::before {
         position: absolute;
         content: '';
-        block-size: 1.5rem;
-        inline-size: 1.5rem;
+        block-size: var(--size-ui-xs);
+        inline-size: var(--size-ui-xs);
         inset-block-start: var(--size-half);
         translate: var(--switch-thumb-x) calc(var(--size-half) * -1);
         background-color: var(--color-bg-white);
@@ -141,12 +141,7 @@
             cubic-bezier(0.18, 0.89, 0.32, 1.28);
         border-radius: var(--radius-circle);
         z-index: z('switch');
-        box-shadow: 0 0.125rem 0.25rem
-            color-mix(
-                in oklch,
-                var(--color-text-dark) var(--mix-20),
-                transparent
-            );
+        box-shadow: var(--shadow-sm);
     }
 
     .c-switch__label::after {
@@ -156,7 +151,7 @@
         inset-inline-end: var(--switch-text-inset-end);
         inset-block-start: var(--size-half);
         translate: 0 calc(var(--size-half) * -1);
-        font-size: 0.65rem;
+        font-size: var(--text-xs);
         font-weight: var(--font-weight-black);
         color: var(--switch-text-color);
         transition:

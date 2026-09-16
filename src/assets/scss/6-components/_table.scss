@@ -8,19 +8,19 @@
     .c-table__header-cell {
         background-color: var(--color-bg-light);
         color: var(--color-text-muted);
-        padding-block: 0.85rem;
-        padding-inline: 1rem;
+        padding-block: var(--space-s);
+        padding-inline: var(--space-m);
         border-block-end: var(--border-m) solid var(--color-border);
         text-align: start;
         font-size: var(--text-xs);
         text-transform: uppercase;
         font-weight: var(--font-weight-bold);
-        letter-spacing: 0.03125rem;
+        letter-spacing: var(--letter-spacing-wide);
     }
 
     .c-table__data-cell {
-        padding-block: 1.25rem;
-        padding-inline: 1rem;
+        padding-block: var(--space-m);
+        padding-inline: var(--space-m);
         border-block-end: var(--border-s) solid var(--color-border);
         vertical-align: middle;
     }
@@ -42,7 +42,7 @@
     }
 
     .c-table__label {
-        padding-block: 0.3125rem;
+        padding-block: var(--border-xl);
         color: var(--color-text-muted);
     }
 
@@ -85,7 +85,7 @@
     }
 
     .c-table__header-cell.is-sortable {
-        --sort-icon-opacity: 0.3;
+        --sort-icon-opacity: var(--opacity-25);
         --sort-icon-color: inherit;
         --sortable-color: inherit;
 
@@ -102,7 +102,7 @@
     .c-table__header-cell[data-sort-dir='asc'],
     .c-table__header-cell[data-sort-dir='desc'] {
         --sortable-color: var(--color-primary);
-        --sort-icon-opacity: 1;
+        --sort-icon-opacity: var(--opacity-100);
         --sort-icon-color: var(--color-primary);
     }
 

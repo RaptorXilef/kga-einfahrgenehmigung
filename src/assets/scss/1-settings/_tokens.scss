@@ -39,7 +39,8 @@ $tokens-spacing: (
     'm': 1rem,
     'l': 1.5rem,
     'xl': 2rem,
-    'xxl': 3rem,
+    '2xl': 2.5rem,
+    '3xl': 3rem,
 );
 
 $tokens-border: (
@@ -100,12 +101,62 @@ $tokens-font-weight: (
     'black': 900,
 );
 
+$tokens-line-height: (
+    'none': 1,
+    'tight': 1.1,
+    'snug': 1.3,
+    'normal': 1.5,
+    'relaxed': 1.6,
+);
+
+$tokens-letter-spacing: (
+    'tighter': -0.03125rem,
+    'normal': 0,
+    'wide': 0.03125rem,
+    'wider': 0.0625rem,
+    'widest': 0.3125rem,
+    'code': 0.5rem,
+);
+
+$tokens-opacity: (
+    '0': 0,
+    '25': 0.25,
+    '50': 0.5,
+    '75': 0.75,
+    '100': 1,
+);
+
 $tokens-size: (
     'half': 50%,
     'full': 100%,
     'screen-h': 100vh,
     'screen-90': 90vh,
     'auto': auto,
+    'icon-xs': 1rem,
+    'icon-sm': 1.125rem,
+    'icon-md': 1.5rem,
+    'icon-lg': 3rem,
+    'icon-xl': 4rem,
+    'icon-2xl': 5rem,
+    'avatar-xs': 1.75rem,
+    'avatar-sm': 2.375rem,
+    'avatar-md': 3.75rem,
+    'avatar-lg': 7.5rem,
+    'avatar-xl': 9.375rem,
+    'ui-xs': 1.5rem,
+    'ui-sm': 2.125rem,
+    'ui-md': 2.625rem,
+    'ui-lg': 3.125rem,
+    'ui-xl': 3.75rem,
+    'panel-xs': 6.25rem,
+    'panel-sm': 8.4375rem,
+    'panel-md': 9.375rem,
+    'panel-lg': 12.5rem,
+    'panel-xl': 13.75rem,
+    'panel-2xl': 17.5rem,
+    'panel-3xl': 18.75rem,
+    'panel-4xl': 21.875rem,
+    'panel-5xl': 40.625rem,
 );
 
 $tokens-mix: (

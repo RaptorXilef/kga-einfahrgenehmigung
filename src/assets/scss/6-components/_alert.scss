@@ -16,7 +16,7 @@
     .c-alert__content {
         inline-size: var(--size-full);
         text-align: start;
-        line-height: 1.6;
+        line-height: var(--line-height-relaxed);
     }
 
     .c-alert--success {
@@ -85,7 +85,7 @@
 
     .c-alert__footer {
         font-size: var(--text-md);
-        opacity: 0.8;
+        opacity: var(--opacity-80);
         border-block-start: var(--border-s) solid
             color-mix(
                 in oklch,

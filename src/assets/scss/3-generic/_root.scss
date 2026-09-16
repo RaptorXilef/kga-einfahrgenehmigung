@@ -22,6 +22,15 @@
         @each $name, $value in $tokens-font-weight {
             --font-weight-#{$name}: #{$value};
         }
+        @each $name, $value in $tokens-line-height {
+            --line-height-#{$name}: #{$value};
+        }
+        @each $name, $value in $tokens-letter-spacing {
+            --letter-spacing-#{$name}: #{$value};
+        }
+        @each $name, $value in $tokens-opacity {
+            --opacity-#{$name}: #{$value};
+        }
         @each $name, $value in $tokens-size {
             --size-#{$name}: #{$value};
         }
@@ -36,6 +45,15 @@
         }
 
         --font-sans: 'Inter', -apple-system, sans-serif;
+
+        /* Zentrale Schatten Hierarchie */
+        --shadow-none: none;
+        --shadow-inset: inset 0 var(--border-s) var(--border-m)
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-5),
+                transparent
+            );
         --shadow-sm: 0 var(--border-s) var(--border-l)
             color-mix(
                 in oklch,
@@ -49,6 +67,25 @@
                 var(--color-text-main) var(--mix-10),
                 transparent
             );
+        --shadow-lg: 0 var(--radius-m) var(--space-m) calc(var(--border-m) * -1)
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-15),
+                transparent
+            );
+        --shadow-xl: 0 var(--space-m) var(--space-l) calc(var(--border-l) * -1)
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-20),
+                transparent
+            );
+        --shadow-up: 0 calc(var(--border-xl) * -1) var(--space-l)
+            color-mix(
+                in oklch,
+                var(--color-text-main) var(--mix-5),
+                transparent
+            );
+
         --icon-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
     }
 

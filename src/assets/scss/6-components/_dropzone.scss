@@ -4,7 +4,7 @@
     .c-dropzone {
         --dropzone-border-color: transparent;
         --dropzone-bg: transparent;
-        --overlay-opacity: 0;
+        --overlay-opacity: var(--opacity-0);
 
         position: relative;
         border: var(--border-m) dashed var(--dropzone-border-color);
@@ -27,7 +27,7 @@
     .c-dropzone.is-dragover {
         --dropzone-bg: var(--color-primary-soft) !important;
         --dropzone-border-color: var(--color-primary) !important;
-        --overlay-opacity: 1 !important;
+        --overlay-opacity: var(--opacity-100) !important;
     }
 
     .c-dropzone__overlay {
@@ -60,7 +60,7 @@
 
     .c-dropzone__text.is-filled {
         font-size: var(--text-xl);
-        opacity: 1;
+        opacity: var(--opacity-100);
         color: var(--color-primary);
     }
 }

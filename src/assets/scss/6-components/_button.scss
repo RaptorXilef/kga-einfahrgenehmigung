@@ -11,8 +11,8 @@
         justify-content: center;
         padding-inline: var(--space-m);
         padding-block: 0;
-        min-inline-size: 2.625rem;
-        block-size: 2.625rem;
+        min-inline-size: var(--size-ui-md);
+        block-size: var(--size-ui-md);
         border-radius: var(--radius-huge);
         border: var(--border-s) solid var(--btn-border);
         background-color: var(--btn-bg);
@@ -41,7 +41,7 @@
 
     .c-button:hover {
         --btn-bg: var(--color-bg-light);
-        --btn-translate-y: -0.0625rem;
+        --btn-translate-y: calc(var(--border-s) * -1);
         --btn-shadow: var(--shadow-md);
         --btn-border: color-mix(
             in oklch,
@@ -125,39 +125,39 @@
 
     .c-button--icon-only {
         padding-inline: 0;
-        inline-size: 2.625rem;
+        inline-size: var(--size-ui-md);
     }
 
     .c-button--small {
-        min-inline-size: 2.125rem;
-        block-size: 2.125rem;
+        min-inline-size: var(--size-ui-sm);
+        block-size: var(--size-ui-sm);
         padding-inline: var(--space-m);
         border-radius: var(--radius-l);
         font-size: var(--text-sm);
     }
 
     .c-button--small-icon-only {
-        inline-size: 2.125rem;
+        inline-size: var(--size-ui-sm);
         padding-inline: 0;
     }
 
     .c-button--submit {
         padding-block: var(--space-m);
-        block-size: auto;
+        block-size: var(--size-auto);
         font-size: var(--text-lg);
     }
 
     .c-button--large {
         padding-block: var(--space-m);
-        block-size: auto;
+        block-size: var(--size-auto);
         font-size: var(--text-lg);
         inline-size: var(--size-full);
     }
 
     .c-button--responsive {
         flex: 1;
-        min-inline-size: 12.5rem;
-        min-block-size: 3rem;
+        min-inline-size: var(--size-panel-lg);
+        min-block-size: var(--size-ui-lg);
         margin: 0;
     }
 }

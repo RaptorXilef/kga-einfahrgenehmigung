@@ -3,21 +3,20 @@
 @layer components {
     .c-fab-refresh {
         position: fixed;
-        inset-block-end: 1.875rem;
-        inset-inline-end: 1.875rem;
+        inset-block-end: var(--space-xl);
+        inset-inline-end: var(--space-xl);
         background-color: var(--color-bg-white);
         color: var(--color-primary);
         border: var(--border-m) solid var(--color-primary);
         border-radius: var(--radius-pill);
-        padding-inline: 1.25rem;
-        block-size: 3.125rem;
+        padding-inline: var(--space-l);
+        block-size: var(--size-ui-lg);
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-m);
         font-weight: var(--font-weight-extrabold);
         font-size: var(--text-md);
-        box-shadow: 0 0.625rem 1.5625rem
-            color-mix(in oklch, var(--color-primary) var(--mix-30), transparent);
+        box-shadow: var(--shadow-lg);
         cursor: pointer;
         z-index: z('fab');
         will-change: translate, box-shadow;
@@ -28,9 +27,8 @@
     }
 
     .c-fab-refresh:hover {
-        translate: 0 -0.1875rem;
+        translate: 0 calc(var(--border-l) * -1);
         background-color: var(--color-primary-soft);
-        box-shadow: 0 0.9375rem 1.875rem
-            color-mix(in oklch, var(--color-primary) var(--mix-40), transparent);
+        box-shadow: var(--shadow-xl);
     }
 }

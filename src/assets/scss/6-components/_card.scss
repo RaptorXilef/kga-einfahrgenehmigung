@@ -78,8 +78,8 @@
     }
 
     .c-category-card__header {
-        padding-block: 0.75rem;
-        padding-inline: 1.25rem;
+        padding-block: var(--space-s);
+        padding-inline: var(--space-l);
         background-color: color-mix(
             in oklch,
             var(--color-text-main) var(--mix-2),

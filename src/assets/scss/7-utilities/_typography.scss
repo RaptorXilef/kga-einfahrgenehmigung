@@ -62,14 +62,14 @@
     }
 
     .u-line-height-tight {
-        line-height: 1.2 !important;
+        line-height: var(--line-height-tight) !important;
     }
 
     .u-letter-spacing-sm {
-        letter-spacing: 0.5px !important;
+        letter-spacing: var(--letter-spacing-wide) !important;
     }
     .u-letter-spacing-md {
-        letter-spacing: 1px !important;
+        letter-spacing: var(--letter-spacing-wider) !important;
     }
 
     .u-color-primary {

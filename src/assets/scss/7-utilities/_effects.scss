@@ -7,10 +7,10 @@
     }
 
     .u-opacity-50 {
-        opacity: 0.5 !important;
+        opacity: var(--opacity-50) !important;
     }
     .u-opacity-75 {
-        opacity: 0.75 !important;
+        opacity: var(--opacity-75) !important;
     }
 
     .u-grayscale {
@@ -31,7 +31,6 @@
         background-color: var(--color-bg-light) !important;
     }
 
-    /* Global SMACSS States for JS Interaction */
     .is-success {
         color: var(--color-success) !important;
     }
@@ -49,13 +48,7 @@
         background-color: var(--color-danger-soft) !important;
     }
 
-    /* FIX: Dark Mode kompatibler Schatten */
     .u-shadow-highlight {
-        box-shadow: 0 0.625rem 0.9375rem -0.1875rem
-            color-mix(
-                in oklch,
-                var(--color-text-main) var(--mix-10),
-                transparent
-            ) !important;
+        box-shadow: var(--shadow-lg) !important;
     }
 }

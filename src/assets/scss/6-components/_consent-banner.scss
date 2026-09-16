@@ -11,12 +11,7 @@
         padding-block: var(--space-l);
         padding-inline: var(--space-l);
         z-index: z('consent-banner');
-        box-shadow: 0 -0.3125rem 1.5625rem
-            color-mix(
-                in oklch,
-                var(--color-text-main) var(--mix-5),
-                transparent
-            );
+        box-shadow: var(--shadow-up);
     }
 
     .c-consent-banner__dialog {
@@ -29,7 +24,7 @@
 
     .c-consent-banner__content {
         flex: 1;
-        min-inline-size: 18.75rem;
+        min-inline-size: var(--size-panel-3xl);
     }
 
     .c-consent-banner__title {
@@ -42,7 +37,7 @@
         margin-block-start: 0;
         font-size: var(--text-sm);
         color: var(--color-text-main);
-        line-height: 1.5;
+        line-height: var(--line-height-normal);
     }
 
     .c-consent-banner__links {
@@ -54,7 +49,7 @@
         display: flex;
         flex-direction: column;
         gap: var(--space-s);
-        min-inline-size: 13.75rem;
+        min-inline-size: var(--size-panel-xl);
     }
 
     .c-consent-banner__details {

@@ -16,7 +16,7 @@
             var(--color-text-main) var(--mix-70),
             transparent
         );
-        backdrop-filter: blur(0.125rem);
+        backdrop-filter: blur(var(--border-m));
         z-index: z('modal');
     }
 
@@ -33,11 +33,11 @@
 
     @keyframes modalSlideUp {
         from {
-            opacity: 0;
+            opacity: var(--opacity-0);
             translate: 0 var(--space-m);
         }
         to {
-            opacity: 1;
+            opacity: var(--opacity-100);
             translate: 0 0;
         }
     }
@@ -50,12 +50,7 @@
         inline-size: var(--size-full);
         border-block-start: var(--border-xl) solid var(--color-warning);
         border-radius: var(--radius-xxl);
-        box-shadow: 0 1.25rem 1.5625rem -0.3125rem
-            color-mix(
-                in oklch,
-                var(--color-text-main) var(--mix-20),
-                transparent
-            );
+        box-shadow: var(--shadow-xl);
         display: flex;
         flex-direction: column;
     }

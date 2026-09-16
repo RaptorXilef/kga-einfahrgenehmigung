@@ -1,12 +1,12 @@
 @layer components {
     .c-logo {
-        max-inline-size: 160px;
-        max-block-size: 160px;
+        max-inline-size: var(--size-panel-xs);
+        max-block-size: var(--size-panel-xs);
         object-fit: contain;
     }
 
     .c-logo--nav {
-        max-inline-size: 40px;
-        max-block-size: 40px;
+        max-inline-size: var(--size-ui-md);
+        max-block-size: var(--size-ui-md);
     }
 }

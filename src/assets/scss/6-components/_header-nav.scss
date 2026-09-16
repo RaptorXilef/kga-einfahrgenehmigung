@@ -41,13 +41,13 @@
         font-weight: var(--font-weight-extrabold);
         color: var(--color-primary);
         margin-inline-end: var(--space-m);
-        letter-spacing: 0.03125rem;
+        letter-spacing: var(--letter-spacing-wide);
     }
 
     .c-user-pill {
         background-color: var(--color-bg-light);
-        padding-block: 0.25rem;
-        padding-inline: 0.75rem 0.375rem;
+        padding-block: var(--space-xs);
+        padding-inline: var(--space-m) var(--space-s);
         border-radius: var(--radius-pill);
         border: var(--border-s) solid var(--color-border);
         display: flex;
@@ -66,18 +66,13 @@
     .c-group-badge {
         background-color: var(--color-bg-white);
         border: var(--border-s) solid var(--color-border);
-        padding-block: 0.1875rem;
-        padding-inline: 0.375rem var(--space-s);
+        padding-block: var(--space-xs);
+        padding-inline: var(--space-s);
         border-radius: var(--radius-pill);
         display: flex;
         align-items: center;
-        gap: 0.375rem;
-        box-shadow: inset 0 var(--border-s) var(--border-m)
-            color-mix(
-                in oklch,
-                var(--color-text-main) var(--mix-5),
-                transparent
-            );
+        gap: var(--space-s);
+        box-shadow: var(--shadow-inset);
     }
 
     .c-group-badge__label {
@@ -85,7 +80,7 @@
         font-weight: var(--font-weight-extrabold);
         font-size: var(--text-xs);
         text-transform: uppercase;
-        letter-spacing: 0.03125rem;
+        letter-spacing: var(--letter-spacing-wide);
     }
 
     .c-session-pill {
@@ -98,11 +93,6 @@
         border-radius: var(--radius-pill);
         font-weight: var(--font-weight-bold);
         color: var(--color-text-muted);
-        box-shadow: inset 0 var(--border-s) var(--border-m)
-            color-mix(
-                in oklch,
-                var(--color-text-main) var(--mix-5),
-                transparent
-            );
+        box-shadow: var(--shadow-inset);
     }
 }

@@ -12,7 +12,7 @@
         justify-content: center;
         gap: var(--space-xs);
         text-transform: uppercase;
-        letter-spacing: 0.03125rem;
+        letter-spacing: var(--letter-spacing-wide);
     }
 
     .c-badge--primary {
@@ -58,8 +58,8 @@
     }
 
     .c-badge--fixed {
-        min-inline-size: 6.25rem;
-        block-size: 2rem;
+        min-inline-size: var(--size-panel-xs);
+        block-size: var(--size-ui-sm);
     }
 
     .c-date-indicator {
@@ -78,7 +78,7 @@
         font-size: var(--text-xs);
         color: var(--color-text-muted);
         display: block;
-        line-height: 1;
+        line-height: var(--line-height-none);
         font-weight: var(--font-weight-extrabold);
         text-transform: uppercase;
     }

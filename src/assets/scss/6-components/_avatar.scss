@@ -7,32 +7,32 @@
     }
 
     .c-avatar--xs {
-        inline-size: 1.75rem;
-        block-size: 1.75rem;
+        inline-size: var(--size-avatar-xs);
+        block-size: var(--size-avatar-xs);
         border: var(--border-s) solid var(--color-border);
     }
 
     .c-avatar--sm {
-        inline-size: 2.375rem;
-        block-size: 2.375rem;
+        inline-size: var(--size-avatar-sm);
+        block-size: var(--size-avatar-sm);
     }
 
     .c-avatar--md {
-        inline-size: 3.75rem;
-        block-size: 3.75rem;
+        inline-size: var(--size-avatar-md);
+        block-size: var(--size-avatar-md);
     }
 
     .c-avatar--lg {
-        inline-size: 7.5rem;
-        block-size: 7.5rem;
+        inline-size: var(--size-avatar-lg);
+        block-size: var(--size-avatar-lg);
         border-radius: var(--radius-xxl);
         border: var(--space-xs) solid var(--color-bg-white);
         box-shadow: var(--shadow-md);
     }
 
     .c-avatar--xl {
-        inline-size: 9.375rem;
-        block-size: 9.375rem;
+        inline-size: var(--size-avatar-xl);
+        block-size: var(--size-avatar-xl);
         border: var(--border-xl) solid var(--color-bg-white);
         box-shadow: var(--shadow-md);
     }
@@ -41,7 +41,7 @@
         background-color: var(--color-bg-white);
         border-radius: var(--radius-l);
         border: var(--border-s) solid var(--color-border);
-        padding: 0.3125rem;
+        padding: var(--space-s);
         object-fit: contain;
     }
 
@@ -49,16 +49,16 @@
         background-color: var(--color-bg-white);
         border-radius: var(--radius-l);
         border: var(--border-s) solid var(--color-border);
-        padding: 0.9375rem;
+        padding: var(--space-m);
         object-fit: contain;
-        inline-size: 7.5rem;
-        block-size: 7.5rem;
+        inline-size: var(--size-avatar-lg);
+        block-size: var(--size-avatar-lg);
         box-shadow: var(--shadow-md);
     }
 
     .c-avatar-dropzone {
-        inline-size: 3.75rem;
-        block-size: 3.75rem;
+        inline-size: var(--size-avatar-md);
+        block-size: var(--size-avatar-md);
         border-radius: var(--radius-circle);
         display: flex;
         align-items: center;
@@ -69,8 +69,8 @@
     }
 
     .c-avatar-dropzone--large {
-        inline-size: 9.375rem;
-        block-size: 9.375rem;
+        inline-size: var(--size-avatar-xl);
+        block-size: var(--size-avatar-xl);
     }
 
     .c-avatar-dropzone__img {

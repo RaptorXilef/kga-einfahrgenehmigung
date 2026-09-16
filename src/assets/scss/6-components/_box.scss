@@ -70,6 +70,6 @@
     }
 
     .c-payment-gateway {
-        min-block-size: 9.375rem;
+        min-block-size: var(--size-panel-sm);
     }
 }

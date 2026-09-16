@@ -24,12 +24,12 @@
     }
 
     .c-control-bar__input {
-        block-size: 2.125rem;
+        block-size: var(--size-ui-sm);
         border-radius: var(--radius-m);
         padding-inline: var(--space-s);
         font-size: clamp(0.8rem, 1vw, 0.85rem);
-        inline-size: auto;
-        min-inline-size: 8.4375rem;
+        inline-size: var(--size-auto);
+        min-inline-size: var(--size-panel-sm);
         border: var(--border-s) solid var(--color-border);
         background-color: var(--color-bg-light);
         color: var(--color-text-main);
@@ -48,10 +48,10 @@
     }
 
     .c-control-bar__search {
-        --c-input-pr: 2.625rem;
-        --c-input-pl: 0.875rem;
-        --c-input-radius: 1.875rem;
-        --c-input-height: 2.375rem;
+        --c-input-pr: var(--size-ui-md);
+        --c-input-pl: var(--space-m);
+        --c-input-radius: var(--radius-pill);
+        --c-input-height: var(--size-avatar-sm);
 
         position: relative;
         margin-inline-start: auto;
@@ -60,7 +60,7 @@
 
     .c-control-bar__search-icon {
         position: absolute;
-        inset-inline-end: 0.9375rem;
+        inset-inline-end: var(--space-m);
         inset-block-start: var(--size-half);
         translate: 0 calc(var(--size-half) * -1);
         pointer-events: none;

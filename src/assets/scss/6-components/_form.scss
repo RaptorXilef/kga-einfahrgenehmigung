@@ -8,7 +8,7 @@
         );
         --c-input-padding-end: var(--c-input-pr, var(--c-input-padding-inline));
         --c-input-radius-val: var(--c-input-radius, var(--radius-xl));
-        --c-input-height-val: var(--c-input-height, 2.875rem);
+        --c-input-height-val: var(--c-input-height, var(--size-ui-xl));
 
         background-color: var(--color-bg-white);
         border: var(--border-m) solid var(--color-border);
@@ -34,7 +34,7 @@
 
     .c-form-input--small,
     .c-form-select--small {
-        --c-input-height: 2.125rem;
+        --c-input-height: var(--size-ui-sm);
         --c-input-padding-inline: var(--space-s);
         font-size: clamp(0.8rem, 0.75rem + 0.5vw, 0.85rem);
     }
@@ -43,8 +43,8 @@
         appearance: none;
         background-image: var(--icon-select-arrow);
         background-repeat: no-repeat;
-        background-position: calc(100% - var(--space-m)) center;
-        padding-inline-end: 2.5rem;
+        background-position: calc(var(--size-full) - var(--space-m)) center;
+        padding-inline-end: var(--space-2xl);
     }
 
     .c-form-label {
@@ -58,11 +58,11 @@
     }
 
     .c-form-input--code {
-        letter-spacing: 0.5rem;
+        letter-spacing: var(--letter-spacing-code);
         font-family: monospace;
-        block-size: 3.75rem;
+        block-size: var(--size-avatar-md);
         text-transform: uppercase;
-        font-size: var(--space-l);
+        font-size: var(--text-xl);
     }
 
     .c-form-section {
@@ -84,8 +84,8 @@
     .c-form-section__step {
         background-color: var(--color-primary);
         color: var(--color-bg-white);
-        inline-size: 1.5rem;
-        block-size: 1.5rem;
+        inline-size: var(--size-ui-xs);
+        block-size: var(--size-ui-xs);
         border-radius: var(--radius-circle);
         display: inline-flex;
         align-items: center;
@@ -142,7 +142,7 @@
     }
 
     .c-checkbox__label {
-        line-height: 1.4;
+        line-height: var(--line-height-snug);
         font-size: clamp(0.9rem, 0.85rem + 0.5vw, 0.95rem);
         user-select: none;
         display: block;
@@ -151,7 +151,7 @@
     .c-checkbox__required {
         color: var(--color-danger);
         font-weight: var(--font-weight-bold);
-        margin-inline-start: 0.125rem;
+        margin-inline-start: var(--border-m);
     }
 
     .c-password-toggle {
@@ -161,7 +161,7 @@
     }
 
     .c-password-toggle__input {
-        padding-inline-end: 2.5rem;
+        padding-inline-end: var(--space-2xl);
         inline-size: var(--size-full);
     }
 
@@ -174,7 +174,7 @@
         font-size: var(--text-xl);
         padding: 0;
         outline: none;
-        opacity: 0.5;
+        opacity: var(--opacity-50);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -182,6 +182,6 @@
     }
 
     .c-form-input--short {
-        max-inline-size: 9.375rem;
+        max-inline-size: var(--size-panel-md);
     }
 }
