@@ -19,45 +19,25 @@ export class PermissionMatrix {
     }
 
     init() {
-        // A. UI Modus (Fokus/Experte) wiederherstellen
-        // try/Catch für localStorage, um Abstürze in Safari-Private-Mode zu verhindern
-        let savedMode = 'hide';
-        try {
-            savedMode = localStorage.getItem('pref_perm_ui_mode') || 'hide';
-        } catch {
-            console.warn('[PermissionMatrix] LocalStorage blockiert.');
-        }
-
-        this.updateUiMode(savedMode);
-
-        const radio = document.querySelector(`input[name="ui_mode_toggle"][value="${savedMode}"]`);
-        if (radio) radio.checked = true;
-
-        // B. Initialen Zustand der Matrizen (Master/Locks) berechnen
+        // Initiale Master-States berechnen
         const permissionContainers = this.container.querySelectorAll('.js-permission-form');
         permissionContainers.forEach((wrapper) => {
             const masterCb = wrapper.querySelector('input[data-master-toggle="true"]');
             if (masterCb) this.applyMasterState(wrapper, masterCb.checked);
         });
 
-        // Event-Delegation an AbortController binden!
         this.container.addEventListener(
             'change',
             (e) => {
-                if (e.target.name === 'ui_mode_toggle') {
-                    this.updateUiMode(e.target.value);
-                }
-
-                // 2. MASTER TOGGLE (Gott Modus)
+                // MASTER TOGGLE (Gott Modus)
                 if (e.target.matches('[data-master-toggle="true"]')) {
-                    // FIX: Auch hier auf js-permission-form prüfen
                     this.applyMasterState(
                         e.target.closest('.js-permission-form'),
                         e.target.checked
                     );
                 }
 
-                // 3. SMART TREE Logik
+                // SMART TREE Logik
                 if (e.target.matches('[data-perm-check="true"]')) {
                     this.handlePermissionChange(e.target);
                 }
@@ -65,22 +45,8 @@ export class PermissionMatrix {
             { signal: this.abortController.signal }
         );
 
-        // D. Fokus-Sprung ausführen (falls ?focus= in URL)
+        // Fokus-Sprung ausführen (falls ?focus= in URL)
         this.handleUrlFocus();
-    }
-
-    updateUiMode(mode) {
-        const wrappers = this.container.querySelectorAll('.c-tree-wrapper');
-        wrappers.forEach((w) => {
-            w.classList.remove('mode-hide', 'mode-grey');
-            w.classList.add(`mode-${mode}`);
-        });
-        // Abfangen der SecurityError Exception
-        try {
-            localStorage.setItem('pref_perm_ui_mode', mode);
-        } catch {
-            // Ignore
-        }
     }
 
     applyMasterState(container, isMaster) {
