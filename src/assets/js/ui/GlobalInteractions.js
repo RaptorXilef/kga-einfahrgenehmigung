@@ -1,3 +1,5 @@
+import { notifier } from '../core/Notifier.js';
+
 /**
  * Sammlung winziger, hochspezifischer UI-Klassen (Single Responsibility Principle).
  * Kapselt globale Interaktionen, die zuvor monolithisch in der app.js lagen.
@@ -253,6 +255,71 @@ export class EventTracker {
             window.dataLayer.push({ event: this.eventName });
         }
     }
+    destroy() {
+        this.abortController.abort();
+    }
+}
+
+export class CopyAction {
+    constructor(button) {
+        this.button = button;
+        this.url = this.button.dataset.url;
+        this.abortController = new AbortController();
+        this.init();
+    }
+
+    init() {
+        this.button.addEventListener(
+            'click',
+            async (e) => {
+                e.preventDefault();
+                // Lock-State verhindert Spam-Klicks
+                if (this.button.dataset.isCopying) return;
+                this.button.dataset.isCopying = 'true';
+
+                const originalHtml = this.button.innerHTML;
+
+                const successAction = () => {
+                    this.button.innerHTML =
+                        '<span class="u-color-success u-font-bold">✓ Kopiert</span>';
+                    notifier.show('In die Zwischenablage kopiert!', 'success');
+                    setTimeout(() => {
+                        this.button.innerHTML = originalHtml;
+                        delete this.button.dataset.isCopying;
+                    }, 2000);
+                };
+
+                // Moderne Clipboard API mit Fallback
+                if (navigator.clipboard && window.isSecureContext) {
+                    try {
+                        await navigator.clipboard.writeText(this.url);
+                        successAction();
+                    } catch {
+                        this.fallbackCopyText(this.url, successAction);
+                    }
+                } else {
+                    this.fallbackCopyText(this.url, successAction);
+                }
+            },
+            { signal: this.abortController.signal }
+        );
+    }
+
+    fallbackCopyText(text, callback) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.className = 'u-visually-hidden';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            if (document.execCommand('copy')) callback();
+            else delete this.button.dataset.isCopying;
+        } catch {
+            delete this.button.dataset.isCopying;
+        }
+        document.body.removeChild(textArea);
+    }
+
     destroy() {
         this.abortController.abort();
     }

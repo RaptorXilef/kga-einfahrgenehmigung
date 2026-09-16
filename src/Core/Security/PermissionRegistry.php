@@ -17,14 +17,14 @@ final class PermissionRegistry
         return [
             'access' => [
                 'label' => 'Basis-Zugriff',
-                'icon' => 'icon-home.webp',
+                'icon' => 'home.webp',
                 'children' => [
                     'admin' => ['label' => 'Zugriff auf das Admin-Dashboard', 'key' => 'admin.access'],
                 ],
             ],
             'permits' => [
                 'label' => 'Genehmigungen',
-                'icon' => 'icon-document.webp',
+                'icon' => 'document.webp',
                 'key' => 'permits.manage',
                 'children' => [
                     'view' => ['label' => 'Alle Genehmigungen ansehen', 'key' => 'permits.view'],
@@ -35,7 +35,7 @@ final class PermissionRegistry
             ],
             'finance' => [
                 'label' => 'Finanzen & Abrechnung',
-                'icon' => 'icon-money.webp',
+                'icon' => 'finance.webp',
                 'key' => 'finance.manage',
                 'children' => [
                     'view' => ['label' => 'Zahlungsübersicht ansehen', 'key' => 'finance.view'],
@@ -46,7 +46,7 @@ final class PermissionRegistry
             ],
             'vouchers' => [
                 'label' => 'Gutscheine',
-                'icon' => 'icon-voucher.webp',
+                'icon' => 'voucher.webp',
                 'key' => 'vouchers.manage',
                 'children' => [
                     'view' => ['label' => 'Übersicht ansehen', 'key' => 'vouchers.view'],
@@ -57,7 +57,7 @@ final class PermissionRegistry
             ],
             'stats' => [
                 'label' => 'Statistiken',
-                'icon' => 'icon-chart.webp',
+                'icon' => 'stats.webp',
                 'key' => 'stats.view',
                 'children' => [
                     'charts' => ['label' => 'Wachstums-Diagramme', 'key' => 'stats.charts'],
@@ -66,7 +66,7 @@ final class PermissionRegistry
             ],
             'privacy' => [
                 'label' => 'Datenschutz (Sichtbarkeit)',
-                'icon' => 'icon-privacy.webp',
+                'icon' => 'privacy.webp',
                 'children' => [
                     'finance' => ['label' => 'Sensible Umsätze/Preise einblenden', 'key' => 'privacy.finance.view'],
                     'emails' => ['label' => 'E-Mail-Adressen im Klartext zeigen', 'key' => 'privacy.emails.view'],
@@ -74,7 +74,7 @@ final class PermissionRegistry
             ],
             'system' => [
                 'label' => 'Systemverwaltung',
-                'icon' => 'icon-settings.webp',
+                'icon' => 'maintenance.webp',
                 'key' => 'system.manage',
                 'children' => [
                     'users' => ['label' => 'Benutzer verwalten', 'key' => 'system.users.manage'],
@@ -87,7 +87,7 @@ final class PermissionRegistry
             ],
             'templates' => [
                 'label' => 'Genehmigungs-Vorlagen',
-                'icon' => 'icon-template.webp',
+                'icon' => 'template.webp',
                 'key' => 'template.manage',
                 'children' => [
                     'std_7' => ['label' => 'Ausnahme 7 Tage', 'key' => 'template.std_7'],

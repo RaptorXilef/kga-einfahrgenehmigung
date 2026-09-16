@@ -13,6 +13,7 @@ import {
     AutoSubmitSelect,
     ConfirmClick,
     ConfirmSubmit,
+    CopyAction,
     EventTracker,
     FabRefresh,
     PrintControls,
@@ -38,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mount('.js-submit-form', RemoteSubmit);
     mount('.js-trigger-click', TriggerClick);
     mount('.js-select-on-click', SelectOnClick);
+    mount('.js-copy-btn', CopyAction);
     mount('.c-category-card', AccordionCard);
     mount('.c-fab-refresh', FabRefresh);
     mount('.js-close-window, .js-print-window', PrintControls);

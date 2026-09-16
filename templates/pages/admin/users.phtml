@@ -25,7 +25,7 @@ $layout = 'admin';
 $pageTitle = 'Benutzer & Rechte - ' . ($settings['vereins_name'] ?? '');
 
 if ($auth->hasPermission('system.manage')) { ?>
-    <main class="c-tab-content-container u-padding-block-l js-permission-matrix">
+    <main class="c-tab-content-container u-padding-block-l js-permission-matrix js-admin-dashboard">
         <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
         <div class="c-tabs">
