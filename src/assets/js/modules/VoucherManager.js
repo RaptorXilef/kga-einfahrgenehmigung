@@ -12,9 +12,9 @@ export class VoucherManager {
 
         // Modal-Elemente auflösen
         this.modal = document.querySelector('.js-qr-modal');
-        this.modalImg = document.querySelector('.js-qr-modal-img');
         this.modalLoader = document.querySelector('.js-qr-modal-loader');
         this.modalCode = document.querySelector('.js-qr-modal-code');
+        this.qrBox = document.querySelector('.js-qr-box');
         this.closeBtn = this.modal?.querySelector('.js-close-modal');
 
         this.abortController = new AbortController();
@@ -70,13 +70,19 @@ export class VoucherManager {
     }
 
     showQr(code, url) {
-        if (!this.modal) return;
+        if (!this.modal || !this.qrBox) return;
 
         this.modalCode.innerText = code;
-        this.modalImg.hidden = true;
+
+        // Modal resetten
         this.modalLoader.hidden = false;
         this.modalLoader.classList.remove('is-error');
         this.modalLoader.innerText = 'Wird generiert...';
+
+        // Altes Bild restlos aus dem DOM löschen (verhindert Phantom-Requests)
+        const oldImg = this.qrBox.querySelector('img');
+        if (oldImg) oldImg.remove();
+
         this.modal.showModal();
 
         // Die QR-Code API url-encoded aufrufen
@@ -85,30 +91,39 @@ export class VoucherManager {
         // const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
         // const qrUrl = `${baseUrl}api/generate_qr?data=${encodedUrl}`;
 
-        // Wir blenden das Bild erst ein, wenn die externe API es fertig gerendert hat.
-        // Wird direkt an das DOM-Element gebunden, um NS_BINDING_ABORTED zu vermeiden.
-        this.modalImg.onload = () => {
+        // Bild dynamisch (frisch) erzeugen für sauberes, konfliktfreies Rendering
+        const img = document.createElement('img');
+        img.className = 'c-voucher-qr-img js-qr-modal-img';
+        img.alt = 'QR Code';
+        img.hidden = true; // Versteckt lassen, bis es vollständig geladen ist
+
+        // Wir blenden das Bild erst ein, wenn die externe API es fertig gerendert hat
+        img.onload = () => {
             this.modalLoader.hidden = true;
-            this.modalImg.hidden = false;
+            img.hidden = false;
         };
 
         // Fehlerbehandlung, falls die externe API offline oder geblockt ist!
-        this.modalImg.onerror = () => {
-            this.modalImg.hidden = true;
+        img.onerror = () => {
+            img.hidden = true;
             this.modalLoader.hidden = false;
             this.modalLoader.innerText = 'Fehler: QR-Code konnte nicht generiert werden.';
             this.modalLoader.classList.add('is-error');
         };
 
-        // Trigger den Ladevorgang
-        this.modalImg.src = qrUrl;
+        // Src zuweisen und in den DOM einhängen (Löst exakt EINEN Request aus)
+        img.src = qrUrl;
+        this.qrBox.appendChild(img);
     }
 
     closeQr() {
         if (!this.modal) return;
         this.modal.close();
-        // removeAttribute ist sicherer als src='', da letzteres einen fehlerhaften Request auslösen kann
-        this.modalImg.removeAttribute('src');
+
+        // Nach dem Schließen sofort aufräumen
+        const oldImg = this.qrBox.querySelector('img');
+        if (oldImg) oldImg.remove();
+
         this.modalLoader.classList.remove('is-error');
     }
 
@@ -147,6 +162,7 @@ export class VoucherManager {
         }
     }
 
+    // Element Parameter in der Methodensignatur ergänzt
     fallbackCopyText(text, element, callback) {
         const textArea = document.createElement('textarea');
         textArea.value = text;
