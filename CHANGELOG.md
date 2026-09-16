@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.69.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.69.0...v0.69.1) (2026-09-16)
+
+### 🐛 Bug Fixes
+
+* **phtml:** Update page state classes to match strict BEM namespace ([e712332](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e712332491a108d0515ea964c08db4a74db0d14e))
+* **scss:** Establish Tools and Elements layers with core mixins ([8544d6c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8544d6cf6036ad8f1a28dacfce22ee0297253647))
+* **scss:** Refactor core components with global ITCSS mixins ([4109980](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/41099807404b2ffa7960a4caf07c6a2347ca9549))
+* **scss:** Refactor interactive layout components (Modal, Dropzone, Tabs) ([74b0137](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/74b013731b508030e65a3c803bb294a6007ace08))
+* **scss:** Resolve mixin scope error and finalize utility layer ([65b9409](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/65b940905650dd38075f780ac5af0d1dca09a64c))
+
 ## [0.69.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.68.3...v0.69.0) (2026-09-16)
 
 ### 🚀 Features
