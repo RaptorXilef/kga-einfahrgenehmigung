@@ -1,10 +1,10 @@
+@use '../2-tools/mixins' as *;
+
 @layer components {
     .c-button {
         --btn-bg: var(--color-bg-white);
         --btn-color: var(--color-text-main);
         --btn-border: var(--color-border);
-        --btn-translate-y: 0;
-        --btn-shadow: var(--shadow-sm);
 
         display: inline-flex;
         align-items: center;
@@ -19,17 +19,19 @@
         color: var(--btn-color);
         cursor: pointer;
         will-change: translate, box-shadow;
-        transition:
-            background-color var(--time-fast) var(--ease-base),
-            color var(--time-fast) var(--ease-base),
-            border-color var(--time-fast) var(--ease-base),
-            translate var(--time-fast) var(--ease-base),
-            box-shadow var(--time-fast) var(--ease-base);
         text-decoration: none;
-        box-shadow: var(--btn-shadow);
+        box-shadow: var(--shadow-sm);
         gap: var(--space-s);
         white-space: nowrap;
-        translate: 0 var(--btn-translate-y);
+
+        @include transition-fast(
+            background-color,
+            color,
+            border-color,
+            translate,
+            box-shadow
+        );
+        @include focus-ring();
     }
 
     .c-button__icon {
@@ -41,13 +43,12 @@
 
     .c-button:hover {
         --btn-bg: var(--color-bg-light);
-        --btn-translate-y: calc(var(--border-s) * -1);
-        --btn-shadow: var(--shadow-md);
         --btn-border: color-mix(
             in oklch,
             var(--color-border) var(--mix-80),
             var(--color-text-main)
         );
+        @include hover-lift(calc(var(--border-s) * -1), var(--shadow-md));
     }
 
     .c-button--primary {

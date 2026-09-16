@@ -1,3 +1,5 @@
+@use '../2-tools/mixins' as *;
+
 @layer components {
     .c-action-grid {
         display: flex;
@@ -7,8 +9,6 @@
     }
 
     .c-action-card {
-        --card-translate-y: 0;
-        --card-shadow: var(--shadow-none);
         --card-border: var(--color-border);
         --card-bg: var(--color-bg-white);
         --icon-bg: var(--color-bg-light);
@@ -24,22 +24,23 @@
         align-items: center;
         gap: var(--space-m);
         cursor: pointer;
-        translate: 0 var(--card-translate-y);
-        box-shadow: var(--card-shadow);
+        box-shadow: var(--shadow-none);
         will-change: translate, box-shadow;
-        transition:
-            translate var(--time-base) var(--ease-base),
-            box-shadow var(--time-base) var(--ease-base),
-            background-color var(--time-base) var(--ease-base),
-            border-color var(--time-base) var(--ease-base);
         text-align: start;
         text-decoration: none;
         color: inherit;
+
+        @include transition-base(
+            translate,
+            box-shadow,
+            background-color,
+            border-color
+        );
+        @include focus-ring();
     }
 
     .c-action-card:hover {
-        --card-translate-y: calc(var(--border-l) * -1);
-        --card-shadow: var(--shadow-md);
+        @include hover-lift(calc(var(--border-l) * -1), var(--shadow-md));
     }
 
     .c-action-card--voucher:hover {
@@ -95,9 +96,8 @@
         background-color: var(--icon-bg);
         color: var(--icon-color);
         border-radius: var(--radius-xl);
-        transition:
-            background-color var(--time-base) var(--ease-base),
-            color var(--time-base) var(--ease-base);
         flex-shrink: 0;
+
+        @include transition-base(background-color, color);
     }
 }

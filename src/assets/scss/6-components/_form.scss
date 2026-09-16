@@ -1,3 +1,5 @@
+@use '../2-tools/mixins' as *;
+
 @layer components {
     .c-form-input,
     .c-form-select {
@@ -16,20 +18,18 @@
         padding-inline-start: var(--c-input-padding-start);
         padding-inline-end: var(--c-input-padding-end);
         font-size: clamp(0.9rem, 0.8rem + 0.5vw, 1rem);
-        transition:
-            border-color var(--time-fast) ease-in-out,
-            box-shadow var(--time-fast) ease-in-out;
         color: var(--color-text-main);
         block-size: var(--c-input-height-val);
         inline-size: var(--size-full);
         display: block;
+
+        @include transition-fast(border-color, box-shadow);
+        @include focus-ring(var(--color-primary), 0);
     }
 
     .c-form-input:focus,
     .c-form-select:focus {
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 var(--space-xs) var(--color-primary-soft);
-        outline: none;
     }
 
     .c-form-input--small,
@@ -139,6 +139,8 @@
         scale: 1.2;
         cursor: pointer;
         flex-shrink: 0;
+
+        @include focus-ring();
     }
 
     .c-checkbox__label {
@@ -173,12 +175,13 @@
         cursor: pointer;
         font-size: var(--text-xl);
         padding: 0;
-        outline: none;
         opacity: var(--opacity-50);
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: opacity var(--time-fast) ease;
+
+        @include transition-fast(opacity);
+        @include focus-ring();
     }
 
     .c-form-input--short {
