@@ -17,7 +17,7 @@
         border-radius: var(--c-input-radius-val);
         padding-inline-start: var(--c-input-padding-start);
         padding-inline-end: var(--c-input-padding-end);
-        font-size: clamp(0.9rem, 0.8rem + 0.5vw, 1rem);
+        font-size: var(--text-md); /* Verhindert Auto-Zoom in iOS */
         color: var(--color-text-main);
         block-size: var(--c-input-height-val);
         inline-size: var(--size-full);
@@ -36,7 +36,7 @@
     .c-form-select--small {
         --c-input-height: var(--size-ui-sm);
         --c-input-padding-inline: var(--space-s);
-        font-size: clamp(0.8rem, 0.75rem + 0.5vw, 0.85rem);
+        font-size: var(--text-sm);
     }
 
     .c-form-select {
@@ -54,12 +54,12 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: clamp(0.85rem, 0.8rem + 0.5vw, 0.9rem);
+        font-size: var(--text-sm);
     }
 
     .c-form-input--code {
         letter-spacing: var(--letter-spacing-code);
-        font-family: monospace;
+        font-family: var(--font-mono);
         block-size: var(--size-avatar-md);
         text-transform: uppercase;
         font-size: var(--text-xl);
@@ -94,7 +94,7 @@
     }
 
     .c-price-display {
-        font-size: clamp(1.2rem, 1rem + 1vw, 1.4rem);
+        font-size: clamp(var(--text-lg), var(--vw-3), var(--text-2xl));
         color: var(--color-primary);
         background-color: var(--color-primary-soft);
         padding-block: var(--space-m);
@@ -145,7 +145,7 @@
 
     .c-checkbox__label {
         line-height: var(--line-height-snug);
-        font-size: clamp(0.9rem, 0.85rem + 0.5vw, 0.95rem);
+        font-size: var(--text-md);
         user-select: none;
         display: block;
     }
@@ -168,16 +168,12 @@
     }
 
     .c-password-toggle__btn {
-        position: absolute;
+        @include button-reset;
+        @include absolute-center-y;
         inset-inline-end: var(--space-s);
-        background: none;
-        border: none;
-        cursor: pointer;
         font-size: var(--text-xl);
-        padding: 0;
         opacity: var(--opacity-50);
         display: flex;
-        align-items: center;
         justify-content: center;
 
         @include transition-fast(opacity);

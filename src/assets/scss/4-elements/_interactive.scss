@@ -1,0 +1,20 @@
+@layer elements {
+    // Verhindert inkonsistente Browser-Styles bei nativen Interaktionselementen
+    button {
+        font-family: inherit;
+    }
+
+    dialog {
+        border: none;
+        background-color: transparent;
+        padding: 0;
+        margin: auto;
+        max-inline-size: var(--size-full);
+        max-block-size: var(--size-full);
+        color: inherit;
+
+        &::backdrop {
+            background-color: transparent;
+        }
+    }
+}

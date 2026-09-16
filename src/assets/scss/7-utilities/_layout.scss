@@ -1,3 +1,5 @@
+@use '../2-tools/mixins' as *;
+
 @layer utilities {
     // Nativer DOM-Standard (wird vom Browser verstanden und ist A11y sicher)
     [hidden] {
@@ -67,14 +69,6 @@
 
     // Barrierefreies Verstecken (Nur für Screenreader lesbar)
     .u-visually-hidden {
-        position: absolute !important;
-        inline-size: var(--border-s) !important;
-        block-size: var(--border-s) !important;
-        padding: 0 !important;
-        margin: calc(var(--border-s) * -1) !important;
-        overflow: hidden !important;
-        clip: rect(0, 0, 0, 0) !important;
-        white-space: nowrap !important;
-        border: 0 !important;
+        @include visually-hidden;
     }
 }

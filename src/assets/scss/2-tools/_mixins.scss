@@ -23,12 +23,43 @@
     box-shadow: $shadow;
 }
 
-// Absolutes Zentrieren mit logischen Properties
+// Absolutes Zentrieren (XY)
 @mixin absolute-center {
     position: absolute;
     inset-block-start: 50%;
     inset-inline-start: 50%;
     translate: -50% -50%;
+}
+
+// Absolutes Zentrieren (Nur Y-Achse - z.B. für Icons in Inputs)
+@mixin absolute-center-y {
+    position: absolute;
+    inset-block-start: 50%;
+    translate: 0 -50%;
+}
+
+// HTML-Reset für unclassed Buttons
+@mixin button-reset {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    font-family: inherit;
+    color: inherit;
+}
+
+// A11y: Visually Hidden (Versteckt Elemente für sehende Nutzer, nicht für Screenreader)
+@mixin visually-hidden {
+    position: absolute !important;
+    inline-size: 1px !important; // ITCSS exception: absolute minimum, kein 0
+    block-size: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
 }
 
 // Dynamische Transition-Generatoren

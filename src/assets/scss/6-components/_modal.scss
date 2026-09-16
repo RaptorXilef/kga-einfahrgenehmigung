@@ -2,12 +2,8 @@
 
 @layer components {
     .c-modal {
-        border: none;
-        background: transparent;
-        padding: var(--space-l);
-        max-inline-size: var(--size-full);
-        max-block-size: var(--size-full);
-        margin: auto;
+        /* Architektur: Keine Nesting-Selektoren. Status-Propagation via CSS-Variablen! */
+        --modal-dialog-animation: none;
     }
 
     .c-modal::backdrop {
@@ -24,10 +20,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-    }
-
-    .c-modal[open] .c-modal__dialog {
-        animation: modalSlideUp var(--time-base) var(--ease-bounce) forwards;
+        --modal-dialog-animation: modalSlideUp var(--time-base)
+            var(--ease-bounce) forwards;
     }
 
     @keyframes modalSlideUp {
@@ -52,6 +46,7 @@
         box-shadow: var(--shadow-xl);
         display: flex;
         flex-direction: column;
+        animation: var(--modal-dialog-animation);
     }
 
     .c-modal__dialog--large {

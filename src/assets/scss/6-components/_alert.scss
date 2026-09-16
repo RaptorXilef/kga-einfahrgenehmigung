@@ -78,7 +78,7 @@
     .c-alert--large {
         flex-direction: column;
         text-align: center;
-        padding-block: clamp(2rem, 5vw, 3rem);
+        padding-block: clamp(var(--space-xl), var(--vw-5), var(--space-3xl));
         padding-inline: var(--space-xl);
         border: var(--border-m) solid var(--color-success);
     }

@@ -1,4 +1,5 @@
 @use '../1-settings/z-index' as *;
+@use '../2-tools/mixins' as *;
 
 @layer components {
     .c-control-bar-wrapper {
@@ -27,7 +28,7 @@
         block-size: var(--size-ui-sm);
         border-radius: var(--radius-m);
         padding-inline: var(--space-s);
-        font-size: clamp(0.8rem, 1vw, 0.85rem);
+        font-size: var(--text-sm);
         inline-size: var(--size-auto);
         min-inline-size: var(--size-panel-sm);
         border: var(--border-s) solid var(--color-border);
@@ -39,7 +40,7 @@
     .c-control-bar__label {
         color: var(--color-text-muted);
         font-weight: var(--font-weight-bold);
-        font-size: clamp(0.7rem, 1vw, 0.75rem);
+        font-size: var(--text-xs);
         cursor: pointer;
         text-transform: uppercase;
         display: flex;
@@ -59,10 +60,8 @@
     }
 
     .c-control-bar__search-icon {
-        position: absolute;
+        @include absolute-center-y;
         inset-inline-end: var(--space-m);
-        inset-block-start: var(--size-half);
-        translate: 0 calc(var(--size-half) * -1);
         pointer-events: none;
         z-index: z('control-bar-search');
         color: var(--color-text-muted);
