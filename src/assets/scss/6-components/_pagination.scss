@@ -7,7 +7,7 @@
         background-color: var(--color-bg-light);
         border-block-start: 1px solid var(--color-border);
         flex-wrap: wrap;
-        gap: 10px;
+        gap: var(--space-m); // Token statt 10px
     }
 
     .c-pagination__info {
