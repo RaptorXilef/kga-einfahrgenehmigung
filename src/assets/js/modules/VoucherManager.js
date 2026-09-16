@@ -101,6 +101,7 @@ export class VoucherManager {
         img.onload = () => {
             this.modalLoader.hidden = true;
             img.hidden = false;
+            img.style.display = 'block';
         };
 
         // Fehlerbehandlung, falls die externe API offline oder geblockt ist!
