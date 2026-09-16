@@ -39,13 +39,15 @@ self.addEventListener('activate', (event) => {
         caches
             .keys()
             .then((keys) => {
+                // FIX: Array sauber filtern und mappen, damit ein garantiertes Array of Promises entsteht
+                const invalidKeys = keys.filter(
+                    (key) => key !== STATIC_CACHE && key !== DYNAMIC_CACHE
+                );
+
                 return Promise.all(
-                    keys.map((key) => {
-                        // Alte Caches löschen, wenn wir die Versionnummer oben ändern
-                        if (key !== STATIC_CACHE && key !== DYNAMIC_CACHE) {
-                            console.info(`[SW] Lösche alten Cache: ${key}`);
-                            return caches.delete(key);
-                        }
+                    invalidKeys.map((key) => {
+                        console.info(`[SW] Lösche alten Cache: ${key}`);
+                        return caches.delete(key);
                     })
                 );
             })

@@ -60,7 +60,7 @@ export class AdminDashboard {
             );
         }
 
-        // 1. Tab-Steuerung (mit A11y Attributes)
+        // 1. Tab-Steuerung
         this.tabs.forEach((btn) => {
             btn.setAttribute('role', 'tab');
             btn.addEventListener(
@@ -73,7 +73,10 @@ export class AdminDashboard {
             );
         });
 
-        this.contents.forEach((content) => content.setAttribute('role', 'tabpanel'));
+        // FIX: Explizite Blockklammern verhindern implizite Returns
+        this.contents.forEach((content) => {
+            content.setAttribute('role', 'tabpanel');
+        });
 
         // 2. Server-Side Such-Logik (Debounce)
         if (this.searchInput) {
@@ -91,7 +94,7 @@ export class AdminDashboard {
             }
         }
 
-        // 3. Delegierte Klicks für "Sperren" Buttons (Modernisiert via <dialog>)
+        // 3. Delegierte Klicks
         this.container.addEventListener(
             'click',
             async (e) => {
@@ -173,6 +176,7 @@ export class AdminDashboard {
             this.bulkToggleAll.addEventListener(
                 'change',
                 (e) => {
+                    // FIX: Blockklammern
                     this.bulkCheckboxes.forEach((cb) => {
                         cb.checked = e.target.checked;
                     });
@@ -182,8 +186,15 @@ export class AdminDashboard {
             );
         }
 
+        // FIX: Blockklammern
         this.bulkCheckboxes.forEach((cb) => {
-            cb.addEventListener('change', () => this.updateBulkPayButton(), options);
+            cb.addEventListener(
+                'change',
+                () => {
+                    this.updateBulkPayButton();
+                },
+                options
+            );
         });
     }
 
