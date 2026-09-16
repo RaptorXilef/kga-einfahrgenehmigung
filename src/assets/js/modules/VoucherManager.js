@@ -99,13 +99,15 @@ export class VoucherManager {
 
         // Wir blenden das Bild erst ein, wenn die externe API es fertig gerendert hat
         img.onload = () => {
+            // Micro-Optimierung: Wurde das Modul in der Zwischenzeit zerstört?
+            if (this.abortController.signal.aborted) return;
             this.modalLoader.hidden = true;
             img.hidden = false;
-            img.style.display = 'block';
         };
 
         // Fehlerbehandlung, falls die externe API offline oder geblockt ist!
         img.onerror = () => {
+            if (this.abortController.signal.aborted) return;
             img.hidden = true;
             this.modalLoader.hidden = false;
             this.modalLoader.innerText = 'Fehler: QR-Code konnte nicht generiert werden.';
@@ -168,8 +170,10 @@ export class VoucherManager {
         const textArea = document.createElement('textarea');
         textArea.value = text;
 
-        // Außerhalb des sichtbaren Bereichs positionieren
+        // A11y: Verhindert, dass Screenreader hier versehentlich den Fokus fangen
         textArea.className = 'u-visually-hidden';
+        textArea.setAttribute('aria-hidden', 'true');
+        textArea.setAttribute('tabindex', '-1');
 
         document.body.appendChild(textArea);
         textArea.focus();

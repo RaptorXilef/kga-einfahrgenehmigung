@@ -97,8 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     lazyMountSingle('.js-bank-import', () => import('./modules/BankImport.js'), 'BankImport');
 
-    // Akku- und Netzwerk-Schonung. Nur pingen, wenn Tab aktiv ist!
-    if (document.body.classList.contains('l-public-body')) {
+    // Akku- und Netzwerk-Schonung. Strikte BEM-Kopplung (keine l- Klassen in JS!)
+    const publicForm = document.querySelector('.js-permit-form');
+    if (publicForm) {
         setInterval(
             () => {
                 if (document.visibilityState === 'visible') {

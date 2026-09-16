@@ -23,7 +23,7 @@ export class AdminDashboard {
     init() {
         const options = { signal: this.abortController.signal };
 
-        // --- Datums-Filter Logik aus control_bar.phtml ---
+        // Datums-Filter Logik
         const filterStart = this.container.querySelector('.js-filter-start');
         const filterEnd = this.container.querySelector('.js-filter-end');
         const filterForm = this.container.querySelector('.js-dashboard-filter-form');
@@ -59,10 +59,10 @@ export class AdminDashboard {
                 options
             );
         }
-        // -------------------------------------------------------
 
-        // 1. Tab-Steuerung
+        // 1. Tab-Steuerung (mit A11y Attributes)
         this.tabs.forEach((btn) => {
+            btn.setAttribute('role', 'tab');
             btn.addEventListener(
                 'click',
                 (e) => {
@@ -72,6 +72,8 @@ export class AdminDashboard {
                 options
             );
         });
+
+        this.contents.forEach((content) => content.setAttribute('role', 'tabpanel'));
 
         // 2. Server-Side Such-Logik (Debounce)
         if (this.searchInput) {
@@ -89,19 +91,16 @@ export class AdminDashboard {
             }
         }
 
-        // 3. Delegierte Klicks für "Sperren" Buttons
+        // 3. Delegierte Klicks für "Sperren" Buttons (Modernisiert via <dialog>)
         this.container.addEventListener(
             'click',
-            (e) => {
+            async (e) => {
                 const suspendBtn = e.target.closest('.js-suspend-btn');
                 if (suspendBtn) {
                     e.preventDefault();
                     const code = suspendBtn.dataset.code;
 
-                    // Architektonische Notiz: prompt() blockiert den Main-Thread.
-                    // Für diese kritische Admin-Aktion (Sperren) ist das beabsichtigt,
-                    // um weitere Interaktionen zu verhindern, bis der Admin entschieden hat.
-                    const reason = prompt(`Grund für die Sperre von ${code}?`);
+                    const reason = await this.#promptReason(code);
 
                     if (reason && reason.trim() !== '') {
                         const form = this.container.querySelector(
@@ -109,7 +108,7 @@ export class AdminDashboard {
                         );
                         const input = form?.querySelector('.js-reason-suspend');
                         if (form && input) {
-                            input.value = reason;
+                            input.value = reason.trim();
                             form.submit();
                         }
                     }
@@ -117,6 +116,46 @@ export class AdminDashboard {
             },
             options
         );
+    }
+
+    /**
+     * Erzeugt dynamisch einen barrierefreien HTML5-Dialog,
+     * um den blockierenden I/O prompt() zu ersetzen.
+     */
+    async #promptReason(code) {
+        return new Promise((resolve) => {
+            const dialog = document.createElement('dialog');
+            dialog.className = 'c-modal';
+            dialog.innerHTML = `
+                <div class="c-modal__dialog">
+                    <h3 class="c-modal__title">Grund für die Sperre?</h3>
+                    <p class="u-color-muted u-margin-block-start-s">Bitte geben Sie den Grund für die Sperrung von <strong class="u-color-main">${code}</strong> ein:</p>
+                    <div class="c-form-group u-margin-block-start-m">
+                        <input type="text" class="c-form-input js-prompt-input" required aria-label="Sperrgrund">
+                    </div>
+                    <div class="u-flex u-gap-s u-margin-block-start-m">
+                        <button type="button" class="c-button c-button--secondary u-flex-grow-1 js-prompt-cancel">Abbrechen</button>
+                        <button type="button" class="c-button c-button--danger u-flex-grow-1 js-prompt-confirm">Sperren</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(dialog);
+            dialog.showModal();
+
+            const input = dialog.querySelector('.js-prompt-input');
+            const btnCancel = dialog.querySelector('.js-prompt-cancel');
+            const btnConfirm = dialog.querySelector('.js-prompt-confirm');
+
+            const cleanup = (value) => {
+                dialog.close();
+                dialog.remove();
+                resolve(value);
+            };
+
+            btnCancel.addEventListener('click', () => cleanup(null));
+            btnConfirm.addEventListener('click', () => cleanup(input.value));
+            dialog.addEventListener('cancel', () => cleanup(null));
+        });
     }
 
     initFinanceBulk() {
@@ -166,15 +205,23 @@ export class AdminDashboard {
         const target = document.getElementById(tabId); // Target-ID für Tabs ist i.O. (Anchor-Pattern)
         if (!target) return;
 
+        // WAI-ARIA strikt anwenden
         this.contents.forEach((c) => {
             c.classList.remove('is-active');
+            c.setAttribute('aria-hidden', 'true');
         });
         this.tabs.forEach((b) => {
             b.classList.remove('is-active');
+            b.setAttribute('aria-selected', 'false');
+            b.setAttribute('tabindex', '-1');
         });
 
         target.classList.add('is-active');
+        target.setAttribute('aria-hidden', 'false');
+
         activeBtn.classList.add('is-active');
+        activeBtn.setAttribute('aria-selected', 'true');
+        activeBtn.removeAttribute('tabindex');
 
         try {
             localStorage.setItem('lastAdminTab', tabId);

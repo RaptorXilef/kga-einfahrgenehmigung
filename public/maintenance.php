@@ -55,7 +55,7 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
           href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
 </head>
 
-<body class="l-public-body u-justify-center u-bg-light u-padding-block-l">
+<body class="js-permit-form l-public-body u-justify-center u-bg-light u-padding-block-l">
     <div
          class="c-card c-card--warning o-container o-container--small u-text-center u-padding-block-xl u-shadow-highlight">
         <?php if ($logoFile) { ?>
