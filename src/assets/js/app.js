@@ -46,7 +46,14 @@ if ('serviceWorker' in navigator) {
                     );
                 })
                 .catch((error) => {
-                    console.error('[PWA] Service Worker Registrierung fehlgeschlagen:', error);
+                    // Prüfen ob es sich um den typischen Local-Dev Zertifikats- oder Inkognito-Fehler handelt
+                    if (error.name === 'SecurityError' || error.message.includes('insecure')) {
+                        console.warn(
+                            '[PWA] Service Worker blockiert. Hinweis: Browser blockieren Service Worker im privaten Modus oder bei selbst-signierten lokalen SSL-Zertifikaten. Wenn du diesen Fehler siehst, verwende die Seite nicht weiter! Denn das bedeutet, dass irgentetwas mit dem SSL Zertifikat nicht stimmt. Ggf. wurde dein Gerät oder die Seite gehackt! (Oder das Zertifikat ist einfach abgelaufen :D ).'
+                        );
+                    } else {
+                        console.error('[PWA] Service Worker Registrierung fehlgeschlagen:', error);
+                    }
                 });
         });
     } else {
