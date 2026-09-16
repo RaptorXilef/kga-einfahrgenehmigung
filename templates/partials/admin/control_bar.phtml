@@ -29,6 +29,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
         <section class="c-control-bar">
             <form method="POST"
                   action="<?php echo $settings['base_url']; ?>filter_dashboard"
+                  id="dashboardFilterForm"
                   class="js-dashboard-filter-form u-flex u-align-center u-gap-s u-flex-wrap u-inline-size-100 u-justify-center u-margin-none">
                 <input type="hidden"
                        name="csrf_token"
@@ -94,6 +95,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                     </span>
                     <!-- name="q" und value aus PHP für Server-Side Search -->
                     <input type="text"
+                           id="adminSearch"
                            name="q"
                            aria-label="Schnellsuche"
                            autocomplete="off"
@@ -114,6 +116,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
         </section>
     </div>
 
+    <?php // TODO Inline JS in JS Dateien auslagern?>
     <script nonce="<?php echo $cspNonce; ?>">
     document.addEventListener('DOMContentLoaded', () => {
         // FIX: Strikte JS Hooks anstelle von getElementById, um Abstürze zu verhindern

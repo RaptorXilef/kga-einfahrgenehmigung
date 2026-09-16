@@ -108,9 +108,10 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
                 <!-- Warnung-Box für Datumsfehler -->
-                <div class="c-box c-box--warning u-margin-block-end-m js-pf-date-warning"
+                <div id="date-warning"
+                     class="c-box c-box--warning u-margin-block-end-m js-pf-date-warning"
                      hidden>
-                    <span class="js-pf-date-warning-text"></span>
+                    <span id="date-warning-text" class="js-pf-date-warning-text"></span>
                 </div>
 
                 <!-- GUTSCHEIN EINGABE / ANZEIGE -->
@@ -157,6 +158,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <!-- HAUPT-FORMULAR -->
                 <form action="index"
                       method="POST"
+                      id="permitForm"
                       class="c-form js-permit-form">
                     <input type="hidden"
                            name="csrf_token"
@@ -346,7 +348,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             </div>
                         </div>
 
-                        <div class="c-box c-box--highlight u-margin-block-start-l u-text-sm js-pf-dynamic-date-info"
+                        <div id="dynamic-date-info"
+                             class="c-box c-box--highlight u-margin-block-start-l u-text-sm js-pf-dynamic-date-info"
                              hidden>
                             <div class="u-margin-block-end-s js-pf-dynamic-opening"></div>
                             <div class="c-box c-box--danger-soft js-pf-dynamic-holiday"
@@ -355,7 +358,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     </div>
 
                     <!-- Preis-Anzeige mit Rabatt-Logik -->
-                    <div class="c-price-display u-margin-block-start-m u-margin-block-end-l js-pf-price-display">
+                    <div id="price-display"
+                         class="c-price-display u-margin-block-start-m u-margin-block-end-l js-pf-price-display">
                         Wird berechnet...
                     </div>
 

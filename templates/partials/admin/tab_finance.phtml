@@ -66,6 +66,7 @@ if ($auth->hasPermission('finance.view')) {
                         <button type="submit"
                                 form="bulk-action-form"
                                 formaction="<?php echo $settings['base_url']; ?>mark_as_paid"
+                                id="bulkPayBtn"
                                 class="c-button c-button--success c-button--small js-bulk-pay-btn"
                                 hidden
                                 data-confirm-click="Sollen die ausgewählten Genehmigungen jetzt als BEZAHLT markiert werden?">
@@ -79,6 +80,7 @@ if ($auth->hasPermission('finance.view')) {
                         <button type="submit"
                                 form="bulk-action-form"
                                 formaction="<?php echo $settings['base_url']; ?>send_reminder"
+                                id="bulkRemindBtn"
                                 class="c-button c-button--danger c-button--small js-bulk-remind-btn"
                                 hidden
                                 data-confirm-click="Ausgewählte Pächter jetzt an Zahlung erinnern (sofern kein Cooldown aktiv ist)?">

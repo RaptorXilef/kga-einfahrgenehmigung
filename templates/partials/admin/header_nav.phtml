@@ -94,7 +94,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                          class="c-icon c-button__icon"
                          loading="lazy"
                          alt="">
-                    <span class="js-session-timer">20:00</span>
+                    <span id="ui-session-timer" class="js-session-timer">20:00</span>
                 </div>
 
                 <!-- Logout -->
@@ -124,7 +124,7 @@ $currentPage = $path === '' ? 'admin' : $path;
     </div>
 </nav>
 
-<dialog class="c-modal js-session-warning-modal">
+<dialog id="session-warning-modal" class="c-modal js-session-warning-modal">
     <div class="c-modal__dialog">
         <h3 class="c-modal__title">
             <span class="u-text-xl">
@@ -132,12 +132,14 @@ $currentPage = $path === '' ? 'admin' : $path;
             </span> Inaktivität erkannt
         </h3>
         <p class="u-color-muted u-margin-block-start-s">Aus Sicherheitsgründen werden Sie in <br>
-            <strong class="u-color-danger u-text-xl js-session-countdown">
+            <strong id="modal-session-countdown"
+                    class="u-color-danger u-text-xl js-session-countdown">
                 03:00</strong><br> Minuten automatisch abgemeldet.
         </p>
         <div class="o-grid o-grid--2-cols u-margin-block-start-l">
             <!-- Button 1: Bleiben -->
-            <button class="c-button c-button--success u-inline-size-100 js-session-stay">Bleiben</button>
+            <button id="btn-session-stay"
+                    class="c-button c-button--success u-inline-size-100 js-session-stay">Bleiben</button>
 
             <!-- Button 2: Abmelden (Sicheres Formular) -->
             <form method="POST"

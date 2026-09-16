@@ -87,7 +87,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     </header>
                     <div class="c-card__body">
 
-                        <form class="js-permit-form"
+                        <form id="permitForm"
+                              class="js-permit-form"
                               method="POST"
                               action="<?php echo $settings['base_url']; ?>create_manual">
                             <input type="hidden"
@@ -180,6 +181,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
                             <div class="c-form-group u-margin-block-end-m">
                                 <label class="c-form-label js-pf-label-kennzeichen"
+                                       id="label_kennzeichen"
                                        for="kennzeichen">Amtl. Kennzeichen *</label>
                                 <input type="text"
                                        name="kennzeichen"
@@ -191,6 +193,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             </div>
 
                             <div class="c-form-group u-margin-block-end-m js-pf-firma-wrapper"
+                                 id="firma_wrapper"
                                  hidden>
                                 <label class="c-form-label"
                                        for="firma">Firma / Lieferant (Optional)</label>
@@ -219,7 +222,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <label class="c-form-label u-flex u-justify-between u-align-center"
                                            for="zweck_select">
                                         <span>Einfahrts-Grund *</span>
-                                        <span class="u-text-link u-cursor-pointer js-pf-toggle-zweck">
+                                        <span class="u-text-link u-cursor-pointer js-pf-toggle-zweck" id="toggle_zweck_btn">
                                             <img src="<?php echo $asset->url('assets/img/icons/icon-crayon.webp'); ?>" class="c-icon" loading="lazy" alt=""> Manuell
                                         </span>
                                     </label>
@@ -235,6 +238,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <!-- Manuelles Feld (inkl. Auto-Complete Historie) -->
                                     <input type="text"
                                            name="_unused_zweck"
+                                           id="zweck_manual"
                                            class="c-form-input js-pf-zweck-manual"
                                            hidden
                                            placeholder="Eigener Grund..."
@@ -255,7 +259,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <label class="c-form-label u-flex u-justify-between u-align-center"
                                            for="preis_override">
                                         <span>Sonderpreis (€)</span>
-                                        <span class="c-badge c-badge--primary u-font-mono u-text-sm js-pf-price-display">0,00 €</span>
+                                        <span id="price-display" class="c-badge c-badge--primary u-font-mono u-text-sm js-pf-price-display">0,00 €</span>
                                     </label>
                                     <input type="number"
                                            id="preis_override"
@@ -360,6 +364,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     </select>
                                 </div>
                                 <div class="c-form-group js-pf-voucher-value-wrap"
+                                     id="v_val_wrap">
                                      hidden>
                                     <label class="c-form-label"
                                            for="v_val">Wert (Zahl) *</label>
@@ -555,13 +560,15 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <label class="c-checkbox">
                                         <input type="checkbox"
                                                name="voucher_multi_use"
+                                               id="v_multi"
                                                class="c-checkbox__input js-pf-voucher-multi">
                                         <span class="c-checkbox__label u-font-bold u-text-sm u-color-main"
                                               style="margin-block-start: 2px;">Mehrfach einlösbar?</span>
                                     </label>
                                 </div>
                                 <div class="c-form-group js-pf-voucher-max-wrap"
-                                     hidden>
+                                     hidden
+                                     id="v_max_wrap">
                                     <label class="c-form-label u-color-muted"
                                            for="v_max_uses">Maximale Nutzungen *</label>
                                     <input type="number"

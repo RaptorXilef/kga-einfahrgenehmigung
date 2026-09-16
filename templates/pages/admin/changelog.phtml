@@ -53,7 +53,8 @@ $pageTitle = 'Versionshistorie - ' . ($settings['vereins_name'] ?? '');
 
         <div class="c-card__body">
             <!-- Hier landet das fertige HTML -->
-            <div class="s-markdown js-content-area">
+            <div id="content-area"
+                 class="s-markdown js-content-area">
                 <div class="u-text-center u-color-muted">
                     Lade Versionshistorie...
                 </div>
@@ -63,6 +64,7 @@ $pageTitle = 'Versionshistorie - ' . ($settings['vereins_name'] ?? '');
 
     <!-- Das rohe Markdown wird hier übergeben -->
     <script type="text/markdown"
+            id="raw-markdown"
             nonce="<?php echo $cspNonce; ?>"
             class="u-hidden js-raw-markdown"><?php echo \htmlspecialchars($markdownContent); ?></script>
 </div>

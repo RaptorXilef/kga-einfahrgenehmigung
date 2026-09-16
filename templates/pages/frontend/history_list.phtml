@@ -53,10 +53,11 @@ $now = new \DateTimeImmutable('today');
                 <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>"
                      class="c-icon c-button__icon"
                      loading="lazy"
-                     alt=""> <span class="js-session-timer">20:00</span>
+                     alt=""> <span id="ui-session-timer" class="js-session-timer">20:00</span>
             </div>
             <!-- FIX: Alte ID durch JS-Klasse ersetzt -->
             <button type="button"
+                    id="btn-session-logout"
                     class="c-button c-button--danger-outline u-text-sm js-session-logout">
                 Abmelden ✕
             </button>
