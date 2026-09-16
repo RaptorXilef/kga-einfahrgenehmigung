@@ -110,25 +110,25 @@ return [
     'vehicle_types' => [
         'pkw' => [
             'label' => 'Privat PKW',
-            'icon' => 'assets/img/icons/icon-automobile.webp',
+            'icon' => 'assets/img/icons/vehicle_types/car.webp',
             'show_company' => false,
             'active' => true,
         ],
         'lkw' => [
             'label' => 'Lieferant / Firma / LKW',
-            'icon' => 'assets/img/icons/icon-delivery-truck.webp',
+            'icon' => 'assets/img/icons/vehicle_types/truck.webp',
             'show_company' => true,
             'active' => true,
         ],
         'sharing' => [
             'label' => 'Privat (Leihfahrzeug/Car-Sharing)',
-            'icon' => 'assets/img/icons/icon-carsharing.webp',
+            'icon' => 'assets/img/icons/vehicle_types/car-sharing.webp',
             'show_company' => true,
             'active' => true,
         ],
         'entsorg' => [
             'label' => 'Abwasser / Entsorgung',
-            'icon' => 'assets/img/icons/icon-biohazard.webp',
+            'icon' => 'assets/img/icons/vehicle_types/biohazard.webp',
             'show_company' => true,
             'active' => false,
         ],

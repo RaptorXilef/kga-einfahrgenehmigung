@@ -47,7 +47,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 }
 ?>
 
-<main class="c-tab-content-container u-padding-block-l">
+<main class="js-admin-dashboard c-tab-content-container u-padding-block-l">
 
     <div class="u-inline-size-100">
         <!-- 1. NAVIGATION (TABS) -->
@@ -56,28 +56,28 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php if ($auth->hasPermission('permits.view')) { ?>
                     <button class="c-tabs__btn is-active"
                             data-tab-target="tab-active">
-                        <img src="<?php echo $asset->url('assets/img/icons/status-active.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/active.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Aktiv (<?php echo \count($permitGroups['active'] ?? []); ?>)
                     </button>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-future">
-                        <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Zukünftig (<?php echo \count($permitGroups['future'] ?? []); ?>)
                     </button>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-expired">
-                        <img src="<?php echo $asset->url('assets/img/icons/status-expired.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/expired.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Abgelaufen (<?php echo \count($permitGroups['expired'] ?? []); ?>)
                     </button>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-cancelled">
-                        <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Storniert (<?php echo \count($cancelledPermits ?? []); ?>)
@@ -87,7 +87,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php if ($auth->hasPermission('stats.ranking')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-ranking">
-                        <img src="<?php echo $asset->url('assets/img/icons/nav-ranking.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/ranking.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Ranking
@@ -97,7 +97,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php if ($auth->hasPermission('finance.view')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-finance">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-card.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/card.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Finanzen
@@ -111,7 +111,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php if ($auth->hasPermission('stats.view')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-stats">
-                        <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/stats.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Statistiken
@@ -121,7 +121,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php if ($auth->hasPermission('finance.bank_import')) { ?>
                     <button class="c-tabs__btn <?php echo isset($bank_headers) ? 'is-active' : ''; ?>"
                             data-tab-target="tab-bank-import">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-bank.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/bank.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Bank-Abgleich
@@ -131,7 +131,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php if ($auth->hasPermission('finance.export')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-export">
-                        <img src="<?php echo $asset->url('assets/img/icons/nav-export.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/export.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Daten & Export
@@ -141,7 +141,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php if ($auth->hasPermission('permits.create') || $auth->hasPermission('vouchers.create')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-tools">
-                        <img src="<?php echo $asset->url('assets/img/icons/nav-create-permit-voucher.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/create.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Ausstellung
@@ -151,7 +151,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php if ($auth->hasPermission('vouchers.view')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-vouchers">
-                        <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Gutscheincodes
@@ -161,14 +161,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php if ($auth->hasPermission('system.logs.view')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-logs">
-                        <img src="<?php echo $asset->url('assets/img/icons/nav-logs.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/logs.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Mail Log
                     </button>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-audit-log">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Audit-Log
@@ -178,7 +178,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('system.update.execute')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-system">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/maintenance.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> System
@@ -188,7 +188,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php if ($auth->hasPermission('system.backup.manage')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-backup">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/inbox.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Backups
@@ -292,7 +292,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             <?php } ?>
 
             <?php if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('system.update.execute')) { ?>
-                <div class="js-system-tools c-tabs__content">
+                <div id="tab-system" class="js-system-tools c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_system.phtml'; ?>
                 </div>
             <?php } ?>
@@ -330,7 +330,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         <div class="c-modal__dialog c-modal__dialog--large c-card c-card--primary u-padding-none u-flex-column">
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <h3 class="u-margin-none u-flex u-align-center u-gap-s js-release-notes-title">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-rocket.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/rocket.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
                          alt=""> Neu seit Ihrem letzten Login
@@ -361,13 +361,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             id="release-notes-unread-data"
             class="js-release-notes-unread-data"
             nonce="<?php echo $cspNonce; ?>">
-    <?php echo \json_encode($unreadReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+        <?php echo \json_encode($unreadReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
     </script>
     <script type="application/json"
+            id="release-notes-all-data"
             class="js-release-notes-all-data"
             nonce="<?php echo $cspNonce; ?>">
-    <?php echo \json_encode($allReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+        <?php echo \json_encode($allReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
     </script>
 <?php } ?>

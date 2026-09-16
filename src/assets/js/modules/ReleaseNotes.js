@@ -105,8 +105,8 @@ export class ReleaseNotes {
         if (this.titleElement) {
             // Emojis entfernt und durch WebP-Icons ersetzt + Lazy Loading!
             this.titleElement.innerHTML = isUnread
-                ? `<img src="${window.KGA_CONFIG.baseUrl}assets/img/icons/icon-rocket.webp" class="c-icon c-button__icon" loading="lazy" alt=""> Neu seit Ihrem letzten Login`
-                : `<img src="${window.KGA_CONFIG.baseUrl}assets/img/icons/icon-book.webp" class="c-icon c-button__icon" loading="lazy" alt=""> Release Notes Historie`;
+                ? `<img src="${window.KGA_CONFIG.baseUrl}assets/img/icons/rocket.webp" class="c-icon c-button__icon" loading="lazy" alt=""> Neu seit Ihrem letzten Login`
+                : `<img src="${window.KGA_CONFIG.baseUrl}assets/img/icons/book.webp" class="c-icon c-button__icon" loading="lazy" alt=""> Release Notes Historie`;
         }
 
         if (this.badgeElement) {

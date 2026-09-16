@@ -42,7 +42,7 @@ class NotifierService {
         toast.setAttribute('aria-atomic', 'true');
 
         if (type === 'success' || type === 'error') {
-            const iconName = type === 'success' ? 'status-success.webp' : 'status-denied.webp';
+            const iconName = type === 'success' ? 'success.webp' : 'error.webp';
             const icon = document.createElement('img');
             icon.src = `${this.baseUrl}assets/img/icons/${iconName}`;
             icon.className = 'c-icon c-toast__icon';

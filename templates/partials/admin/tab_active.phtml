@@ -44,7 +44,7 @@ if ($auth->hasPermission('permits.view')) {
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <div>
                     <h3 class="u-margin-block-none">
-                        <img src="<?php echo $asset->url('assets/img/icons/status-active.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/active.webp'); ?>"
                              class="c-icon"
                              loading="lazy"
                              alt=""> Aktive Genehmigungen
@@ -89,7 +89,7 @@ if ($auth->hasPermission('permits.view')) {
 
                                 $vKey = $permit->getVehicleType();
                                 $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
-                                $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
+                                $iconPath = $vCfg['icon'] ?? 'assets/img/icons/warning.webp';
                                 $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
                                 <tr class="u-hover-fade <?php echo $is_suspended ? 'c-table__row--danger' : ''; ?>">
@@ -107,7 +107,6 @@ if ($auth->hasPermission('permits.view')) {
                                     <td class="c-table__data-cell u-text-center"
                                         data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>">
                                         <div>
-                                            <!-- FIX: Inline Styles entfernt, c-icon--sm hinzugefügt -->
                                             <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
                                                  class="c-icon c-icon--sm <?php echo ($permit->getValidUntil() < $now) ? 'u-grayscale u-opacity-50' : ''; ?>"
                                                  title="<?php echo $vLabel; ?>"
@@ -125,7 +124,7 @@ if ($auth->hasPermission('permits.view')) {
                                             data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>">
                                             <?php if ($permit->getOwnerEmail()) { ?>
                                                 <div class="u-flex u-align-center u-gap-xs">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
+                                                    <img src="<?php echo $asset->url('assets/img/icons/envelope.webp'); ?>"
                                                          class="c-icon c-icon--inline"
                                                          loading="lazy"
                                                          alt="">
@@ -149,7 +148,7 @@ if ($auth->hasPermission('permits.view')) {
                                             <small class="u-color-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
                                             <div class="u-margin-block-start-xs">
                                                 <span class="c-badge <?php echo ($remaining <= 1) ? 'c-badge--danger' : 'c-badge--primary'; ?>">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>" class="c-icon" loading="lazy" alt=""> <?php echo $remainingText; ?>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>" class="c-icon" loading="lazy" alt=""> <?php echo $remainingText; ?>
                                                 </span>
                                             </div>
                                         </div>
@@ -172,12 +171,12 @@ if ($auth->hasPermission('permits.view')) {
                                         <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
                                                 <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Druckvorschau">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="Drucken">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="Drucken">
                                                 </a>
                                             <?php } ?>
                                             <?php if ($auth->hasPermission('permits.view')) { ?>
                                                 <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="Details">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="Details">
                                                 </a>
                                             <?php } ?>
                                             <?php if ($auth->hasPermission('permits.suspend')) { ?>
@@ -197,7 +196,7 @@ if ($auth->hasPermission('permits.view')) {
                                                         <button type="submit"
                                                                 class="c-button c-button--success c-button--small c-button--icon-only"
                                                                 title="Wieder freigeben">
-                                                            <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
+                                                            <img src="<?php echo $asset->url('assets/img/icons/unlock.webp'); ?>"
                                                                  class="c-icon c-button__icon"
                                                                  loading="lazy"
                                                                  alt="">
@@ -208,7 +207,7 @@ if ($auth->hasPermission('permits.view')) {
                                                     <button class="c-button c-button--danger c-button--small c-button--icon-only js-suspend-btn"
                                                             data-code="<?php echo $permit->code; ?>"
                                                             title="Sperren">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
+                                                        <img src="<?php echo $asset->url('assets/img/icons/denied.webp'); ?>"
                                                              class="c-icon c-button__icon"
                                                              loading="lazy"
                                                              alt="">
@@ -218,7 +217,8 @@ if ($auth->hasPermission('permits.view')) {
                                                     <form id="form_suspend_<?php echo $permit->code; ?>"
                                                           method="POST"
                                                           action="<?php echo $settings['base_url']; ?>suspend_permit"
-                                                          class="u-hidden js-form-suspend[data-code=<?php echo $permit->code; ?>]">
+                                                          class="u-hidden js-form-suspend"
+                                                          data-code="<?php echo $permit->code; ?>">
                                                         <input type="hidden"
                                                                name="csrf_token"
                                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
