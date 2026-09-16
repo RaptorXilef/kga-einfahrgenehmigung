@@ -123,9 +123,12 @@ $currentPage = $path === '' ? 'admin' : $path;
     </div>
 </nav>
 
-<dialog id="session-warning-modal" class="c-modal js-session-warning-modal">
+<dialog id="session-warning-modal"
+        class="c-modal js-session-warning-modal"
+        aria-labelledby="session-warning-title"
+        aria-modal="true">
     <div class="c-modal__dialog">
-        <h3 class="c-modal__title">
+        <h3 id="session-warning-title" class="c-modal__title">
             <span class="u-text-xl">
                 <img src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
             </span> Inaktivität erkannt
