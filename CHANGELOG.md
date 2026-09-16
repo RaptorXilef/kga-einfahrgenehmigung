@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.69.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.69.1...v0.69.2) (2026-09-16)
+
+### 🐛 Bug Fixes
+
+* **scss:** Flatten nesting in forms/tables and finalize Phase 3 interactive components ([91372d2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/91372d248041371ba37f05f4cddce662560a3dd1))
+* **scss:** Initialize tools and elements layers, resolve hardcoded values and DOM coupling ([e4a96b4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e4a96b4f0a4434d424e486e640bd8eb6215876a8))
+* **scss:** Resolve missing mixin import and eliminate residual nesting across components ([2f02151](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2f02151bf6e62c9b78faccee6e083c1f89518afa))
+* **scss:** Resolve UI scaling bugs and finalize Phase 2 (Objects & Utilities) ([df6ad9b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/df6ad9b4ad41807e8160408519893ce9b9a01f67))
+
 ## [0.69.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.69.0...v0.69.1) (2026-09-16)
 
 ### 🐛 Bug Fixes
