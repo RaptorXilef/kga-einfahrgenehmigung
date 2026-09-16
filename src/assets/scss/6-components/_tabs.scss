@@ -16,9 +16,9 @@
         margin-inline: auto;
         padding: var(--space-s);
         background-color: var(--color-bg-light);
-        border-radius: 1rem;
-        border: 0.0625rem solid var(--color-border);
-        box-shadow: inset 0 0.0625rem 0.125rem
+        border-radius: var(--radius-huge);
+        border: var(--border-s) solid var(--color-border);
+        box-shadow: inset 0 var(--border-s) var(--border-m)
             color-mix(in oklch, var(--color-text-main) 5%, transparent);
         max-inline-size: 100%;
     }
@@ -26,10 +26,10 @@
     .c-tabs__btn {
         padding-block: var(--space-s);
         padding-inline: var(--space-m);
-        border: 0.0625rem solid transparent;
+        border: var(--border-s) solid transparent;
         background-color: transparent;
         cursor: pointer;
-        border-radius: 0.625rem;
+        border-radius: var(--radius-xl);
         font-weight: 600;
         color: var(--color-text-main);
         transition: all 0.2s ease;

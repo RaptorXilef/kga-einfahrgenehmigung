@@ -11,10 +11,10 @@
         justify-content: center;
         padding-inline: var(--space-m);
         padding-block: 0;
-        min-inline-size: 42px;
-        block-size: 42px;
-        border-radius: var(--space-m);
-        border: 1px solid var(--btn-border);
+        min-inline-size: 2.625rem;
+        block-size: 2.625rem;
+        border-radius: var(--radius-huge);
+        border: var(--border-s) solid var(--btn-border);
         background-color: var(--btn-bg);
         color: var(--btn-color);
         cursor: pointer;
@@ -41,7 +41,7 @@
 
     .c-button:hover {
         --btn-bg: var(--color-bg-light);
-        --btn-translate-y: -1px;
+        --btn-translate-y: -0.0625rem;
         --btn-shadow: var(--shadow-md);
         --btn-border: color-mix(
             in oklch,
@@ -121,19 +121,19 @@
 
     .c-button--icon-only {
         padding-inline: 0;
-        inline-size: 42px;
+        inline-size: 2.625rem;
     }
 
     .c-button--small {
-        min-inline-size: 34px;
-        block-size: 34px;
+        min-inline-size: 2.125rem;
+        block-size: 2.125rem;
         padding-inline: var(--space-m);
-        border-radius: 8px;
+        border-radius: var(--radius-l);
         font-size: 0.85rem;
     }
 
     .c-button--small-icon-only {
-        inline-size: 34px;
+        inline-size: 2.125rem;
         padding-inline: 0;
     }
 
@@ -152,8 +152,8 @@
 
     .c-button--responsive {
         flex: 1;
-        min-inline-size: 200px;
-        min-block-size: 48px;
+        min-inline-size: 12.5rem;
+        min-block-size: 3rem;
         margin: 0;
     }
 }

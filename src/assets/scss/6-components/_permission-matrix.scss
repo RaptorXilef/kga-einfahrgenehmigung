@@ -26,7 +26,7 @@
         padding-inline: 0;
         border-block-end: var(
             --tree-item-border,
-            1px solid var(--color-bg-light)
+            var(--border-s) solid var(--color-bg-light)
         );
         display: flex;
         justify-content: space-between;
@@ -73,7 +73,7 @@
         font-size: 0.75rem;
         color: var(--color-text-muted);
         font-family: var(--font-mono, monospace);
-        margin-block-start: 0.125rem; // 2px
+        margin-block-start: 0.125rem;
     }
 
     .c-tree-item__sublabel--category {
@@ -87,24 +87,24 @@
 
     .c-switch {
         --switch-bg: var(--color-border);
-        --switch-thumb-x: 0.25rem; // 4px in rem
+        --switch-thumb-x: 0.25rem;
         --switch-text-content: attr(data-off);
         --switch-text-color: var(--color-text-muted);
         --switch-text-inset-start: auto;
-        --switch-text-inset-end: var(--space-m); // Token statt 12px
+        --switch-text-inset-end: var(--space-m);
 
         position: relative;
         display: inline-block;
-        inline-size: 6.25rem; // 100px in rem
-        block-size: 2rem; // 32px in rem
+        inline-size: 6.25rem;
+        block-size: 2rem;
     }
 
     .c-switch:has(.c-switch__input:checked) {
         --switch-bg: var(--color-success);
-        --switch-thumb-x: 4.25rem; // 68px in rem
+        --switch-thumb-x: 4.25rem;
         --switch-text-content: attr(data-on);
         --switch-text-color: var(--color-bg-white);
-        --switch-text-inset-start: var(--space-m); // Token statt 12px
+        --switch-text-inset-start: var(--space-m);
         --switch-text-inset-end: auto;
     }
 
@@ -125,20 +125,20 @@
         inset: 0;
         background-color: var(--switch-bg);
         transition: background-color 0.4s;
-        border-radius: 1.875rem; // 30px in rem
+        border-radius: var(--radius-pill);
     }
 
     .c-switch__label::before {
         position: absolute;
         content: '';
-        block-size: 1.5rem; // 24px in rem
-        inline-size: 1.5rem; // 24px in rem
+        block-size: 1.5rem;
+        inline-size: 1.5rem;
         inset-block-start: 50%;
         translate: var(--switch-thumb-x) -50%;
         background-color: var(--color-bg-white);
         will-change: translate;
         transition: translate 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-        border-radius: 50%;
+        border-radius: var(--radius-circle);
         z-index: z('switch');
         box-shadow: 0 0.125rem 0.25rem
             color-mix(in oklch, var(--color-text-dark) 20%, transparent);

@@ -7,7 +7,7 @@
         --overlay-opacity: 0;
 
         position: relative;
-        border: 2px dashed var(--dropzone-border-color);
+        border: var(--border-m) dashed var(--dropzone-border-color);
         background-color: var(--dropzone-bg);
         transition:
             background-color 0.2s ease,

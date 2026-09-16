@@ -2,10 +2,10 @@
     .c-alert {
         padding-block: var(--space-m);
         padding-inline: var(--space-l);
-        border-radius: 0.75rem;
+        border-radius: var(--radius-xxl);
         margin-block-end: var(--space-xl);
         font-weight: 500;
-        border: 0.0625rem solid transparent;
+        border: var(--border-s) solid transparent;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -76,13 +76,13 @@
         text-align: center;
         padding-block: clamp(2rem, 5vw, 3rem);
         padding-inline: var(--space-xl);
-        border: 0.125rem solid var(--color-success);
+        border: var(--border-m) solid var(--color-success);
     }
 
     .c-alert__footer {
         font-size: 0.95rem;
         opacity: 0.8;
-        border-block-start: 0.0625rem solid
+        border-block-start: var(--border-s) solid
             color-mix(in oklch, var(--color-text-main) 10%, transparent);
         padding-block-start: var(--space-xl);
         inline-size: 100%;

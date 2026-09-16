@@ -3,20 +3,20 @@
 @layer components {
     .c-fab-refresh {
         position: fixed;
-        inset-block-end: 1.875rem; // 30px
-        inset-inline-end: 1.875rem; // 30px
+        inset-block-end: 1.875rem;
+        inset-inline-end: 1.875rem;
         background-color: var(--color-bg-white);
         color: var(--color-primary);
-        border: 0.125rem solid var(--color-primary); // 2px
-        border-radius: 1.875rem; // 30px
-        padding-inline: 1.25rem; // 20px
-        block-size: 3.125rem; // 50px
+        border: var(--border-m) solid var(--color-primary);
+        border-radius: var(--radius-pill);
+        padding-inline: 1.25rem;
+        block-size: 3.125rem;
         display: flex;
         align-items: center;
-        gap: 0.625rem; // 10px
+        gap: 0.625rem;
         font-weight: 800;
         font-size: 0.95rem;
-        box-shadow: 0 10px 25px
+        box-shadow: 0 0.625rem 1.5625rem
             color-mix(in oklch, var(--color-primary) 30%, transparent);
         cursor: pointer;
         z-index: z('fab');
@@ -28,9 +28,9 @@
     }
 
     .c-fab-refresh:hover {
-        translate: 0 -3px;
+        translate: 0 -0.1875rem;
         background-color: var(--color-primary-soft);
-        box-shadow: 0 15px 30px
+        box-shadow: 0 0.9375rem 1.875rem
             color-mix(in oklch, var(--color-primary) 40%, transparent);
     }
 }

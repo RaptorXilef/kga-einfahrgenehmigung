@@ -3,10 +3,10 @@
         font-size: 0.8rem;
         font-weight: 800;
         background-color: var(--color-bg-white);
-        border: 1px solid var(--color-text-main);
-        padding-block: 0.125rem; // 2px
-        padding-inline: var(--space-s); // Logisches Shorthand
-        border-radius: 0.25rem; // 4px in rem
+        border: var(--border-s) solid var(--color-text-main);
+        padding-block: 0.125rem;
+        padding-inline: var(--space-s);
+        border-radius: var(--radius-s);
         color: var(--color-text-main);
         display: inline-block;
         font-family: monospace;

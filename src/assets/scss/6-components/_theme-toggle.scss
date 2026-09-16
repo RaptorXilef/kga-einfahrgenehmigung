@@ -3,9 +3,9 @@
         --toggle-icon-filter: none;
 
         background-color: var(--color-bg-white);
-        border: 0.0625rem solid var(--color-border);
+        border: var(--border-s) solid var(--color-border);
         color: var(--color-text-main);
-        border-radius: 1.875rem;
+        border-radius: var(--radius-pill);
         padding-block: 0.375rem;
         padding-inline: 0.875rem;
         display: flex;
@@ -33,7 +33,7 @@
         background-color: var(--color-primary);
         border-color: var(--color-primary);
         color: var(--color-bg-white);
-        translate: 0 -0.0625rem;
+        translate: 0 calc(var(--border-s) * -1);
         box-shadow: var(--shadow-md);
     }
 

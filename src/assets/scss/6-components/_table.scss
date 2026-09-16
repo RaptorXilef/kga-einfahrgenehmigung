@@ -10,7 +10,7 @@
         color: var(--color-text-muted);
         padding-block: 0.85rem;
         padding-inline: 1rem;
-        border-block-end: 0.125rem solid var(--color-border);
+        border-block-end: var(--border-m) solid var(--color-border);
         text-align: start;
         font-size: 0.75rem;
         text-transform: uppercase;
@@ -21,11 +21,10 @@
     .c-table__data-cell {
         padding-block: 1.25rem;
         padding-inline: 1rem;
-        border-block-end: 0.0625rem solid var(--color-border);
+        border-block-end: var(--border-s) solid var(--color-border);
         vertical-align: middle;
     }
 
-    /* Intelligenter Zeilenumbruch für E-Mail-Adressen */
     .c-table__mail-link {
         overflow-wrap: anywhere;
         word-break: break-word;
@@ -52,7 +51,7 @@
         font-weight: 700;
         font-size: 1.05rem;
         padding-block: var(--space-m);
-        border-block-start: 0.125rem solid var(--color-border);
+        border-block-start: var(--border-m) solid var(--color-border);
     }
 
     .c-table__value {
@@ -82,7 +81,7 @@
         color: var(--color-primary);
         font-size: 1.4rem;
         padding-block: var(--space-m);
-        border-block-start: 0.125rem solid var(--color-border);
+        border-block-start: var(--border-m) solid var(--color-border);
     }
 
     .c-table__header-cell.is-sortable {

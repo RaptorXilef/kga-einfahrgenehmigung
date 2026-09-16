@@ -1,40 +1,40 @@
 @layer components {
     .c-card {
         background-color: var(--color-bg-white);
-        border: 0.0625rem solid var(--color-border); // 1px
-        border-radius: 0.75rem; // 12px
+        border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-xxl);
         box-shadow: var(--shadow-md);
         overflow: hidden;
     }
 
     .c-card--primary {
-        border-block-start: 0.3125rem solid var(--color-primary); // 5px
+        border-block-start: var(--border-xl) solid var(--color-primary);
     }
 
     .c-card--success {
-        border-block-start: 0.3125rem solid var(--color-success);
+        border-block-start: var(--border-xl) solid var(--color-success);
     }
 
     .c-card--warning {
-        border-block-start: 0.3125rem solid var(--color-warning);
+        border-block-start: var(--border-xl) solid var(--color-warning);
     }
 
     .c-card--danger {
-        border-block-start: 0.3125rem solid var(--color-danger);
+        border-block-start: var(--border-xl) solid var(--color-danger);
     }
 
     .c-card--dark {
-        border-block-start: 0.3125rem solid var(--color-text-main);
+        border-block-start: var(--border-xl) solid var(--color-text-main);
     }
 
     .c-card--voucher {
-        border-block-start: 0.3125rem solid var(--color-primary-soft);
+        border-block-start: var(--border-xl) solid var(--color-primary-soft);
     }
 
     .c-card__header {
         padding-block: var(--space-l);
         padding-inline: var(--space-l);
-        border-block-end: 0.0625rem solid var(--color-border);
+        border-block-end: var(--border-s) solid var(--color-border);
     }
 
     .c-card__body {
@@ -50,7 +50,7 @@
     .c-card__footer {
         padding-block: var(--space-m);
         padding-inline: var(--space-m);
-        border-block-start: 0.0625rem solid var(--color-border);
+        border-block-start: var(--border-s) solid var(--color-border);
         background-color: var(--color-bg-light);
     }
 
@@ -61,16 +61,16 @@
         --card-outline-color: transparent;
 
         background-color: var(--color-bg-white);
-        border: 0.0625rem solid var(--color-border);
-        border-radius: 0.75rem; // 12px
-        outline: 0.1875rem solid var(--card-outline-color); // 3px
-        outline-offset: 0.125rem; // 2px
+        border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-xxl);
+        outline: var(--border-l) solid var(--card-outline-color);
+        outline-offset: var(--border-m);
         transition: outline 0.3s;
     }
 
     .c-category-card.is-closed {
         --card-body-display: none;
-        --card-header-radius: 0.75rem; // 12px
+        --card-header-radius: var(--radius-xxl);
     }
 
     .c-category-card.is-highlighted {
@@ -78,15 +78,15 @@
     }
 
     .c-category-card__header {
-        padding-block: 0.75rem; // 12px
-        padding-inline: 1.25rem; // 20px
+        padding-block: 0.75rem;
+        padding-inline: 1.25rem;
         background-color: color-mix(
             in oklch,
             var(--color-text-main) 2%,
             transparent
         );
-        border-start-start-radius: 0.75rem;
-        border-start-end-radius: 0.75rem;
+        border-start-start-radius: var(--radius-xxl);
+        border-start-end-radius: var(--radius-xxl);
         border-end-start-radius: var(--card-header-radius);
         border-end-end-radius: var(--card-header-radius);
         transition: border-radius 0.2s;
@@ -97,8 +97,8 @@
         background-color: var(--color-bg-light);
         padding-block: var(--space-l);
         padding-inline: var(--space-l);
-        border-block-start: 0.0625rem solid var(--color-border);
-        border-end-start-radius: 0.75rem;
-        border-end-end-radius: 0.75rem;
+        border-block-start: var(--border-s) solid var(--color-border);
+        border-end-start-radius: var(--radius-xxl);
+        border-end-end-radius: var(--radius-xxl);
     }
 }

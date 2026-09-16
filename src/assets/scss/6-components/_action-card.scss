@@ -17,8 +17,8 @@
         flex: 1 1 300px;
         min-inline-size: 280px;
         background-color: var(--card-bg);
-        border: 2px solid var(--card-border);
-        border-radius: 14px;
+        border: var(--border-m) solid var(--card-border);
+        border-radius: var(--radius-xxl);
         padding: var(--space-m);
         display: flex;
         align-items: center;
@@ -94,7 +94,7 @@
         justify-content: center;
         background-color: var(--icon-bg);
         color: var(--icon-color);
-        border-radius: 10px;
+        border-radius: var(--radius-xl);
         transition:
             background-color 0.3s ease,
             color 0.3s ease;

@@ -2,7 +2,6 @@
 
 @layer components {
     .c-modal {
-        /* Resets für das native <dialog> Element */
         border: none;
         background: transparent;
         padding: var(--space-l);
@@ -17,7 +16,7 @@
             var(--color-text-main) 70%,
             transparent
         );
-        backdrop-filter: blur(2px);
+        backdrop-filter: blur(0.125rem);
         z-index: z('modal');
     }
 
@@ -49,9 +48,9 @@
         text-align: center;
         max-inline-size: var(--layout-modal-sm);
         inline-size: 100%;
-        border-block-start: 5px solid var(--color-warning);
-        border-radius: 12px;
-        box-shadow: 0 20px 25px -5px
+        border-block-start: var(--border-xl) solid var(--color-warning);
+        border-radius: var(--radius-xxl);
+        box-shadow: 0 1.25rem 1.5625rem -0.3125rem
             color-mix(in oklch, var(--color-text-main) 20%, transparent);
         display: flex;
         flex-direction: column;

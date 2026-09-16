@@ -1,65 +1,65 @@
 @layer components {
     .c-avatar {
-        border-radius: 50%;
+        border-radius: var(--radius-circle);
         object-fit: cover;
         flex-shrink: 0;
         max-inline-size: 100%;
     }
 
     .c-avatar--xs {
-        inline-size: 1.75rem; // 28px
+        inline-size: 1.75rem;
         block-size: 1.75rem;
-        border: 0.0625rem solid var(--color-border); // 1px
+        border: var(--border-s) solid var(--color-border);
     }
 
     .c-avatar--sm {
-        inline-size: 2.375rem; // 38px
+        inline-size: 2.375rem;
         block-size: 2.375rem;
     }
 
     .c-avatar--md {
-        inline-size: 3.75rem; // 60px
+        inline-size: 3.75rem;
         block-size: 3.75rem;
     }
 
     .c-avatar--lg {
-        inline-size: 7.5rem; // 120px
+        inline-size: 7.5rem;
         block-size: 7.5rem;
-        border-radius: 0.75rem; // 12px
-        border: 0.25rem solid var(--color-bg-white); // 4px
+        border-radius: var(--radius-xxl);
+        border: var(--space-xs) solid var(--color-bg-white);
         box-shadow: var(--shadow-md);
     }
 
     .c-avatar--xl {
-        inline-size: 9.375rem; // 150px
+        inline-size: 9.375rem;
         block-size: 9.375rem;
-        border: 0.3125rem solid var(--color-bg-white); // 5px
+        border: var(--border-xl) solid var(--color-bg-white);
         box-shadow: var(--shadow-md);
     }
 
     .c-avatar--role {
         background-color: var(--color-bg-white);
-        border-radius: 0.5rem; // 8px
-        border: 0.0625rem solid var(--color-border); // 1px
-        padding: 0.3125rem; // 5px
+        border-radius: var(--radius-l);
+        border: var(--border-s) solid var(--color-border);
+        padding: 0.3125rem;
         object-fit: contain;
     }
 
     .c-avatar--role-lg {
         background-color: var(--color-bg-white);
-        border-radius: 0.5rem; // 8px
-        border: 0.0625rem solid var(--color-border); // 1px
-        padding: 0.9375rem; // 15px
+        border-radius: var(--radius-l);
+        border: var(--border-s) solid var(--color-border);
+        padding: 0.9375rem;
         object-fit: contain;
-        inline-size: 7.5rem; // 120px
+        inline-size: 7.5rem;
         block-size: 7.5rem;
         box-shadow: var(--shadow-md);
     }
 
     .c-avatar-dropzone {
-        inline-size: 3.75rem; // 60px
+        inline-size: 3.75rem;
         block-size: 3.75rem;
-        border-radius: 50%;
+        border-radius: var(--radius-circle);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -69,7 +69,7 @@
     }
 
     .c-avatar-dropzone--large {
-        inline-size: 9.375rem; // 150px
+        inline-size: 9.375rem;
         block-size: 9.375rem;
     }
 

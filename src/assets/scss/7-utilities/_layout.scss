@@ -40,23 +40,23 @@
         border: none !important;
     }
     .u-border-radius-m {
-        border-radius: 0.75rem !important;
+        border-radius: var(--radius-xxl) !important;
     }
     .u-border-radius-circle {
-        border-radius: 50% !important;
+        border-radius: var(--radius-circle) !important;
     }
 
     .u-border-block-start {
-        border-block-start: 0.0625rem solid var(--color-border) !important;
+        border-block-start: var(--border-s) solid var(--color-border) !important;
     }
     .u-border-block-end {
-        border-block-end: 0.0625rem solid var(--color-border) !important;
+        border-block-end: var(--border-s) solid var(--color-border) !important;
     }
     .u-border-inline-start {
-        border-inline-start: 0.0625rem solid var(--color-border) !important;
+        border-inline-start: var(--border-s) solid var(--color-border) !important;
     }
     .u-border-inline-end {
-        border-inline-end: 0.0625rem solid var(--color-border) !important;
+        border-inline-end: var(--border-s) solid var(--color-border) !important;
     }
 
     .u-text-decoration-none {
@@ -65,10 +65,10 @@
 
     .u-visually-hidden {
         position: absolute !important;
-        inline-size: 0.0625rem !important;
-        block-size: 0.0625rem !important;
+        inline-size: var(--border-s) !important;
+        block-size: var(--border-s) !important;
         padding: 0 !important;
-        margin: -0.0625rem !important;
+        margin: calc(var(--border-s) * -1) !important;
         overflow: hidden !important;
         clip: rect(0, 0, 0, 0) !important;
         white-space: nowrap !important;

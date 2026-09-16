@@ -4,7 +4,7 @@
         color: var(--color-text-main);
         padding-block: var(--space-xs);
         padding-inline: var(--space-s);
-        border-radius: 1.25rem;
+        border-radius: var(--radius-pill);
         font-size: 0.75rem;
         font-weight: 700;
         display: inline-flex;
@@ -53,7 +53,7 @@
 
     .c-badge--outline {
         background-color: var(--color-bg-white);
-        border: 0.0625rem solid var(--color-border);
+        border: var(--border-s) solid var(--color-border);
         color: var(--color-text-muted);
     }
 
@@ -64,8 +64,8 @@
 
     .c-date-indicator {
         background-color: var(--color-bg-white);
-        border: 0.125rem solid var(--color-primary);
-        border-radius: 1.875rem;
+        border: var(--border-m) solid var(--color-primary);
+        border-radius: var(--radius-pill);
         padding-block: var(--space-s);
         padding-inline: var(--space-m);
         box-shadow: var(--shadow-sm);

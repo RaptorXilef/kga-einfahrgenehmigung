@@ -10,7 +10,7 @@
         color: var(--color-bg-white);
         padding-block: var(--space-s);
         padding-inline: var(--space-l);
-        border-radius: 3.125rem; // 50px
+        border-radius: var(--radius-pill);
         font-size: 0.9rem;
         font-weight: 600;
         box-shadow: var(--shadow-md);
@@ -42,8 +42,8 @@
     }
 
     .c-toast__icon {
-        inline-size: 1rem; // 16px
-        block-size: 1rem; // 16px
+        inline-size: 1rem;
+        block-size: 1rem;
         filter: brightness(0) invert(1);
         flex-shrink: 0;
     }
@@ -52,7 +52,6 @@
         white-space: pre-line;
     }
 
-    /* Verhindert Layout-Thrashing durch Nutzung von Transform/Translate */
     @keyframes toastSlideUp {
         from {
             opacity: 0;
