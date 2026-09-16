@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - KGA Einfahrts-Manager</title>
+    <!-- Bedient sich aus dem Service-Worker Cache! -->
+    <link rel="stylesheet" href="/assets/css/main.min.css">
+</head>
+<body class="l-public-body u-justify-center u-bg-light u-padding-block-l">
+    <div class="c-card c-card--warning o-container o-container--small u-text-center u-padding-block-xl u-shadow-highlight">
+        <span class="u-text-4xl u-display-block u-margin-block-end-m">
+            📵
+        </span>
+        <h1 class="u-margin-block-start-none">Keine Internetverbindung</h1>
+        <p class="u-color-muted u-text-lg">
+            Es scheint, als wärst du gerade offline oder befindest dich in einem Funkloch.
+        </p>
+
+        <div class="c-box c-box--subtle u-margin-block-start-l">
+            Sobald du wieder Empfang hast, lade die Seite einfach neu. Das System speichert deinen aktuellen Zustand so gut es geht.
+        </div>
+
+        <button onclick="window.location.reload()" class="c-button c-button--primary c-button--large u-inline-size-100 u-margin-block-start-l">
+            Erneut versuchen
+        </button>
+    </div>
+</body>
+</html>
