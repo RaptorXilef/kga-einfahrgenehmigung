@@ -15,12 +15,14 @@
         font-size: 0.85rem;
         font-weight: 800;
         box-shadow: var(--shadow-sm);
+        will-change:
+            translate, box-shadow, background-color, border-color, color;
         /* GPU-Killer "transition: all" entfernt */
         transition:
             background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
             color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
             border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-            transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+            translate 0.2s cubic-bezier(0.4, 0, 0.2, 1),
             box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         text-transform: uppercase;
         letter-spacing: 0.03125rem; // 0.5px
@@ -32,7 +34,7 @@
         background-color: var(--color-primary);
         border-color: var(--color-primary);
         color: var(--color-bg-white);
-        transform: translateY(-1px);
+        translate: 0 -1px;
         box-shadow: var(--shadow-md);
     }
 

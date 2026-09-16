@@ -7,7 +7,7 @@
         background-color: var(--color-bg-light);
         padding-block: var(--space-m);
         padding-inline: var(--space-m);
-        border-radius: 12px;
+        border-radius: 0.75rem; // 12px
         cursor: pointer;
         border: 1px solid var(--color-border);
         display: flex;
@@ -42,9 +42,9 @@
         );
         border: 1px solid var(--color-border);
         border-block-start: none;
-        border-end-start-radius: 12px;
-        border-end-end-radius: 12px;
-        margin-block-start: -5px;
+        border-end-start-radius: 0.75rem;
+        border-end-end-radius: 0.75rem;
+        margin-block-start: calc(var(--space-xs) * -1);
         padding: var(--space-m);
     }
 }

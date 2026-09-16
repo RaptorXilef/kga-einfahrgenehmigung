@@ -49,8 +49,9 @@
         background-color: var(--color-danger-soft) !important;
     }
 
+    /* FIX: Dark Mode kompatibler Schatten */
     .u-shadow-highlight {
         box-shadow: 0 10px 15px -3px
-            color-mix(in oklch, oklch(0 0 0) 5%, transparent) !important;
+            color-mix(in oklch, var(--color-text-main) 10%, transparent) !important;
     }
 }

@@ -9,8 +9,8 @@
 
     .c-tab-content-container {
         max-inline-size: var(--layout-max-width);
-        margin-inline: auto !important;
-        padding-inline: 1.25rem; // 20px
+        margin-inline: auto;
+        padding-inline: var(--space-l); // Strikte Token Nutzung
         inline-size: 100%;
         display: block;
     }

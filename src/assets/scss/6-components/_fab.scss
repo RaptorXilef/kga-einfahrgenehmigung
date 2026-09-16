@@ -20,14 +20,15 @@
             color-mix(in oklch, var(--color-primary) 30%, transparent);
         cursor: pointer;
         z-index: z('fab');
+        will-change: translate, box-shadow;
         transition:
-            transform 0.2s,
-            background-color 0.2s,
-            box-shadow 0.2s;
+            translate 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+            background-color 0.2s ease,
+            box-shadow 0.2s ease;
     }
 
     .c-fab-refresh:hover {
-        transform: translateY(-3px);
+        translate: 0 -3px;
         background-color: var(--color-primary-soft);
         box-shadow: 0 15px 30px
             color-mix(in oklch, var(--color-primary) 40%, transparent);

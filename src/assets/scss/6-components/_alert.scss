@@ -1,9 +1,9 @@
 @layer components {
     .c-alert {
-        padding-block: 16px;
-        padding-inline: 24px;
-        border-radius: 12px;
-        margin-block-end: 2rem;
+        padding-block: var(--space-m);
+        padding-inline: var(--space-l);
+        border-radius: 0.75rem; // 12px
+        margin-block-end: var(--space-xl);
         font-weight: 500;
         border: 1px solid transparent;
         display: flex;
@@ -75,7 +75,7 @@
         flex-direction: column;
         text-align: center;
         padding-block: clamp(2rem, 5vw, 3rem);
-        padding-inline: 2rem;
+        padding-inline: var(--space-xl);
         border: 2px solid var(--color-success);
     }
 
