@@ -25,6 +25,20 @@
 
         @include transition-fast(border-color, box-shadow);
         @include focus-ring(var(--color-primary), 0);
+
+        /* UI Fix: Konsistentes, dezentes Date-Picker Icon */
+        &::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            padding: var(--space-xs);
+            inline-size: var(--size-icon-md);
+            block-size: var(--size-icon-md);
+            opacity: var(--opacity-50);
+            @include transition-fast(opacity);
+
+            &:hover {
+                opacity: var(--opacity-100);
+            }
+        }
     }
 
     .c-form-input:focus,

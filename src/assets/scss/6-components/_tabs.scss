@@ -92,4 +92,13 @@
             translate: 0 0;
         }
     }
+
+    /* Aus dem Objects Layer gerettet, da c- Namespace! */
+    .c-tab-content-container {
+        max-inline-size: var(--layout-max-width);
+        margin-inline: auto;
+        padding-inline: var(--space-l);
+        inline-size: var(--size-full);
+        display: block;
+    }
 }

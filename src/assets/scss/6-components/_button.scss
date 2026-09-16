@@ -35,8 +35,8 @@
     }
 
     .c-button__icon {
-        inline-size: var(--scale-120);
-        block-size: var(--scale-120);
+        inline-size: 1.4em; // Skaliert sauber mit dem Text, aber deutlich sichtbarer
+        block-size: 1.4em;
         flex-shrink: 0;
         margin: 0;
     }
@@ -124,11 +124,6 @@
         --btn-bg: var(--color-danger-soft);
     }
 
-    .c-button--icon-only {
-        padding-inline: 0;
-        inline-size: var(--size-ui-md);
-    }
-
     .c-button--small {
         min-inline-size: var(--size-ui-sm);
         block-size: var(--size-ui-sm);
@@ -137,9 +132,24 @@
         font-size: var(--text-sm);
     }
 
-    .c-button--small-icon-only {
-        inline-size: var(--size-ui-sm);
+    /* UI Fix: Strikte Größen für Icon-Only Buttons (entkoppelt von text-size) */
+    .c-button--icon-only {
         padding-inline: 0;
+        inline-size: var(--size-ui-md);
+
+        .c-button__icon {
+            inline-size: var(--size-icon-md);
+            block-size: var(--size-icon-md);
+        }
+    }
+
+    .c-button--small.c-button--icon-only {
+        inline-size: var(--size-ui-sm);
+
+        .c-button__icon {
+            inline-size: 1.25rem; // 20px - Perfekt erkennbar in Tabellen
+            block-size: 1.25rem;
+        }
     }
 
     .c-button--submit {

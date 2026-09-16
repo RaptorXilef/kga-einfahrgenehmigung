@@ -23,6 +23,23 @@
         padding-inline: var(--space-m);
         border-block-end: var(--border-s) solid var(--color-border);
         vertical-align: middle;
+
+        /* UI Fix: Strikte Vereinheitlichung aller Fahrzeug-Icons und Kennzeichen in Tabellen via CSS Context */
+        &:has(.c-license-plate) {
+            .c-icon {
+                inline-size: var(--size-icon-lg) !important;
+                block-size: var(--size-icon-lg) !important;
+                opacity: var(
+                    --opacity-100
+                ); /* Zwingt verblasste Icons auf Sichtbarkeit */
+            }
+
+            .c-license-plate {
+                font-size: var(--text-sm) !important;
+                padding-block: var(--space-xs) !important;
+                padding-inline: var(--space-m) !important;
+            }
+        }
     }
 
     .c-table__mail-link {

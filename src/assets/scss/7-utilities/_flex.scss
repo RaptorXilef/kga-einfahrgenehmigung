@@ -42,19 +42,20 @@
         flex-grow: 1 !important;
     }
 
+    /* UI Fix: Strikte Kopplung an Tokens statt hardcodierte REM-Werte! */
     .u-gap-xs {
-        gap: 0.25rem !important;
+        gap: var(--space-xs) !important;
     }
     .u-gap-s {
-        gap: 0.5rem !important;
+        gap: var(--space-s) !important;
     }
     .u-gap-m {
-        gap: 1rem !important;
+        gap: var(--space-m) !important;
     }
     .u-gap-l {
-        gap: 2rem !important;
+        gap: var(--space-l) !important;
     }
     .u-gap-xl {
-        gap: 3rem !important;
+        gap: var(--space-xl) !important;
     }
 }
