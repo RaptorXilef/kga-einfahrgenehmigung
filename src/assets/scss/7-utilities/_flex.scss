@@ -2,12 +2,15 @@
     .u-flex {
         display: flex !important;
     }
+
     .u-flex-inline {
         display: inline-flex !important;
     }
+
     .u-flex-column {
         flex-direction: column !important;
     }
+
     .u-flex-wrap {
         flex-wrap: wrap !important;
     }
@@ -15,12 +18,15 @@
     .u-align-start {
         align-items: flex-start !important;
     }
+
     .u-align-center {
         align-items: center !important;
     }
+
     .u-align-end {
         align-items: flex-end !important;
     }
+
     .u-align-stretch {
         align-items: stretch !important;
     }
@@ -28,12 +34,15 @@
     .u-justify-start {
         justify-content: flex-start !important;
     }
+
     .u-justify-center {
         justify-content: center !important;
     }
+
     .u-justify-between {
         justify-content: space-between !important;
     }
+
     .u-justify-end {
         justify-content: flex-end !important;
     }
@@ -46,15 +55,19 @@
     .u-gap-xs {
         gap: var(--space-xs) !important;
     }
+
     .u-gap-s {
         gap: var(--space-s) !important;
     }
+
     .u-gap-m {
         gap: var(--space-m) !important;
     }
+
     .u-gap-l {
         gap: var(--space-l) !important;
     }
+
     .u-gap-xl {
         gap: var(--space-xl) !important;
     }

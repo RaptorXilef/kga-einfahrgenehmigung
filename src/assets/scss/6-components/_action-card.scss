@@ -3,9 +3,9 @@
 @layer components {
     .c-action-grid {
         display: flex;
+        flex-wrap: wrap;
         gap: var(--space-m);
         margin-block-start: var(--space-l);
-        flex-wrap: wrap;
     }
 
     .c-action-card {
@@ -14,21 +14,21 @@
         --icon-bg: var(--color-bg-light);
         --icon-color: inherit;
 
+        display: flex;
         flex: 1 1 var(--size-panel-3xl);
+        gap: var(--space-m);
+        align-items: center;
         min-inline-size: var(--size-panel-2xl);
+        padding: var(--space-m);
+        color: inherit;
+        text-align: start;
+        text-decoration: none;
+        cursor: pointer;
         background-color: var(--card-bg);
         border: var(--border-m) solid var(--card-border);
         border-radius: var(--radius-xxl);
-        padding: var(--space-m);
-        display: flex;
-        align-items: center;
-        gap: var(--space-m);
-        cursor: pointer;
         box-shadow: var(--shadow-none);
         will-change: translate, box-shadow;
-        text-align: start;
-        text-decoration: none;
-        color: inherit;
 
         @include transition-base(
             translate,
@@ -36,7 +36,7 @@
             background-color,
             border-color
         );
-        @include focus-ring();
+        @include focus-ring;
     }
 
     .c-action-card:hover {
@@ -73,30 +73,30 @@
 
     .c-action-card__title {
         display: block !important;
+        margin-block-end: var(--space-xs);
+        font-size: var(--text-md);
         font-weight: var(--font-weight-bold);
         color: var(--color-text-dark);
-        font-size: var(--text-md);
-        margin-block-end: var(--space-xs);
     }
 
     .c-action-card__desc {
         display: block !important;
         font-size: var(--text-sm);
-        color: var(--color-text-muted);
         line-height: var(--line-height-snug);
+        color: var(--color-text-muted);
     }
 
     .c-action-card__icon {
-        font-size: var(--text-2xl);
-        inline-size: var(--size-ui-lg);
-        block-size: var(--size-ui-lg);
         display: flex;
+        flex-shrink: 0;
         align-items: center;
         justify-content: center;
-        background-color: var(--icon-bg);
+        inline-size: var(--size-ui-lg);
+        block-size: var(--size-ui-lg);
+        font-size: var(--text-2xl);
         color: var(--icon-color);
+        background-color: var(--icon-bg);
         border-radius: var(--radius-xl);
-        flex-shrink: 0;
 
         @include transition-base(background-color, color);
     }

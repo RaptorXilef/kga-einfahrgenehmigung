@@ -14,6 +14,7 @@
     .u-display-block {
         display: block !important;
     }
+
     .u-display-inline-block {
         display: inline-block !important;
     }
@@ -21,6 +22,7 @@
     .u-inline-size-100 {
         inline-size: 100% !important;
     }
+
     .u-block-size-100 {
         block-size: 100% !important;
     }
@@ -28,6 +30,7 @@
     .u-overflow-x-auto {
         overflow-x: auto !important;
     }
+
     .u-overflow-y-auto {
         overflow-y: auto !important;
     }
@@ -43,9 +46,11 @@
     .u-border-none {
         border: none !important;
     }
+
     .u-border-radius-m {
         border-radius: var(--radius-xxl) !important;
     }
+
     .u-border-radius-circle {
         border-radius: var(--radius-circle) !important;
     }
@@ -53,12 +58,15 @@
     .u-border-block-start {
         border-block-start: var(--border-s) solid var(--color-border) !important;
     }
+
     .u-border-block-end {
         border-block-end: var(--border-s) solid var(--color-border) !important;
     }
+
     .u-border-inline-start {
         border-inline-start: var(--border-s) solid var(--color-border) !important;
     }
+
     .u-border-inline-end {
         border-inline-end: var(--border-s) solid var(--color-border) !important;
     }

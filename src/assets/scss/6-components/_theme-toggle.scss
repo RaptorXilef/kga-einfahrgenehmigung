@@ -5,22 +5,23 @@
         --toggle-icon-filter: none;
 
         @include button-reset;
-        background-color: var(--color-bg-white);
-        border: var(--border-s) solid var(--color-border);
-        color: var(--color-text-main);
-        border-radius: var(--radius-pill);
+
+        display: flex;
+        gap: var(--space-s);
+        align-items: center;
         padding-block: var(--space-xs);
         padding-inline: var(--space-m);
-        display: flex;
-        align-items: center;
-        gap: var(--space-s);
         font-size: var(--text-sm);
         font-weight: var(--font-weight-extrabold);
+        color: var(--color-text-main);
+        text-transform: uppercase;
+        letter-spacing: var(--letter-spacing-wide);
+        background-color: var(--color-bg-white);
+        border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-pill);
         box-shadow: var(--shadow-sm);
         will-change:
             translate, box-shadow, background-color, border-color, color;
-        text-transform: uppercase;
-        letter-spacing: var(--letter-spacing-wide);
 
         @include transition-fast(
             background-color,
@@ -29,21 +30,22 @@
             translate,
             box-shadow
         );
-        @include focus-ring();
+        @include focus-ring;
     }
 
     .c-theme-toggle:hover {
         --toggle-icon-filter: brightness(0) invert(1);
 
+        color: var(--color-bg-white);
         background-color: var(--color-primary);
         border-color: var(--color-primary);
-        color: var(--color-bg-white);
-        translate: 0 calc(var(--border-s) * -1);
         box-shadow: var(--shadow-md);
+        translate: 0 calc(var(--border-s) * -1);
     }
 
     .c-theme-toggle__icon {
         @include transition-fast(filter);
+
         filter: var(--toggle-icon-filter);
     }
 }

@@ -7,9 +7,11 @@
     .o-grid--2-cols {
         grid-template-columns: var(--ratio-1) var(--ratio-1);
     }
+
     .o-grid--2-1 {
         grid-template-columns: var(--ratio-2) var(--ratio-1);
     }
+
     .o-grid--auto-right {
         grid-template-columns: var(--ratio-1) var(--size-auto);
     }
@@ -55,6 +57,7 @@
     .o-grid--sidebar {
         grid-template-columns: var(--ratio-1-6) var(--ratio-1);
     }
+
     .o-grid--user-management {
         grid-template-columns: var(--size-panel-lg) var(--ratio-1-2) var(
                 --ratio-1

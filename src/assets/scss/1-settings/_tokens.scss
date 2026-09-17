@@ -1,38 +1,36 @@
 // Primitive OKLCH Tokens (Zwei-Schichten Architektur)
 $tokens-color-light: (
-    'primary': oklch(0.6 0.15 250),
-    'primary-soft': oklch(0.95 0.03 250),
-    'success': oklch(0.65 0.15 150),
-    'success-soft': oklch(0.95 0.05 150),
-    'danger': oklch(0.6 0.2 20),
-    'danger-soft': oklch(0.95 0.03 20),
-    'warning': oklch(0.75 0.15 70),
-    'warning-soft': oklch(0.97 0.05 70),
-    'text-main': oklch(0.3 0.02 250),
-    'text-dark': oklch(0.1 0.02 250),
-    'text-muted': oklch(0.55 0.02 250),
-    'border': oklch(0.9 0.01 250),
-    'bg-light': oklch(0.98 0.01 250),
-    'bg-white': oklch(1 0 0),
+    'primary': oklch(60% 0.15 250deg),
+    'primary-soft': oklch(95% 0.03 250deg),
+    'success': oklch(65% 0.15 150deg),
+    'success-soft': oklch(95% 0.05 150deg),
+    'danger': oklch(60% 0.2 20deg),
+    'danger-soft': oklch(95% 0.03 20deg),
+    'warning': oklch(75% 0.15 70deg),
+    'warning-soft': oklch(97% 0.05 70deg),
+    'text-main': oklch(30% 0.02 250deg),
+    'text-dark': oklch(10% 0.02 250deg),
+    'text-muted': oklch(55% 0.02 250deg),
+    'border': oklch(90% 0.01 250deg),
+    'bg-light': oklch(98% 0.01 250deg),
+    'bg-white': oklch(100% 0 0deg),
 );
-
 $tokens-color-dark: (
-    'primary': oklch(0.65 0.15 250),
-    'primary-soft': oklch(0.25 0.05 250),
-    'success': oklch(0.7 0.15 150),
-    'success-soft': oklch(0.25 0.05 150),
-    'danger': oklch(0.65 0.2 20),
-    'danger-soft': oklch(0.25 0.05 20),
-    'warning': oklch(0.8 0.15 70),
-    'warning-soft': oklch(0.3 0.05 70),
-    'text-main': oklch(0.9 0.01 250),
-    'text-dark': oklch(0.98 0.01 250),
-    'text-muted': oklch(0.65 0.01 250),
-    'border': oklch(0.3 0.01 250),
-    'bg-light': oklch(0.12 0.01 250),
-    'bg-white': oklch(0.18 0.01 250),
+    'primary': oklch(65% 0.15 250deg),
+    'primary-soft': oklch(25% 0.05 250deg),
+    'success': oklch(70% 0.15 150deg),
+    'success-soft': oklch(25% 0.05 150deg),
+    'danger': oklch(65% 0.2 20deg),
+    'danger-soft': oklch(25% 0.05 20deg),
+    'warning': oklch(80% 0.15 70deg),
+    'warning-soft': oklch(30% 0.05 70deg),
+    'text-main': oklch(90% 0.01 250deg),
+    'text-dark': oklch(98% 0.01 250deg),
+    'text-muted': oklch(65% 0.01 250deg),
+    'border': oklch(30% 0.01 250deg),
+    'bg-light': oklch(12% 0.01 250deg),
+    'bg-white': oklch(18% 0.01 250deg),
 );
-
 $tokens-spacing: (
     'xs': 0.25rem,
     's': 0.5rem,
@@ -42,7 +40,6 @@ $tokens-spacing: (
     '2xl': 2.5rem,
     '3xl': 3rem,
 );
-
 $tokens-border: (
     's': 0.0625rem,
     // 1px
@@ -52,7 +49,6 @@ $tokens-border: (
     // 3px
     'xl': 0.3125rem, // 5px
 );
-
 $tokens-radius: (
     'xs': 0.1875rem,
     // 3px
@@ -94,7 +90,6 @@ $tokens-font-size: (
     // 48px
     '5xl': 4rem, // 64px
 );
-
 $tokens-font-weight: (
     'medium': 500,
     'semibold': 600,
@@ -102,7 +97,6 @@ $tokens-font-weight: (
     'extrabold': 800,
     'black': 900,
 );
-
 $tokens-line-height: (
     'none': 1,
     'tight': 1.1,
@@ -110,7 +104,6 @@ $tokens-line-height: (
     'normal': 1.5,
     'relaxed': 1.6,
 );
-
 $tokens-letter-spacing: (
     'tighter': -0.03125rem,
     'normal': 0,
@@ -119,7 +112,6 @@ $tokens-letter-spacing: (
     'widest': 0.3125rem,
     'code': 0.5rem,
 );
-
 $tokens-opacity: (
     '0': 0,
     '25': 0.25,
@@ -128,7 +120,6 @@ $tokens-opacity: (
     '80': 0.8,
     '100': 1,
 );
-
 $tokens-size: (
     'half': 50%,
     'full': 100%,
@@ -186,7 +177,6 @@ $tokens-viewport: (
     '20': 20vw,
     '25': 25vw,
 );
-
 $tokens-mix: (
     '2': 2%,
     '5': 5%,
@@ -209,7 +199,6 @@ $tokens-time: (
     'slow': 0.4s,
     'slower': 0.6s,
 );
-
 $tokens-ease: (
     'base': cubic-bezier(0.4, 0, 0.2, 1),
     'bounce': cubic-bezier(0.18, 0.89, 0.32, 1.28),

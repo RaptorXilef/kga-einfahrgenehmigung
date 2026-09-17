@@ -1,9 +1,9 @@
 @layer components {
     .c-avatar {
-        border-radius: var(--radius-circle);
-        object-fit: cover;
         flex-shrink: 0;
         max-inline-size: var(--size-full);
+        object-fit: cover;
+        border-radius: var(--radius-circle);
     }
 
     .c-avatar--xs {
@@ -25,8 +25,8 @@
     .c-avatar--lg {
         inline-size: var(--size-avatar-lg);
         block-size: var(--size-avatar-lg);
-        border-radius: var(--radius-xxl);
         border: var(--space-xs) solid var(--color-bg-white);
+        border-radius: var(--radius-xxl);
         box-shadow: var(--shadow-md);
     }
 
@@ -38,34 +38,34 @@
     }
 
     .c-avatar--role {
-        background-color: var(--color-bg-white);
-        border-radius: var(--radius-l);
-        border: var(--border-s) solid var(--color-border);
         padding: var(--space-s);
         object-fit: contain;
+        background-color: var(--color-bg-white);
+        border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-l);
     }
 
     .c-avatar--role-lg {
-        background-color: var(--color-bg-white);
-        border-radius: var(--radius-l);
-        border: var(--border-s) solid var(--color-border);
-        padding: var(--space-m);
-        object-fit: contain;
         inline-size: var(--size-avatar-lg);
         block-size: var(--size-avatar-lg);
+        padding: var(--space-m);
+        object-fit: contain;
+        background-color: var(--color-bg-white);
+        border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-l);
         box-shadow: var(--shadow-md);
     }
 
     .c-avatar-dropzone {
-        inline-size: var(--size-avatar-md);
-        block-size: var(--size-avatar-md);
-        border-radius: var(--radius-circle);
         display: flex;
+        flex-shrink: 0;
         align-items: center;
         justify-content: center;
-        background-color: var(--color-bg-light);
+        inline-size: var(--size-avatar-md);
+        block-size: var(--size-avatar-md);
         overflow: hidden;
-        flex-shrink: 0;
+        background-color: var(--color-bg-light);
+        border-radius: var(--radius-circle);
     }
 
     .c-avatar-dropzone--large {

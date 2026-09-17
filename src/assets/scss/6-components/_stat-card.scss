@@ -4,16 +4,16 @@
     }
 
     .c-stat-card__label {
-        color: var(--color-text-muted);
         font-size: var(--text-xs);
         font-weight: var(--font-weight-bold);
+        color: var(--color-text-muted);
         text-transform: uppercase;
     }
 
     .c-stat-card__value {
+        margin-block-start: var(--border-xl);
         font-size: clamp(var(--text-2xl), var(--vw-3), var(--text-stat));
         font-weight: var(--font-weight-bold);
-        margin-block-start: var(--border-xl);
         color: var(--color-text-main);
     }
 
@@ -31,10 +31,10 @@
 
     .c-stat-card__footer {
         display: flex;
-        justify-content: center;
-        gap: var(--border-xl);
         flex-wrap: wrap;
+        gap: var(--border-xl);
         align-items: center;
+        justify-content: center;
         margin-block-start: var(--radius-xl);
     }
 

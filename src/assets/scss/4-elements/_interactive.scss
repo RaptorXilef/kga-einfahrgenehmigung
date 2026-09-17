@@ -5,13 +5,13 @@
     }
 
     dialog {
-        border: none;
-        background-color: transparent;
-        padding: 0;
-        margin: auto;
         max-inline-size: var(--size-full);
         max-block-size: var(--size-full);
+        padding: 0;
+        margin: auto;
         color: inherit;
+        background-color: transparent;
+        border: none;
 
         &::backdrop {
             background-color: transparent;

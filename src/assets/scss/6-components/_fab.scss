@@ -6,28 +6,29 @@
         position: fixed;
         inset-block-end: var(--space-xl);
         inset-inline-end: var(--space-xl);
-        background-color: var(--color-bg-white);
+        z-index: z('fab');
+        display: flex;
+        gap: var(--space-m);
+        align-items: center;
+        block-size: var(--size-ui-lg);
+        padding-inline: var(--space-l);
+        font-size: var(--text-md);
+        font-weight: var(--font-weight-extrabold);
         color: var(--color-primary);
+        cursor: pointer;
+        background-color: var(--color-bg-white);
         border: var(--border-m) solid var(--color-primary);
         border-radius: var(--radius-pill);
-        padding-inline: var(--space-l);
-        block-size: var(--size-ui-lg);
-        display: flex;
-        align-items: center;
-        gap: var(--space-m);
-        font-weight: var(--font-weight-extrabold);
-        font-size: var(--text-md);
         box-shadow: var(--shadow-lg);
-        cursor: pointer;
-        z-index: z('fab');
         will-change: translate, box-shadow;
 
         @include transition-fast(translate, background-color, box-shadow);
-        @include focus-ring();
+        @include focus-ring;
     }
 
     .c-fab-refresh:hover {
         background-color: var(--color-primary-soft);
+
         @include hover-lift(calc(var(--border-l) * -1), var(--shadow-xl));
     }
 }

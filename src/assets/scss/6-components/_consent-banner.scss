@@ -5,21 +5,21 @@
         position: fixed;
         inset-block-end: 0;
         inset-inline-start: 0;
+        z-index: z('consent-banner');
         inline-size: var(--size-full);
-        background-color: var(--color-bg-white);
-        border-block-start: var(--border-s) solid var(--color-border);
         padding-block: var(--space-l);
         padding-inline: var(--space-l);
-        z-index: z('consent-banner');
+        background-color: var(--color-bg-white);
+        border-block-start: var(--border-s) solid var(--color-border);
         box-shadow: var(--shadow-up);
     }
 
     .c-consent-banner__dialog {
         display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: var(--space-l);
         flex-wrap: wrap;
+        gap: var(--space-l);
+        align-items: flex-start;
+        justify-content: space-between;
     }
 
     .c-consent-banner__content {
@@ -28,16 +28,15 @@
     }
 
     .c-consent-banner__title {
-        margin-block-start: 0;
-        margin-block-end: var(--space-s);
+        margin-block: 0 var(--space-s);
         color: var(--color-primary);
     }
 
     .c-consent-banner__text {
         margin-block-start: 0;
         font-size: var(--text-sm);
-        color: var(--color-text-main);
         line-height: var(--line-height-normal);
+        color: var(--color-text-main);
     }
 
     .c-consent-banner__links {
@@ -53,10 +52,10 @@
     }
 
     .c-consent-banner__details {
+        padding-block-start: var(--space-m);
         margin-block-start: var(--space-l);
         border-block-start: var(--border-s) solid
             color-mix(in oklch, var(--color-border) var(--mix-50), transparent);
-        padding-block-start: var(--space-m);
     }
 
     .c-consent-banner__group {
@@ -66,29 +65,29 @@
     .c-consent-banner__button {
         padding-block: var(--space-s);
         padding-inline: var(--space-m);
-        border-radius: var(--radius-m);
         font-weight: var(--font-weight-bold);
         cursor: pointer;
         border: none;
+        border-radius: var(--radius-m);
     }
 
     .c-consent-banner__button--primary {
-        background-color: var(--color-primary);
         color: var(--color-bg-white);
+        background-color: var(--color-primary);
     }
 
     .c-consent-banner__button--secondary {
-        background-color: var(--color-bg-light);
         color: var(--color-text-main);
+        background-color: var(--color-bg-light);
         border: var(--border-s) solid var(--color-border);
     }
 
     .c-consent-banner__button--text {
-        background-color: transparent;
-        color: var(--color-text-muted);
         padding-block: var(--space-xs);
         padding-inline: var(--space-xs);
         font-size: var(--text-sm);
+        color: var(--color-text-muted);
         text-decoration: underline;
+        background-color: transparent;
     }
 }

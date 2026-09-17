@@ -3,28 +3,28 @@
 @layer components {
     .c-table {
         inline-size: var(--size-full);
-        border-collapse: collapse;
         font-size: var(--text-md);
+        border-collapse: collapse;
     }
 
     .c-table__header-cell {
-        background-color: var(--color-bg-light);
-        color: var(--color-text-muted);
         padding-block: var(--space-s);
         padding-inline: var(--space-m);
-        border-block-end: var(--border-m) solid var(--color-border);
-        text-align: start;
         font-size: var(--text-xs);
-        text-transform: uppercase;
         font-weight: var(--font-weight-bold);
+        color: var(--color-text-muted);
+        text-align: start;
+        text-transform: uppercase;
         letter-spacing: var(--letter-spacing-wide);
+        background-color: var(--color-bg-light);
+        border-block-end: var(--border-m) solid var(--color-border);
     }
 
     .c-table__data-cell {
         padding-block: var(--space-m);
         padding-inline: var(--space-m);
-        border-block-end: var(--border-s) solid var(--color-border);
         vertical-align: middle;
+        border-block-end: var(--border-s) solid var(--color-border);
     }
 
     /* UI Fix: Strikte Vereinheitlichung aller Fahrzeug-Icons und Kennzeichen in Tabellen via CSS Context - STRIKT FLACH */
@@ -35,17 +35,17 @@
     }
 
     .c-table__data-cell:has(.c-license-plate) .c-license-plate {
-        font-size: var(--text-sm) !important;
         padding-block: var(--space-xs) !important;
         padding-inline: var(--space-m) !important;
+        font-size: var(--text-sm) !important;
     }
 
     .c-table__mail-link {
-        overflow-wrap: anywhere;
-        word-break: break-word;
-        white-space: normal;
         display: inline-block;
         max-inline-size: var(--size-full);
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        white-space: normal;
     }
 
     .c-table__row--danger {
@@ -62,10 +62,10 @@
     }
 
     .c-table__label--total {
-        color: var(--color-text-main);
-        font-weight: var(--font-weight-bold);
-        font-size: var(--text-md);
         padding-block: var(--space-m);
+        font-size: var(--text-md);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-text-main);
         border-block-start: var(--border-m) solid var(--color-border);
     }
 
@@ -74,8 +74,8 @@
     }
 
     .c-table__value--highlight {
-        font-weight: var(--font-weight-extrabold);
         font-size: var(--text-lg);
+        font-weight: var(--font-weight-extrabold);
         color: var(--color-primary);
     }
 
@@ -85,17 +85,17 @@
     }
 
     .c-table__value--code {
-        font-weight: var(--font-weight-bold);
-        text-transform: uppercase;
         font-family: var(--font-mono);
         font-size: var(--text-md);
+        font-weight: var(--font-weight-bold);
+        text-transform: uppercase;
     }
 
     .c-table__value--total {
+        padding-block: var(--space-m);
+        font-size: var(--text-2xl);
         font-weight: var(--font-weight-extrabold);
         color: var(--color-primary);
-        font-size: var(--text-2xl);
-        padding-block: var(--space-m);
         border-block-start: var(--border-m) solid var(--color-border);
     }
 
@@ -104,9 +104,10 @@
         --sort-icon-color: inherit;
         --sortable-color: inherit;
 
+        color: var(--sortable-color);
         cursor: pointer;
         user-select: none;
-        color: var(--sortable-color);
+
         @include transition-fast(color);
     }
 
@@ -122,12 +123,13 @@
     }
 
     .c-sort-icon {
-        opacity: var(--sort-icon-opacity);
-        font-size: var(--scale-110);
-        margin-inline-start: var(--space-xs);
         display: inline-block;
+        margin-inline-start: var(--space-xs);
+        font-size: var(--scale-110);
         vertical-align: middle;
         color: var(--sort-icon-color);
+        opacity: var(--sort-icon-opacity);
+
         @include transition-fast(opacity, color);
     }
 }

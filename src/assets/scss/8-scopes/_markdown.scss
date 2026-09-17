@@ -1,24 +1,23 @@
 @layer scopes {
     .s-markdown {
+        padding: clamp(var(--space-m), var(--vw-3), var(--space-xl));
         font-family: var(--font-sans);
         line-height: var(--line-height-relaxed);
         color: var(--color-text-main);
-        padding: clamp(var(--space-m), var(--vw-3), var(--space-xl));
     }
 
     .s-markdown h1,
     .s-markdown h2,
     .s-markdown h3 {
-        margin-block-start: 1.5em;
-        margin-block-end: 0.5em;
-        border-block-end: var(--border-s) solid var(--color-border);
         padding-block-end: 0.3em;
+        margin-block: 1.5em 0.5em;
         color: var(--color-text-dark);
+        border-block-end: var(--border-s) solid var(--color-border);
     }
 
     .s-markdown h1 {
-        color: var(--color-primary);
         font-size: clamp(var(--text-xl), var(--vw-3), var(--text-3xl));
+        color: var(--color-primary);
         border-block-end: var(--border-m) solid var(--color-primary);
     }
 
@@ -41,23 +40,23 @@
     }
 
     .s-markdown code {
-        background-color: var(--color-bg-light);
         padding-block: 0.2em;
         padding-inline: 0.4em;
-        border-radius: var(--radius-s);
         font-family: var(--font-mono);
         font-size: var(--text-sm);
-        border: var(--border-s) solid var(--color-border);
         color: var(--color-danger);
+        background-color: var(--color-bg-light);
+        border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-s);
     }
 
     .s-markdown pre {
-        background-color: var(--color-text-main);
-        color: var(--color-bg-light);
         padding: var(--space-m);
-        border-radius: var(--radius-l);
-        overflow-x: auto;
         margin-block-end: 1em;
+        overflow-x: auto;
+        color: var(--color-bg-light);
+        background-color: var(--color-text-main);
+        border-radius: var(--radius-l);
         box-shadow: inset 0 var(--border-m) var(--radius-s)
             color-mix(
                 in oklch,
@@ -67,20 +66,19 @@
     }
 
     .s-markdown pre code {
+        padding: 0;
+        color: inherit;
         background-color: transparent;
         border: none;
-        color: inherit;
-        padding: 0;
     }
 
     .s-markdown blockquote {
-        border-inline-start: var(--space-xs) solid var(--color-primary);
+        padding-block: var(--space-s);
         padding-inline-start: var(--space-m);
+        margin-block: 0 1em;
         color: var(--color-text-muted);
         background-color: var(--color-primary-soft);
-        margin-block-start: 0;
-        margin-block-end: 1em;
-        padding-block: var(--space-s);
+        border-inline-start: var(--space-xs) solid var(--color-primary);
         border-start-end-radius: var(--radius-l);
         border-end-end-radius: var(--radius-l);
     }

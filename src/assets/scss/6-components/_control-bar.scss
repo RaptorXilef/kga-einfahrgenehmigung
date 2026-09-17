@@ -9,43 +9,43 @@
     }
 
     .c-control-bar {
-        background-color: var(--color-bg-white);
-        border-radius: var(--radius-xxl);
-        border: var(--border-s) solid var(--color-border);
         display: inline-flex;
         flex-wrap: wrap;
         gap: var(--space-m);
         align-items: center;
         justify-content: center;
+        inline-size: var(--size-full);
+        max-inline-size: var(--layout-max-width);
         padding-block: var(--space-s);
         padding-inline: var(--space-l);
         margin-block-end: var(--space-xl);
-        inline-size: var(--size-full);
-        max-inline-size: var(--layout-max-width);
+        background-color: var(--color-bg-white);
+        border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-xxl);
     }
 
     .c-control-bar__input {
-        block-size: var(--size-ui-sm);
-        border-radius: var(--radius-m);
-        padding-inline: var(--space-s);
-        font-size: var(--text-sm);
+        display: inline-block;
         inline-size: var(--size-auto);
         min-inline-size: var(--size-panel-sm);
-        border: var(--border-s) solid var(--color-border);
-        background-color: var(--color-bg-light);
+        block-size: var(--size-ui-sm);
+        padding-inline: var(--space-s);
+        font-size: var(--text-sm);
         color: var(--color-text-main);
-        display: inline-block;
+        background-color: var(--color-bg-light);
+        border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-m);
     }
 
     .c-control-bar__label {
-        color: var(--color-text-muted);
-        font-weight: var(--font-weight-bold);
-        font-size: var(--text-xs);
-        cursor: pointer;
-        text-transform: uppercase;
         display: flex;
-        align-items: center;
         gap: var(--space-xs);
+        align-items: center;
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        cursor: pointer;
     }
 
     .c-control-bar__search {
@@ -55,15 +55,16 @@
         --c-input-height: var(--size-avatar-sm);
 
         position: relative;
-        margin-inline-start: auto;
         flex-grow: 1;
+        margin-inline-start: auto;
     }
 
     .c-control-bar__search-icon {
         @include absolute-center-y;
+
         inset-inline-end: var(--space-m);
-        pointer-events: none;
         z-index: z('control-bar-search');
         color: var(--color-text-muted);
+        pointer-events: none;
     }
 }

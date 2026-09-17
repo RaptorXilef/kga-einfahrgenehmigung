@@ -1,9 +1,9 @@
 @layer elements {
     body {
-        color: var(--color-text-main);
-        font-family: var(--font-sans);
-        background-color: var(--color-bg-light);
-        line-height: var(--line-height-normal);
         margin: 0;
+        font-family: var(--font-sans);
+        line-height: var(--line-height-normal);
+        color: var(--color-text-main);
+        background-color: var(--color-bg-light);
     }
 }

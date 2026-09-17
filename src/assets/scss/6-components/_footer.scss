@@ -3,42 +3,42 @@
         padding-block: var(--space-l);
         padding-inline: var(--space-m);
         margin-block-start: auto;
-        border-block-start: var(--border-s) solid var(--color-border);
-        background-color: transparent;
         text-align: center;
+        background-color: transparent;
+        border-block-start: var(--border-s) solid var(--color-border);
     }
 
     .c-footer__content {
-        font-size: var(--text-sm);
-        color: var(--color-text-muted);
         display: flex;
         flex-direction: column;
-        align-items: center;
         gap: var(--space-s);
+        align-items: center;
+        font-size: var(--text-sm);
+        color: var(--color-text-muted);
     }
 
     .c-footer__copyright {
         display: flex;
-        align-items: center;
-        gap: var(--space-s);
         flex-wrap: wrap;
+        gap: var(--space-s);
+        align-items: center;
         justify-content: center;
     }
 
     .c-footer__version {
-        background-color: var(--color-bg-light);
-        color: var(--color-text-muted);
         padding-block: var(--space-xs);
         padding-inline: var(--space-s);
-        border-radius: var(--radius-pill);
         font-weight: var(--font-weight-bold);
-        border: var(--border-s) solid var(--color-border);
+        color: var(--color-text-muted);
         text-decoration: none;
+        background-color: var(--color-bg-light);
+        border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-pill);
     }
 
     .c-footer__version--admin {
-        background-color: var(--color-primary-soft);
         color: var(--color-primary);
+        background-color: var(--color-primary-soft);
         border-color: color-mix(
             in oklch,
             var(--color-primary) var(--mix-20),
@@ -47,11 +47,11 @@
     }
 
     .c-footer__links {
-        margin-block-start: var(--space-s);
-        font-size: var(--text-sm);
         display: flex;
         gap: var(--space-m);
-        justify-content: center;
         align-items: center;
+        justify-content: center;
+        margin-block-start: var(--space-s);
+        font-size: var(--text-sm);
     }
 }

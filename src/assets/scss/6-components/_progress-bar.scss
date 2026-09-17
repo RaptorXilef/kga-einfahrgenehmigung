@@ -1,17 +1,17 @@
 @layer components {
     .c-progress-bar {
-        background-color: var(--color-bg-light);
-        block-size: 0.5rem;
-        border-radius: var(--radius-xl);
         inline-size: var(--size-full);
+        block-size: 0.5rem;
         overflow: hidden;
+        background-color: var(--color-bg-light);
         border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-xl);
     }
 
     .c-progress-bar__fill {
-        background-color: var(--color-primary);
-        block-size: var(--size-full);
         inline-size: var(--progress-width, 0%);
+        block-size: var(--size-full);
+        background-color: var(--color-primary);
         transition: inline-size var(--time-slower) ease-in-out;
     }
 }

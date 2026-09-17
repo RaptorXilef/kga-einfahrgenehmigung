@@ -6,20 +6,20 @@
     }
 
     .c-accordion__summary {
-        background-color: var(--color-bg-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         padding-block: var(--space-m);
         padding-inline: var(--space-m);
-        border-radius: var(--radius-xxl);
         cursor: pointer;
-        border: var(--border-s) solid var(--color-border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: var(--shadow-sm);
         list-style: none;
+        background-color: var(--color-bg-light);
+        border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-xxl);
+        box-shadow: var(--shadow-sm);
 
         @include transition-fast(background-color, border-color, box-shadow);
-        @include focus-ring();
+        @include focus-ring;
     }
 
     .c-accordion__summary:hover {
@@ -32,10 +32,10 @@
     }
 
     .c-accordion__title {
-        font-size: var(--text-lg);
         display: flex;
-        align-items: center;
         gap: var(--space-s);
+        align-items: center;
+        font-size: var(--text-lg);
     }
 
     .c-accordion__meta {
@@ -45,6 +45,8 @@
     }
 
     .c-accordion__body {
+        padding: var(--space-m);
+        margin-block-start: calc(var(--space-xs) * -1);
         background-color: color-mix(
             in oklch,
             var(--color-text-main) var(--mix-2),
@@ -54,7 +56,5 @@
         border-block-start: none;
         border-end-start-radius: var(--radius-xxl);
         border-end-end-radius: var(--radius-xxl);
-        margin-block-start: calc(var(--space-xs) * -1);
-        padding: var(--space-m);
     }
 }

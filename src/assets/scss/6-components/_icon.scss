@@ -3,8 +3,8 @@
         display: inline-block;
         inline-size: 1em;
         block-size: 1em;
-        vertical-align: middle;
         margin-block-start: calc(var(--border-m) * -1);
+        vertical-align: middle;
         object-fit: contain;
     }
 

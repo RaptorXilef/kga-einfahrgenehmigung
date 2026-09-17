@@ -1,15 +1,15 @@
 @layer components {
     .c-license-plate {
-        font-size: var(--text-sm);
-        font-weight: var(--font-weight-extrabold);
-        background-color: var(--color-bg-white);
-        border: var(--border-s) solid var(--color-text-main);
+        display: inline-block;
         padding-block: var(--border-m);
         padding-inline: var(--space-s);
-        border-radius: var(--radius-s);
-        color: var(--color-text-main);
-        display: inline-block;
         font-family: var(--font-mono);
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-extrabold);
+        color: var(--color-text-main);
         text-transform: uppercase;
+        background-color: var(--color-bg-white);
+        border: var(--border-s) solid var(--color-text-main);
+        border-radius: var(--radius-s);
     }
 }

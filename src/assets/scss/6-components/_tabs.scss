@@ -11,34 +11,33 @@
     .c-tabs__nav {
         display: flex;
         flex-wrap: wrap;
-        justify-content: center;
         gap: var(--space-s);
-        margin-block-start: 0;
-        margin-block-end: var(--space-l);
-        margin-inline: auto;
-        padding: var(--space-s);
-        background-color: var(--color-bg-light);
-        border-radius: var(--radius-huge);
-        border: var(--border-s) solid var(--color-border);
-        box-shadow: var(--shadow-inset);
+        justify-content: center;
         max-inline-size: var(--size-full);
+        padding: var(--space-s);
+        margin-block: 0 var(--space-l);
+        margin-inline: auto;
+        background-color: var(--color-bg-light);
+        border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-huge);
+        box-shadow: var(--shadow-inset);
     }
 
     .c-tabs__btn {
+        display: inline-flex;
+        gap: var(--space-s);
+        align-items: center;
         padding-block: var(--space-s);
         padding-inline: var(--space-m);
-        border: var(--border-s) solid transparent;
-        background-color: transparent;
-        cursor: pointer;
-        border-radius: var(--radius-xl);
+        font-size: var(--text-sm);
         font-weight: var(--font-weight-semibold);
         color: var(--color-text-main);
-        display: inline-flex;
-        align-items: center;
-        gap: var(--space-s);
-        text-decoration: none;
-        font-size: var(--text-sm);
         white-space: nowrap;
+        text-decoration: none;
+        cursor: pointer;
+        background-color: transparent;
+        border: var(--border-s) solid transparent;
+        border-radius: var(--radius-xl);
 
         @include transition-fast(
             color,
@@ -65,10 +64,10 @@
     }
 
     .c-tabs__btn.is-active {
-        background-color: var(--color-bg-white) !important;
         color: var(--color-primary) !important;
-        box-shadow: var(--shadow-sm) !important;
+        background-color: var(--color-bg-white) !important;
         border-color: var(--color-border) !important;
+        box-shadow: var(--shadow-sm) !important;
     }
 
     .c-tabs__content {
@@ -87,6 +86,7 @@
             opacity: var(--opacity-0);
             translate: 0 var(--space-m);
         }
+
         to {
             opacity: var(--opacity-100);
             translate: 0 0;
@@ -95,10 +95,10 @@
 
     /* Aus dem Objects Layer gerettet, da c- Namespace! */
     .c-tab-content-container {
-        max-inline-size: var(--layout-max-width);
-        margin-inline: auto;
-        padding-inline: var(--space-l);
-        inline-size: var(--size-full);
         display: block;
+        inline-size: var(--size-full);
+        max-inline-size: var(--layout-max-width);
+        padding-inline: var(--space-l);
+        margin-inline: auto;
     }
 }

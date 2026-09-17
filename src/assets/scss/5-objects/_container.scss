@@ -1,7 +1,7 @@
 @layer objects {
     .o-container {
-        margin-inline: auto;
         inline-size: var(--size-full);
+        margin-inline: auto;
     }
 
     .o-container--small {

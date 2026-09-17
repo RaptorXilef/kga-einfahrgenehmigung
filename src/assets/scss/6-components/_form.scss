@@ -12,16 +12,15 @@
         --c-input-radius-val: var(--c-input-radius, var(--radius-xl));
         --c-input-height-val: var(--c-input-height, var(--size-ui-xl));
 
+        display: block;
+        inline-size: var(--size-full);
+        block-size: var(--c-input-height-val);
+        padding-inline: var(--c-input-padding-start) var(--c-input-padding-end);
+        font-size: var(--text-md);
+        color: var(--color-text-main);
         background-color: var(--color-bg-white);
         border: var(--border-m) solid var(--color-border);
         border-radius: var(--c-input-radius-val);
-        padding-inline-start: var(--c-input-padding-start);
-        padding-inline-end: var(--c-input-padding-end);
-        font-size: var(--text-md);
-        color: var(--color-text-main);
-        block-size: var(--c-input-height-val);
-        inline-size: var(--size-full);
-        display: block;
 
         @include transition-fast(border-color, box-shadow);
         @include focus-ring(var(--color-primary), 0);
@@ -30,11 +29,12 @@
     /* UI Fix: Konsistentes, dezentes Date-Picker Icon - STRIKT FLACH */
     .c-form-input::-webkit-calendar-picker-indicator,
     .c-form-select::-webkit-calendar-picker-indicator {
-        cursor: pointer;
-        padding: var(--space-xs);
         inline-size: var(--size-icon-md);
         block-size: var(--size-icon-md);
+        padding: var(--space-xs);
+        cursor: pointer;
         opacity: var(--opacity-50);
+
         @include transition-fast(opacity);
     }
 
@@ -52,75 +52,76 @@
     .c-form-select--small {
         --c-input-height: var(--size-ui-sm);
         --c-input-padding-inline: var(--space-s);
+
         font-size: var(--text-sm);
     }
 
     .c-form-select {
+        padding-inline-end: var(--space-2xl);
         appearance: none;
         background-image: var(--icon-select-arrow);
         background-repeat: no-repeat;
         background-position: calc(var(--size-full) - var(--space-m)) center;
-        padding-inline-end: var(--space-2xl);
     }
 
     .c-form-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-block-end: var(--space-s);
+        font-size: var(--text-sm);
         font-weight: var(--font-weight-semibold);
         color: var(--color-text-muted);
-        margin-block-end: var(--space-s);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: var(--text-sm);
     }
 
     .c-form-input--code {
-        letter-spacing: var(--letter-spacing-code);
-        font-family: var(--font-mono);
         block-size: var(--size-avatar-md);
-        text-transform: uppercase;
+        font-family: var(--font-mono);
         font-size: var(--text-xl);
+        text-transform: uppercase;
+        letter-spacing: var(--letter-spacing-code);
     }
 
     .c-form-section {
-        margin-block-end: var(--space-xl);
         padding: var(--space-l);
+        margin-block-end: var(--space-xl);
         background-color: var(--color-bg-white);
-        border-radius: var(--radius-xxl);
         border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-xxl);
     }
 
     .c-form-section__title {
         display: flex;
-        align-items: center;
         gap: var(--space-s);
+        align-items: center;
         margin-block-end: var(--space-l);
         color: var(--color-text-main);
     }
 
     .c-form-section__step {
-        background-color: var(--color-primary);
-        color: var(--color-bg-white);
-        inline-size: var(--size-ui-xs);
-        block-size: var(--size-ui-xs);
-        border-radius: var(--radius-circle);
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        inline-size: var(--size-ui-xs);
+        block-size: var(--size-ui-xs);
         font-size: var(--text-xs);
+        color: var(--color-bg-white);
+        background-color: var(--color-primary);
+        border-radius: var(--radius-circle);
     }
 
     .c-price-display {
-        font-size: clamp(var(--text-lg), var(--vw-3), var(--text-2xl));
-        color: var(--color-primary);
-        background-color: var(--color-primary-soft);
         padding-block: var(--space-m);
         padding-inline: var(--space-m);
-        border-radius: var(--radius-xxl);
+        font-size: clamp(var(--text-lg), var(--vw-3), var(--text-2xl));
+        font-weight: var(--font-weight-bold);
+        color: var(--color-primary);
+        text-align: center;
+        background-color: var(--color-primary-soft);
         border: var(--border-s) solid
             color-mix(in oklch, var(--color-primary) var(--mix-20), transparent);
+        border-radius: var(--radius-xxl);
         box-shadow: var(--shadow-sm);
-        text-align: center;
-        font-weight: var(--font-weight-bold);
     }
 
     .c-price-display--free {
@@ -151,25 +152,25 @@
     }
 
     .c-checkbox__input {
-        margin-block-start: var(--space-xs);
-        scale: 1.2;
-        cursor: pointer;
         flex-shrink: 0;
+        margin-block-start: var(--space-xs);
+        cursor: pointer;
+        scale: 1.2;
 
-        @include focus-ring();
+        @include focus-ring;
     }
 
     .c-checkbox__label {
-        line-height: var(--line-height-snug);
-        font-size: var(--text-md);
-        user-select: none;
         display: block;
+        font-size: var(--text-md);
+        line-height: var(--line-height-snug);
+        user-select: none;
     }
 
     .c-checkbox__required {
-        color: var(--color-danger);
-        font-weight: var(--font-weight-bold);
         margin-inline-start: var(--border-m);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-danger);
     }
 
     .c-password-toggle {
@@ -179,21 +180,22 @@
     }
 
     .c-password-toggle__input {
-        padding-inline-end: var(--space-2xl);
         inline-size: var(--size-full);
+        padding-inline-end: var(--space-2xl);
     }
 
     .c-password-toggle__btn {
         @include button-reset;
         @include absolute-center-y;
+
         inset-inline-end: var(--space-s);
-        font-size: var(--text-xl);
-        opacity: var(--opacity-50);
         display: flex;
         justify-content: center;
+        font-size: var(--text-xl);
+        opacity: var(--opacity-50);
 
         @include transition-fast(opacity);
-        @include focus-ring();
+        @include focus-ring;
     }
 
     .c-form-input--short {

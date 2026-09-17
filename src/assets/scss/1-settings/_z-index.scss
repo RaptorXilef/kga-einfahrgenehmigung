@@ -18,6 +18,7 @@ $z-index: (
     @if map.has-key($z-index, $layer) {
         @return map.get($z-index, $layer);
     }
+
     @warn "Unbekannter Z-Index Layer: `#{$layer}`.";
     @return null;
 }

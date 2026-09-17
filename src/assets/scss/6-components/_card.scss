@@ -1,10 +1,10 @@
 @layer components {
     .c-card {
+        overflow: hidden;
         background-color: var(--color-bg-white);
         border: var(--border-s) solid var(--color-border);
         border-radius: var(--radius-xxl);
         box-shadow: var(--shadow-md);
-        overflow: hidden;
     }
 
     .c-card--primary {
@@ -50,8 +50,8 @@
     .c-card__footer {
         padding-block: var(--space-m);
         padding-inline: var(--space-m);
-        border-block-start: var(--border-s) solid var(--color-border);
         background-color: var(--color-bg-light);
+        border-block-start: var(--border-s) solid var(--color-border);
     }
 
     /* Akkordeon-Karten */
@@ -60,11 +60,11 @@
         --card-header-radius: 0;
         --card-outline-color: transparent;
 
+        outline: var(--border-l) solid var(--card-outline-color);
+        outline-offset: var(--border-m);
         background-color: var(--color-bg-white);
         border: var(--border-s) solid var(--color-border);
         border-radius: var(--radius-xxl);
-        outline: var(--border-l) solid var(--card-outline-color);
-        outline-offset: var(--border-m);
         transition: outline var(--time-base);
     }
 
@@ -94,9 +94,9 @@
 
     .c-category-card__body {
         display: var(--card-body-display);
-        background-color: var(--color-bg-light);
         padding-block: var(--space-l);
         padding-inline: var(--space-l);
+        background-color: var(--color-bg-light);
         border-block-start: var(--border-s) solid var(--color-border);
         border-end-start-radius: var(--radius-xxl);
         border-end-end-radius: var(--radius-xxl);

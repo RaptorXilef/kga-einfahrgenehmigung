@@ -7,51 +7,67 @@
         @each $name, $value in $tokens-color-light {
             --color-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-spacing {
             --space-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-border {
             --border-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-radius {
             --radius-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-font-size {
             --text-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-font-weight {
             --font-weight-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-line-height {
             --line-height-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-letter-spacing {
             --letter-spacing-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-opacity {
             --opacity-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-size {
             --size-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-scale {
             --scale-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-ratio {
             --ratio-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-viewport {
             --vw-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-mix {
             --mix-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-time {
             --time-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-ease {
             --ease-#{$name}: #{$value};
         }
+
         @each $name, $value in $tokens-layout {
             --layout-#{$name}: #{$value};
         }

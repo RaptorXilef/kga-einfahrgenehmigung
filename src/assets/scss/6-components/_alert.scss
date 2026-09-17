@@ -1,31 +1,31 @@
 @layer components {
     .c-alert {
+        display: flex;
+        gap: var(--space-m);
+        align-items: center;
+        justify-content: center;
         padding-block: var(--space-m);
         padding-inline: var(--space-l);
-        border-radius: var(--radius-xxl);
         margin-block-end: var(--space-xl);
         font-weight: var(--font-weight-medium);
         border: var(--border-s) solid transparent;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--space-m);
+        border-radius: var(--radius-xxl);
         box-shadow: var(--shadow-sm);
     }
 
     .c-alert__content {
         inline-size: var(--size-full);
-        text-align: start;
         line-height: var(--line-height-relaxed);
+        text-align: start;
     }
 
     .c-alert--success {
-        background-color: var(--color-success-soft);
         color: color-mix(
             in oklch,
             var(--color-success) var(--mix-40),
             var(--color-text-main)
         );
+        background-color: var(--color-success-soft);
         border-color: color-mix(
             in oklch,
             var(--color-success) var(--mix-40),
@@ -34,12 +34,12 @@
     }
 
     .c-alert--danger {
-        background-color: var(--color-danger-soft);
         color: color-mix(
             in oklch,
             var(--color-danger) var(--mix-40),
             var(--color-text-main)
         );
+        background-color: var(--color-danger-soft);
         border-color: color-mix(
             in oklch,
             var(--color-danger) var(--mix-40),
@@ -48,12 +48,12 @@
     }
 
     .c-alert--warning {
-        background-color: var(--color-warning-soft);
         color: color-mix(
             in oklch,
             var(--color-warning) var(--mix-40),
             var(--color-text-main)
         );
+        background-color: var(--color-warning-soft);
         border-color: color-mix(
             in oklch,
             var(--color-warning) var(--mix-40),
@@ -62,12 +62,12 @@
     }
 
     .c-alert--info {
-        background-color: var(--color-primary-soft);
         color: color-mix(
             in oklch,
             var(--color-primary) var(--mix-40),
             var(--color-text-main)
         );
+        background-color: var(--color-primary-soft);
         border-color: color-mix(
             in oklch,
             var(--color-primary) var(--mix-40),
@@ -77,22 +77,22 @@
 
     .c-alert--large {
         flex-direction: column;
-        text-align: center;
         padding-block: clamp(var(--space-xl), var(--vw-5), var(--space-3xl));
         padding-inline: var(--space-xl);
+        text-align: center;
         border: var(--border-m) solid var(--color-success);
     }
 
     .c-alert__footer {
+        inline-size: var(--size-full);
+        padding-block-start: var(--space-xl);
         font-size: var(--text-md);
-        opacity: var(--opacity-80);
         border-block-start: var(--border-s) solid
             color-mix(
                 in oklch,
                 var(--color-text-main) var(--mix-10),
                 transparent
             );
-        padding-block-start: var(--space-xl);
-        inline-size: var(--size-full);
+        opacity: var(--opacity-80);
     }
 }

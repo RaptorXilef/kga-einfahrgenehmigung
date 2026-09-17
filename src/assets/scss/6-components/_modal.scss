@@ -7,20 +7,21 @@
     }
 
     .c-modal::backdrop {
+        z-index: z('modal');
         background-color: color-mix(
             in oklch,
             var(--color-text-main) var(--mix-70),
             transparent
         );
         backdrop-filter: blur(var(--border-m));
-        z-index: z('modal');
     }
 
     .c-modal[open] {
         display: flex;
         align-items: center;
         justify-content: center;
-        --modal-dialog-animation: modalSlideUp var(--time-base)
+
+        --modal-dialog-animation: modalslideup var(--time-base)
             var(--ease-bounce) forwards;
     }
 
@@ -29,6 +30,7 @@
             opacity: var(--opacity-0);
             translate: 0 var(--space-m);
         }
+
         to {
             opacity: var(--opacity-100);
             translate: 0 0;
@@ -36,16 +38,16 @@
     }
 
     .c-modal__dialog {
-        background-color: var(--color-bg-white);
+        display: flex;
+        flex-direction: column;
+        inline-size: var(--size-full);
+        max-inline-size: var(--layout-modal-sm);
         padding: var(--space-xl);
         text-align: center;
-        max-inline-size: var(--layout-modal-sm);
-        inline-size: var(--size-full);
+        background-color: var(--color-bg-white);
         border-block-start: var(--border-xl) solid var(--color-warning);
         border-radius: var(--radius-xxl);
         box-shadow: var(--shadow-xl);
-        display: flex;
-        flex-direction: column;
         animation: var(--modal-dialog-animation);
     }
 
@@ -55,11 +57,11 @@
     }
 
     .c-modal__title {
-        margin-block-start: 0;
         display: flex;
+        gap: var(--space-s);
         align-items: center;
         justify-content: center;
-        gap: var(--space-s);
+        margin-block-start: 0;
         font-size: var(--text-xl);
         font-weight: var(--font-weight-bold);
         color: var(--color-text-main);

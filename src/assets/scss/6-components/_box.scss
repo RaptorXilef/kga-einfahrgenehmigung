@@ -1,9 +1,9 @@
 @layer components {
     .c-box {
+        padding: var(--space-m);
         background-color: var(--color-bg-light);
         border: var(--border-s) solid var(--color-border);
         border-radius: var(--radius-l);
-        padding: var(--space-m);
     }
 
     .c-box--subtle {
@@ -31,24 +31,24 @@
     }
 
     .c-box--warning {
-        background-color: var(--color-warning-soft);
-        border-inline-start: var(--space-xs) solid var(--color-warning);
         color: color-mix(
             in oklch,
             var(--color-warning) var(--mix-40),
             var(--color-text-main)
         );
+        background-color: var(--color-warning-soft);
+        border-inline-start: var(--space-xs) solid var(--color-warning);
     }
 
     .c-box--danger-soft {
-        background-color: var(--color-danger-soft);
+        padding: var(--space-s);
+        font-weight: var(--font-weight-bold);
         color: color-mix(
             in oklch,
             var(--color-danger) var(--mix-20),
             var(--color-text-main)
         );
-        font-weight: var(--font-weight-bold);
-        padding: var(--space-s);
+        background-color: var(--color-danger-soft);
         border-radius: var(--radius-s);
     }
 
@@ -57,16 +57,16 @@
     }
 
     .c-box--dashed {
+        text-align: start;
         background-color: var(--color-bg-light);
         border: var(--border-s) dashed var(--color-border);
-        text-align: start;
     }
 
     .c-qr-box {
-        border: var(--border-m) solid var(--color-border);
-        border-radius: var(--radius-m);
         padding: var(--space-xs);
         background-color: var(--color-bg-white);
+        border: var(--border-m) solid var(--color-border);
+        border-radius: var(--radius-m);
     }
 
     .c-payment-gateway {

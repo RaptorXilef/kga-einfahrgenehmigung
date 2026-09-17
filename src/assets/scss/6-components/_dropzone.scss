@@ -8,8 +8,8 @@
         --overlay-opacity: var(--opacity-0);
 
         position: relative;
-        border: var(--border-m) dashed var(--dropzone-border-color);
         background-color: var(--dropzone-bg);
+        border: var(--border-m) dashed var(--dropzone-border-color);
         border-radius: inherit;
 
         @include transition-fast(background-color, border-color);
@@ -17,8 +17,10 @@
 
     .c-dropzone--preview {
         --dropzone-border-color: var(--color-border);
+
         cursor: pointer;
-        @include focus-ring();
+
+        @include focus-ring;
     }
 
     .c-dropzone--preview:hover {
@@ -35,21 +37,21 @@
     .c-dropzone__overlay {
         position: absolute;
         inset: 0;
+        z-index: z('dropzone-overlay');
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-bg-white);
+        pointer-events: none;
         background-color: color-mix(
             in oklch,
             var(--color-primary) var(--mix-90),
             transparent
         );
-        color: var(--color-bg-white);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: var(--font-weight-bold);
-        font-size: var(--text-sm);
-        opacity: var(--overlay-opacity);
-        pointer-events: none;
-        z-index: z('dropzone-overlay');
         border-radius: inherit;
+        opacity: var(--overlay-opacity);
 
         @include transition-fast(opacity);
     }
@@ -60,7 +62,7 @@
 
     .c-dropzone__text.is-filled {
         font-size: var(--text-xl);
-        opacity: var(--opacity-100);
         color: var(--color-primary);
+        opacity: var(--opacity-100);
     }
 }

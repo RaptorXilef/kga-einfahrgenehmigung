@@ -7,22 +7,22 @@
         --btn-border: var(--color-border);
 
         display: inline-flex;
+        gap: var(--space-s);
         align-items: center;
         justify-content: center;
-        padding-inline: var(--space-m);
-        padding-block: 0;
         min-inline-size: var(--size-ui-md);
         block-size: var(--size-ui-md);
-        border-radius: var(--radius-huge);
-        border: var(--border-s) solid var(--btn-border);
-        background-color: var(--btn-bg);
+        padding-block: 0;
+        padding-inline: var(--space-m);
         color: var(--btn-color);
-        cursor: pointer;
-        will-change: translate, box-shadow;
-        text-decoration: none;
-        box-shadow: var(--shadow-sm);
-        gap: var(--space-s);
         white-space: nowrap;
+        text-decoration: none;
+        cursor: pointer;
+        background-color: var(--btn-bg);
+        border: var(--border-s) solid var(--btn-border);
+        border-radius: var(--radius-huge);
+        box-shadow: var(--shadow-sm);
+        will-change: translate, box-shadow;
 
         @include transition-fast(
             background-color,
@@ -31,13 +31,13 @@
             translate,
             box-shadow
         );
-        @include focus-ring();
+        @include focus-ring;
     }
 
     .c-button__icon {
+        flex-shrink: 0;
         inline-size: 1.4em; // Skaliert sauber mit dem Text, aber deutlich sichtbarer
         block-size: 1.4em;
-        flex-shrink: 0;
         margin: 0;
     }
 
@@ -48,6 +48,7 @@
             var(--color-border) var(--mix-80),
             var(--color-text-main)
         );
+
         @include hover-lift(calc(var(--border-s) * -1), var(--shadow-md));
     }
 
@@ -55,6 +56,7 @@
         --btn-bg: var(--color-primary);
         --btn-color: var(--color-bg-white);
         --btn-border: transparent;
+
         font-weight: var(--font-weight-bold);
     }
 
@@ -128,14 +130,14 @@
         min-inline-size: var(--size-ui-sm);
         block-size: var(--size-ui-sm);
         padding-inline: var(--space-m);
-        border-radius: var(--radius-l);
         font-size: var(--text-sm);
+        border-radius: var(--radius-l);
     }
 
     /* UI Fix: Strikte Größen für Icon-Only Buttons (entkoppelt von text-size) */
     .c-button--icon-only {
-        padding-inline: 0;
         inline-size: var(--size-ui-md);
+        padding-inline: 0;
 
         .c-button__icon {
             inline-size: var(--size-icon-md);
@@ -153,16 +155,16 @@
     }
 
     .c-button--submit {
-        padding-block: var(--space-m);
         block-size: var(--size-auto);
+        padding-block: var(--space-m);
         font-size: var(--text-lg);
     }
 
     .c-button--large {
-        padding-block: var(--space-m);
-        block-size: var(--size-auto);
-        font-size: var(--text-lg);
         inline-size: var(--size-full);
+        block-size: var(--size-auto);
+        padding-block: var(--space-m);
+        font-size: var(--text-lg);
     }
 
     .c-button--responsive {

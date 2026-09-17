@@ -1,23 +1,23 @@
 @layer components {
     .c-pagination {
         display: flex;
-        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--space-m);
         align-items: center;
+        justify-content: space-between;
         padding: var(--space-m);
         background-color: var(--color-bg-light);
         border-block-start: var(--border-s) solid var(--color-border);
-        flex-wrap: wrap;
-        gap: var(--space-m);
     }
 
     .c-pagination__info {
-        color: var(--color-text-muted);
         font-size: var(--text-sm);
+        color: var(--color-text-muted);
     }
 
     .c-pagination__controls {
         display: flex;
-        align-items: center;
         gap: var(--space-xs);
+        align-items: center;
     }
 }
