@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.70.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.69.4...v0.70.0) (2026-09-17)
+
+### 🚀 Features
+
+* **mail:** Prepare infrastructure for Microsoft Graph and OAuth support ([8f0fd72](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8f0fd7291b84cfb32367792101e3d315703d57d9))
+
+### 🐛 Bug Fixes
+
+* **mail:** Modernize mail transport architecture and implement Microsoft Graph ([4bf35bd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4bf35bdb7f5cc939eaa0437321dd9fb24107274e))
+* **mail:** Resolve syntax formatting artifact in AbstractMailService ([1502d63](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1502d63a3b9a47f828e30aa91a53a02a64dabf1a))
+* **scss:** Resolve mobile layout clipping, responsive grid wrapping, and UI scaling bugs ([7ffa412](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7ffa4123d97c8a16abdceb38fc304b03a502eddc))
+
 ## [0.69.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.69.3...v0.69.4) (2026-09-17)
 
 ### 📚 Dokumentation
