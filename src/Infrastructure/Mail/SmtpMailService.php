@@ -4,358 +4,50 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Mail;
 
-use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Mail\MailLogInterface;
-use App\Contracts\Mail\MailServiceInterface;
-use App\Contracts\System\JsonHelperInterface;
-use App\Core\Entity\MailLogEntry;
-use App\Core\ValueObject\TemplateKey;
-use DateTimeImmutable;
-use Exception;
-use PDO;
-use RuntimeException;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
+use PHPMailer\PHPMailer\PHPMailer;
 
 /**
- * Low-Level SMTP-E-Mail-Dienst zur Direktübertragung über Sockets.
- * Loggt versendete E-Mails exklusiv in die MySQL Datenbank.
+ * Standard SMTP-Versand unter Verwendung von PHPMailer.
+ * Bietet volle Unterstützung für STARTTLS und sicheres Header-Encoding.
  */
-final readonly class SmtpMailService implements MailLogInterface, MailServiceInterface
+final class SmtpMailService extends AbstractMailService
 {
-    public function __construct(
-        private ?PDO $pdo,
-        private ConfigInterface $config,
-        private JsonHelperInterface $jsonHelper,
-    ) {
-    }
-
-    // --- Public API ---
-
-    /**
-     * Verarbeitet und versendet eine E-Mail basierend auf einem Template.
-     * Fängt leere Empfänger ab, liest Mail-Konfigurationen aus, prüft den Testmodus-Status
-     * und übergibt an den Socket-Dispatcher, bevor ein Log-Eintrag generiert wird.
-     *
-     * @param string $recipient Der Ziel-Empfänger.
-     * @param string $subject Der E-Mail-Betreff.
-     * @param string $template Das .phtml-Template im Ordner templates/emails/.
-     * @param array<string, mixed> $data Variablen zur Injektion in das Template.
-     *
-     * @return bool|string True bei Erfolg, andernfalls eine Fehlermeldung als String.
-     */
-    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50): bool|string
+    protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null): bool|string
     {
-        // Absicherung: Wenn kein Empfänger da ist, gar nicht erst versuchen zu senden
-        if (\in_array(\trim($recipient), ['', '0'], true)) {
-            $this->logEmail('System', $subject, clone new TemplateKey($template), 'Übersprungen: Kein Empfänger angegeben', null, $data);
-
-            return true;
-        }
-
-        $mailConfig = $this->config->getMailSettings();
-
-        // 1. Template laden und Platzhalter ersetzen (Simple Template Engine)
-        $body = $this->render($template, $data);
-
-        // 2. Testmodus-Logik
-        // SMTP Versand (Logik aus deiner smtp.php, hier vereinfacht skizziert)
-        // Wir nutzen hier das 'test_mode' Flag aus deiner Config
-        if ($this->config->isTestMode() && ($mailConfig['test_mail_active'] ?? false) === false) {
-            $this->logEmail($recipient, $subject, clone new TemplateKey($template), 'Testmodus (kein Versand)', $replyTo, $data);
-
-            return true;
-        }
-
-        // 3. Versand und Logging
-        $status = $this->dispatch($recipient, $subject, $body, $mailConfig, $replyTo);
-        $this->logEmail($recipient, $subject, clone new TemplateKey($template), $status, $replyTo, $data);
-
-        return $status;
-    }
-
-    /**
-     * Ermöglicht das Batch-Überschreiben / Wiederherstellen von E-Mail-Logs (z.B. bei System-Restores).
-     * Verwendet SQL-Transaktionen (Commit/Rollback) für hohe Konsistenz im DB-Betrieb.
-     *
-     * Speichert eine Liste von Mail-Logs (wichtig für Migration/Sync).
-     *
-     * @param MailLogEntry[] $logs
-     */
-    public function saveLogs(array $logs, bool $forceSql = false): void
-    {
-        $cfg = $this->config->get('storage_config')['mail_log'];
-        if (!$this->pdo instanceof PDO) {
-            return;
-        }
-
-        $this->pdo->beginTransaction();
+        $mail = new PHPMailer(true);
 
         try {
-            // Spalte `reply_to` hinzugefügt!
-            $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id,timestamp,recipient,reply_to,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $mail->isSMTP();
+            $mail->Host = $transportConfig['host'] ?? '';
+            $mail->SMTPAuth = true;
+            $mail->Username = $transportConfig['user'] ?? '';
+            $mail->Password = $transportConfig['pass'] ?? '';
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Implicit TLS (Port 465)
+            $mail->Port = (int) ($transportConfig['port'] ?? 465);
 
-            foreach ($logs as $log) {
-                $stmt->execute([
-                    $log->id,
-                    $log->timestamp->format('Y-m-d H:i:s'),
-                    $log->recipient,
-                    $log->replyTo,
-                    $log->subject,
-                    $log->template->value,
-                    $log->status,
-                    \json_encode($log->data, \JSON_UNESCAPED_UNICODE),
-                ]);
+            // Wechsel auf STARTTLS, falls Port 587 konfiguriert ist
+            if ($mail->Port === 587) {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             }
-            $this->pdo->commit();
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
 
-            throw $e;
-        }
-    }
+            $mail->CharSet = PHPMailer::CHARSET_UTF8;
+            $mail->setFrom($transportConfig['from'] ?? '', $this->config->get('vereins_name', 'KGA'));
+            $mail->addAddress($recipient);
 
-    /**
-     * Lädt die chronologische Liste aller E-Mail-Logs absteigend nach Zeitstempel.
-     *
-     * @return MailLogEntry[]
-     */
-    public function loadLogs(): array
-    {
-        $cfg = $this->config->get('storage_config')['mail_log'];
-        $logs = [];
-
-        if ($this->pdo instanceof PDO) {
-            $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC");
-            if ($stmt) {
-                foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
-                    $logs[] = new MailLogEntry(
-                        (string) $r['id'],
-                        new DateTimeImmutable($r['timestamp']),
-                        $r['recipient'] ?? '',
-                        $r['reply_to'] ?? null, // <--- FIX: ?? null fängt fehlende Keys bei alten Daten ab
-                        $r['subject'] ?? '',
-                        new TemplateKey($r['template'] ?: 'std_7'),
-                        $r['status'] ?? '',
-                        \is_string($r['data'] ?? null) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
-                    );
-                }
+            if ($replyTo !== null && \filter_var($replyTo, \FILTER_VALIDATE_EMAIL)) {
+                $mail->addReplyTo($replyTo);
             }
+
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+
+            $mail->send();
+
+            return true;
+        } catch (PHPMailerException $e) {
+            return 'PHPMailer Fehler: ' . $mail->ErrorInfo;
         }
-
-        return $logs;
-    }
-
-    public function importLogs(array $data, bool $forceSql = false): void
-    {
-        $objects = [];
-        foreach ($data as $id => $r) {
-            $objects[] = new MailLogEntry(
-                (string) $id,
-                new DateTimeImmutable($r['timestamp'] ?? 'now'),
-                $r['recipient'] ?? '',
-                $r['reply_to'] ?? null,
-                $r['subject'] ?? '',
-                new TemplateKey($r['template'] ?: 'std_7'),
-                $r['status'] ?? '',
-                \is_string($r['data'] ?? []) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
-            );
-        }
-        $this->saveLogs($objects, true);
-    }
-
-    // --- Private Engine ---
-
-    /**
-     * Template auflösen
-     *
-     * Rendert das PHTML-E-Mail-Template über den Output-Buffer und ersetzt Platzhalter.
-     * Sucht im gerenderten HTML nach `{{key}}` Mustern und ersetzt diese mit skalaren Array-Inhalten.
-     *
-     * @param string $templatePath Der Dateiname des Templates.
-     * @param array<string, mixed> $data Die Injektionsvariablen.
-     *
-     * @return string Das finale, versandbereite HTML-Markup.
-     */
-    private function render(string $templatePath, array $data): string
-    {
-        $root = $this->config->get('root_path');
-        $fullPath = $root . "/templates/emails/{$templatePath}.phtml";
-
-        if (!\file_exists($fullPath)) {
-            throw new RuntimeException("Mail-Template nicht gefunden: {$fullPath}");
-        }
-
-        // 1. Daten für das Template verfügbar machen
-        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
-        \extract($data, \EXTR_SKIP);
-
-        // 2. Output Buffering starten, um das PHP-Template zu "fangen"
-        \ob_start();
-        include $fullPath;
-
-        return (string) \ob_get_clean();
-    }
-
-    /**
-     * Socket aufbauen und senden
-     *
-     * Führt die physische SMTP-Socket-Kommunikation mit dem Mailserver durch.
-     * Abstrahiert SSL-Protokolle, authentifiziert sich via AUTH LOGIN und überträgt UTF-8 / Base64-kodierte Header.
-     *
-     * @param string $recipient Empfänger-E-Mail.
-     * @param string $subject Betreff-Zeile.
-     * @param string $body Der gerenderte HTML-Textkörper.
-     * @param array<string, mixed> $smtpConfig Serverdaten (host, port, user, pass, from).
-     *
-     * @return bool|string True bei SMTP-Erfolg (Code 250), andernfalls Fehlermeldung.
-     */
-    private function dispatch(string $recipient, string $subject, string $body, array $smtpConfig, ?string $replyTo = null): bool|string
-    {
-        $host = $smtpConfig['host'] ?? '';
-        $port = (int) ($smtpConfig['port'] ?? 465);
-        $user = \str_replace(["\r", "\n"], '', $smtpConfig['user'] ?? '');
-        $pass = \str_replace(["\r", "\n"], '', $smtpConfig['pass'] ?? '');
-        $from = \str_replace(["\r", "\n"], '', $smtpConfig['from'] ?? '');
-        $recipient = \str_replace(["\r", "\n"], '', $recipient);
-
-        $protocol = $port === 465 ? 'ssl://' : '';
-        $socket = @\fsockopen($protocol . $host, $port, $errno, $errstr, 15);
-
-        if (!$socket) {
-            return "Verbindung fehlgeschlagen: $errstr ($errno)";
-        }
-
-        // 1. Begrüßung abwarten (Code 220)
-        if (!$this->checkResponse($socket, '220')) {
-            return 'Server meldet sich nicht (Timeout)';
-        }
-
-        $smtpEhloHost = \parse_url($this->config->getBaseUrl())['host'] ?? ($_SERVER['SERVER_NAME'] ?? 'localhost');
-
-        // 2. EHLO senden mit sicherem, server-kontrolliertem Hostnamen
-        \fwrite($socket, 'EHLO ' . $smtpEhloHost . "\r\n");
-
-        if (!$this->checkResponse($socket, '250')) {
-            return 'EHLO abgelehnt';
-        }
-
-        // 3. Login starten
-        \fwrite($socket, "AUTH LOGIN\r\n");
-        $this->getServerResponse($socket); // 334 erwartet
-
-        \fwrite($socket, \base64_encode((string) $user) . "\r\n");
-        $this->getServerResponse($socket);
-
-        \fwrite($socket, \base64_encode($pass) . "\r\n");
-        if (!$this->checkResponse($socket, '235')) {
-            return 'SMTP Login fehlgeschlagen (Daten prüfen)';
-        }
-
-        // 4. Absender & Empfänger
-        \fwrite($socket, "MAIL FROM: <$from>\r\n");
-        $this->getServerResponse($socket);
-
-        \fwrite($socket, "RCPT TO: <$recipient>\r\n");
-        if (!$this->checkResponse($socket, '250')) {
-            return "Empfänger $recipient wurde vom Server abgelehnt";
-        }
-
-        // 5. Daten senden
-        \fwrite($socket, "DATA\r\n");
-        $this->getServerResponse($socket);
-
-        $headers = "MIME-Version: 1.0\r\n";
-        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-        $headers .= "From: <$from>\r\n";
-        $headers .= "To: <$recipient>\r\n";
-
-        // Reply-To Header sicher injizieren
-        if ($replyTo !== null && \filter_var($replyTo, \FILTER_VALIDATE_EMAIL)) {
-            $headers .= "Reply-To: <$replyTo>\r\n";
-        }
-
-        $headers .= 'Subject: =?UTF-8?B?' . \base64_encode($subject) . "?=\r\n\r\n";
-
-        \fwrite($socket, $headers . $body . "\r\n.\r\n");
-        if (!$this->checkResponse($socket, '250')) {
-            return 'E-Mail Daten wurden nicht akzeptiert';
-        }
-
-        \fwrite($socket, "QUIT\r\n");
-        \fclose($socket);
-
-        return true;
-    }
-
-    // --- Private Low-Level Helpers ---
-
-    /**
-     * Prüft, ob die Server-Antwort mit dem erwarteten numerischen SMTP-Statuscode beginnt.
-     *
-     * @param resource $socket
-     */
-    private function checkResponse(mixed $socket, string $expectedCode): bool
-    {
-        $response = $this->getServerResponse($socket);
-
-        return \str_starts_with($response, $expectedCode);
-    }
-
-    /**
-     * Liest zeilenweise die Antwort-Buffer des SMTP-Servers bis zum abschließenden Statuscode aus.
-     *
-     * @param resource $socket
-     *
-     * @return string Die gesammelte Serverantwort.
-     */
-    private function getServerResponse(mixed $socket): string
-    {
-        $response = '';
-        while ($str = \fgets($socket, 515)) {
-            $response .= $str;
-            // SMTP Zeilenende: Letzte Zeile hat ein Leerzeichen nach dem Code (z.B. "250 ")
-            if (\preg_match('/^\d{3} /', $str)) {
-                break;
-            }
-        }
-
-        return $response;
-    }
-
-    /**
-     * Schreibt einen Eintrag in das E-Mail-Versandprotokoll und begrenzt die Historie (Capping).
-     * Unterstützt MySQL-Einträge inklusive Tabellen-Bereinigung via Subquery oder historisierende JSON-Dateien.
-     */
-    private function logEmail(string $recipient, string $subject, TemplateKey $template, bool|string $status, ?string $replyTo = null, array $data = []): void
-    {
-        $statusStr = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
-        $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
-
-        $entry = new MailLogEntry(
-            \uniqid('ml_'),
-            new DateTimeImmutable(APP_REQUEST_TIME_STR),
-            $recipient,
-            $replyTo,
-            $subject,
-            $template,
-            $statusStr,
-            $data,
-        );
-
-        $logs = $this->loadLogs();
-        \array_unshift($logs, $entry);
-
-        if (\count($logs) > $maxEntries) {
-            $logs = \array_slice($logs, 0, $maxEntries);
-        }
-
-        $this->saveLogs($logs, true);
-    }
-
-    /**
-     * Diese Methode ist da, um das Interface zu erfüllen - es tut hier einfach absichtlich nichts!
-     */
-    public function processQueue(int $limit = 5): int
-    {
-        return 0;
     }
 }

@@ -38,6 +38,8 @@ use App\Contracts\Utils\ClockInterface;
 use App\Infrastructure\Database\PdoFactory;
 use App\Infrastructure\Logging\ErrorLogger;
 use App\Infrastructure\Mail\MailQueueService;
+use App\Infrastructure\Mail\MicrosoftGraphMailService;
+use App\Infrastructure\Mail\OAuthSmtpMailService;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Maintenance\BackupService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
@@ -179,19 +181,19 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $default = $mailCfg['default'] ?? 'smtp';
 
             if ($default === 'graph') {
-                // return new \App\Infrastructure\Mail\MicrosoftGraphMailService(
-                //     $container->get(PDO::class),
-                //     $config,
-                //     $container->get(JsonHelperInterface::class)
-                // );
+                return new MicrosoftGraphMailService(
+                    $container->get(PDO::class),
+                    $config,
+                    $container->get(JsonHelperInterface::class),
+                );
             }
 
             if ($default === 'oauth') {
-                // return new \App\Infrastructure\Mail\OAuthSmtpMailService(
-                //     $container->get(PDO::class),
-                //     $config,
-                //     $container->get(JsonHelperInterface::class)
-                // );
+                return new OAuthSmtpMailService(
+                    $container->get(PDO::class),
+                    $config,
+                    $container->get(JsonHelperInterface::class),
+                );
             }
 
             // Standard Fallback: Das bisherige System
