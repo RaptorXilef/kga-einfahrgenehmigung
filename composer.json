@@ -22,7 +22,10 @@
     "ext-gd": "*",
     "ext-hash": "*",
     "ext-openssl": "*",
-    "symfony/html-sanitizer": "^7.4"
+    "symfony/html-sanitizer": "^7.4",
+    "phpmailer/phpmailer": "^7.1",
+    "league/oauth2-client": "^2.9",
+    "thenetworg/oauth2-azure": "^2.2"
   },
   "require-dev": {
     "dealerdirect/phpcodesniffer-composer-installer": "^1.2",

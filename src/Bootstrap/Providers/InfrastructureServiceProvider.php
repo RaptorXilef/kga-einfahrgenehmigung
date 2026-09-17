@@ -85,11 +85,11 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
     public function register(ContainerInterface $container): void
     {
         /*
-         |--------------------------------------------------------------------------
-         | 1. CORE SYSTEM & DATABASE
-         |--------------------------------------------------------------------------
-         | Grundlegende Datenbankverbindungen und persistente Systemspeicher.
-         */
+        |--------------------------------------------------------------------------
+        | 1. CORE SYSTEM & DATABASE
+        |--------------------------------------------------------------------------
+        | Grundlegende Datenbankverbindungen und persistente Systemspeicher.
+        */
         $container->bind(PDO::class, fn (): ?PDO => PdoFactory::create(
             $container->get(ConfigInterface::class),
         ));
@@ -104,10 +104,10 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(ClockInterface::class, fn (): mixed => $container->get(SystemClock::class));
 
         /*
-         |--------------------------------------------------------------------------
-         | 2. DATA REPOSITORIES (FACTORY PATTERN)
-         |--------------------------------------------------------------------------
-         */
+        |--------------------------------------------------------------------------
+        | 2. DATA REPOSITORIES (FACTORY PATTERN)
+        |--------------------------------------------------------------------------
+        */
         $container->bind(AuditLogRepositoryInterface::class, fn (): MySqlAuditLogRepository => new MySqlAuditLogRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
@@ -165,42 +165,68 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         ));
 
         /*
-         |--------------------------------------------------------------------------
-         | 3. NETWORK & THIRD-PARTY SERVICES
-         |--------------------------------------------------------------------------
-         | Externe APIs, Payment-Provider und E-Mail Versand.
-         */
+        |--------------------------------------------------------------------------
+        | 3. NETWORK & THIRD-PARTY SERVICES
+        |--------------------------------------------------------------------------
+        | Externe APIs, Payment-Provider und E-Mail Versand.
+        */
         $container->bind(PaymentProviderInterface::class, fn (): mixed => $container->get(PayPalService::class));
 
-        $container->bind('mail.smtp', fn (): SmtpMailService => new SmtpMailService(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-            $container->get(JsonHelperInterface::class),
-        ));
+        // Dynamische Mail-Transport Auflösung (Strategy Pattern)
+        $container->bind('mail.transport', function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+            $mailCfg = $config->get('mail', []);
+            $default = $mailCfg['default'] ?? 'smtp';
 
-        $container->bind(MailLogInterface::class, fn (): mixed => $container->get('mail.smtp'));
+            if ($default === 'graph') {
+                // return new \App\Infrastructure\Mail\MicrosoftGraphMailService(
+                //     $container->get(PDO::class),
+                //     $config,
+                //     $container->get(JsonHelperInterface::class)
+                // );
+            }
 
+            if ($default === 'oauth') {
+                // return new \App\Infrastructure\Mail\OAuthSmtpMailService(
+                //     $container->get(PDO::class),
+                //     $config,
+                //     $container->get(JsonHelperInterface::class)
+                // );
+            }
+
+            // Standard Fallback: Das bisherige System
+            return new SmtpMailService(
+                $container->get(PDO::class),
+                $config,
+                $container->get(JsonHelperInterface::class),
+            );
+        });
+
+        // Logger Interface an den aktiven Transport binden
+        $container->bind(MailLogInterface::class, fn (): mixed => $container->get('mail.transport'));
+
+        // MailService mit dem aktiven Transport instanziieren
         $container->bind(MailServiceInterface::class, fn (): MailQueueService => new MailQueueService(
             $container->get(MailQueueRepositoryInterface::class),
-            $container->get('mail.smtp'),
+            $container->get('mail.transport'),
         ));
 
         /*
-         |--------------------------------------------------------------------------
-         | 4. SECURITY & SESSION MANAGEMENT
-         |--------------------------------------------------------------------------
-         | Schutzmechanismen gegen Brute-Force, Dateizugriff und Auth-Handling.
-         */
+        |--------------------------------------------------------------------------
+        | 4. SECURITY & SESSION MANAGEMENT
+        |--------------------------------------------------------------------------
+        | Schutzmechanismen gegen Brute-Force, Dateizugriff und Auth-Handling.
+        */
         $container->bind(AuthSessionInterface::class, fn (): object => clone $container->get(SessionManager::class));
         $container->bind(LockManagerInterface::class, fn (): mixed => $container->get(FileLockManager::class));
         $container->bind(RateLimiterInterface::class, fn (): mixed => $container->get(RateLimiter::class));
 
         /*
-         |--------------------------------------------------------------------------
-         | 5. SYSTEM, MAINTENANCE & UTILS
-         |--------------------------------------------------------------------------
-         | Hardware- und System-Tools für Backups, Updates, Migrationen und I/O.
-         */
+        |--------------------------------------------------------------------------
+        | 5. SYSTEM, MAINTENANCE & UTILS
+        |--------------------------------------------------------------------------
+        | Hardware- und System-Tools für Backups, Updates, Migrationen und I/O.
+        */
         $container->bind(BackupServiceInterface::class, fn (): mixed => $container->get(BackupService::class));
         $container->bind(ErrorLoggerInterface::class, fn (): mixed => $container->get(ErrorLogger::class));
         $container->bind(ImageStorageInterface::class, fn (): mixed => $container->get(ImageStorageService::class));
