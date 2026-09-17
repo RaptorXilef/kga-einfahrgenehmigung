@@ -4,16 +4,35 @@
         gap: var(--space-m);
     }
 
+    /* UI Fix: Mobile-First Architektur. Grids brechen auf Smartphones in eine einzelne Spalte um */
     .o-grid--2-cols {
-        grid-template-columns: var(--ratio-1) var(--ratio-1);
+        grid-template-columns: 1fr;
+    }
+
+    @media (width >= 40rem) {
+        .o-grid--2-cols {
+            grid-template-columns: var(--ratio-1) var(--ratio-1);
+        }
     }
 
     .o-grid--2-1 {
-        grid-template-columns: var(--ratio-2) var(--ratio-1);
+        grid-template-columns: 1fr;
+    }
+
+    @media (width >= 40rem) {
+        .o-grid--2-1 {
+            grid-template-columns: var(--ratio-2) var(--ratio-1);
+        }
     }
 
     .o-grid--auto-right {
-        grid-template-columns: var(--ratio-1) var(--size-auto);
+        grid-template-columns: 1fr;
+    }
+
+    @media (width >= 40rem) {
+        .o-grid--auto-right {
+            grid-template-columns: var(--ratio-1) var(--size-auto);
+        }
     }
 
     .o-grid--auto-fit-sm {
@@ -55,12 +74,24 @@
     }
 
     .o-grid--sidebar {
-        grid-template-columns: var(--ratio-1-6) var(--ratio-1);
+        grid-template-columns: 1fr;
+    }
+
+    @media (width >= 48rem) {
+        .o-grid--sidebar {
+            grid-template-columns: var(--ratio-1-6) var(--ratio-1);
+        }
     }
 
     .o-grid--user-management {
-        grid-template-columns: var(--size-panel-lg) var(--ratio-1-2) var(
-                --ratio-1
-            );
+        grid-template-columns: 1fr;
+    }
+
+    @media (width >= 60rem) {
+        .o-grid--user-management {
+            grid-template-columns: var(--size-panel-lg) var(--ratio-1-2) var(
+                    --ratio-1
+                );
+        }
     }
 }

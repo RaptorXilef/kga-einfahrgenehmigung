@@ -65,7 +65,7 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
         <?php } ?>
 
         <span class="u-text-4xl u-display-block u-margin-block-end-m">
-            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-tools.webp" class="c-icon c-icon--lg" alt="">
+            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/tools.webp" class="c-icon c-icon--lg" alt="">
         </span>
 
         <h1 class="u-margin-block-start-none">Kurze Pause!</h1>

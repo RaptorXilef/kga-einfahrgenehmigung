@@ -57,19 +57,20 @@
     // Generelles Formatting (Prettier für SCSS übernehmen lassen)
     "[scss]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.formatOnSave": true,
+        "editor.formatOnSave": false,
         "editor.codeActionsOnSave": {
-            // Führt Stylelint --fix direkt nach dem Speichern aus!
+            "source.fixAll": false,
             "source.fixAll.stylelint": "explicit"
         }
     },
 
     // Stylelint explizit sagen, welche Dateien es validieren soll
-    "stylelint.validate": ["css", "scss"],
+    "stylelint.validate": ["css", "postcss", "scss"],
 
     // Vermeide Konflikte mit dem eingebauten VSCode CSS/SCSS-Linter
     "css.validate": false,
     "scss.validate": false,
+    "less.validate": false,
 
     // --- HTML & MARKUPLINT ---
     "[html]": {

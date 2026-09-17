@@ -14,8 +14,11 @@
         block-size: var(--size-ui-md);
         padding-block: 0;
         padding-inline: var(--space-m);
+        font-size: var(--text-md);
+        line-height: var(--line-height-snug);
         color: var(--btn-color);
-        white-space: nowrap;
+        text-align: center;
+        white-space: normal; /* UI Fix: Erlaubt Umbrüche auf schmalen Screens */
         text-decoration: none;
         cursor: pointer;
         background-color: var(--btn-bg);
@@ -36,7 +39,7 @@
 
     .c-button__icon {
         flex-shrink: 0;
-        inline-size: 1.4em; // Skaliert sauber mit dem Text, aber deutlich sichtbarer
+        inline-size: 1.4em;
         block-size: 1.4em;
         margin: 0;
     }
@@ -134,24 +137,23 @@
         border-radius: var(--radius-l);
     }
 
-    /* UI Fix: Strikte Größen für Icon-Only Buttons (entkoppelt von text-size) */
     .c-button--icon-only {
         inline-size: var(--size-ui-md);
         padding-inline: 0;
+    }
 
-        .c-button__icon {
-            inline-size: var(--size-icon-md);
-            block-size: var(--size-icon-md);
-        }
+    .c-button--icon-only .c-button__icon {
+        inline-size: var(--size-icon-md);
+        block-size: var(--size-icon-md);
     }
 
     .c-button--small.c-button--icon-only {
         inline-size: var(--size-ui-sm);
+    }
 
-        .c-button__icon {
-            inline-size: 1.25rem; // 20px - Perfekt erkennbar in Tabellen
-            block-size: 1.25rem;
-        }
+    .c-button--small.c-button--icon-only .c-button__icon {
+        inline-size: 1.25rem;
+        block-size: 1.25rem;
     }
 
     .c-button--submit {

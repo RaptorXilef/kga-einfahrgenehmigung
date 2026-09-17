@@ -47,12 +47,12 @@ final readonly class BotProtectionService
     public function verifyTimeCheck(int $startTime, int $minSeconds = 3): void
     {
         if ($startTime === 0) {
-            throw new InvalidArgumentException('Sicherheits-Token abgelaufen: Bitte laden Sie die Seite neu und füllen Sie das Formular erneut aus.');
+            throw new InvalidArgumentException('Sicherheits-Token abgelaufen: Die Seite wurde zur Sicherheit neu geladen. Bitte senden Sie den Antrag über die Schaltfläche unten erneut ab.');
         }
 
         $duration = \time() - $startTime;
         if ($duration < $minSeconds) {
-            throw new InvalidArgumentException('Das Formular wurde zu schnell ausgefüllt (Bot-Verdacht). Ein Mensch benötigt dafür mehr Zeit.');
+            throw new InvalidArgumentException('Das Formular wurde zu schnell ausgefüllt (Bot-Verdacht). Ein Mensch benötigt dafür normalerweise mehr Zeit.');
         }
     }
 

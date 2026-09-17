@@ -62,6 +62,9 @@
         background-image: var(--icon-select-arrow);
         background-repeat: no-repeat;
         background-position: calc(var(--size-full) - var(--space-m)) center;
+        background-size: var(
+            --size-icon-xs
+        ); /* UI Fix: Icon Größe humanisiert */
     }
 
     .c-form-label {
@@ -200,5 +203,13 @@
 
     .c-form-input--short {
         max-inline-size: var(--size-panel-md);
+    }
+
+    /* UI Fix: Erlaubt Umbrüche der per JS injizierten Öffnungszeiten */
+    .c-opening-times > div {
+        display: flex;
+        flex-wrap: wrap;
+        row-gap: var(--space-xs);
+        align-items: center;
     }
 }
