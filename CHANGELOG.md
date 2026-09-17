@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.69.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.69.2...v0.69.3) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **tooling:** Implement automatic property sorting and formatting with Stylelint ([89ba0d5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/89ba0d53684b1caa940acd96eb084507bba83bfd))
+
 ## [0.69.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.69.1...v0.69.2) (2026-09-16)
 
 ### 🐛 Bug Fixes
