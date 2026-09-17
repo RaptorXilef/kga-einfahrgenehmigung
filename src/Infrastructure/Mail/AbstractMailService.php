@@ -135,7 +135,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         return $mailConfig['transports'][$default] ?? [];
     }
 
-    private function logEmail(string $recipient, string$subject, TemplateKey $template, bool\vert{}string$status, ?string $replyTo = null, array$data = []): void
+    private function logEmail(string $recipient, string $subject, TemplateKey $template, bool|string $status, ?string $replyTo = null, array $data = []): void
     {
         $statusStr = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
         $maxEntries = (int)$this->config->get('mail_log_max_entries', 200);
