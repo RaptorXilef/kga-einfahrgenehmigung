@@ -58,32 +58,42 @@ final readonly class SendPermitMailListener
         // --- 1. MAIL AN VORSTAND ---
         if (($mailConfig['send_board_notification'] ?? true) === true) {
             $userEmail = $permit->getOwnerEmail() !== '' ? $permit->getOwnerEmail() : null;
+            $boardRecipientsRaw = $mailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'] ?? '';
 
-            $this->mailService->sendTemplate(
-                recipient: $mailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
-                subject: "[{$permitCodeStr}] - {$zeitraum} - {$permit->getOwnerName()}",
-                template: 'board_notification',
-                data: [
-                    'adminLink' => $this->config->getBaseUrl() . "check?code={$permitCodeStr}&token={$token}",
-                    'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
-                    'email' => $permit->getOwnerEmail() ?: 'Keine angegeben',
-                    'firma' => $permit->getCompany() ?? '',
-                    'fullIdentifier' => $permitCodeStr,
-                    'kennzeichen' => $permit->getLicensePlate(),
-                    'name' => $permit->getOwnerName(),
-                    'parzelle' => $permit->getPlotNumber(),
-                    'preis' => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
-                    'typLabel' => (function ($typ, $config) {
-                        $vConfigs = $config->get('vehicle_types', []);
+            // FIX: Erlaube mehrere Vorstände durch Komma-Trennung und validiere die Adressen
+            $boardRecipients = \array_filter(\array_map('trim', \explode(',', (string) $boardRecipientsRaw)));
 
-                        return $vConfigs[$typ]['label'] ?? 'Fahrzeug: ' . \strtoupper($typ);
-                    })($permit->getVehicleType(), $this->config),
-                    'vereinsName' => $this->config->get('vereins_name'),
-                    'von_formatted' => $permit->getValidFrom()->format('d.m.Y'),
-                    'zweck' => $permit->getPurpose(),
-                ],
-                replyTo: $userEmail,
-            );
+            $data = [
+                'adminLink' => $this->config->getBaseUrl() . "check?code={$permitCodeStr}&token={$token}",
+                'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
+                'email' => $permit->getOwnerEmail() ?: 'Keine angegeben',
+                'firma' => $permit->getCompany() ?? '',
+                'fullIdentifier' => $permitCodeStr,
+                'kennzeichen' => $permit->getLicensePlate(),
+                'name' => $permit->getOwnerName(),
+                'parzelle' => $permit->getPlotNumber(),
+                'preis' => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
+                'typLabel' => (function ($typ, $config) {
+                    $vConfigs = $config->get('vehicle_types', []);
+
+                    return $vConfigs[$typ]['label'] ?? 'Fahrzeug: ' . \strtoupper($typ);
+                })($permit->getVehicleType(), $this->config),
+                'vereinsName' => $this->config->get('vereins_name'),
+                'von_formatted' => $permit->getValidFrom()->format('d.m.Y'),
+                'zweck' => $permit->getPurpose(),
+            ];
+
+            foreach ($boardRecipients as $recipient) {
+                if (\filter_var($recipient, \FILTER_VALIDATE_EMAIL)) {
+                    $this->mailService->sendTemplate(
+                        recipient: $recipient,
+                        subject: "[{$permitCodeStr}] - {$zeitraum} - {$permit->getOwnerName()}",
+                        template: 'board_notification',
+                        data: $data,
+                        replyTo: $userEmail,
+                    );
+                }
+            }
         }
 
         // --- MAIL AN NUTZER (Nur wenn E-Mail vorhanden ist) ---

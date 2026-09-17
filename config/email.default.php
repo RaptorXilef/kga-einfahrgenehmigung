@@ -8,7 +8,7 @@ return [
         'test_mail_active' => false,
         'send_board_notification' => true,
         'recipients' => [
-            'live' => 'vorstand@echte-domain.de',
+            'live' => 'vorstand@echte-domain.de, finanzen@echte-domain.de',
             'test' => 'deine-private-mail@test.de',
         ],
         'transports' => [
