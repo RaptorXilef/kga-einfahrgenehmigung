@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.69.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.69.3...v0.69.4) (2026-09-17)
+
+### 📚 Dokumentation
+
+* add release-nodes 0.69.4 ([152927e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/152927e74f93b0f5ebf15a6ce5f02d37a1f3a068))
+
 ## [0.69.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.69.2...v0.69.3) (2026-09-17)
 
 ### 🐛 Bug Fixes
