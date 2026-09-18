@@ -54,17 +54,19 @@ final readonly class SendPermitMailListener
         );
 
         $mailConfig = $this->config->getMailSettings();
+        // Sichere Base-URL mit garantiert einem abschließenden Slash
+        $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
 
         // --- 1. MAIL AN VORSTAND ---
         if (($mailConfig['send_board_notification'] ?? true) === true) {
             $userEmail = $permit->getOwnerEmail() !== '' ? $permit->getOwnerEmail() : null;
             $boardRecipientsRaw = $mailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'] ?? '';
 
-            // FIX: Erlaube mehrere Vorstände durch Komma-Trennung und validiere die Adressen
+            // Erlaube mehrere Vorstände durch Komma-Trennung und validiere die Adressen
             $boardRecipients = \array_filter(\array_map('trim', \explode(',', (string) $boardRecipientsRaw)));
 
             $data = [
-                'adminLink' => $this->config->getBaseUrl() . "check?code={$permitCodeStr}&token={$token}",
+                'adminLink' => $safeBaseUrl . "check?code={$permitCodeStr}&token={$token}",
                 'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
                 'email' => $permit->getOwnerEmail() ?: 'Keine angegeben',
                 'firma' => $permit->getCompany() ?? '',
@@ -115,7 +117,7 @@ final readonly class SendPermitMailListener
                 "Zahlung erforderlich: {$permitCodeStr}",
                 'payment_request',
                 [
-                    'baseUrl' => $this->config->getBaseUrl(),
+                    'baseUrl' => $safeBaseUrl,
                     'betrag' => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
                     'dueDate' => $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y'),
                     'epcData' => \urlencode($epcQrData),
@@ -136,7 +138,7 @@ final readonly class SendPermitMailListener
             'permit_a4_document',
             [
                 'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
-                'checkUrl' => \urlencode($this->config->getBaseUrl() . 'check?code=' . $permitCodeStr),
+                'checkUrl' => \urlencode($safeBaseUrl . 'check?code=' . $permitCodeStr),
                 'erstellt' => $permit->getCreatedAt()->format('d.m.Y H:i'),
                 'firma' => $permit->getCompany() ?? '',
                 'fullIdentifier' => $permitCodeStr,
@@ -145,7 +147,7 @@ final readonly class SendPermitMailListener
                 'kennzeichen' => $permit->getLicensePlate(),
                 'opening_html' => $opening,
                 'parzelle' => $permit->getPlotNumber(),
-                'settings' => ['base_url' => $this->config->getBaseUrl()],
+                'settings' => ['base_url' => $safeBaseUrl],
                 'template_key' => $permit->template_key->value,
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
                 'vereinsName' => $this->config->get('vereins_name'),
