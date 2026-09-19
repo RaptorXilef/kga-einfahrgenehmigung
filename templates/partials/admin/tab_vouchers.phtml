@@ -80,6 +80,7 @@ use App\Infrastructure\Config\Config;
                                                 <button type="button"
                                                         class="c-button c-button--secondary c-button--small js-show-qr"
                                                         title="QR-Code anzeigen"
+                                                        aria-label="QR-Code für <?php echo $vCodeStr; ?> anzeigen"
                                                         data-code="<?php echo \htmlspecialchars($vCodeStr); ?>"
                                                         data-url="<?php echo \htmlspecialchars($url); ?>">
                                                     <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
@@ -160,7 +161,8 @@ use App\Infrastructure\Config\Config;
                                                         <?php if ($isDeactivated) { ?>
                                                             <button type="submit"
                                                                     class="c-button c-button--success c-button--small c-button--icon-only"
-                                                                    title="Aktivieren">
+                                                                    title="Aktivieren"
+                                                                    aria-label="Gutschein <?php echo $vCodeStr; ?> aktivieren">
                                                                 <img src="<?php echo $asset->url('assets/img/icons/unlock.webp'); ?>"
                                                                      class="c-icon c-button__icon"
                                                                      loading="lazy"
@@ -169,7 +171,8 @@ use App\Infrastructure\Config\Config;
                                                         <?php } else { ?>
                                                             <button type="submit"
                                                                     class="c-button c-button--danger c-button--small c-button--icon-only"
-                                                                    title="Sperren">
+                                                                    title="Sperren"
+                                                                    aria-label="Gutschein <?php echo $vCodeStr; ?> sperren">
                                                                 <img src="<?php echo $asset->url('assets/img/icons/denied.webp'); ?>"
                                                                      class="c-icon c-button__icon"
                                                                      loading="lazy"
@@ -193,7 +196,8 @@ use App\Infrastructure\Config\Config;
                                                                value="<?php echo $vCodeStr; ?>">
                                                         <button type="submit"
                                                                 class="c-button c-button--danger-outline c-button--small c-button--icon-only"
-                                                                title="Löschen">
+                                                                title="Löschen"
+                                                                aria-label="Gutschein <?php echo $vCodeStr; ?> löschen">
                                                             <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
                                                                  class="c-icon c-button__icon"
                                                                  loading="lazy"

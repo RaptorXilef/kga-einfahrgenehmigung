@@ -202,7 +202,8 @@ $now = new \DateTimeImmutable('today');
                                                        value="<?php echo $permit->code; ?>">
                                                 <button type="submit"
                                                         class="c-button c-button--danger-outline c-button--icon-only"
-                                                        title="Antrag stornieren">
+                                                        title="Antrag stornieren"
+                                                        aria-label="Antrag für Genehmigung <?php echo $permit->code; ?> stornieren">
                                                     <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
                                                          class="c-icon c-button__icon"
                                                          loading="lazy"
@@ -210,10 +211,18 @@ $now = new \DateTimeImmutable('today');
                                                 </button>
                                             </form>
                                         <?php } ?>
-                                        <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--icon-only" title="Status / Prüfseite öffnen">
+                                        <a href="check?code=<?php echo $permit->code; ?>"
+                                           target="_blank"
+                                           class="c-button c-button--secondary c-button--icon-only"
+                                           title="Status / Prüfseite öffnen"
+                                           aria-label="Status für Genehmigung <?php echo $permit->code; ?> prüfen">
                                             <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                         </a>
-                                        <a href="history_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--icon-only" title="Dokument anzeigen">
+                                        <a href="history_print?code=<?php echo $permit->code; ?>"
+                                           target="_blank"
+                                           class="c-button c-button--secondary c-button--icon-only"
+                                           title="Dokument anzeigen"
+                                           aria-label="Druckansicht für Genehmigung <?php echo $permit->code; ?> öffnen">
                                             <img src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                         </a>
                                     </div>

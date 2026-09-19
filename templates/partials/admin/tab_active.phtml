@@ -173,13 +173,21 @@ if ($auth->hasPermission('permits.view')) {
                                     <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                                         <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
-                                                <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Druckvorschau">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="Drucken">
+                                                <a href="admin_print?code=<?php echo $permit->code; ?>"
+                                                   target="_blank"
+                                                   class="c-button c-button--secondary c-button--small c-button--icon-only"
+                                                   title="Druckvorschau"
+                                                   aria-label="Druckvorschau für Genehmigung <?php echo $permit->code; ?> öffnen">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                                 </a>
                                             <?php } ?>
                                             <?php if ($auth->hasPermission('permits.view')) { ?>
-                                                <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="Details">
+                                                <a href="check?code=<?php echo $permit->code; ?>"
+                                                   target="_blank"
+                                                   class="c-button c-button--secondary c-button--small c-button--icon-only"
+                                                   title="Details"
+                                                   aria-label="Details für Genehmigung <?php echo $permit->code; ?> öffnen">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                                 </a>
                                             <?php } ?>
                                             <?php if ($auth->hasPermission('permits.suspend')) { ?>
@@ -199,7 +207,8 @@ if ($auth->hasPermission('permits.view')) {
                                                                value="unsuspend_permit">
                                                         <button type="submit"
                                                                 class="c-button c-button--success c-button--small c-button--icon-only"
-                                                                title="Wieder freigeben">
+                                                                title="Wieder freigeben"
+                                                                aria-label="Genehmigung <?php echo $permit->code; ?> wieder freigeben">
                                                             <img src="<?php echo $asset->url('assets/img/icons/unlock.webp'); ?>"
                                                                  class="c-icon c-button__icon"
                                                                  loading="lazy"
@@ -210,7 +219,8 @@ if ($auth->hasPermission('permits.view')) {
                                                     <!-- Button zum Sperren -->
                                                     <button class="c-button c-button--danger c-button--small c-button--icon-only js-suspend-btn"
                                                             data-code="<?php echo $permit->code; ?>"
-                                                            title="Sperren">
+                                                            title="Sperren"
+                                                            aria-label="Genehmigung <?php echo $permit->code; ?> sperren">
                                                         <img src="<?php echo $asset->url('assets/img/icons/denied.webp'); ?>"
                                                              class="c-icon c-button__icon"
                                                              loading="lazy"

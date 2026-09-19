@@ -34,6 +34,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                 $key = $node['key'] ?? null;
                 $isAllowed = $key ? \in_array($key, $rolePerms, true) : false;
                 $hasChildren = !empty($node['children']);
+                $permissionLabel = \htmlspecialchars((string) ($node['label'] ?? $id));
                 ?>
                 <div class="c-tree-node"
                      style="--depth: <?php echo $depth; ?>;"
@@ -44,7 +45,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                                 <?php if (isset($node['icon']) && $asset !== null) { ?>
                                     <img src="<?php echo $asset->url('assets/img/icons/' . $node['icon']); ?>" class="c-icon c-icon--inline u-margin-inline-end-xs" loading="lazy" alt="">
                                 <?php } ?>
-                                <?php echo \htmlspecialchars((string) ($node['label'] ?? $id)); ?>
+                                <?php echo $permissionLabel; ?>
                             </span>
                             <?php if ($key) { ?>
                                 <span class="c-tree-item__sublabel"><?php echo \htmlspecialchars((string) $key); ?></span>
@@ -62,8 +63,9 @@ if ($auth->hasPermission('system.roles.manage')) {
                                            value="<?php echo \htmlspecialchars((string) $key); ?>"
                                            data-perm-check="true"
                                            class="c-switch__input"
+                                           aria-label="Berechtigung: <?php echo $permissionLabel; ?>"
                                            <?php echo $isAllowed ? 'checked' : ''; ?>>
-                                    <span class="c-switch__label" data-on="ALLOW" data-off="NONE"></span>
+                                    <span class="c-switch__label" aria-hidden="true" data-on="ALLOW" data-off="NONE"></span>
                                 </label>
                             <?php } ?>
                         </div>
@@ -72,7 +74,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                         \renderPermissionNode($node['children'], $rolePerms, $depth + 1, $asset);
                     } ?>
                 </div>
-<?php
+                <?php
             }
         }
     } ?>
@@ -157,7 +159,8 @@ if ($auth->hasPermission('system.roles.manage')) {
                                        value="<?php echo $roleId; ?>">
                                 <button type="submit"
                                         class="c-button c-button--danger c-button--icon-only"
-                                        title="Rolle löschen">
+                                        title="Rolle löschen"
+                                        aria-label="Rolle <?php echo \htmlspecialchars($rData->name); ?> löschen">
                                     <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
                                          class="c-icon c-button__icon"
                                          loading="lazy"
@@ -263,8 +266,9 @@ if ($auth->hasPermission('system.roles.manage')) {
                                                value="*"
                                                data-master-toggle="true"
                                                class="c-switch__input"
+                                               aria-label="Vollständigen System-Zugriff für diese Rolle aktivieren"
                                                <?php echo \in_array('*', $rData->permissions, true) ? 'checked' : ''; ?>>
-                                        <span class="c-switch__label" data-on="MASTER" data-off="OFF"></span>
+                                        <span class="c-switch__label" aria-hidden="true" data-on="MASTER" data-off="OFF"></span>
                                     </label>
                                 </div>
                             <?php } ?>
