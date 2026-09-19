@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.70.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.70.1...v0.70.2) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **security:** Enforce secure DocumentFragments for Markdown rendering and eliminate innerHTML ([cf7a38d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cf7a38d05ef5df8dff4c49585cbb71acd61b4eee))
+* **styles:** Refactor table modifiers, drop SVG data-uris, and fix CSS nesting ([912d78d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/912d78df7efa8c7d359c43f9d6d0d4305a66667d))
+* **ui:** Isolate pagination and action links by tab context to prevent parameter leakage ([9f1b0aa](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9f1b0aa96a57c2c3f731e6efb7551427f5ff17c0))
+* **ui:** Isolate pagination states across dashboard tabs ([a755af6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a755af6b8a42c42579c56fd4f03f0ecab4eda7e3))
+* **ui:** Refactor unsafe innerHTML and decouple CSS utility classes from JS ([1011c97](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1011c97fc5893fcabdb94033b30b70ed404e0512))
+* **ui:** Resolve sticky toasts and URL parameter leakage on tab switch ([deff867](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/deff8674c5fff580bb25df545f9898f25a402395))
+* **ui:** Resolve undefined variable $auditPage in audit log tab ([e40120b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e40120bb1abf092a553e7f240f528e8d446bccda))
+* **ui:** Strip all cross-tab parameters during URL generation to ensure clean URLs ([d51acaf](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d51acafa35525691c739a94049228f1c19074a8a))
+* **ui:** Unify pagination parameters and implement server-side tab routing ([d6a26bd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d6a26bd58e9aabc3f1d312e967baff0b01769d85))
+
 ## [0.70.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.70.0...v0.70.1) (2026-09-19)
 
 ### 🐛 Bug Fixes
