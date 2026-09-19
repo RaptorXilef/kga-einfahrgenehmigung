@@ -295,7 +295,17 @@ export class AdminDashboard {
             // Ignore
         }
 
-        // Schutz vor manipulierten Storage-Strings, die den Sektorenbau (DOMException) zum Absturz bringen!
+        // ARCHITEKTUR-FIX: Wenn PHP bereits einen Tab via URL focus= erzwingt,
+        // darf das JS/LocalStorage diesen NICHT mehr überschreiben!
+        const urlParams = new URLSearchParams(window.location.search);
+        if (
+            urlParams.has('focus') ||
+            urlParams.has('audit_filter') ||
+            document.querySelector('.js-bank-preview-data')
+        ) {
+            return; // PHP hat die Kontrolle übernommen
+        }
+
         let targetBtn = null;
         try {
             targetBtn = document.querySelector(`[data-tab-target="${lastTab}"]`);
@@ -311,7 +321,7 @@ export class AdminDashboard {
         const urlParams = new URLSearchParams(window.location.search);
 
         // Audit Logs
-        if (urlParams.has('audit_page') || urlParams.has('audit_filter')) {
+        if (urlParams.has('audit_filter')) {
             const auditBtn = this.container.querySelector('[data-tab-target="tab-audit-log"]');
             if (auditBtn) this.switchTab('tab-audit-log', auditBtn);
         }

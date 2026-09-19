@@ -15,7 +15,6 @@ use App\Infrastructure\Storage\ImageStorageService;
  */
 $auditLogs ??= [];
 $auditTotal ??= 0;
-$auditPage ??= 1;
 $auditFilter ??= '';
 
 $limit = $itemsPerPage ?? 25;
@@ -52,7 +51,7 @@ $filterOptions = [
 // Variablen für das Partial mappen
 $totalPages = $auditTotalPages;
 $totalCount = $auditTotal;
-$paginationParam = 'audit_page';
+$paginationParam = 'page';
 // ARCHITEKTUR-FIX: Das Stempeln des Tab-Links verhindert das Springen in den falschen Tab
 $tabFocusId = 'tab-audit-log';
 include $appRoot . '/templates/partials/admin/pagination.phtml';
@@ -77,7 +76,11 @@ if ($auth->hasPermission('system.logs.view')) {
                       action="?"
                       id="auditFilterForm"
                       class="u-flex u-align-center u-gap-s u-margin-block-none">
-                    <label for="audit_filter_select" class="u-text-sm u-font-bold u-color-muted">FILTER:</label>
+                    <input type="hidden"
+                           name="focus"
+                           value="tab-audit-log">
+                    <label for="audit_filter_select"
+                           class="u-text-sm u-font-bold u-color-muted">FILTER:</label>
                     <select name="audit_filter"
                             id="audit_filter_select"
                             class="c-form-select js-auto-submit-select c-button--small">
@@ -87,7 +90,7 @@ if ($auth->hasPermission('system.logs.view')) {
                         <?php } ?>
                     </select>
                     <?php if ($auditFilter !== '') { ?>
-                        <a href="?" class="c-button c-button--danger-outline c-button--icon-only c-button--small u-text-xl" title="Filter löschen">&times;</a>
+                        <a href="?focus=tab-audit-log" class="c-button c-button--danger-outline c-button--icon-only c-button--small u-text-xl" title="Filter löschen">&times;</a>
                     <?php } ?>
                 </form>
             </header>

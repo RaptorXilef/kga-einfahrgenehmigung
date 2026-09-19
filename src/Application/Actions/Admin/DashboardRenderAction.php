@@ -127,10 +127,9 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         $cancelledPermits = $this->cancelledRepository->loadAll();
 
-        // Audit-Log nutzt nun die dynamische Limit-Angabe aus dem globalen Filter ($dto->limit)
-        $auditPage = \max(1, (int) ($request->get['audit_page'] ?? 1));
+        // ARCHITEKTUR-FIX: Einheitlicher DTO-Page Parameter für die Datenbank-Abfrage
         $auditFilter = (string) ($request->get['audit_filter'] ?? '');
-        $auditData = $this->auditLogRepository->getPaginated($auditPage, $dto->limit, $auditFilter);
+        $auditData = $this->auditLogRepository->getPaginated($dto->page, $dto->limit, $auditFilter);
 
         // Formulardaten (bei Fehlern) laden und Session leeren
         $formData = $this->sessionManager->getFormData() ?? [];
@@ -156,7 +155,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'allReleaseNotes' => $allReleaseNotes,
             'auditFilter' => $auditFilter,
             'auditLogs' => $auditData['items'],
-            'auditPage' => $auditPage,
             'auditTotal' => $auditData['total'],
             'auth' => $this->auth,
             'backups' => $this->auth->hasPermission('system.backup.manage') ? $this->backupService->listBackups() : [],

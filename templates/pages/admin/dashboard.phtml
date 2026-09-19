@@ -36,7 +36,7 @@ use App\Core\Service\VoucherService;
 
 // Aktiviere das Admin-Layout
 $layout = 'admin';
-$now = new \DateTimeImmutable();
+$now = new \DateTimeImmutable('today');
 $tplMetadata = [];
 foreach ($config->get('permit_templates', []) as $key => $tpl) {
     $tplMetadata[$key] = [
@@ -45,6 +45,32 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         'prices' => $tpl['prices'],
     ];
 }
+
+// ARCHITEKTUR-FIX: Server-Side Tab Routing
+// Bestimmt nativ den aktiven Tab beim Seitenaufbau. Verhindert UI-Flickern!
+$focus = $_GET['focus'] ?? 'tab-active';
+
+// Wenn eine Bank-Vorschau aktiv ist, erzwingen wir den Bank-Tab
+if (isset($formData['bank_wizard']['headers']) && !empty($formData['bank_wizard']['headers'])) {
+    $focus = 'tab-bank-import';
+    $bank_headers = true; // Für Kompatibilität mit dem Partial
+}
+
+$isActive = function (string $tabId) use ($focus): string {
+    return $focus === $tabId ? 'is-active' : '';
+};
+
+$ariaSelected = function (string $tabId) use ($focus): string {
+    return $focus === $tabId ? 'true' : 'false';
+};
+
+$tabIndex = function (string $tabId) use ($focus): string {
+    return $focus === $tabId ? '0' : '-1';
+};
+
+$ariaHidden = function (string $tabId) use ($focus): string {
+    return $focus === $tabId ? 'false' : 'true';
+};
 ?>
 
 <main class="js-admin-dashboard c-tab-content-container u-padding-block-l">
@@ -52,11 +78,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     <div class="u-inline-size-100">
         <!-- 1. NAVIGATION (TABS) - NUN MIT INITIALEM WAI-ARIA -->
         <div class="c-tabs">
-            <div class="c-tabs__nav u-margin-block-end-l" role="tablist" aria-label="Dashboard Ansichten">
+            <div class="c-tabs__nav u-margin-block-end-l"
+                 role="tablist"
+                 aria-label="Dashboard Ansichten">
                 <?php if ($auth->hasPermission('permits.view')) { ?>
-                    <button class="c-tabs__btn is-active"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-active'); ?>"
                             role="tab"
-                            aria-selected="true"
+                            aria-selected="<?php echo $ariaSelected('tab-active'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-active'); ?>"
                             aria-controls="tab-active"
                             id="btn-tab-active"
                             data-tab-target="tab-active">
@@ -65,10 +94,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              loading="lazy"
                              alt=""> Aktiv (<?php echo \count($permitGroups['active'] ?? []); ?>)
                     </button>
-                    <button class="c-tabs__btn"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-future'); ?>"
                             role="tab"
-                            aria-selected="false"
-                            tabindex="-1"
+                            aria-selected="<?php echo $ariaSelected('tab-future'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-future'); ?>"
                             aria-controls="tab-future"
                             id="btn-tab-future"
                             data-tab-target="tab-future">
@@ -77,10 +106,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              loading="lazy"
                              alt=""> Zukünftig (<?php echo \count($permitGroups['future'] ?? []); ?>)
                     </button>
-                    <button class="c-tabs__btn"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-expired'); ?>"
                             role="tab"
-                            aria-selected="false"
-                            tabindex="-1"
+                            aria-selected="<?php echo $ariaSelected('tab-expired'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-expired'); ?>"
                             aria-controls="tab-expired"
                             id="btn-tab-expired"
                             data-tab-target="tab-expired">
@@ -89,10 +118,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              loading="lazy"
                              alt=""> Abgelaufen (<?php echo \count($permitGroups['expired'] ?? []); ?>)
                     </button>
-                    <button class="c-tabs__btn"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-cancelled'); ?>"
                             role="tab"
-                            aria-selected="false"
-                            tabindex="-1"
+                            aria-selected="<?php echo $ariaSelected('tab-cancelled'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-cancelled'); ?>"
                             aria-controls="tab-cancelled"
                             id="btn-tab-cancelled"
                             data-tab-target="tab-cancelled">
@@ -104,10 +133,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('stats.ranking')) { ?>
-                    <button class="c-tabs__btn"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-ranking'); ?>"
                             role="tab"
-                            aria-selected="false"
-                            tabindex="-1"
+                            aria-selected="<?php echo $ariaSelected('tab-ranking'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-ranking'); ?>"
                             aria-controls="tab-ranking"
                             id="btn-tab-ranking"
                             data-tab-target="tab-ranking">
@@ -119,10 +148,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('finance.view')) { ?>
-                    <button class="c-tabs__btn"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-finance'); ?>"
                             role="tab"
-                            aria-selected="false"
-                            tabindex="-1"
+                            aria-selected="<?php echo $ariaSelected('tab-finance'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-finance'); ?>"
                             aria-controls="tab-finance"
                             id="btn-tab-finance"
                             data-tab-target="tab-finance">
@@ -138,10 +167,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('stats.view')) { ?>
-                    <button class="c-tabs__btn"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-stats'); ?>"
                             role="tab"
-                            aria-selected="false"
-                            tabindex="-1"
+                            aria-selected="<?php echo $ariaSelected('tab-stats'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-stats'); ?>"
                             aria-controls="tab-stats"
                             id="btn-tab-stats"
                             data-tab-target="tab-stats">
@@ -153,10 +182,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('finance.bank_import')) { ?>
-                    <button class="c-tabs__btn <?php echo isset($bank_headers) ? 'is-active' : ''; ?>"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-bank-import'); ?>"
                             role="tab"
-                            aria-selected="<?php echo isset($bank_headers) ? 'true' : 'false'; ?>"
-                            tabindex="<?php echo isset($bank_headers) ? '0' : '-1'; ?>"
+                            aria-selected="<?php echo $ariaSelected('tab-bank-import'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-bank-import'); ?>"
                             aria-controls="tab-bank-import"
                             id="btn-tab-bank-import"
                             data-tab-target="tab-bank-import">
@@ -168,10 +197,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('finance.export')) { ?>
-                    <button class="c-tabs__btn"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-export'); ?>"
                             role="tab"
-                            aria-selected="false"
-                            tabindex="-1"
+                            aria-selected="<?php echo $ariaSelected('tab-export'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-export'); ?>"
                             aria-controls="tab-export"
                             id="btn-tab-export"
                             data-tab-target="tab-export">
@@ -183,10 +212,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('permits.create') || $auth->hasPermission('vouchers.create')) { ?>
-                    <button class="c-tabs__btn"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-tools'); ?>"
                             role="tab"
-                            aria-selected="false"
-                            tabindex="-1"
+                            aria-selected="<?php echo $ariaSelected('tab-tools'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-tools'); ?>"
                             aria-controls="tab-tools"
                             id="btn-tab-tools"
                             data-tab-target="tab-tools">
@@ -198,10 +227,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('vouchers.view')) { ?>
-                    <button class="c-tabs__btn"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-vouchers'); ?>"
                             role="tab"
-                            aria-selected="false"
-                            tabindex="-1"
+                            aria-selected="<?php echo $ariaSelected('tab-vouchers'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-vouchers'); ?>"
                             aria-controls="tab-vouchers"
                             id="btn-tab-vouchers"
                             data-tab-target="tab-vouchers">
@@ -213,10 +242,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('system.logs.view')) { ?>
-                    <button class="c-tabs__btn"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-logs'); ?>"
                             role="tab"
-                            aria-selected="false"
-                            tabindex="-1"
+                            aria-selected="<?php echo $ariaSelected('tab-logs'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-logs'); ?>"
                             aria-controls="tab-logs"
                             id="btn-tab-logs"
                             data-tab-target="tab-logs">
@@ -225,10 +254,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              loading="lazy"
                              alt=""> Mail Log
                     </button>
-                    <button class="c-tabs__btn <?php echo isset($_GET['audit_page']) ? 'is-active' : ''; ?>"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-audit-log'); ?>"
                             role="tab"
-                            aria-selected="<?php echo isset($_GET['audit_page']) ? 'true' : 'false'; ?>"
-                            tabindex="<?php echo isset($_GET['audit_page']) ? '0' : '-1'; ?>"
+                            aria-selected="<?php echo $ariaSelected('tab-audit-log'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-audit-log'); ?>"
                             aria-controls="tab-audit-log"
                             id="btn-tab-audit-log"
                             data-tab-target="tab-audit-log">
@@ -240,10 +269,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('system.update.execute')) { ?>
-                    <button class="c-tabs__btn"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-system'); ?>"
                             role="tab"
-                            aria-selected="false"
-                            tabindex="-1"
+                            aria-selected="<?php echo $ariaSelected('tab-system'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-system'); ?>"
                             aria-controls="tab-system"
                             id="btn-tab-system"
                             data-tab-target="tab-system">
@@ -255,10 +284,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('system.backup.manage')) { ?>
-                    <button class="c-tabs__btn"
+                    <button class="c-tabs__btn <?php echo $isActive('tab-backup'); ?>"
                             role="tab"
-                            aria-selected="false"
-                            tabindex="-1"
+                            aria-selected="<?php echo $ariaSelected('tab-backup'); ?>"
+                            tabindex="<?php echo $tabIndex('tab-backup'); ?>"
                             aria-controls="tab-backup"
                             id="btn-tab-backup"
                             data-tab-target="tab-backup">
@@ -287,29 +316,29 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div id="tab-active"
                      role="tabpanel"
                      aria-labelledby="btn-tab-active"
-                     class="c-tabs__content is-active"
-                     aria-hidden="false">
+                     class="c-tabs__content <?php echo $isActive('tab-active'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-active'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_active.phtml'; ?>
                 </div>
                 <div id="tab-future"
                      role="tabpanel"
                      aria-labelledby="btn-tab-future"
-                     class="c-tabs__content"
-                     aria-hidden="true">
+                     class="c-tabs__content <?php echo $isActive('tab-future'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-future'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_future.phtml'; ?>
                 </div>
                 <div id="tab-expired"
                      role="tabpanel"
                      aria-labelledby="btn-tab-expired"
-                     class="c-tabs__content"
-                     aria-hidden="true">
+                     class="c-tabs__content <?php echo $isActive('tab-expired'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-expired'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_expired.phtml'; ?>
                 </div>
                 <div id="tab-cancelled"
                      role="tabpanel"
                      aria-labelledby="btn-tab-cancelled"
-                     class="c-tabs__content"
-                     aria-hidden="true">
+                     class="c-tabs__content <?php echo $isActive('tab-cancelled'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-cancelled'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_cancelled.phtml'; ?>
                 </div>
             <?php } ?>
@@ -318,8 +347,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div id="tab-ranking"
                      role="tabpanel"
                      aria-labelledby="btn-tab-ranking"
-                     class="c-tabs__content"
-                     aria-hidden="true">
+                     class="c-tabs__content <?php echo $isActive('tab-ranking'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-ranking'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_ranking.phtml'; ?>
                 </div>
             <?php } ?>
@@ -328,8 +357,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div id="tab-finance"
                      role="tabpanel"
                      aria-labelledby="btn-tab-finance"
-                     class="c-tabs__content"
-                     aria-hidden="true">
+                     class="c-tabs__content <?php echo $isActive('tab-finance'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-finance'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_finance.phtml'; ?>
                 </div>
             <?php } ?>
@@ -338,8 +367,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div id="tab-stats"
                      role="tabpanel"
                      aria-labelledby="btn-tab-stats"
-                     class="js-dashboard-stats c-tabs__content"
-                     aria-hidden="true">
+                     class="js-dashboard-stats c-tabs__content <?php echo $isActive('tab-stats'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-stats'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_stats.phtml'; ?>
                 </div>
             <?php } ?>
@@ -348,8 +377,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div id="tab-bank-import"
                      role="tabpanel"
                      aria-labelledby="btn-tab-bank-import"
-                     class="js-bank-import c-tabs__content <?php echo isset($bank_headers) ? 'is-active' : ''; ?>"
-                     aria-hidden="<?php echo isset($bank_headers) ? 'false' : 'true'; ?>">
+                     class="js-bank-import c-tabs__content <?php echo $isActive('tab-bank-import'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-bank-import'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_bank_import.phtml'; ?>
                 </div>
             <?php } ?>
@@ -358,8 +387,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div id="tab-export"
                      role="tabpanel"
                      aria-labelledby="btn-tab-export"
-                     class="c-tabs__content"
-                     aria-hidden="true">
+                     class="c-tabs__content <?php echo $isActive('tab-export'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-export'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_export.phtml'; ?>
                 </div>
             <?php } ?>
@@ -368,8 +397,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div id="tab-tools"
                      role="tabpanel"
                      aria-labelledby="btn-tab-tools"
-                     class="c-tabs__content"
-                     aria-hidden="true">
+                     class="c-tabs__content <?php echo $isActive('tab-tools'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-tools'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_generator_tools.phtml'; ?>
                 </div>
             <?php } ?>
@@ -378,8 +407,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div id="tab-vouchers"
                      role="tabpanel"
                      aria-labelledby="btn-tab-vouchers"
-                     class="js-voucher-manager c-tabs__content"
-                     aria-hidden="true">
+                     class="js-voucher-manager c-tabs__content <?php echo $isActive('tab-vouchers'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-vouchers'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_vouchers.phtml'; ?>
                 </div>
             <?php } ?>
@@ -388,15 +417,15 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div id="tab-logs"
                      role="tabpanel"
                      aria-labelledby="btn-tab-logs"
-                     class="c-tabs__content"
-                     aria-hidden="true">
+                     class="c-tabs__content <?php echo $isActive('tab-logs'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-logs'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_logs.phtml'; ?>
                 </div>
                 <div id="tab-audit-log"
                      role="tabpanel"
                      aria-labelledby="btn-tab-audit-log"
-                     class="c-tabs__content <?php echo isset($_GET['audit_page']) ? 'is-active' : ''; ?>"
-                     aria-hidden="<?php echo isset($_GET['audit_page']) ? 'false' : 'true'; ?>">
+                     class="c-tabs__content <?php echo $isActive('tab-audit-log'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-audit-log'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_audit_log.phtml'; ?>
                 </div>
             <?php } ?>
@@ -405,8 +434,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div id="tab-system"
                      role="tabpanel"
                      aria-labelledby="btn-tab-system"
-                     class="js-system-tools c-tabs__content"
-                     aria-hidden="true">
+                     class="js-system-tools c-tabs__content <?php echo $isActive('tab-system'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-system'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_system.phtml'; ?>
                 </div>
             <?php } ?>
@@ -415,8 +444,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div id="tab-backup"
                      role="tabpanel"
                      aria-labelledby="btn-tab-backup"
-                     class="c-tabs__content"
-                     aria-hidden="true">
+                     class="c-tabs__content <?php echo $isActive('tab-backup'); ?>"
+                     aria-hidden="<?php echo $ariaHidden('tab-backup'); ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_backup.phtml'; ?>
                 </div>
             <?php } ?>
@@ -447,7 +476,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             aria-modal="true">
         <div class="c-modal__dialog c-modal__dialog--large c-card c-card--primary u-padding-none u-flex-column">
             <header class="c-card__header u-flex u-justify-between u-align-center">
-                <h3 id="release-notes-title" class="u-margin-none u-flex u-align-center u-gap-s js-release-notes-title">
+                <h3 id="release-notes-title"
+                    class="u-margin-none u-flex u-align-center u-gap-s js-release-notes-title">
                     <img src="<?php echo $asset->url('assets/img/icons/rocket.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
@@ -479,12 +509,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             id="release-notes-unread-data"
             class="js-release-notes-unread-data"
             nonce="<?php echo $cspNonce; ?>">
-        <?php echo \json_encode($unreadReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+    <?php echo \json_encode($unreadReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+
     </script>
     <script type="application/json"
             id="release-notes-all-data"
             class="js-release-notes-all-data"
             nonce="<?php echo $cspNonce; ?>">
-        <?php echo \json_encode($allReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+    <?php echo \json_encode($allReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+
     </script>
 <?php } ?>
