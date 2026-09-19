@@ -8,9 +8,9 @@ use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
-use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Exception;
 
@@ -34,14 +34,17 @@ final readonly class QrCodeRenderAction implements ActionInterface
         }
 
         try {
-            $result = Builder::create()
-                ->writer(new PngWriter())
-                ->data((string) $data)
-                ->encoding(new Encoding('UTF-8'))
-                ->errorCorrectionLevel(ErrorCorrectionLevel::Low)
-                ->size($size)
-                ->margin($margin)
-                ->build();
+            // Klassische Instanziierung statt statischem Builder (Behebt IDE-Warnungen)
+            $qrCode = new QrCode(
+                data: (string) $data,
+                encoding: new Encoding('UTF-8'),
+                errorCorrectionLevel: ErrorCorrectionLevel::Low,
+                size: $size,
+                margin: $margin,
+            );
+
+            $writer = new PngWriter();
+            $result = $writer->write($qrCode);
 
             // Sende das Bild direkt als binären PNG-Stream an den Browser / Mail-Client
             if (!\headers_sent()) {

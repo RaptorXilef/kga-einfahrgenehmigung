@@ -10,7 +10,6 @@ use App\Core\Entity\Permit;
 use DateTimeImmutable;
 use Exception;
 use League\Csv\Reader;
-use League\Csv\Statement;
 use ZipArchive;
 
 final readonly class BankImportService
@@ -38,12 +37,17 @@ final readonly class BankImportService
         try {
             $csv = Reader::createFromPath($filePath, 'r');
             $csv->setDelimiter($this->detectDelimiter($filePath));
+            $csv->setHeaderOffset(null); // Wir arbeiten mit numerischen Indizes
 
-            // Nutze Statement, um indexierte Arrays statt assoziativer Arrays zu erhalten
-            $records = Statement::create()->process($csv);
+            $iterator = $csv->getIterator();
+            $iterator->rewind();
 
-            $headers = $records->fetchOne(0);
-            $previewRow = $records->fetchOne(1);
+            // Zeile 0: Header
+            $headers = $iterator->valid() ? $iterator->current() : [];
+
+            // Zeile 1: Erste Datenzeile
+            $iterator->next();
+            $previewRow = $iterator->valid() ? $iterator->current() : [];
 
             return [
                 'headers' => \is_array($headers) ? $headers : [],
@@ -78,8 +82,8 @@ final readonly class BankImportService
         try {
             $csv = Reader::createFromPath($filePath, 'r');
             $csv->setDelimiter($this->detectDelimiter($filePath));
-            // Wir überspringen die Kopfzeile (Offset 1)
-            $records = Statement::create()->offset(1)->process($csv);
+            // Wir überspringen die Kopfzeile
+            $csv->setHeaderOffset(null);
         } catch (Exception $e) {
             $this->writeLog('Fehler beim Initialisieren des CSV Readers: ' . $e->getMessage(), $runLogs);
 
@@ -113,10 +117,15 @@ final readonly class BankImportService
         }
 
         $missingUnpaidCodes = $unpaidCodes;
-        $rowNumber = 1; // 1 = Header wurde übersprungen
+        $rowNumber = 0;
 
-        foreach ($records as $row) {
-            ++$rowNumber; // Entspricht der echten Zeile in Excel (2, 3, 4...)
+        foreach ($csv->getRecords() as $index => $row) {
+            ++$rowNumber;
+
+            // Header (Zeile 0) überspringen
+            if ($index === 0) {
+                continue;
+            }
 
             if (\count($row) === 1 && ($row[0] === null || \trim((string) $row[0]) === '')) {
                 continue;

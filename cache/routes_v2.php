@@ -83,6 +83,11 @@
         'class' => 'App\\Application\\Actions\\Admin\\SystemCreateBackupAction',
         'auth' => false,
       ),
+      '/debug_mail' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\SystemDebugMailAction',
+        'auth' => true,
+      ),
       '/resend_mail' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\SystemResendMailAction',
@@ -121,6 +126,11 @@
       '/delete_voucher' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\VoucherDeleteAction',
+        'auth' => false,
+      ),
+      '/api/qr' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Api\\Shared\\QrCodeRenderAction',
         'auth' => false,
       ),
       '/api/cron/archive' => 
