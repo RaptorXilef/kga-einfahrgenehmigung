@@ -53,6 +53,8 @@ $filterOptions = [
 $totalPages = $auditTotalPages;
 $totalCount = $auditTotal;
 $paginationParam = 'audit_page';
+// ARCHITEKTUR-FIX: Das Stempeln des Tab-Links verhindert das Springen in den falschen Tab
+$tabFocusId = 'tab-audit-log';
 include $appRoot . '/templates/partials/admin/pagination.phtml';
 $paginationHtml = \ob_get_clean();
 

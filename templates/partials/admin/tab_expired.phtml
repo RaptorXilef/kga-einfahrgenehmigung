@@ -21,9 +21,11 @@ $allExpired = $permitGroups['expired'] ?? [];
 
 \usort($allExpired, fn ($a, $b) => $b->getValidUntil() <=> $a->getValidUntil());
 
-// Paginierungs-Logik
+// Paginierungs-Logik: Schützt vor Parameter-Bleeding aus anderen Tabs
 $limit = $itemsPerPage ?? 25;
-$page = $currentPage ?? 1;
+$focus = $_GET['focus'] ?? 'tab-active';
+$page = ($focus === 'tab-expired') ? ($currentPage ?? 1) : 1;
+
 $totalCount = \count($allExpired);
 $totalPages = \max(1, (int) \ceil($totalCount / $limit));
 $page = \min($page, $totalPages);
@@ -168,7 +170,7 @@ if ($auth->hasPermission('permits.view')) {
             <div class="c-card__footer u-text-center">
                 <?php
                 $queryParams = $_GET;
-    unset($queryParams['page']); // Setze Paginierung beim Laden neuer Jahre zurück
+    unset($queryParams['page']); // Verhindere, dass Paginierungen beim Laden von Archiven mitgenommen werden
     $queryParams['archive_depth'] = $minArchiveYear - 1;
     $queryParams['focus'] = 'tab-expired'; // Zwingt den Tab nach dem Laden wieder auf "Abgelaufen"
     $loadUrl = '?' . \http_build_query($queryParams);

@@ -22,9 +22,11 @@ $allFuture = $permitGroups['future'] ?? [];
 // Sortierung - Was als nächstes aktiv wird zuerst (von ASC)
 \usort($allFuture, fn ($a, $b) => $a->getValidFrom() <=> $b->getValidFrom());
 
-// Paginierungs-Logik
+// Paginierungs-Logik: Schützt vor Parameter-Bleeding aus anderen Tabs
 $limit = $itemsPerPage ?? 25;
-$page = $currentPage ?? 1;
+$focus = $_GET['focus'] ?? 'tab-active';
+$page = ($focus === 'tab-future') ? ($currentPage ?? 1) : 1;
+
 $totalCount = \count($allFuture);
 $totalPages = \max(1, (int) \ceil($totalCount / $limit));
 $page = \min($page, $totalPages);

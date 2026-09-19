@@ -22,9 +22,11 @@ $allActive = $permitGroups['active'] ?? [];
 // Sortierung - Am kürzesten gültig zuerst! (bis ASC)
 \usort($allActive, fn ($a, $b) => $a->getValidUntil() <=> $b->getValidUntil());
 
-// Paginierungs-Logik
+// Paginierungs-Logik: Schützt vor Parameter-Bleeding aus anderen Tabs
 $limit = $itemsPerPage ?? 25;
-$page = $currentPage ?? 1;
+$focus = $_GET['focus'] ?? 'tab-active';
+$page = ($focus === 'tab-active') ? ($currentPage ?? 1) : 1;
+
 $totalCount = \count($allActive);
 $totalPages = \max(1, (int) \ceil($totalCount / $limit));
 $page = \min($page, $totalPages);

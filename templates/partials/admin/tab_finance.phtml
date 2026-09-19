@@ -32,9 +32,11 @@ $collectiveTransfers ??= [];
     return $deadlineA <=> $deadlineB; // Älteste Deadline zuerst
 });
 
-// Paginierungs-Logik
+// Paginierungs-Logik: Schützt vor Parameter-Bleeding aus anderen Tabs
 $limit = $itemsPerPage ?? 25;
-$page = $currentPage ?? 1;
+$focus = $_GET['focus'] ?? 'tab-active';
+$page = ($focus === 'tab-finance') ? ($currentPage ?? 1) : 1;
+
 $totalCount = \count($allUnpaid);
 $totalPages = \max(1, (int) \ceil($totalCount / $limit));
 $page = \min($page, $totalPages);

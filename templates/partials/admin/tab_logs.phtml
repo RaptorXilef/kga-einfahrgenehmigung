@@ -17,8 +17,12 @@ use App\Infrastructure\Config\Config;
  * @var string $appRoot
  */
 $allLogs = $mailLogs ?? [];
+
+// Paginierungs-Logik: Schützt vor Parameter-Bleeding aus anderen Tabs
 $limit = $itemsPerPage ?? 25;
-$page = $currentPage ?? 1;
+$focus = $_GET['focus'] ?? 'tab-active';
+$page = ($focus === 'tab-logs') ? ($currentPage ?? 1) : 1;
+
 $totalCount = \count($allLogs);
 $totalPages = \max(1, (int) \ceil($totalCount / $limit));
 $page = \min($page, $totalPages);
