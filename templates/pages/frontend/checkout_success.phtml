@@ -84,7 +84,7 @@ $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
                             </table>
                         </div>
                         <div class="u-text-center">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=10&data=<?php echo $epcData; ?>"
+                            <img src="<?php echo $settings['base_url']; ?>api/qr?size=150&margin=10&data=<?php echo $epcData; ?>"
                                  alt="GiroCode wird erstellt, bitte warten"
                                  loading="lazy"
                                  class="c-qr-box">

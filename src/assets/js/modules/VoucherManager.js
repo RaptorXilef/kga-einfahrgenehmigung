@@ -85,11 +85,10 @@ export class VoucherManager {
 
         this.modal.showModal();
 
-        // Die QR-Code API url-encoded aufrufen
+        // Die QR-Code API url-encoded GANZ LOKAL AUFRUFEN (DSGVO-Konform)
         const encodedUrl = encodeURIComponent(url);
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodedUrl}`;
-        // const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
-        // const qrUrl = `${baseUrl}api/generate_qr?data=${encodedUrl}`;
+        const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
+        const qrUrl = `${baseUrl}api/qr?size=250&margin=10&data=${encodedUrl}`;
 
         // Bild dynamisch (frisch) erzeugen für sauberes, konfliktfreies Rendering
         const img = document.createElement('img');

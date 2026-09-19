@@ -8,6 +8,9 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use DateTimeImmutable;
+use Exception;
+use League\Csv\Reader;
+use League\Csv\Statement;
 use ZipArchive;
 
 final readonly class BankImportService
@@ -20,7 +23,7 @@ final readonly class BankImportService
     }
 
     /**
-     * Analysiert die hochgeladene CSV, wäscht sie komplett rein und extrahiert Header & erste Datenzeile.
+     * Analysiert die hochgeladene CSV, wäscht sie komplett rein und extrahiert Header & erste Datenzeile via League\Csv.
      *
      * @return array{headers: array<int, string>, previewRow: array<int, string>}
      */
@@ -30,26 +33,27 @@ final readonly class BankImportService
             return ['headers' => [], 'previewRow' => []];
         }
 
-        // 1. Die komplette Datei vorab waschen (BOM, Encoding, Umbrüche)
         $this->prepareAndNormalizeFile($filePath);
 
-        $handle = \fopen($filePath, 'r');
-        if ($handle === false) {
+        try {
+            $csv = Reader::createFromPath($filePath, 'r');
+            $csv->setDelimiter($this->detectDelimiter($filePath));
+
+            // Nutze Statement, um indexierte Arrays statt assoziativer Arrays zu erhalten
+            $records = Statement::create()->process($csv);
+
+            $headers = $records->fetchOne(0);
+            $previewRow = $records->fetchOne(1);
+
+            return [
+                'headers' => \is_array($headers) ? $headers : [],
+                'previewRow' => \is_array($previewRow) ? $previewRow : [],
+            ];
+        } catch (Exception $e) {
+            \error_log('BankImportService (analyzeCsv) Error: ' . $e->getMessage());
+
             return ['headers' => [], 'previewRow' => []];
         }
-
-        $delimiter = $this->detectDelimiter($handle);
-
-        // PHP 8.4+ Fix: Explizite Angabe von Enclosure (") und Escape (\)
-        $headers = \fgetcsv($handle, 0, $delimiter, '"', '\\') ?: [];
-        $previewRow = \fgetcsv($handle, 0, $delimiter, '"', '\\') ?: [];
-
-        \fclose($handle);
-
-        return [
-            'headers' => $headers,
-            'previewRow' => $previewRow,
-        ];
     }
 
     /**
@@ -67,26 +71,25 @@ final readonly class BankImportService
             return ['success' => false, 'message' => 'Datei konnte nicht gefunden werden.'];
         }
 
-        $this->writeLog('Starte Dateireinigung und Verarbeitung der CSV...', $runLogs);
+        $this->writeLog('Starte Dateireinigung und Verarbeitung der CSV via League/Csv...', $runLogs);
 
-        // 1. Die komplette Datei vorab waschen (BOM, Encoding, Umbrüche)
         $this->prepareAndNormalizeFile($filePath);
 
-        $handle = \fopen($filePath, 'r');
-        if ($handle === false) {
-            $this->writeLog("Fehler: Die Datei '{$filePath}' konnte nicht zum Lesen geöffnet werden.", $runLogs);
+        try {
+            $csv = Reader::createFromPath($filePath, 'r');
+            $csv->setDelimiter($this->detectDelimiter($filePath));
+            // Wir überspringen die Kopfzeile (Offset 1)
+            $records = Statement::create()->offset(1)->process($csv);
+        } catch (Exception $e) {
+            $this->writeLog('Fehler beim Initialisieren des CSV Readers: ' . $e->getMessage(), $runLogs);
 
-            return ['success' => false, 'message' => 'Datei konnte nicht gelesen werden.'];
+            return ['success' => false, 'message' => 'CSV Format ist ungültig oder beschädigt.'];
         }
-
-        $delimiter = $this->detectDelimiter($handle);
-        \fgetcsv($handle, 0, $delimiter, '"', '\\'); // Header überspringen
 
         $aggregierteZahlungen = [];
         $letztesDatumPerPermit = [];
-        $methodenPerPermit = []; // Merkt sich die Suchmethode pro Code für das Audit-Log
+        $methodenPerPermit = [];
 
-        // Kategorisierte Arrays für die nutzerfreundliche Frontend-Ausgabe
         $erfolgreichDetails = [];
         $skippedNotInCsv = [];
         $skippedAlreadyPaid = [];
@@ -94,32 +97,28 @@ final readonly class BankImportService
         $fehlerhaftPartial = [];
         $fehlerhaftStorage = [];
         $unlesbareZeilenDetails = [];
+        $sammelTransfers = [];
 
-        $sammelTransfers = []; // Strukturiertes Array für das UI-Tab
-
-        $rowNumber = 1;
-
-        // Alle Codes vorab laden für präzisen Abgleich
         $unpaidCodes = [];
-        $unpaidPlates = []; // Speichert die Kennzeichen für den Notfall-Abgleich
+        $unpaidPlates = [];
         $allCodes = [];
+
         foreach ($this->storage->getAll() as $permit) {
             $c = $permit->code->value;
             $allCodes[$c] = true;
             if (!$permit->isPaid()) {
-                // Merkt sich direkt den Namen für das Logging
                 $unpaidCodes[$c] = $permit->getOwnerName();
                 $unpaidPlates[$c] = $permit->getLicensePlate();
             }
         }
 
-        // Tracking: Alle unbezahlten Codes, um später zu sehen, welche in der CSV fehlten
         $missingUnpaidCodes = $unpaidCodes;
+        $rowNumber = 1; // 1 = Header wurde übersprungen
 
-        while (($row = \fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
-            ++$rowNumber;
+        foreach ($records as $row) {
+            ++$rowNumber; // Entspricht der echten Zeile in Excel (2, 3, 4...)
 
-            if (\count($row) === 1 && $row[0] === null) {
+            if (\count($row) === 1 && ($row[0] === null || \trim((string) $row[0]) === '')) {
                 continue;
             }
 
@@ -155,13 +154,10 @@ final readonly class BankImportService
                 if (\preg_match_all('/([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8})/', $zweckUpper, $matches)) {
                     foreach ($matches[1] as $m) {
                         if (isset($allCodes[$m])) {
-                            // Code existiert im System (wurde ggf. doppelt bezahlt)
                             $gefundeneCodes[] = $m;
                             $matchMethodsForLine[] = 'Regex Fallback (Bereits im System)';
                             $matchMethodsMap[$m] = 'Regex: Bezahlt';
                         } elseif (\preg_match('/\b' . $m . '\b/', $zweckUpper)) {
-                            // Wenn der Code nicht im System ist, aber freistehend (z.B. Tippfehler), nehmen wir ihn auf.
-                            // SOMMERFEST wird ignoriert, da MMERFEST keine eigene Wortgrenze hat.
                             $gefundeneCodes[] = $m;
                             $matchMethodsForLine[] = 'Regex Fallback (Unbekannter Code, isoliertes Wort)';
                             $matchMethodsMap[$m] = 'Regex: Unbekannt';
@@ -174,13 +170,11 @@ final readonly class BankImportService
             $cleanAmount = \str_replace(',', '.', $cleanAmount);
             $ueberwiesenerBetrag = (float) $cleanAmount;
 
-            // Deterministische ID generieren, um Doppeleinträge in der Aufgabenliste bei mehrmaligem CSV-Upload zu verhindern
             $anomalyId = 'sam_' . \md5($datumRaw . $betragRaw . $verwendungszweck);
 
             // 3. Fallback: Kennzeichen-Suche (Wenn ID komplett vergessen wurde)
             $gefundeneKennzeichen = [];
             if (empty($gefundeneCodes)) {
-                // Modifikator /u für Unicode (Umlaute Ä,Ö,Ü) zwingend erforderlich
                 $zweckNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $zweckUpper);
                 foreach ($unpaidPlates as $unpaidCode => $plate) {
                     if (empty($plate)) {
@@ -188,7 +182,6 @@ final readonly class BankImportService
                     }
 
                     $plateNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', \strtoupper($plate));
-                    // Nur nach Kennzeichen mit mindestens 4 Zeichen suchen, um False-Positives in Rechnungsnummern zu vermeiden
                     if (\strlen($plateNormalized) >= 4 && \str_contains($zweckNormalized, $plateNormalized)) {
                         $gefundeneKennzeichen[$unpaidCode] = $plate;
                     }
@@ -200,7 +193,6 @@ final readonly class BankImportService
                 continue;
             }
 
-            // WENN NUR KENNZEICHEN GEFUNDEN WURDEN: Direkt in die manuelle Aufgabenliste aussteuern
             if (empty($gefundeneCodes) && !empty($gefundeneKennzeichen)) {
                 $matchedCodes = \array_keys($gefundeneKennzeichen);
                 $codesStr = \implode(', ', $matchedCodes);
@@ -214,27 +206,22 @@ final readonly class BankImportService
                     'amount' => $ueberwiesenerBetrag,
                     'purpose' => $verwendungszweck,
                     'codes' => $matchedCodes,
-                    'type' => 'kennzeichen', // Typ für das UI-Badge
+                    'type' => 'kennzeichen',
                 ];
 
-                // Wir haben die Codes gefunden (nur ohne ID), also von der Vermisst-Liste löschen
                 foreach ($matchedCodes as $c) {
                     unset($missingUnpaidCodes[$c]);
                 }
-
-                // Zuweisung abbrechen, da die Freischaltung im Dashboard manuell erfolgen muss
                 continue;
             }
 
             $gefundeneCodes = \array_values(\array_unique($gefundeneCodes));
             $matchMethodsForLine = \array_values(\array_unique($matchMethodsForLine));
 
-            // SECURITY GUARD: Sammelüberweisungen für das Dashboard aufbereiten (Verhindert Exploit)
             if (\count($gefundeneCodes) > 1) {
                 $codesStr = \implode(', ', $gefundeneCodes);
                 $this->writeLog("[Zeile {$rowNumber}] FEHLER: Mehrere Codes in einer Überweisung gefunden [{$codesStr}]. Wird zur manuellen Prüfung ausgesteuert.", $runLogs);
 
-                // Wir speichern das komplette Paket für das Session-Dashboard!
                 $sammelTransfers[] = [
                     'id' => $anomalyId,
                     'date' => $this->parseDate($datumRaw),
@@ -244,12 +231,9 @@ final readonly class BankImportService
                     'type' => 'sammel',
                 ];
 
-                // Codes aus der "Fehlt auf Auszug" Liste entfernen, da sie ja eigentlich gefunden wurden
                 foreach ($gefundeneCodes as $c) {
                     unset($missingUnpaidCodes[$c]);
                 }
-
-                // Zuweisung abbrechen, da die Freischaltung manuell erfolgen muss
                 continue;
             }
 
@@ -262,18 +246,11 @@ final readonly class BankImportService
                 $aggregierteZahlungen[$permitIdStr] ??= 0.0;
                 $aggregierteZahlungen[$permitIdStr] += $ueberwiesenerBetrag;
                 $letztesDatumPerPermit[$permitIdStr] = $datumRaw;
-
-                // Speichere die Erkennungsmethode für diesen spezifischen Code
                 $methodenPerPermit[$permitIdStr] = $matchMethodsMap[$permitIdStr] ?? 'Unbekannt';
-
-                // Wir haben ihn in der CSV gefunden, also entfernen wir ihn von der Missing-Liste!
                 unset($missingUnpaidCodes[$permitIdStr]);
             }
         }
-        \fclose($handle);
 
-        // Alles was jetzt noch in der $missingUnpaidCodes Liste ist, wurde vom Pächter noch nicht überwiesen.
-        // FEHLENDE CODES LOGGEN
         foreach ($missingUnpaidCodes as $missingCode => $ownerName) {
             $this->writeLog("[Code {$missingCode}] Fehlt in CSV: Unbezahlte Genehmigung für '{$ownerName}' wurde nicht gefunden.", $runLogs);
             $skippedNotInCsv[] = "{$missingCode} ({$ownerName})";
@@ -362,7 +339,6 @@ final readonly class BankImportService
 
         $this->writeLog("Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}\n---", $runLogs);
 
-        // ZIP Erstellung falls konfiguriert
         $archiveEnabled = (bool) $this->config->get('bank_import_archive_enabled', false);
         if ($archiveEnabled) {
             $this->createArchiveZip($filePath, $runLogs);
@@ -378,14 +354,10 @@ final readonly class BankImportService
             'erfolgreich_details' => $erfolgreichDetails,
             'uebersprungen_details' => $uebersprungenDetails,
             'fehlerhaft_details' => $fehlerhaftDetails,
-            'sammel_transfers' => $sammelTransfers, // Wird an Controller weitergereicht
+            'sammel_transfers' => $sammelTransfers,
         ];
     }
 
-    /**
-     * Schreibt eine formatierte Log-Nachricht in die dedizierte Bank-Import-Logdatei
-     * und legt sie für das Zip-Archiv in den Cache.
-     */
     private function writeLog(string $message, array &$runLogs = []): void
     {
         $logDir = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/logs';
@@ -402,9 +374,6 @@ final readonly class BankImportService
         $runLogs[] = $formattedMessage;
     }
 
-    /**
-     * Erstellt ein Passwort-geschütztes Zip-Archiv aus der CSV und den Logs.
-     */
     private function createArchiveZip(string $csvFilePath, array $logs): void
     {
         $root = \rtrim((string) $this->config->get('root_path', ''), '/\\');
@@ -437,13 +406,6 @@ final readonly class BankImportService
         }
     }
 
-    /**
-     * DIE WASCHANLAGE FÜR CSV-DATEIEN.
-     * Bereinigt die CSV-Datei komplett im RAM, bevor PHP sie iteriert.
-     * 1. Entfernt unsichtbare UTF-8 BOMs
-     * 2. Erkennt das globale File-Encoding zuverlässig und konvertiert zu UTF-8
-     * 3. Normalisiert Mac/Windows Line-Endings zu sauberen \n Umbrüchen
-     */
     private function prepareAndNormalizeFile(string $filePath): void
     {
         $content = \file_get_contents($filePath);
@@ -456,33 +418,26 @@ final readonly class BankImportService
             $content = \substr($content, 3);
         }
 
-        // 2. Globale Encoding-Erkennung
-        // Viel robuster als zellbasierte Erkennung, da der Textkorpus groß genug für korrekte Analyse ist.
         $encoding = \mb_detect_encoding($content, ['UTF-8', 'Windows-1252', 'ISO-8859-15', 'ISO-8859-1', 'ASCII'], true);
         if ($encoding && $encoding !== 'UTF-8') {
             $content = \mb_convert_encoding($content, 'UTF-8', $encoding);
         } elseif (!$encoding) {
-            // Fallback auf klassisches Banken-ANSI, falls die Erkennung fehlschlägt
             $content = \mb_convert_encoding($content, 'UTF-8', 'Windows-1252');
         }
 
-        // 3. Line Endings normalisieren (Mac \r oder Windows \r\n zu Unix \n)
         $content = \str_replace(["\r\n", "\r"], "\n", $content);
-
-        // 4. Gewaschenen Text speichern
         \file_put_contents($filePath, $content);
     }
 
-    /**
-     * Erkennt anhand der ersten Zeile dynamisch das Trennzeichen.
-     * Analysiert ; , \t und | nach Häufigkeit.
-     *
-     * @param resource $handle
-     */
-    private function detectDelimiter($handle): string
+    private function detectDelimiter(string $filePath): string
     {
+        $handle = \fopen($filePath, 'r');
+        if ($handle === false) {
+            return ';';
+        }
+
         $firstLine = \fgets($handle);
-        \rewind($handle);
+        \fclose($handle);
 
         if ($firstLine === false) {
             return ';';
@@ -495,15 +450,11 @@ final readonly class BankImportService
             '|' => \substr_count($firstLine, '|'),
         ];
 
-        // Absteigend sortieren, den Key mit dem höchsten Wert zurückgeben
         \arsort($delimiters);
 
         return (string) \array_key_first($delimiters);
     }
 
-    /**
-     * Parst ein Bank-Datum flexibel.
-     */
     private function parseDate(string $rawDate): string
     {
         $trimmed = \trim($rawDate);
