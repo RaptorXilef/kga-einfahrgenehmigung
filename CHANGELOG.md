@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.70.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.70.2...v0.70.3) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **a11y:** Enforce strict WAI-ARIA standards across PHTML views ([497931f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/497931f21d8eeed2c03c51b6f396dd2506486a45))
+* **admin:** Fix duplicate domain in system tools API call ([a3ff061](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a3ff061cf00b6fe3cb3210d907946a555e7459ed))
+* **architecture:** Resolve strict BEM violations and REST method mismatch ([bcdcac6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bcdcac638eec0d1507dfc41476c70afcf9a56ddb))
+* **linter:** Resolve Biome strictness and edge cases ([5f61822](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5f618220181c5e2e2e15b45a6c5765ff432f6110))
+* **linters:** Resolve regex greediness and schema validation issues ([08aaaed](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/08aaaedeecb6fb42e2c1bcf14bfd558b8db084af))
+* **linters:** Resolve Stylelint invalid option error for strict-value rule ([24b66d6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/24b66d6cdb246f9ac2fb4d765c2434cf727690d9))
+* **performance:** Implement event delegation and batch DOM reflows via rAF ([43d602c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/43d602cfac894e7db38e7351bf6cf84c9f0bc7db))
+* **styles:** Resolve stylelint strictness, deprecations, and BEM regex ([37506ea](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/37506ea8d8fd099527b5e5f69cc861ac1e518e84))
+
 ## [0.70.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.70.1...v0.70.2) (2026-09-19)
 
 ### 🐛 Bug Fixes
