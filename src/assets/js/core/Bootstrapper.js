@@ -99,6 +99,11 @@ export function lazyMount(selector, importPromise, className, ...args) {
     try {
         elements = document.querySelectorAll(selector);
     } catch (error) {
+        // LINTER-FIX: Fehler nicht verschlucken, sondern dokumentieren!
+        console.warn(
+            `[Bootstrapper] Ungültiger Selektor für LazyLoad blockiert: ${selector}`,
+            error
+        );
         return [];
     }
 

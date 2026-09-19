@@ -62,8 +62,13 @@ export class AdminDashboard {
 
         // BATCHED DOM WRITE: Initiale Tab-A11y Rollen setzen
         requestAnimationFrame(() => {
-            this.tabs.forEach((btn) => btn.setAttribute('role', 'tab'));
-            this.contents.forEach((content) => content.setAttribute('role', 'tabpanel'));
+            // LINTER-FIX: Geschweifte Klammern verhindern impliziten Return
+            this.tabs.forEach((btn) => {
+                btn.setAttribute('role', 'tab');
+            });
+            this.contents.forEach((content) => {
+                content.setAttribute('role', 'tabpanel');
+            });
         });
 
         // 1. Tab-Steuerung via EVENT DELEGATION
@@ -279,7 +284,8 @@ export class AdminDashboard {
         }
 
         // ARCHITEKTUR-FIX: Wenn der Nutzer klickt, bereinigen wir die URL von alten Paginierungs- & Focus-Parametern
-        if (isUserClick && window.history && window.history.replaceState) {
+        // LINTER-FIX: Optional Chaining für moderne APIs nutzen
+        if (isUserClick && window.history?.replaceState) {
             const url = new URL(window.location.href);
             let changed = false;
 

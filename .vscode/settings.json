@@ -50,7 +50,11 @@
         "editor.defaultFormatter": "biomejs.biome",
         "editor.formatOnSave": true,
         // WICHTIG: Mode auf "file" setzen, nicht "modifications"
-        "editor.formatOnSaveMode": "file"
+        "editor.formatOnSaveMode": "file",
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "never",
+            "source.organizeImports.biome": "explicit"
+        }
     },
     "[json]": { "editor.defaultFormatter": "biomejs.biome" },
     "[jsonc]": { "editor.defaultFormatter": "biomejs.biome" },

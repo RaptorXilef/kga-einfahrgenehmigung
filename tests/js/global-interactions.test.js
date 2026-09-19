@@ -4,7 +4,6 @@ import { AccordionCard } from '../../src/assets/js/ui/GlobalInteractions.js';
 describe('GlobalInteractions: AccordionCard', () => {
     let cardElement;
     let toggleElement;
-    let accordion;
 
     beforeEach(() => {
         // DOM Setup
@@ -20,8 +19,8 @@ describe('GlobalInteractions: AccordionCard', () => {
         cardElement = document.getElementById('test-card');
         toggleElement = cardElement.querySelector('.js-toggle-parent');
 
-        // Instanziierung
-        accordion = new AccordionCard(cardElement);
+        // LINTER-FIX: Instanziierung ohne Zuweisung, da wir nur die DOM-Seiteneffekte der Klasse testen
+        new AccordionCard(cardElement);
     });
 
     it('sollte native Button-Semantik und ARIA-Attribute bei Initialisierung setzen', () => {
