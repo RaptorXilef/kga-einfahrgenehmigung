@@ -73,7 +73,6 @@ export class AdminDashboard {
             );
         });
 
-        // FIX: Explizite Blockklammern verhindern implizite Returns
         this.contents.forEach((content) => {
             content.setAttribute('role', 'tabpanel');
         });
@@ -122,32 +121,62 @@ export class AdminDashboard {
     }
 
     /**
-     * Erzeugt dynamisch einen barrierefreien HTML5-Dialog,
-     * um den blockierenden I/O prompt() zu ersetzen.
+     * Erzeugt dynamisch einen barrierefreien HTML5-Dialog.
+     * SICHER: Strikte Native Nodes statt innerHTML.
      */
     async #promptReason(code) {
         return new Promise((resolve) => {
             const dialog = document.createElement('dialog');
             dialog.className = 'c-modal';
-            dialog.innerHTML = `
-                <div class="c-modal__dialog">
-                    <h3 class="c-modal__title">Grund für die Sperre?</h3>
-                    <p class="u-color-muted u-margin-block-start-s">Bitte geben Sie den Grund für die Sperrung von <strong class="u-color-main">${code}</strong> ein:</p>
-                    <div class="c-form-group u-margin-block-start-m">
-                        <input type="text" class="c-form-input js-prompt-input" required aria-label="Sperrgrund">
-                    </div>
-                    <div class="u-flex u-gap-s u-margin-block-start-m">
-                        <button type="button" class="c-button c-button--secondary u-flex-grow-1 js-prompt-cancel">Abbrechen</button>
-                        <button type="button" class="c-button c-button--danger u-flex-grow-1 js-prompt-confirm">Sperren</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(dialog);
-            dialog.showModal();
 
-            const input = dialog.querySelector('.js-prompt-input');
-            const btnCancel = dialog.querySelector('.js-prompt-cancel');
-            const btnConfirm = dialog.querySelector('.js-prompt-confirm');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'c-modal__dialog';
+
+            const title = document.createElement('h3');
+            title.className = 'c-modal__title';
+            title.textContent = 'Grund für die Sperre?';
+
+            const desc = document.createElement('p');
+            desc.className = 'u-color-muted u-margin-block-start-s';
+            desc.textContent = 'Bitte geben Sie den Grund für die Sperrung von ';
+
+            const strong = document.createElement('strong');
+            strong.className = 'u-color-main';
+            strong.textContent = code;
+
+            desc.appendChild(strong);
+            desc.appendChild(document.createTextNode(' ein:'));
+
+            const formGroup = document.createElement('div');
+            formGroup.className = 'c-form-group u-margin-block-start-m';
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'c-form-input js-prompt-input';
+            input.required = true;
+            input.setAttribute('aria-label', 'Sperrgrund');
+
+            formGroup.appendChild(input);
+
+            const btnGroup = document.createElement('div');
+            btnGroup.className = 'u-flex u-gap-s u-margin-block-start-m';
+
+            const btnCancel = document.createElement('button');
+            btnCancel.type = 'button';
+            btnCancel.className = 'c-button c-button--secondary u-flex-grow-1 js-prompt-cancel';
+            btnCancel.textContent = 'Abbrechen';
+
+            const btnConfirm = document.createElement('button');
+            btnConfirm.type = 'button';
+            btnConfirm.className = 'c-button c-button--danger u-flex-grow-1 js-prompt-confirm';
+            btnConfirm.textContent = 'Sperren';
+
+            btnGroup.append(btnCancel, btnConfirm);
+            wrapper.append(title, desc, formGroup, btnGroup);
+            dialog.appendChild(wrapper);
+            document.body.appendChild(dialog);
+
+            dialog.showModal();
 
             const cleanup = (value) => {
                 dialog.close();
@@ -176,7 +205,6 @@ export class AdminDashboard {
             this.bulkToggleAll.addEventListener(
                 'change',
                 (e) => {
-                    // FIX: Blockklammern
                     this.bulkCheckboxes.forEach((cb) => {
                         cb.checked = e.target.checked;
                     });
@@ -186,7 +214,6 @@ export class AdminDashboard {
             );
         }
 
-        // FIX: Blockklammern
         this.bulkCheckboxes.forEach((cb) => {
             cb.addEventListener(
                 'change',
@@ -205,7 +232,6 @@ export class AdminDashboard {
             if (this.countSpanRemind) this.countSpanRemind.innerText = checkedCount;
 
             const isHidden = checkedCount === 0;
-            // Strikte Nutzung von nativen Properties statt verbotener .u-hidden Klassen
             this.btnPay.hidden = isHidden;
             this.btnRemind.hidden = isHidden;
         }
@@ -213,7 +239,7 @@ export class AdminDashboard {
 
     switchTab(tabId, activeBtn) {
         if (!tabId || !activeBtn) return;
-        const target = document.getElementById(tabId); // Target-ID für Tabs ist i.O. (Anchor-Pattern)
+        const target = document.getElementById(tabId);
         if (!target) return;
 
         // WAI-ARIA strikt anwenden

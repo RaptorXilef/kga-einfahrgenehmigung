@@ -27,15 +27,18 @@ export class TableSorter {
 
         // Originale Reihenfolge für den "Reset" (3. Klick) speichern
         this.originalRows = Array.from(this.tbody.querySelectorAll('tr'));
-
         const options = { signal: this.abortController.signal };
 
         this.headers.forEach((th, index) => {
             th.classList.add('is-sortable');
             th.title = 'Klicken zum Sortieren';
 
-            // Non-destruktiver Insert verhindert das Löschen von Child-Event-Listenern
-            th.insertAdjacentHTML('beforeend', ' <span class="c-sort-icon">⇅</span>');
+            // SICHER: Native Nodes statt insertAdjacentHTML (verhindert Listener-Zerstörung)
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'c-sort-icon';
+            iconSpan.textContent = '⇅';
+            th.appendChild(document.createTextNode(' '));
+            th.appendChild(iconSpan);
 
             th.addEventListener('click', () => this.sortTable(th, index), options);
         });
@@ -53,7 +56,7 @@ export class TableSorter {
         this.headers.forEach((header) => {
             header.setAttribute('data-sort-dir', 'none');
             const icon = header.querySelector('.c-sort-icon');
-            if (icon) icon.innerHTML = '⇅';
+            if (icon) icon.textContent = '⇅'; // textContent > innerHTML
         });
 
         // DocumentFragment verhindert hunderte Reflows/Repaints beim Rendern!
@@ -69,7 +72,7 @@ export class TableSorter {
             th.setAttribute('data-sort-dir', nextSort);
             const icon = th.querySelector('.c-sort-icon');
             if (icon) {
-                icon.innerHTML = nextSort === 'asc' ? '↓' : '↑';
+                icon.textContent = nextSort === 'asc' ? '↓' : '↑';
             }
 
             // --- 1. MAP: Schwartzian Transform (O(n) DOM Reads) ---
@@ -81,7 +84,7 @@ export class TableSorter {
 
                 if (cell) {
                     // Null-Coalescing: Bevorzuge data-sort-val (z.B. für ISO-Datum), sonst den sichtbaren Text
-                    rawValue = cell.getAttribute('data-sort-val') ?? cell.innerText.trim();
+                    rawValue = cell.getAttribute('data-sort-val') ?? cell.textContent.trim(); // textContent ist sicherer als innerText
                 }
 
                 let sortValue = rawValue;

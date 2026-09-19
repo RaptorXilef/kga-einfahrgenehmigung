@@ -158,6 +158,7 @@ export class AccordionCard {
             'keydown',
             (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault(); // FIX: Verhindert das Scrollen bei Space
                     toggleAction(e);
                 }
             },
@@ -277,14 +278,23 @@ export class CopyAction {
                 if (this.button.dataset.isCopying) return;
                 this.button.dataset.isCopying = 'true';
 
-                const originalHtml = this.button.innerHTML;
+                // Speichere den Originalinhalt DOM-sicher (ohne HTML Strings!)
+                const originalChildren = document.createDocumentFragment();
+                while (this.button.firstChild) {
+                    originalChildren.appendChild(this.button.firstChild);
+                }
 
                 const successAction = () => {
-                    this.button.innerHTML =
-                        '<span class="u-color-success u-font-bold">✓ Kopiert</span>';
+                    // Keine harten SCSS-Utility-Klassen im JS!
+                    this.button.classList.add('is-success');
+                    this.button.textContent = '✓ Kopiert';
+
                     notifier.show('In die Zwischenablage kopiert!', 'success');
+
                     setTimeout(() => {
-                        this.button.innerHTML = originalHtml;
+                        this.button.classList.remove('is-success');
+                        this.button.textContent = '';
+                        this.button.appendChild(originalChildren);
                         delete this.button.dataset.isCopying;
                     }, 2000);
                 };

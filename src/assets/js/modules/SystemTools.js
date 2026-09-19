@@ -28,26 +28,43 @@ export class SystemTools {
     /**
      * Erzeugt dynamisch einen barrierefreien HTML5-Dialog,
      * um das blockierende I/O prompt()/confirm() zu ersetzen.
+     * SICHER: Ausschließlich native DOM Nodes (Kein innerHTML/XSS Risiko).
      */
     async #promptConfirm(message) {
         return new Promise((resolve) => {
             const dialog = document.createElement('dialog');
             dialog.className = 'c-modal';
-            dialog.innerHTML = `
-        <div class="c-modal__dialog">
-          <h3 class="c-modal__title">Aktion bestätigen</h3>
-          <p class="u-color-muted u-margin-block-start-s">${message}</p>
-          <div class="u-flex u-gap-s u-margin-block-start-l">
-            <button type="button" class="c-button c-button--secondary u-flex-grow-1 js-prompt-cancel">Abbrechen</button>
-            <button type="button" class="c-button c-button--primary u-flex-grow-1 js-prompt-confirm">Ausführen</button>
-          </div>
-        </div>
-      `;
-            document.body.appendChild(dialog);
-            dialog.showModal();
 
-            const btnCancel = dialog.querySelector('.js-prompt-cancel');
-            const btnConfirm = dialog.querySelector('.js-prompt-confirm');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'c-modal__dialog';
+
+            const title = document.createElement('h3');
+            title.className = 'c-modal__title';
+            title.textContent = 'Aktion bestätigen';
+
+            const desc = document.createElement('p');
+            desc.className = 'u-color-muted u-margin-block-start-s';
+            desc.textContent = message;
+
+            const btnGroup = document.createElement('div');
+            btnGroup.className = 'u-flex u-gap-s u-margin-block-start-l';
+
+            const btnCancel = document.createElement('button');
+            btnCancel.type = 'button';
+            btnCancel.className = 'c-button c-button--secondary u-flex-grow-1';
+            btnCancel.textContent = 'Abbrechen';
+
+            const btnConfirm = document.createElement('button');
+            btnConfirm.type = 'button';
+            btnConfirm.className = 'c-button c-button--primary u-flex-grow-1';
+            btnConfirm.textContent = 'Ausführen';
+
+            btnGroup.append(btnCancel, btnConfirm);
+            wrapper.append(title, desc, btnGroup);
+            dialog.appendChild(wrapper);
+            document.body.appendChild(dialog);
+
+            dialog.showModal();
 
             const cleanup = (value) => {
                 dialog.close();
