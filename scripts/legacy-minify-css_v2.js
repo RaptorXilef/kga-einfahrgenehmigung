@@ -1,9 +1,9 @@
 // scripts/legacy-minify-css_v2.js
 
-import browserslist from 'browserslist';
-import { browserslistToTargets, transform } from 'lightningcss';
 import fs from 'node:fs';
 import path from 'node:path';
+import browserslist from 'browserslist';
+import { browserslistToTargets, transform } from 'lightningcss';
 
 const config = [{ src: 'public/assets/css', dest: 'public/assets/css' }];
 

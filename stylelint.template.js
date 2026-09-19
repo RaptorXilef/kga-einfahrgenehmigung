@@ -47,6 +47,8 @@ export default {
         'scale-unlimited/declaration-strict-value': [
             ['/color/', 'font-family', 'font-size', 'font-weight', 'spacing'],
             {
+                // FIX: Verhindert, dass der /color/ Regex native CSS Eigenschaften wie color-scheme anmahnt
+                ignoreProperties: ['color-scheme'],
                 ignoreValues: [
                     '0',
                     'inherit',
@@ -56,9 +58,7 @@ export default {
                     'currentColor',
                     'sans-serif',
                     'arial',
-                    'light', // Erlaubt für color-scheme
-                    'dark', // Erlaubt für color-scheme
-                    'monospace', // Native Font-Family
+                    'monospace',
                     '/^\\d+(%|vw|vh|rem|em)$/',
                 ],
                 disableFix: true,
