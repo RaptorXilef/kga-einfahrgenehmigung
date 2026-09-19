@@ -17,9 +17,13 @@ $auditLogs ??= [];
 $auditTotal ??= 0;
 $auditFilter ??= '';
 
+// Paginierungs-Logik: Schützt vor Parameter-Bleeding aus anderen Tabs
 $limit = $itemsPerPage ?? 25;
+$focus = $_GET['focus'] ?? 'tab-active';
+$requestedPage = ($focus === 'tab-audit-log') ? ($currentPage ?? 1) : 1;
+
 $auditTotalPages = \max(1, (int) \ceil($auditTotal / $limit));
-$page = \min($auditPage, $auditTotalPages);
+$page = \min($requestedPage, $auditTotalPages);
 $offset = ($page - 1) * $limit;
 
 $filterOptions = [
