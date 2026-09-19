@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.70.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.70.0...v0.70.1) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **mail:** Clarify board notification routing and add multi-recipient support ([1b5d95b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1b5d95b1ce46143e8545d7ba886cc34acd319c10))
+* **mail:** Ensure correct trailing slash in base URL generation for links ([cecf6f1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cecf6f156d5a56bee541196066e7a796987fa0e0))
+
 ## [0.70.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.69.4...v0.70.0) (2026-09-17)
 
 ### 🚀 Features
