@@ -42,6 +42,12 @@ final readonly class GlobalExceptionHandler
                 return false;
             }
 
+            // NEU: Ignoriere harmlose Deprecation-Warnungen (z.B. von Fremd-Bibliotheken wie league/csv).
+            // Verhindert, dass das System abstürzt, nur weil ein Vendor-Paket eine Methode als veraltet markiert!
+            if (\in_array($errno, [\E_DEPRECATED, \E_USER_DEPRECATED], true)) {
+                return false;
+            }
+
             throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
         });
     }

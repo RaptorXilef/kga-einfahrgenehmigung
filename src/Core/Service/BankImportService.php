@@ -35,7 +35,13 @@ final readonly class BankImportService
         $this->prepareAndNormalizeFile($filePath);
 
         try {
-            $csv = Reader::createFromPath($filePath, 'r');
+            // FIX: Umgehung der createFromPath Deprecation (P1007) durch Verwendung eines direkten Streams
+            $stream = \fopen($filePath, 'r');
+            if ($stream === false) {
+                return ['headers' => [], 'previewRow' => []];
+            }
+
+            $csv = Reader::createFromStream($stream);
             $csv->setDelimiter($this->detectDelimiter($filePath));
             $csv->setHeaderOffset(null); // Wir arbeiten mit numerischen Indizes
 
@@ -80,7 +86,13 @@ final readonly class BankImportService
         $this->prepareAndNormalizeFile($filePath);
 
         try {
-            $csv = Reader::createFromPath($filePath, 'r');
+            // FIX: Umgehung der createFromPath Deprecation (P1007)
+            $stream = \fopen($filePath, 'r');
+            if ($stream === false) {
+                return ['success' => false, 'message' => 'Datei konnte nicht zum Lesen geöffnet werden.'];
+            }
+
+            $csv = Reader::createFromStream($stream);
             $csv->setDelimiter($this->detectDelimiter($filePath));
             // Wir überspringen die Kopfzeile
             $csv->setHeaderOffset(null);
