@@ -1,37 +1,23 @@
 /**
  * Zentraler Notification-Service (Toasts) als Singleton.
- * Implementiert eine Warteschlange (Queue), um abgerissene CSS-Transitions
- * und stumme Screenreader-Announcements bei schnellen Aufrufen zu verhindern.
+ * Überschreibt bestehende Toasts sofort, um schnelle Feedbacks
+ * ohne blockierende Queues oder hängende CSS-Transitions zu garantieren.
  */
 
 class NotifierService {
     constructor() {
         this.baseUrl = window.KGA_CONFIG?.baseUrl || '/';
-        this.queue = [];
-        this.isShowing = false;
+        this.currentToast = null;
+        this.hideTimeout = null;
     }
 
     show(message, type = 'success') {
-        // Nachricht in die Warteschlange einreihen
-        this.queue.push({ message, type });
-
-        // Wenn gerade kein Toast angezeigt wird, Queue-Verarbeitung starten
-        if (!this.isShowing) {
-            this.#processQueue();
+        // Wenn bereits ein Toast angezeigt wird, diesen sofort restlos entfernen
+        if (this.currentToast) {
+            this.currentToast.remove();
+            clearTimeout(this.hideTimeout);
+            this.currentToast = null;
         }
-    }
-
-    #processQueue() {
-        // Abbruch, wenn die Warteschlange leer ist
-        if (this.queue.length === 0) {
-            this.isShowing = false;
-            return;
-        }
-
-        this.isShowing = true;
-
-        // Ältestes Element aus der Queue holen
-        const { message, type } = this.queue.shift();
 
         const toast = document.createElement('div');
         toast.className = `c-toast c-toast--${type}`;
@@ -52,33 +38,30 @@ class NotifierService {
             toast.appendChild(icon);
         }
 
-        // Sicheres Einfügen der Nachricht als Textknoten zur XSS-Prävention!
+        // Sicheres Einfügen der Nachricht als Textknoten zur XSS-Prävention
         const msgContainer = document.createElement('span');
         msgContainer.className = 'c-toast__msg js-toast-msg';
         msgContainer.textContent = message;
         toast.appendChild(msgContainer);
 
         document.body.appendChild(toast);
+        this.currentToast = toast;
 
-        // Slide-Out Animation nach 3 Sekunden garantierter Sichtbarkeit
-        setTimeout(() => {
-            toast.classList.add('is-hidden');
+        // Garantiertes Slide-Out nach 5 Sekunden Sichtbarkeit
+        this.hideTimeout = setTimeout(() => {
+            // Nur ausführen, wenn dieser Toast noch der aktive ist
+            if (this.currentToast === toast) {
+                toast.classList.add('is-hidden');
 
-            // ARCHITEKTUR-FIX: Niemals setTimeout für CSS-Transitions nutzen!
-            // Wir lauschen stattdessen auf das native Event des Browsers.
-            toast.addEventListener(
-                'transitionend',
-                (e) => {
-                    // Sicherstellen, dass wir auf die Haupt-Animation reagieren (translate)
-                    if (e.propertyName === 'translate' || e.propertyName === 'opacity') {
+                // Robustes DOM-Cleanup per Timeout (Kein unzuverlässiges transitionend-Event!)
+                setTimeout(() => {
+                    if (this.currentToast === toast) {
                         toast.remove();
-                        // Rekursiv den nächsten Toast in der Queue aufrufen
-                        this.#processQueue();
+                        this.currentToast = null;
                     }
-                },
-                { once: true }
-            );
-        }, 3000);
+                }, 600); // Entspricht der Zeit der CSS Transition
+            }
+        }, 5000);
     }
 }
 

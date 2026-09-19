@@ -67,7 +67,8 @@ export class AdminDashboard {
                 'click',
                 (e) => {
                     e.preventDefault();
-                    this.switchTab(btn.getAttribute('data-tab-target'), btn);
+                    // Flag 'true' übergibt, dass dieser Tab-Wechsel manuell vom Nutzer kam
+                    this.switchTab(btn.getAttribute('data-tab-target'), btn, true);
                 },
                 options
             );
@@ -121,8 +122,8 @@ export class AdminDashboard {
     }
 
     /**
-     * Erzeugt dynamisch einen barrierefreien HTML5-Dialog.
-     * SICHER: Strikte Native Nodes statt innerHTML.
+     * Erzeugt dynamisch einen barrierefreien HTML5-Dialog,
+     * um den blockierenden I/O prompt() zu ersetzen.
      */
     async #promptReason(code) {
         return new Promise((resolve) => {
@@ -237,7 +238,7 @@ export class AdminDashboard {
         }
     }
 
-    switchTab(tabId, activeBtn) {
+    switchTab(tabId, activeBtn, isUserClick = false) {
         if (!tabId || !activeBtn) return;
         const target = document.getElementById(tabId);
         if (!target) return;
@@ -265,6 +266,25 @@ export class AdminDashboard {
         } catch {
             // Ignore blockierte Storage
         }
+
+        // ARCHITEKTUR-FIX: Wenn der Nutzer klickt, bereinigen wir die URL von alten Paginierungs- & Focus-Parametern
+        if (isUserClick && window.history && window.history.replaceState) {
+            const url = new URL(window.location.href);
+            let changed = false;
+
+            ['focus', 'page', 'audit_page'].forEach((param) => {
+                if (url.searchParams.has(param)) {
+                    url.searchParams.delete(param);
+                    changed = true;
+                }
+            });
+
+            if (changed) {
+                // Wenn search leer ist, setzen wir nur den Pfadname, ansonsten inkl. Rest-Parametern (z.B. Start/End Filter)
+                const newUrl = url.search ? url.toString() : url.pathname;
+                window.history.replaceState({}, '', newUrl);
+            }
+        }
     }
 
     restoreLastTab() {
@@ -283,6 +303,7 @@ export class AdminDashboard {
             targetBtn = document.querySelector('[data-tab-target="tab-active"]');
         }
 
+        // Beim automatischen Laden KEIN isUserClick Flag mitgeben, damit Parameter überleben
         if (targetBtn) this.switchTab(lastTab, targetBtn);
     }
 

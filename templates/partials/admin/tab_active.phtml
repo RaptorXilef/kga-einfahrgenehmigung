@@ -108,7 +108,7 @@ if ($auth->hasPermission('permits.view')) {
                                         data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>">
                                         <div>
                                             <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                                 class="c-icon c-icon--sm <?php echo ($permit->getValidUntil() < $now) ? 'u-grayscale u-opacity-50' : ''; ?>"
+                                                 class="c-icon c-icon--md <?php echo ($permit->getValidUntil() < $now) ? 'u-grayscale u-opacity-50' : ''; ?>"
                                                  title="<?php echo $vLabel; ?>"
                                                  loading="lazy"
                                                  alt="">
