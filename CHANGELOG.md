@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.71.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.70.3...v0.71.0) (2026-09-19)
+
+### 🚀 Features
+
+* **debug:** Implement SQL execution time logging, state snapshots, and local mail preview ([25ac2a7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/25ac2a735bd781dcbca18739a9ad897e2f0cca74))
+* **maintenance:** Extend granular maintenance routing to APIs and refactor UI ([fa2cd24](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fa2cd24aa7a372597424f2ba844e1f695e92cfe7))
+* **maintenance:** Implement granular routing and custom messages for maintenance mode ([ace7472](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ace7472b24bb124e3b4c7c74ace7fc9c858195b6))
+
+### 🐛 Bug Fixes
+
+* **core:** Refactor usage pattern generation and replace admin_dev_mode with debug_mode ([5a18901](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5a189011a22cb8b835dabf1ec30cf48e79b2edf7))
+* **core:** Secure changelog route, add performance metrics and implement debug tools ([f807627](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f8076276f3af161a9b6dcbabd5b69729d8e92564))
+* **mail, core:** Simplify mail recipient config and extract error page template ([67befd3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/67befd3fed8cdaef8592279b351723ad36b1b2e9))
+* **mail:** Refactor sandbox routing, implement mail-test config and resolve missing URL slash ([9cd72da](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9cd72da2dc3e25c5359d3ddf96448b60ab1ca243))
+
 ## [0.70.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.70.2...v0.70.3) (2026-09-19)
 
 ### 🐛 Bug Fixes
