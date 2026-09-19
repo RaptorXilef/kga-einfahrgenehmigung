@@ -38,17 +38,14 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
             return true;
         }
 
+        // Lädt dank der Config-Klasse direkt den richtigen Block ('mail' oder 'mail-test')
         $mailConfig = $this->config->getMailSettings();
         $isTestMode = $this->config->isTestMode();
         $actualRecipient = $recipient;
 
-        // Im Testmodus (Sandbox) überschreiben wir den Empfänger knallhart
+        // Im Testmodus (Sandbox) überschreiben wir den Empfänger knallhart mit dem catch_all_recipient
         if ($isTestMode) {
-            // Wir holen die Test-E-Mail immer aus dem primären mail-Block, da dies die Single Source of Truth ist
-            $baseMailConfig = $this->config->get('mail', []);
-            $testMail = $baseMailConfig['recipients']['test'] ?? 'test@example.com';
-
-            $actualRecipient = $testMail;
+            $actualRecipient = $mailConfig['catch_all_recipient'] ?? 'sandbox@example.com';
             $subject = '[TEST] ' . $subject;
         }
 

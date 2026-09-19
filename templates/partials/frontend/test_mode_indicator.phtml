@@ -26,7 +26,7 @@ use App\Infrastructure\Config\Config;
 
             <div class="c-test-indicator__text">
                 PayPal Sandbox aktiv &bull; Test-E-Mail:
-                <code><?php echo \htmlspecialchars($config->get('mail')['recipients']['test'] ?? 'test@example.com'); ?></code>
+                <code><?php echo \htmlspecialchars($config->getMailSettings()['catch_all_recipient'] ?? 'test@example.com'); ?></code>
             </div>
 
             <?php if ($config->get('debug_mode', false) === true) { ?>

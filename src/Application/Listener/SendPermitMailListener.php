@@ -60,10 +60,8 @@ final readonly class SendPermitMailListener
         if (($mailConfig['send_board_notification'] ?? true) === true) {
             $userEmail = $permit->getOwnerEmail() !== '' ? $permit->getOwnerEmail() : null;
 
-            // FIX: Wir lesen die Vorstands-Empfänger immer aus dem Basis-Block, um Abstürze zu vermeiden,
-            // falls sie im mail-test Block nicht konfiguriert wurden.
-            $baseMailConfig = $this->config->get('mail', []);
-            $boardRecipientsRaw = $baseMailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'] ?? '';
+            // Zieht den Empfänger direkt aus dem aktiven Mail-Block!
+            $boardRecipientsRaw = $mailConfig['board_recipients'] ?? '';
 
             // Erlaube mehrere Vorstände durch Komma-Trennung und validiere die Adressen
             $boardRecipients = \array_filter(\array_map('trim', \explode(',', (string) $boardRecipientsRaw)));

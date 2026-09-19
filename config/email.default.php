@@ -6,10 +6,8 @@ return [
     'mail' => [
         'default' => 'smtp', // Erlaubt: 'smtp', 'oauth', 'graph'
         'send_board_notification' => true,
-        'recipients' => [
-            'live' => 'vorstand@echte-domain.de, finanzen@echte-domain.de',
-            'test' => 'deine-private-mail@test.de', // Single Source of Truth für Test-Mails!
-        ],
+        // Verteiler für Vorstands-Benachrichtigungen
+        'board_recipients' => 'vorstand@echte-domain.de, finanzen@echte-domain.de',
         'transports' => [
             'smtp' => [
                 'host' => 'smtp.dein-provider.de',
@@ -37,10 +35,15 @@ return [
     ],
 
     // --- SEPARATER TEST-TRANSPORT FÜR DIE SANDBOX ---
-    // Wird automatisch geladen, wenn 'test_mode' in der config.php aktiv ist
+    // Wird automatisch von getMailSettings() geladen, wenn 'test_mode' aktiv ist
     'mail-test' => [
         'default' => 'smtp',
         'send_board_notification' => true,
+        // E-Mails an den Vorstand gehen hierhin
+        'board_recipients' => 'deine-private-mail@test.de',
+        // Alle anderen E-Mails (Pächter, Tickets) werden zwingend auf diese Adresse umgeleitet (Sandbox-Trap)
+        // selbst wenn eine andere Email beim Formular angegeben wird!
+        'catch_all_recipient' => 'deine-private-mail@test.de',
         'transports' => [
             'smtp' => [
                 'host' => 'smtp.mailtrap.io', // Beispiel für Mailcatcher
@@ -49,7 +52,7 @@ return [
                 'pass' => 'test-pass',
                 'from' => 'sandbox@deine-kga.de',
             ],
-            // oauth und graph können hier bei Bedarf auch eingefüft werden
+            // oauth und graph können hier bei Bedarf auch eingefügt werden
         ],
     ],
 

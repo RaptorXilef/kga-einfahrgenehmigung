@@ -75,7 +75,7 @@ final readonly class GlobalExceptionHandler
     }
 
     /**
-     * Rendert eine formatierte HTML-Fehlerseite für Endnutzer oder Entwickler.
+     * Bereitet die Fehlermeldungen vor und inkludiert das PHTML-Template.
      *
      * @param Throwable $exception Die aufgetretene Ausnahme.
      * @param bool $isDev Gibt an, ob der Stacktrace (Dev-Mode) angezeigt werden darf.
@@ -87,13 +87,17 @@ final readonly class GlobalExceptionHandler
         }
 
         $vereinsName = \htmlspecialchars((string) $this->config->get('vereins_name', 'KGA'));
+        $baseUrl = \rtrim((string) $this->config->getBaseUrl(), '/') . '/';
+        $appRoot = \rtrim((string) $this->config->get('root_path', ''), '/\\');
+
         $errorTitle = 'Ups! Etwas ist schiefgelaufen';
         $errorMessage = 'Das System hat einen unerwarteten Fehler festgestellt. Keine Sorge, die Administratoren wurden automatisch benachrichtigt um das Problem zu beheben.';
+        $debugInfo = '';
 
         if ($isDev) {
             $errorTitle = \sprintf('Dev-Mode: %s', $exception::class);
-            $errorMessage = \sprintf(
-                "<strong>Fehler:</strong> %s<br><br><strong>Datei:</strong> %s:%d<br><br><strong>Stacktrace:</strong><pre style='background:#f4f4f4; padding:10px; overflow-x:auto; font-size:12px;'>%s</pre>",
+            $debugInfo = \sprintf(
+                "<strong>Fehler:</strong> %s<br><br><strong>Datei:</strong> %s:%d<br><br><strong>Stacktrace:</strong><pre class='c-system-error__pre'>%s</pre>", // TODO Inline HTML besser lösen!
                 \htmlspecialchars($exception->getMessage()),
                 \htmlspecialchars($exception->getFile()),
                 $exception->getLine(),
@@ -101,72 +105,17 @@ final readonly class GlobalExceptionHandler
             );
         }
 
-        ?> // TODO in eingene PHTML auslagern und Design in SCSS auslagern bzw. SCSS nutzen
-        <!DOCTYPE html>
-        <html lang="de">
-
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport"
-                  content="width=device-width, initial-scale=1.0">
-            <title>Systemfehler - <?php echo $vereinsName; ?></title>
-            <style>
-            body {
-                background: #f8fafc;
-                font-family: sans-serif;
-                display: flex;
-                justify-content: center;
-                padding: 40px 20px;
+        // Binden wir die PHTML-Datei ein (falls nicht vorhanden -> Ultra Fallback)
+        $templatePath = $appRoot . '/templates/pages/frontend/system_error.phtml';
+        if (\file_exists($templatePath)) {
+            include $templatePath;
+        } else {
+            echo "<h1>$errorTitle</h1><p>$errorMessage</p>";
+            if ($isDev) {
+                echo $debugInfo;
             }
+        }
 
-            .error-card {
-                background: white;
-                padding: 40px;
-                border-radius: 12px;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-                max-width: 600px;
-                width: 100%;
-                border-top: 5px solid #e74c3c;
-            }
-
-            h1 {
-                color: #c0392b;
-                margin-top: 0;
-            }
-
-            p {
-                line-height: 1.6;
-                color: #34495e;
-            }
-
-            .btn {
-                display: inline-block;
-                margin-top: 20px;
-                padding: 10px 20px;
-                background: #3498db;
-                color: white;
-                text-decoration: none;
-                border-radius: 6px;
-                font-weight: bold;
-            }
-
-            .btn:hover {
-                background: #2980b9;
-            }
-
-            </style>
-        </head>
-
-        <body>
-            <div class="error-card">
-                <h1>🛑 <?php echo $errorTitle; ?></h1>
-                <p><?php echo $errorMessage; ?></p>
-                <a href="index" class="btn">Zur Startseite</a>
-            </div>
-        </body>
-
-        </html>
-<?php
-                exit;
+        exit;
     }
 }

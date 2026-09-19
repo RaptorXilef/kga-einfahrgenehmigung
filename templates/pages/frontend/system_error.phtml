@@ -1,0 +1,39 @@
+<?php
+
+/**
+ * @var string $vereinsName
+ * @var string $baseUrl
+ * @var string $errorTitle
+ * @var string $errorMessage
+ * @var string $debugInfo
+ */
+?>
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Systemfehler - <?php echo $vereinsName; ?></title>
+    <link rel="stylesheet"
+          href="<?php echo $baseUrl; ?>assets/css/main.min.css">
+</head>
+
+<body class="l-public-body u-justify-center u-bg-light u-padding-block-l">
+    <div class="c-system-error o-container o-container--small u-text-center u-padding-block-xl u-shadow-highlight">
+        <span class="u-text-4xl u-display-block u-margin-block-end-m">🛑</span>
+        <h1 class="u-color-danger u-margin-block-start-none"><?php echo $errorTitle; ?></h1>
+        <p class="u-color-main u-text-lg"><?php echo $errorMessage; ?></p>
+
+        <?php if ($debugInfo !== '') { ?>
+            <div class="c-system-error__debug u-text-start u-margin-block-start-l">
+                <?php echo $debugInfo; ?>
+            </div>
+        <?php } ?>
+
+        <a href="<?php echo $baseUrl; ?>" class="c-button c-button--primary u-margin-block-start-l">Zur Startseite</a>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,32 @@
+@layer components {
+    .c-system-error {
+        background-color: var(--color-bg-white);
+        border-block-start: var(--border-xl) solid var(--color-danger);
+        border-radius: var(--radius-xxl);
+    }
+
+    .c-system-error__debug {
+        padding: var(--space-m);
+        font-size: var(--text-sm);
+        color: var(--color-text-main);
+        background-color: var(--color-bg-light);
+        border: var(--border-s) solid var(--color-border);
+        border-radius: var(--radius-m);
+    }
+
+    .c-system-error__pre {
+        padding: var(--space-m);
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        color: var(--color-bg-light);
+        background-color: var(--color-text-main);
+        border-radius: var(--radius-s);
+        box-shadow: inset 0 var(--border-m) var(--radius-s)
+            color-mix(
+                in oklch,
+                var(--color-text-dark) var(--mix-20),
+                transparent
+            );
+    }
+}
