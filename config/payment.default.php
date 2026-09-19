@@ -7,7 +7,7 @@ return [
     'iban' => 'DE12 3456 7890 1234 5678 90',
     'bic' => 'GENODES1M00',
     'kontoinhaber' => 'KGA e.V.',
-    'usage_pattern' => 'EFG-{{nachname}}-{{vorname}}-{{code}}',
+    'usage_pattern' => 'EFG-{{code}}-{{nachname}}-{{vorname}}',
     'require_payment_for_validity' => true,
     'payment_due_days_before_validity' => 1,
     'payment_due_days' => 14,

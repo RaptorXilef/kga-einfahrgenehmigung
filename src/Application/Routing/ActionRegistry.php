@@ -34,7 +34,7 @@ final class ActionRegistry
     {
         $this->cache->clearOld();
 
-        if ($this->config->get('admin_dev_mode', false) !== true) {
+        if ($this->config->get('debug_mode', false) !== true) {
             $cached = $this->cache->load();
             if (\is_array($cached)) {
                 /** @var array{exact: array<string, array<string, array{class: string, auth: bool}>>, dynamic: array<string, array<string, array{class: string, auth: bool}>>} $cachedArr */

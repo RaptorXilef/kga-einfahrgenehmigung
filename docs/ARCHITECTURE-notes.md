@@ -277,7 +277,7 @@ Wenn ein Fehler tief im Code passiert (z.B. Datenbank weg, JSON kaputt), stürzt
 
 Wir nutzen den `GlobalExceptionHandler`. Dieser fängt **alle** ungeplanten Fehler zentral ab, bevor sie den Nutzer erreichen.
 
-**Implementierung:**Mit `\set_exception_handler()` greifen wir Fehler global ab. Der Handler prüft, ob die App im Entwicklermodus (`admin_dev_mode`) läuft oder im produktiven Einsatz ist, sowie ob die Anfrage über eine API oder ein normales Webformular kam.
+**Implementierung:**Mit `\set_exception_handler()` greifen wir Fehler global ab. Der Handler prüft, ob die App im Entwicklermodus (`debug_mode`) läuft oder im produktiven Einsatz ist, sowie ob die Anfrage über eine API oder ein normales Webformular kam.
 
 - **Im Dev-Modus:** Der Entwickler sieht sofort den exakten Fehler inklusive Stack-Trace zur schnellen Fehlerbehebung.
 - **Im Produktiv-Betrieb:** Der Nutzer sieht eine freundliche Fehlerseite im Vereins-Design ("Ups! Etwas ist schiefgelaufen"), und der technische Fehler wird geräuschlos im Hintergrund in die `php_errors.log` geschrieben.

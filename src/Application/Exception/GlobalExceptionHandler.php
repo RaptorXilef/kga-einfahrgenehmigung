@@ -57,12 +57,12 @@ final readonly class GlobalExceptionHandler
         $this->logger->logThrowable($exception);
 
         // 2. Prüfen, ob wir im Dev-Modus sind (dann wollen wir die echten Fehler sehen!)
-        $isDev = (bool) $this->config->get('admin_dev_mode', false);
+        $isDev = (bool) $this->config->get('debug_mode', false);
 
         // FIX: Nur ECHTE API-Calls (JSON Accept/Content-Type oder /api/ Route) als JSON beantworten, keine normalen HTML-Formulare!
         $isApi = \str_contains($_SERVER['SCRIPT_NAME'] ?? '', '/api/')
-              || (isset($_SERVER['HTTP_ACCEPT']) && \str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'))
-              || (isset($_SERVER['CONTENT_TYPE']) && \str_contains($_SERVER['CONTENT_TYPE'], 'application/json'));
+            || (isset($_SERVER['HTTP_ACCEPT']) && \str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'))
+            || (isset($_SERVER['CONTENT_TYPE']) && \str_contains($_SERVER['CONTENT_TYPE'], 'application/json'));
 
         if ($isApi) {
             $msg = $isDev ? $exception->getMessage() : 'Ein interner Serverfehler ist aufgetreten.';
@@ -101,31 +101,72 @@ final readonly class GlobalExceptionHandler
             );
         }
 
-        ?>
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Systemfehler - <?php echo $vereinsName; ?></title>
-    <style>
-        body { background:#f8fafc; font-family:sans-serif; display:flex; justify-content:center; padding:40px 20px; }
-        .error-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); max-width: 600px; width: 100%; border-top: 5px solid #e74c3c; }
-        h1 { color:#c0392b; margin-top:0; }
-        p { line-height: 1.6; color:#34495e; }
-        .btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background:#3498db; color:white; text-decoration:none; border-radius:6px; font-weight:bold; }
-        .btn:hover { background:#2980b9; }
-    </style>
-</head>
-<body>
-    <div class="error-card">
-        <h1>🛑 <?php echo $errorTitle; ?></h1>
-        <p><?php echo $errorMessage; ?></p>
-        <a href="index" class="btn">Zur Startseite</a>
-    </div>
-</body>
-</html>
-        <?php
-        exit;
+        ?> // TODO in eingene PHTML auslagern und Design in SCSS auslagern bzw. SCSS nutzen
+        <!DOCTYPE html>
+        <html lang="de">
+
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport"
+                  content="width=device-width, initial-scale=1.0">
+            <title>Systemfehler - <?php echo $vereinsName; ?></title>
+            <style>
+            body {
+                background: #f8fafc;
+                font-family: sans-serif;
+                display: flex;
+                justify-content: center;
+                padding: 40px 20px;
+            }
+
+            .error-card {
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+                max-width: 600px;
+                width: 100%;
+                border-top: 5px solid #e74c3c;
+            }
+
+            h1 {
+                color: #c0392b;
+                margin-top: 0;
+            }
+
+            p {
+                line-height: 1.6;
+                color: #34495e;
+            }
+
+            .btn {
+                display: inline-block;
+                margin-top: 20px;
+                padding: 10px 20px;
+                background: #3498db;
+                color: white;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: bold;
+            }
+
+            .btn:hover {
+                background: #2980b9;
+            }
+
+            </style>
+        </head>
+
+        <body>
+            <div class="error-card">
+                <h1>🛑 <?php echo $errorTitle; ?></h1>
+                <p><?php echo $errorMessage; ?></p>
+                <a href="index" class="btn">Zur Startseite</a>
+            </div>
+        </body>
+
+        </html>
+<?php
+                exit;
     }
 }

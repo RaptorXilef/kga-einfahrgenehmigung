@@ -141,7 +141,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
 
     /**
      * Bestimmt die Rechte des aktuellen Betrachters für die Detailansicht.
-     * Evaluierte Bedingungen: Admin-Dev-Mode aktiv, Admin eingeloggt oder gültiger Signatur-Hash.
+     * Evaluierte Bedingungen: Admin eingeloggt oder gültiger Signatur-Hash.
      *
      * @param Permit $permit Das zu prüfende Genehmigungs-Objekt.
      *
@@ -149,11 +149,6 @@ final readonly class CheckPermitAction implements ViewActionInterface
      */
     private function determineViewPrivileges(Permit $permit, string $token): bool
     {
-        // A. Entwickler-Modus
-        if ((bool) $this->config->get('admin_dev_mode', false)) {
-            return true;
-        }
-
         // B. Eingeloggter Admin (Session)
         if ($this->auth->isLoggedIn()) {
             return true;

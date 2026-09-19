@@ -32,7 +32,6 @@ final readonly class SendPermitMailListener
     public function handle(PermitCreatedEvent $event): void
     {
         $permit = $event->permit;
-        $shortCode = $event->shortCode;
         $permitCodeStr = $permit->code->value;
 
         $zeitraum = "{$permit->getValidFrom()->format('d.m.Y')} bis {$permit->getValidUntil()->format('d.m.Y')}";
@@ -105,11 +104,7 @@ final readonly class SendPermitMailListener
 
         // --- 2. ZAHLUNGSAUFFORDERUNG ---
         if ($permit->getStatus() !== PermitStatus::Bezahlt) {
-            $nameParts = \explode(' ', $permit->getOwnerName());
-            $vorname = $nameParts[0] ?? 'Unbekannt';
-            $nachname = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
-
-            $usage = "EFG-{$nachname}-{$vorname}-{$shortCode}";
+            $usage = $this->permitService->generateUsageText($permit);
             $epcQrData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
 
             $this->mailService->sendTemplate(

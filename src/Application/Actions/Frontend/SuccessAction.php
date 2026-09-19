@@ -58,12 +58,7 @@ final readonly class SuccessAction implements ViewActionInterface
         $usage = '';
 
         if ($method === 'wire' && $permit->getStatus() !== PermitStatus::Bezahlt) {
-            $shortCode = \substr($permit->code->value, -6);
-            $nameParts = \explode(' ', $permit->getOwnerName());
-            $vorname = $nameParts[0] ?? 'Unbekannt';
-            $nachname = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
-
-            $usage = "EFG-{$nachname}-{$vorname}-{$shortCode}";
+            $usage = $this->permitService->generateUsageText($permit);
             $epcData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
         }
 

@@ -99,12 +99,8 @@ final readonly class AuthService
 
     public function hasPermission(string $permission): bool
     {
-        if ($this->config->get('admin_dev_mode', false) === true) {
-            return true;
-        }
-
         $uid = $this->sessionManager->getUserId();
-        if (\str_starts_with($uid, 'sys_')) {
+        if (\str_starts_with($uid, 'sys_')) { // TODO Schwachstelle beheben!
             return true;
         }
 

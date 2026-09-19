@@ -610,6 +610,33 @@ final readonly class PermitService
         return \count($toArchive);
     }
 
+    /**
+     * Generiert den textuellen Verwendungszweck aus dem Konfigurations-Pattern.
+     * Stellt die "Single Source of Truth" für Überweisungen sicher (DRY-Prinzip).
+     *
+     * @param Permit $permit Das betreffende Genehmigungsobjekt
+     *
+     * @return string Der fertig aufbereitete String
+     */
+    public function generateUsageText(Permit $permit): string
+    {
+        $pattern = (string) $this->config->get('usage_pattern', 'EFG-{{code}}-{{nachname}}');
+
+        $shortCode = \substr($permit->code->value, -6);
+        $nameParts = \explode(' ', $permit->getOwnerName());
+        $vorname = $nameParts[0] ?? '';
+        $nachname = $nameParts[\count($nameParts) - 1] ?? '';
+
+        $replace = [
+            '{{code}}' => $shortCode,
+            '{{nachname}}' => $nachname,
+            '{{vorname}}' => $vorname,
+            '{{name}}' => $permit->getOwnerName(),
+        ];
+
+        return \str_replace(\array_keys($replace), \array_values($replace), $pattern);
+    }
+
     private function validateNoCollisions(int $parzelleId, DateTimeImmutable $start, DateTimeImmutable $end): void
     {
         foreach ($this->storage->getAll() as $permit) {

@@ -4,9 +4,9 @@ use App\Contracts\System\AssetHelperInterface;
 use App\Infrastructure\Config\Config;
 
 /**
- * Component: Test Mode & Admin Bypass Indicator (Animated)
+ * Component: Test Mode & Debug Mode Indicator (Animated)
  *
- * Zeigt einen globalen Warnbanner, wenn PayPal Sandbox oder der Dev-Admin-Modus aktiv sind.
+ * Zeigt einen globalen Warnbanner, wenn PayPal Sandbox oder der Debug-Modus aktiv sind.
  *
  * @var AssetHelperInterface $asset
  * @var Config $config
@@ -26,15 +26,15 @@ use App\Infrastructure\Config\Config;
 
             <div class="c-test-indicator__text">
                 PayPal Sandbox aktiv &bull; Test-E-Mail:
-                <code><?php echo \htmlspecialchars($config->get('mail')['recipients']['test']); ?></code>
+                <code><?php echo \htmlspecialchars($config->get('mail')['recipients']['test'] ?? 'test@example.com'); ?></code>
             </div>
 
-            <?php if ($config->get('admin_dev_mode')) { ?>
+            <?php if ($config->get('debug_mode', false) === true) { ?>
                 <div class="c-test-indicator__admin-badge">
-                    <img src="<?php echo $asset->url('assets/img/icons/unlock.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/tools.webp'); ?>"
                          class="c-icon c-button__icon"
                          loading="lazy"
-                         alt=""> Admin Bypass Aktiv
+                         alt=""> Debug-Modus aktiv
                 </div>
             <?php } ?>
 

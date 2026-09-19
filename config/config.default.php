@@ -19,5 +19,5 @@ return [
 
     // --- UMGEBUNGSSTEUERUNG ---
     'test_mode' => false, // true = Sandbox-Modus (PayPal & Mails blockiert) | false = Produktion
-    'admin_dev_mode' => false, // true = Hebelt Admin-Login aus (Nur für lokale Entwicklung!)
+    'debug_mode' => false, // true = Zeigt PHP-Fehler im Klartext und deaktiviert den Routen-Cache
 ];

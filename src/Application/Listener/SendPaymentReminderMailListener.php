@@ -28,17 +28,10 @@ final readonly class SendPaymentReminderMailListener
             return;
         }
 
-        // FIX: Wert entkapseln für substr
         $permitCodeStr = $permit->code->value;
+        $usage = $this->permitService->generateUsageText($permit);
+
         // Bank-QR-Code nochmal generieren, um das Bezahlen direkt aus der Reminder-Mail zu erleichtern
-        $shortCode = \substr($permitCodeStr, -6);
-
-        $nameParts = \explode(' ', $permit->getOwnerName());
-        $vorname = $nameParts[0] ?? 'Unbekannt';
-        $nachname = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
-
-        $usage = "EFG-{$nachname}-{$vorname}-{$shortCode}";
-
         $epcQrData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
 
         $this->mailService->sendTemplate(
