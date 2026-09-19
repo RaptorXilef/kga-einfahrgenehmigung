@@ -16,10 +16,17 @@ $paginationParam ??= 'page';
 
 if ($totalPages > 1) {
     $queryParams = $_GET;
-    unset($queryParams[$paginationParam]);
 
-    // ARCHITEKTUR-FIX: Verhindert "Parameter Leakage" bei Tab-Wechseln.
-    // Jeder Paginierungs-Link bekommt zwingend die ID seines eigenen Tabs aufgestempelt.
+    // ARCHITEKTUR-FIX: Verhindert "Parameter Leakage" und kryptische URLs.
+    // 1. Wir löschen pauschal alle bekannten Paginierungs-Parameter aus der URL-Basis
+    unset($queryParams['page'], $queryParams['audit_page']);
+
+    // 2. Wenn wir nicht in einem Tab sind, der das Archiv nutzt, werfen wir das auch raus
+    if (isset($tabFocusId) && !\in_array($tabFocusId, ['tab-expired', 'tab-stats'], true)) {
+        unset($queryParams['archive_depth']);
+    }
+
+    // 3. Jeder Paginierungs-Link bekommt zwingend die ID seines eigenen Tabs aufgestempelt.
     if (isset($tabFocusId)) {
         $queryParams['focus'] = $tabFocusId;
     } else {

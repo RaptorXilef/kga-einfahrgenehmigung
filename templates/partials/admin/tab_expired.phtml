@@ -170,7 +170,8 @@ if ($auth->hasPermission('permits.view')) {
             <div class="c-card__footer u-text-center">
                 <?php
                 $queryParams = $_GET;
-    unset($queryParams['page']); // Verhindere, dass Paginierungen beim Laden von Archiven mitgenommen werden
+    // Verhindere, dass Paginierungen jeglicher Art beim Laden von Archiven mitgenommen werden
+    unset($queryParams['page'], $queryParams['audit_page']);
     $queryParams['archive_depth'] = $minArchiveYear - 1;
     $queryParams['focus'] = 'tab-expired'; // Zwingt den Tab nach dem Laden wieder auf "Abgelaufen"
     $loadUrl = '?' . \http_build_query($queryParams);
