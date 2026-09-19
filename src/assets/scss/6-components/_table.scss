@@ -27,17 +27,17 @@
         border-block-end: var(--border-s) solid var(--color-border);
     }
 
-    /* UI Fix: Strikte Vereinheitlichung aller Fahrzeug-Icons und Kennzeichen in Tabellen via CSS Context - STRIKT FLACH */
-    .c-table__data-cell:has(.c-license-plate) .c-icon {
-        inline-size: var(--size-icon-lg) !important;
-        block-size: var(--size-icon-lg) !important;
+    /* ARCHITEKTUR-FIX: Strikte BEM Modifier statt :has() Contextual Styling */
+    .c-table__icon {
+        inline-size: var(--size-icon-lg);
+        block-size: var(--size-icon-lg);
         opacity: var(--opacity-100);
     }
 
-    .c-table__data-cell:has(.c-license-plate) .c-license-plate {
-        padding-block: var(--space-xs) !important;
-        padding-inline: var(--space-m) !important;
-        font-size: var(--text-sm) !important;
+    .c-table__license-plate {
+        padding-block: var(--space-xs);
+        padding-inline: var(--space-m);
+        font-size: var(--text-sm);
     }
 
     .c-table__mail-link {
