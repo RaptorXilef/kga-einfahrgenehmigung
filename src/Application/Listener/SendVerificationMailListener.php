@@ -23,16 +23,19 @@ final readonly class SendVerificationMailListener
 
     public function handle(VerificationRequestedEvent $event): void
     {
+        // BUGFIX: Garantiert einen sauberen Slash am Ende der URL, damit verify?token korrekt generiert wird
+        $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
+
         $this->mailService->sendTemplate(
             (string) $event->data['email'],
             "E-Mail bestätigen: {$event->shortCode}",
             'verify_email',
             [
-                'baseUrl' => $this->config->getBaseUrl(),
+                'baseUrl' => $safeBaseUrl,
                 'code' => $event->shortCode,
                 'name' => (string) $event->data['name'],
                 'vereinsName' => $this->config->get('vereins_name'),
-                'verifyUrl' => $this->config->getBaseUrl() . 'verify?token=' . $event->token,
+                'verifyUrl' => $safeBaseUrl . 'verify?token=' . $event->token,
             ],
             null,
             100, // Hohe Priorität für Verifizierungen

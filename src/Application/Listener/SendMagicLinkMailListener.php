@@ -23,14 +23,16 @@ final readonly class SendMagicLinkMailListener
 
     public function handle(MagicLinkRequestedEvent $event): void
     {
-        $link = $this->config->getBaseUrl() . 'history?token=' . $event->token;
+        // BUGFIX: Garantiert einen sauberen Slash am Ende der URL
+        $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
+        $link = $safeBaseUrl . 'history?token=' . $event->token;
 
         $this->mailService->sendTemplate(
             $event->email,
             'Login-Code: Ihre Genehmigungen',
             'magic_link',
             [
-                'baseUrl' => $this->config->getBaseUrl(),
+                'baseUrl' => $safeBaseUrl,
                 'code' => $event->code,
                 'duration' => $this->config->get('magic_link_duration'),
                 'link' => $link,

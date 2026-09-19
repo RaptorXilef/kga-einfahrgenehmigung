@@ -70,7 +70,14 @@ final readonly class Config implements ConfigInterface
      */
     public function getMailSettings(): array
     {
-        $mail = $this->get('mail', []);
+        $isTestMode = $this->isTestMode();
+        $mail = $this->get($isTestMode ? 'mail-test' : 'mail', []);
+
+        // Fallback auf normalen Mail-Block, falls mail-test leer oder nicht konfiguriert ist
+        if (!\is_array($mail) || empty($mail)) {
+            $mail = $this->get('mail', []);
+        }
+
         if (!\is_array($mail)) {
             return [];
         }

@@ -30,32 +30,42 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
 
     // --- Public API ---
 
-    public function sendTemplate(string $recipient, string$subject, string $template, array$data, ?string $replyTo = null, int$priority = 50): bool|string
+    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50): bool|string
     {
         if (\in_array(\trim($recipient), ['', '0'], true)) {
-            $this->logEmail('System',$subject, clone new TemplateKey($template), 'Übersprungen: Kein Empfänger angegeben', null, $data);
+            $this->logEmail('System', $subject, clone new TemplateKey($template), 'Übersprungen: Kein Empfänger angegeben', null, $data);
 
             return true;
         }
 
-        $mailConfig =$this->config->getMailSettings();
-        $body =$this->render($template,$data);
+        $mailConfig = $this->config->getMailSettings();
+        $isTestMode = $this->config->isTestMode();
+        $actualRecipient = $recipient;
 
-        if ($this->config->isTestMode() && ($mailConfig['test_mail_active'] ?? false) === false) {
-            $this->logEmail($recipient, $subject, clone new TemplateKey($template), 'Testmodus (kein Versand)', $replyTo,$data);
+        // Im Testmodus (Sandbox) überschreiben wir den Empfänger knallhart
+        if ($isTestMode) {
+            // Wir holen die Test-E-Mail immer aus dem primären mail-Block, da dies die Single Source of Truth ist
+            $baseMailConfig = $this->config->get('mail', []);
+            $testMail = $baseMailConfig['recipients']['test'] ?? 'test@example.com';
 
-            return true;
+            $actualRecipient = $testMail;
+            $subject = '[TEST] ' . $subject;
         }
 
+        $body = $this->render($template, $data);
         $transportConfig = $this->getTransportConfig($mailConfig);
-        $status =$this->dispatch($recipient,$subject, $body,$transportConfig, $replyTo);$this->logEmail($recipient,$subject, clone new TemplateKey($template),$status, $replyTo,$data);
+        $status = $this->dispatch($actualRecipient, $subject, $body, $transportConfig, $replyTo);
+
+        // Im Log zeigen wir den eigentlich geplanten Empfänger, vermerken aber den tatsächlichen Versand
+        $logStatus = $status === true && $isTestMode ? 'Erfolg (Test-Routing an ' . $actualRecipient . ')' : $status;
+        $this->logEmail($recipient, $subject, clone new TemplateKey($template), $logStatus, $replyTo, $data);
 
         return $status;
     }
 
-    public function saveLogs(array $logs, bool$forceSql = false): void
+    public function saveLogs(array $logs, bool $forceSql = false): void
     {
-        $cfg =$this->config->get('storage_config')['mail_log'];
+        $cfg = $this->config->get('storage_config')['mail_log'];
         if (!$this->pdo instanceof PDO) {
             return;
         }
@@ -63,15 +73,23 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         $this->pdo->beginTransaction();
 
         try {
-            $stmt =$this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id,timestamp,recipient,reply_to,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id,timestamp,recipient,reply_to,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
-            foreach ($logs as$log) {
-                $stmt->execute([$log->id,
-                    $log->timestamp->format('Y-m-d H:i:s'),$log->recipient,
-                    $log->replyTo,$log->subject,
-                    $log->template->value,$log->status,
-                    \json_encode($log->data, \JSON_UNESCAPED_UNICODE),                 ]);             }$this->pdo->commit();
-        } catch (Exception $e) {$this->pdo->rollBack();
+            foreach ($logs as $log) {
+                $stmt->execute([
+                    $log->id,
+                    $log->timestamp->format('Y-m-d H:i:s'),
+                    $log->recipient,
+                    $log->replyTo,
+                    $log->subject,
+                    $log->template->value,
+                    $log->status,
+                    \json_encode($log->data, \JSON_UNESCAPED_UNICODE),
+                ]);
+            }
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
 
             throw $e;
         }
@@ -79,17 +97,21 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
 
     public function loadLogs(): array
     {
-        $cfg = $this->config->get('storage_config')['mail_log'];$logs = [];
+        $cfg = $this->config->get('storage_config')['mail_log'];
+        $logs = [];
 
         if ($this->pdo instanceof PDO) {
-            $stmt =$this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC");
+            $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC");
             if ($stmt) {
-                foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {$logs[] = new MailLogEntry(
+                foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                    $logs[] = new MailLogEntry(
                         (string) $r['id'],
                         new DateTimeImmutable($r['timestamp']),
-                        $r['recipient'] ?? '',$r['reply_to'] ?? null,
+                        $r['recipient'] ?? '',
+                        $r['reply_to'] ?? null,
                         $r['subject'] ?? '',
-                        new TemplateKey($r['template'] ?: 'std_7'),$r['status'] ?? '',
+                        new TemplateKey($r['template'] ?: 'std_7'),
+                        $r['status'] ?? '',
                         \is_string($r['data'] ?? null) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
                     );
                 }
@@ -109,11 +131,12 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
     /**
      * Der spezifische Versand-Mechanismus, der von den Child-Klassen (Transports) implementiert werden muss.
      */
-    abstract protected function dispatch(string $recipient, string $subject, string$body, array $transportConfig, ?string $replyTo = null): bool|string;
+    abstract protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null): bool|string;
 
-    protected function render(string $templatePath, array$data): string
+    protected function render(string $templatePath, array $data): string
     {
-        $root = $this->config->get('root_path');$fullPath = $root . "/templates/emails/{$templatePath}.phtml";
+        $root = $this->config->get('root_path');
+        $fullPath = $root . "/templates/emails/{$templatePath}.phtml";
 
         if (!\file_exists($fullPath)) {
             throw new RuntimeException("Mail-Template nicht gefunden: {$fullPath}");
@@ -131,27 +154,32 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
 
     protected function getTransportConfig(array $mailConfig): array
     {
-        $default =$mailConfig['default'] ?? 'smtp';
+        $default = $mailConfig['default'] ?? 'smtp';
+
         return $mailConfig['transports'][$default] ?? [];
     }
 
     private function logEmail(string $recipient, string $subject, TemplateKey $template, bool|string $status, ?string $replyTo = null, array $data = []): void
     {
         $statusStr = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
-        $maxEntries = (int)$this->config->get('mail_log_max_entries', 200);
+        $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
 
         $entry = new MailLogEntry(
             \uniqid('ml_'),
             new DateTimeImmutable(APP_REQUEST_TIME_STR),
-            $recipient,$replyTo,
-            $subject,$template,
-            $statusStr,$data,
+            $recipient,
+            $replyTo,
+            $subject,
+            $template,
+            $statusStr,
+            $data,
         );
 
-        $logs =$this->loadLogs();
-        \array_unshift($logs,$entry);
+        $logs = $this->loadLogs();
+        \array_unshift($logs, $entry);
 
-        if (\count($logs) > $maxEntries) {$logs = \array_slice($logs, 0,$maxEntries);
+        if (\count($logs) > $maxEntries) {
+            $logs = \array_slice($logs, 0, $maxEntries);
         }
 
         $this->saveLogs($logs, true);

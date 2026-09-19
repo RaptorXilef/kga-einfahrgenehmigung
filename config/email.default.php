@@ -5,11 +5,10 @@ declare(strict_types=1);
 return [
     'mail' => [
         'default' => 'smtp', // Erlaubt: 'smtp', 'oauth', 'graph'
-        'test_mail_active' => false,
         'send_board_notification' => true,
         'recipients' => [
             'live' => 'vorstand@echte-domain.de, finanzen@echte-domain.de',
-            'test' => 'deine-private-mail@test.de',
+            'test' => 'deine-private-mail@test.de', // Single Source of Truth für Test-Mails!
         ],
         'transports' => [
             'smtp' => [
@@ -36,6 +35,24 @@ return [
             ],
         ],
     ],
+
+    // --- SEPARATER TEST-TRANSPORT FÜR DIE SANDBOX ---
+    // Wird automatisch geladen, wenn 'test_mode' in der config.php aktiv ist
+    'mail-test' => [
+        'default' => 'smtp',
+        'send_board_notification' => true,
+        'transports' => [
+            'smtp' => [
+                'host' => 'smtp.mailtrap.io', // Beispiel für Mailcatcher
+                'port' => 2525,
+                'user' => 'test-user',
+                'pass' => 'test-pass',
+                'from' => 'sandbox@deine-kga.de',
+            ],
+            // oauth und graph können hier bei Bedarf auch eingefüft werden
+        ],
+    ],
+
     'mail_log_max_entries' => 5000,
     'mail_log_display_limit' => 250,
     'mail_queue_limit_web' => 3,
