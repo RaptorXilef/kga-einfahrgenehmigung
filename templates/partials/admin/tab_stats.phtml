@@ -252,7 +252,9 @@ $chartDataPayload = [
             <div class="u-text-center u-margin-block-start-l">
                 <?php
                 $queryParams = $_GET;
+            unset($queryParams['page']); // Verhindere, dass Paginierungen beim Laden von Archiven mitgenommen werden
             $queryParams['archive_depth'] = $minArchiveYear - 1;
+            $queryParams['focus'] = 'tab-stats'; // Zwingt den Tab nach dem Laden wieder auf Statistiken
             $loadUrl = '?' . \http_build_query($queryParams);
             ?>
                 <a href="<?php echo $loadUrl; ?>" class="c-button c-button--secondary">

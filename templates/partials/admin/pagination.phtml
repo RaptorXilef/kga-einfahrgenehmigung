@@ -10,12 +10,22 @@
  * @var int $limit            Einträge pro Seite
  * @var int $offset           Aktueller Offset
  * @var string $paginationParam Der GET-Parameter für die Seite (Standard: 'page', bei Audit-Log z.B. 'audit_page')
+ * @var string|null $tabFocusId Die explizite Tab-ID (z.B. 'tab-active'), um URL-Leaks zu verhindern
  */
 $paginationParam ??= 'page';
 
 if ($totalPages > 1) {
     $queryParams = $_GET;
     unset($queryParams[$paginationParam]);
+
+    // ARCHITEKTUR-FIX: Verhindert "Parameter Leakage" bei Tab-Wechseln.
+    // Jeder Paginierungs-Link bekommt zwingend die ID seines eigenen Tabs aufgestempelt.
+    if (isset($tabFocusId)) {
+        $queryParams['focus'] = $tabFocusId;
+    } else {
+        unset($queryParams['focus']);
+    }
+
     $baseUrlStr = '?' . \http_build_query($queryParams) . '&' . $paginationParam . '=';
 
     $adjacents = 2;
@@ -67,7 +77,7 @@ if ($totalPages > 1) {
                     <span class="c-button c-button--primary" aria-current="page"><?php echo $pageNum; ?></span>
                 <?php } else { ?>
                     <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
-            <?php }
+                <?php }
                 } ?>
 
             <?php if ($page < $totalPages) { ?>

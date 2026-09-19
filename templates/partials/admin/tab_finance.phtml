@@ -49,6 +49,7 @@ $colspan = 5 + ($privacyEmail ? 1 : 0) + ($privacyFinance ? 1 : 0) + ($hasBulkRi
 
 \ob_start();
 $paginationParam = 'page';
+$tabFocusId = 'tab-finance';
 include $appRoot . '/templates/partials/admin/pagination.phtml';
 $paginationHtml = \ob_get_clean();
 
@@ -245,13 +246,13 @@ if ($auth->hasPermission('finance.view')) {
                                             data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>">
                                             <div>
                                                 <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                                     class="c-icon c-icon--md"
+                                                     class="c-icon c-table__icon"
                                                      title="<?php echo $vLabel; ?>"
                                                      loading="lazy"
                                                      alt="">
                                             </div>
                                             <div class="u-margin-block-start-xs">
-                                                <span class="c-license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
+                                                <span class="c-license-plate c-table__license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
                                             </div>
                                         </td>
 

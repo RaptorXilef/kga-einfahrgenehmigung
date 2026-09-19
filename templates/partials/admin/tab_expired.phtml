@@ -33,6 +33,7 @@ $expiredPermits = \array_slice($allExpired, $offset, $limit);
 
 \ob_start();
 $paginationParam = 'page';
+$tabFocusId = 'tab-expired';
 include $appRoot . '/templates/partials/admin/pagination.phtml';
 $paginationHtml = \ob_get_clean();
 
@@ -101,13 +102,13 @@ if ($auth->hasPermission('permits.view')) {
                                         data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>">
                                         <div>
                                             <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                                 class="c-icon c-icon--md u-grayscale u-opacity-50"
+                                                 class="c-icon c-table__icon u-grayscale u-opacity-50"
                                                  title="<?php echo $vLabel; ?>"
                                                  loading="lazy"
                                                  alt="">
                                         </div>
                                         <div class="u-margin-block-start-xs">
-                                            <span class="c-license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
+                                            <span class="c-license-plate c-table__license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
                                         </div>
                                     </td>
                                     <!-- 3. E-Mail -->
@@ -167,7 +168,9 @@ if ($auth->hasPermission('permits.view')) {
             <div class="c-card__footer u-text-center">
                 <?php
                 $queryParams = $_GET;
+    unset($queryParams['page']); // Setze Paginierung beim Laden neuer Jahre zurück
     $queryParams['archive_depth'] = $minArchiveYear - 1;
+    $queryParams['focus'] = 'tab-expired'; // Zwingt den Tab nach dem Laden wieder auf "Abgelaufen"
     $loadUrl = '?' . \http_build_query($queryParams);
     ?>
                 <a href="<?php echo $loadUrl; ?>" class="c-button c-button--secondary">

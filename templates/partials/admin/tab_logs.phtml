@@ -28,6 +28,7 @@ $logs = \array_slice($allLogs, $offset, $limit);
 
 \ob_start();
 $paginationParam = 'page';
+$tabFocusId = 'tab-logs';
 include $appRoot . '/templates/partials/admin/pagination.phtml';
 $paginationHtml = \ob_get_clean();
 

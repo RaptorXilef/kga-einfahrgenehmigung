@@ -34,6 +34,7 @@ $futurePermits = \array_slice($allFuture, $offset, $limit);
 
 \ob_start();
 $paginationParam = 'page';
+$tabFocusId = 'tab-future';
 include $appRoot . '/templates/partials/admin/pagination.phtml';
 $paginationHtml = \ob_get_clean();
 
@@ -105,13 +106,13 @@ if ($auth->hasPermission('permits.view')) {
                                         data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>">
                                         <div>
                                             <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                                 class="c-icon c-icon--md"
+                                                 class="c-icon c-table__icon"
                                                  title="<?php echo $vLabel; ?>"
                                                  loading="lazy"
                                                  alt="">
                                         </div>
                                         <div class="u-margin-block-start-xs">
-                                            <span class="c-license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
+                                            <span class="c-license-plate c-table__license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
                                         </div>
                                     </td>
                                     <!-- 3. Kontakt / E-Mail -->
