@@ -17,6 +17,9 @@ export default {
         'no-empty-source': null,
         'scss/at-rule-no-unknown': true,
 
+        // ERLAUBT exakte Typografie-Skalierungen (z.B. 0.03125 = 1/32)
+        'number-max-precision': 5,
+
         // NEU: Verbanne HEX-Farben komplett, um den OKLCH-Standard zu erzwingen
         'color-no-hex': [
             true,
@@ -53,6 +56,9 @@ export default {
                     'currentColor',
                     'sans-serif',
                     'arial',
+                    'light', // Erlaubt für color-scheme
+                    'dark', // Erlaubt für color-scheme
+                    'monospace', // Native Font-Family
                     '/^\\d+(%|vw|vh|rem|em)$/',
                 ],
                 disableFix: true,
@@ -63,12 +69,12 @@ export default {
             },
         ],
 
-        // NEU & OPTIMIERT: BEM mit striktem Namespace-Zwang (c-, o-, u-, is-, has-)
+        // NEU & OPTIMIERT: BEM mit striktem Namespace-Zwang (c-, o-, u-, l-, s-, is-, has-)
         'selector-class-pattern': [
-            '^(c|o|u|is|has)-([a-z][a-z0-9]*)(-[a-z0-9]+)*(__[a-z0-9]+(-[a-z0-9]+)*)?(--[a-z0-9]+(-[a-z0-9]+)*)?$',
+            '^(c|o|u|l|s|is|has)-([a-z][a-z0-9]*)(-[a-z0-9]+)*(__[a-z0-9]+(-[a-z0-9]+)*)?(--[a-z0-9]+(-[a-z0-9]+)*)?$',
             {
                 message:
-                    'Klassennamen müssen das Namespace-BEM-Muster nutzen (z.B. .c-card__title oder .u-hidden)',
+                    'Klassennamen müssen das Namespace-BEM-Muster nutzen (z.B. .c-card__title, .l-layout, .s-scope oder .u-hidden)',
             },
         ],
     },

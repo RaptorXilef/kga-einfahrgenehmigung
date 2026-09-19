@@ -21,11 +21,11 @@
         align-items: center;
         justify-content: center;
 
-        --modal-dialog-animation: modalslideup var(--time-base)
+        --modal-dialog-animation: modal-slide-up var(--time-base)
             var(--ease-bounce) forwards;
     }
 
-    @keyframes modalSlideUp {
+    @keyframes modal-slide-up {
         from {
             opacity: var(--opacity-0);
             translate: 0 var(--space-m);

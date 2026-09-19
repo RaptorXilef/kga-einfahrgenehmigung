@@ -1,7 +1,7 @@
 @use '../1-settings/z-index' as *;
 
 @layer components {
-    @keyframes moveStripes {
+    @keyframes move-stripes {
         from {
             background-position: 0 0;
         }
@@ -31,7 +31,7 @@
         );
         background-size: var(--size-avatar-md) var(--size-avatar-md);
         box-shadow: var(--shadow-md);
-        animation: moveStripes 2s linear infinite;
+        animation: move-stripes 2s linear infinite;
     }
 
     .c-test-indicator__content {

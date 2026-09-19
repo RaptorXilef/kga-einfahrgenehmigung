@@ -71,8 +71,10 @@
         white-space: normal !important;
     }
 
+    /* ARCHITEKTUR-FIX: Moderner Ersatz für das veraltete 'word-break: break-word' */
     .u-word-break-word {
-        word-break: break-word !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
     }
 
     .u-line-height-tight {

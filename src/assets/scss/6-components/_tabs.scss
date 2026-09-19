@@ -77,11 +77,11 @@
 
     .c-tabs__content.is-active {
         display: block;
-        animation: tabsSlideUp var(--time-base) var(--ease-base) forwards;
+        animation: tabs-slide-up var(--time-base) var(--ease-base) forwards;
         will-change: opacity, translate;
     }
 
-    @keyframes tabsSlideUp {
+    @keyframes tabs-slide-up {
         from {
             opacity: var(--opacity-0);
             translate: 0 var(--space-m);
