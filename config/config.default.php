@@ -72,5 +72,5 @@ return [
 
     // --- UMGEBUNGSSTEUERUNG ---
     'test_mode' => false, // true = Sandbox-Modus (PayPal & Mails umgeleitet) | false = Produktion
-    'debug_mode' => false, // true = Zeigt PHP-Fehler im Klartext und deaktiviert den Routen-Cache
+    'debug_mode' => false, // true = Zeigt PHP-Fehler im Klartext und deaktiviert den Routen-Cache, Mails landen im Ordner `storage/debug_mails/` statt versandt zu werden
 ];

@@ -6,6 +6,7 @@
  * @var string $errorTitle
  * @var string $errorMessage
  * @var string $debugInfo
+ * @var string $requestState
  */
 ?>
 <!DOCTYPE html>
@@ -30,6 +31,7 @@
             <div class="c-system-error__debug u-text-start u-margin-block-start-l">
                 <?php echo $debugInfo; ?>
             </div>
+            <?php echo $requestState; ?>
         <?php } ?>
 
         <a href="<?php echo $baseUrl; ?>" class="c-button c-button--primary u-margin-block-start-l">Zur Startseite</a>

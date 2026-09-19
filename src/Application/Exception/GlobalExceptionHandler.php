@@ -93,16 +93,26 @@ final readonly class GlobalExceptionHandler
         $errorTitle = 'Ups! Etwas ist schiefgelaufen';
         $errorMessage = 'Das System hat einen unerwarteten Fehler festgestellt. Keine Sorge, die Administratoren wurden automatisch benachrichtigt um das Problem zu beheben.';
         $debugInfo = '';
+        $requestState = '';
 
+        // TODO Inline HTML besser lösen!
         if ($isDev) {
             $errorTitle = \sprintf('Dev-Mode: %s', $exception::class);
             $debugInfo = \sprintf(
-                "<strong>Fehler:</strong> %s<br><br><strong>Datei:</strong> %s:%d<br><br><strong>Stacktrace:</strong><pre class='c-system-error__pre'>%s</pre>", // TODO Inline HTML besser lösen!
+                "<strong>Fehler:</strong> %s<br><br><strong>Datei:</strong> %s:%d<br><br><strong>Stacktrace:</strong><pre class='c-system-error__pre'>%s</pre>",
                 \htmlspecialchars($exception->getMessage()),
                 \htmlspecialchars($exception->getFile()),
                 $exception->getLine(),
                 \htmlspecialchars($exception->getTraceAsString()),
             );
+
+            // Kompletter State Snapshot für maximalen Debug-Komfort
+            $stateHtml = "<strong>GET Parameter:</strong>\n" . \htmlspecialchars(\print_r($_GET, true)) . "\n";
+            $stateHtml .= "<strong>POST Parameter:</strong>\n" . \htmlspecialchars(\print_r($_POST, true)) . "\n";
+            $sessionData = $_SESSION ?? [];
+            $stateHtml .= "<strong>SESSION State:</strong>\n" . \htmlspecialchars(\print_r($sessionData, true));
+
+            $requestState = "<div class='c-system-error__debug u-text-start u-margin-block-start-m'><h3 class='u-margin-block-none'>Request State:</h3><pre class='c-system-error__pre'>{$stateHtml}</pre></div>";
         }
 
         // Binden wir die PHTML-Datei ein (falls nicht vorhanden -> Ultra Fallback)
@@ -113,6 +123,7 @@ final readonly class GlobalExceptionHandler
             echo "<h1>$errorTitle</h1><p>$errorMessage</p>";
             if ($isDev) {
                 echo $debugInfo;
+                echo $requestState;
             }
         }
 

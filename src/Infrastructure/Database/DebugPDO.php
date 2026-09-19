@@ -9,7 +9,7 @@ use PDOStatement;
 
 /**
  * Debugging-Wrapper für PDO.
- * Loggt alle ausgeführten SQL-Statements inkl. der Bindungs-Parameter in eine Datei.
+ * Loggt alle ausgeführten SQL-Statements inkl. der Bindungs-Parameter und der Ausführungsdauer.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -29,7 +29,7 @@ class DebugPDO extends PDO
         $this->logFile = $path;
     }
 
-    public function logQuery(string $sql, array $params = []): void
+    public function logQuery(string $sql, array $params = [], ?float $durationMs = null): void
     {
         if (!isset($this->logFile)) {
             $this->logFile = \dirname(__DIR__, 3) . '/logs/sql_debug.log';
@@ -40,25 +40,34 @@ class DebugPDO extends PDO
             @\mkdir($logDir, 0o755, true);
         }
 
-        // Millisekunden-genauer Timestamp
         $timestamp = \date('Y-m-d H:i:s') . '.' . \sprintf('%03d', \fmod(\microtime(true), 1) * 1000);
+        $durStr = $durationMs !== null ? \sprintf('[%.2f ms] ', $durationMs) : '[N/A ms] ';
         $paramString = $params !== [] ? ' | Params: ' . \json_encode($params, \JSON_UNESCAPED_UNICODE) : '';
-        $msg = "[$timestamp] $sql$paramString\n";
+
+        $msg = "[$timestamp] $durStr$sql$paramString\n";
 
         @\file_put_contents($this->logFile, $msg, \FILE_APPEND | \LOCK_EX);
     }
 
     public function exec(string $statement): int|false
     {
-        $this->logQuery($statement);
+        $start = \microtime(true);
+        $result = parent::exec($statement);
+        $duration = (\microtime(true) - $start) * 1000;
 
-        return parent::exec($statement);
+        $this->logQuery($statement, [], $duration);
+
+        return $result;
     }
 
     public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
     {
-        $this->logQuery($query);
+        $start = \microtime(true);
+        $result = parent::query($query, $fetchMode, ...$fetchModeArgs);
+        $duration = (\microtime(true) - $start) * 1000;
 
-        return parent::query($query, $fetchMode, ...$fetchModeArgs);
+        $this->logQuery($query, [], $duration);
+
+        return $result;
     }
 }

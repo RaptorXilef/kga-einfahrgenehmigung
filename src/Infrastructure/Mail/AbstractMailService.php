@@ -59,7 +59,9 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
                 @\mkdir($spoolDir, 0o755, true);
             }
 
-            $filename = $spoolDir . '/' . \date('Ymd_His') . '_' . \uniqid() . '.html';
+            $fileNameOnly = \date('Ymd_His') . '_' . \uniqid() . '.html';
+            $filename = $spoolDir . '/' . $fileNameOnly;
+
             $debugHeader = "<div style=\"background: #f8d7da; color: #721c24; padding: 15px; margin-bottom: 20px; font-family: sans-serif; border: 1px solid #f5c6cb; border-radius: 5px;\">\n";
             $debugHeader .= "<strong>[DEBUG MODE SPOOLER]</strong><br>\n";
             $debugHeader .= '<strong>Original Recipient:</strong> ' . \htmlspecialchars($recipient) . "<br>\n";
@@ -69,6 +71,8 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
 
             @\file_put_contents($filename, $debugHeader . $body);
 
+            // Wir merken uns den Filename für das Admin-Dashboard!
+            $data['_debug_file'] = $fileNameOnly;
             $this->logEmail($recipient, $subject, clone new TemplateKey($template), 'Erfolg (Debug-Spool)', $replyTo, $data);
 
             return true;
@@ -76,8 +80,6 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
 
         $transportConfig = $this->getTransportConfig($mailConfig);
         $status = $this->dispatch($actualRecipient, $subject, $body, $transportConfig, $replyTo);
-
-        // Im Log zeigen wir den eigentlich geplanten Empfänger, vermerken aber den tatsächlichen Versand
         $logStatus = $status === true && $isTestMode ? 'Erfolg (Test-Routing an ' . $actualRecipient . ')' : $status;
         $this->logEmail($recipient, $subject, clone new TemplateKey($template), $logStatus, $replyTo, $data);
 

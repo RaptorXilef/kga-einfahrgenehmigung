@@ -8,7 +8,7 @@ use PDOStatement;
 
 /**
  * Debugging-Wrapper für PDOStatement.
- * Fängt execute() Aufrufe ab, um sie inkl. Parameter ins Log zu schreiben.
+ * Fängt execute() Aufrufe ab, um sie inkl. Parametern und der genauen Dauer ins Log zu schreiben.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -20,8 +20,12 @@ class DebugPDOStatement extends PDOStatement
 
     public function execute(?array $params = null): bool
     {
-        $this->pdo->logQuery($this->queryString, $params ?? []);
+        $start = \microtime(true);
+        $result = parent::execute($params);
+        $duration = (\microtime(true) - $start) * 1000;
 
-        return parent::execute($params);
+        $this->pdo->logQuery($this->queryString, $params ?? [], $duration);
+
+        return $result;
     }
 }
