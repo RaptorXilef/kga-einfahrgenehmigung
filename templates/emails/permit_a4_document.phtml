@@ -67,12 +67,9 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
     <style>
     /* Zwingt ALLE Browser (Chrome, Firefox, Safari, Edge) zum exakten Farbdruck */
     /* Verhindert, dass der Drucker Tinte spart und Ränder oder Backgrounds entfernt */
-    *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
-        color-adjust: exact !important;
     }
 
     body {
@@ -302,8 +299,7 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
     @media print {
         @page {
             size: A4 portrait;
-            margin: 1cm;
-            /* Verhindert, dass der Drucker zu nah am Rand abschneidet */
+            margin: 1cm; /* Verhindert, dass der Drucker zu nah am Rand abschneidet */
         }
 
         body {
