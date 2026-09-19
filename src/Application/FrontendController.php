@@ -4,11 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application;
 
-use App\Application\Actions\Api\System\ArchiveCronAction;
-use App\Application\Actions\Api\System\BackupCronAction;
-use App\Application\Actions\Api\System\ProcessMailQueueAction;
-use App\Application\Actions\Api\System\RemindersCronAction;
-use App\Application\Actions\Api\System\SpamSyncCronAction;
 use App\Application\Actions\Frontend\AdminLoginAction;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
@@ -40,9 +35,8 @@ final readonly class FrontendController
     {
         $relativePath = $this->resolveRelativePath($request);
 
-        // FIX: Ermöglicht den manuellen Aufruf der /maintenance URL
         if ($relativePath === '/maintenance') {
-            return $this->sendMaintenanceResponse('ManualAccess', 'Manuelle Wartungsansicht aufgerufen.');
+            return $this->sendMaintenanceResponse('ManualAccess', 'Manuelle Wartungsansicht aufgerufen.', $relativePath);
         }
 
         $routeMatch = $this->resolveRoute($request, $relativePath);
@@ -54,7 +48,7 @@ final readonly class FrontendController
         // Wartungsmodus prüfen (Global + Granular)
         $maintenanceStatus = $this->checkMaintenanceStatus($className, $relativePath);
         if ($maintenanceStatus['active']) {
-            return $this->sendMaintenanceResponse($className, $maintenanceStatus['message']);
+            return $this->sendMaintenanceResponse($className, $maintenanceStatus['message'], $relativePath);
         }
 
         return $this->executePipeline($request, $className, $requiresAuth);
@@ -67,13 +61,9 @@ final readonly class FrontendController
      */
     private function checkMaintenanceStatus(string $className, string $relativePath): array
     {
+        // Ausnahmeliste für essentielle Background-Prozesse, die selbst bei globaler Sperre laufen (optional anpassbar)
         $safeDuringMaintenance = [
-            AdminLoginAction::class,
-            ArchiveCronAction::class,
-            BackupCronAction::class,
-            ProcessMailQueueAction::class,
-            RemindersCronAction::class,
-            SpamSyncCronAction::class,
+            AdminLoginAction::class, // Login muss möglich sein, damit Admin ins Dashboard kommt
         ];
 
         if (\in_array($className, $safeDuringMaintenance, true)) {
@@ -82,13 +72,16 @@ final readonly class FrontendController
 
         $mConfig = $this->config->get('maintenance', []);
 
-        // Kompatibilitäts-Fallback, falls die alten Keys noch irgendwo in einer local_config herumliegen
-        $frontendGlobal = $mConfig['frontend'] ?? $this->config->get('maintenance_mode', false);
-        $adminGlobal = $mConfig['admin'] ?? $this->config->get('maintenance_mode_admin', false);
-        $globalMsg = $mConfig['message'] ?? 'Wir aktualisieren gerade das System, um Ihnen den bestmöglichen Service zu bieten.';
+        $frontendGlobal = $mConfig['frontend'] ?? false;
+        $adminGlobal = $mConfig['admin'] ?? false;
+        $apiGlobal = $mConfig['api'] ?? false;
+        $globalMsg = $mConfig['message'] ?? 'Wir aktualisieren gerade das System.';
         $routeRules = $mConfig['routes'] ?? [];
 
-        $isFrontendRoute = \in_array($relativePath, ['/', '/check', '/checkout', '/history', '/success', '/verify', '/datenschutz', '/impressum'], true);
+        $isApiRoute = \str_starts_with($relativePath, '/api/');
+        $isAdminRoute = \in_array($relativePath, ['/admin', '/users', '/profile', '/changelog', '/admin_logout', '/admin_print'], true);
+        $isFrontendRoute = !$isApiRoute && !$isAdminRoute;
+
         $isAdminLoggedIn = $this->sessionManager->getAdminGroup() === 'admin';
 
         $isActive = false;
@@ -98,13 +91,15 @@ final readonly class FrontendController
         if (isset($routeRules[$relativePath]) && $routeRules[$relativePath] !== false) {
             $isActive = true;
             if (\is_string($routeRules[$relativePath])) {
-                $message = $routeRules[$relativePath]; // Spezifische Nachricht überschreibt globale Nachricht
+                $message = $routeRules[$relativePath];
             }
         }
 
-        // 2. Globale Prüfung (greift, falls die Route nicht explizit geregelt ist)
+        // 2. Globale Prüfung
         if (!$isActive) {
-            if (!$isFrontendRoute && $adminGlobal) {
+            if ($isApiRoute && $apiGlobal) {
+                $isActive = true;
+            } elseif ($isAdminRoute && $adminGlobal) {
                 $isActive = true;
             } elseif ($isFrontendRoute && $frontendGlobal) {
                 $isActive = true;
@@ -112,6 +107,7 @@ final readonly class FrontendController
         }
 
         // 3. Admin-Bypass: Administratoren dürfen das gesperrte Frontend zum Testen betreten
+        // (API und Adminbereich bleiben für den Admin natürlich erreichbar, wenn sie nur global für User gesperrt sind)
         if ($isActive && $isFrontendRoute && $isAdminLoggedIn) {
             $isActive = false;
         }
@@ -156,11 +152,7 @@ final readonly class FrontendController
 
         // Fallback, wenn Route nicht gefunden
         if ($matched === null) {
-            return [
-                'request' => $request,
-                'class' => '',
-                'requiresAuth' => false,
-            ];
+            return ['request' => $request, 'class' => '', 'requiresAuth' => false];
         }
 
         if (\is_array($matched)) {
@@ -174,17 +166,14 @@ final readonly class FrontendController
             ];
         }
 
-        return [
-            'request' => $request,
-            'class' => '',
-            'requiresAuth' => false,
-        ];
+        return ['request' => $request, 'class' => '', 'requiresAuth' => false];
     }
 
-    private function sendMaintenanceResponse(string $className, string $message): ResponseInterface
+    private function sendMaintenanceResponse(string $className, string $message, string $relativePath): ResponseInterface
     {
-        if (\str_contains($className, '\\Api')) {
-            return JsonResponse::error('System wird gewartet.', 503);
+        // Wenn es eine API-Route ist, zwingend JSON mit 503 Status zurückgeben!
+        if (\str_contains($className, '\\Api') || \str_starts_with($relativePath, '/api/')) {
+            return JsonResponse::error($message, 503);
         }
 
         \ob_start();
