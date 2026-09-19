@@ -90,10 +90,22 @@ export class SystemTools {
         }
 
         try {
-            // ARCHITEKTUR-FIX: Wir nutzen den api Singleton für CSRF Handling und POST Methode!
-            // Wenn wir hier GET nutzen würden, denkt das Backend (wegen dem Token), es handele sich um
-            // einen automatisierten Server-Cronjob und verarbeitet Limits falsch. Durch POST greift das Frontend-Limit.
-            const data = await api.post(url);
+            // ARCHITEKTUR-FIX: Die Cron-URLs im HTML sind absolut (damit Nutzer sie kopieren können).
+            // Unser API-Singleton hängt aber die base_url automatisch davor. Wir müssen also die
+            // base_url aus dem String entfernen, sonst verdoppelt sich die Domain (https://.../https://...).
+            let endpoint = url;
+            const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
+
+            if (endpoint.startsWith(baseUrl)) {
+                endpoint = endpoint.slice(baseUrl.length);
+            } else if (endpoint.startsWith(window.location.origin)) {
+                // Fallback, falls die Config-URL mal keinen abschließenden Slash hat
+                endpoint = endpoint.slice(window.location.origin.length);
+                if (endpoint.startsWith('/')) endpoint = endpoint.substring(1);
+            }
+
+            // Senden als POST über den Singleton (Frontend Limits & CSRF greifen nun)
+            const data = await api.post(endpoint);
 
             let msg = data.message || 'Ausführung abgeschlossen.';
 
