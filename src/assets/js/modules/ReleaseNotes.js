@@ -8,7 +8,6 @@ import { api } from '../core/Api.js';
 export class ReleaseNotes {
     constructor(container) {
         this.container = container;
-        // Strikte js-* Selektoren
         this.contentArea = this.container.querySelector('.js-release-notes-content');
         this.closeBtns = this.container.querySelectorAll('.js-close-release-notes');
         this.titleElement = this.container.querySelector('.js-release-notes-title');
@@ -102,11 +101,24 @@ export class ReleaseNotes {
         this.showingUnread = isUnread;
 
         // Titel und Badge dynamisch anpassen
+        // SICHER: Native DOM Manipulation
         if (this.titleElement) {
-            // Emojis entfernt und durch WebP-Icons ersetzt + Lazy Loading!
-            this.titleElement.innerHTML = isUnread
-                ? `<img src="${window.KGA_CONFIG.baseUrl}assets/img/icons/rocket.webp" class="c-icon c-button__icon" loading="lazy" alt=""> Neu seit Ihrem letzten Login`
-                : `<img src="${window.KGA_CONFIG.baseUrl}assets/img/icons/book.webp" class="c-icon c-button__icon" loading="lazy" alt=""> Release Notes Historie`;
+            this.titleElement.replaceChildren();
+
+            const icon = document.createElement('img');
+            icon.className = 'c-icon c-button__icon';
+            icon.loading = 'lazy';
+            icon.alt = '';
+            icon.src = isUnread
+                ? `${window.KGA_CONFIG.baseUrl}assets/img/icons/rocket.webp`
+                : `${window.KGA_CONFIG.baseUrl}assets/img/icons/book.webp`;
+
+            this.titleElement.appendChild(icon);
+            this.titleElement.appendChild(
+                document.createTextNode(
+                    isUnread ? ' Neu seit Ihrem letzten Login' : ' Release Notes Historie'
+                )
+            );
         }
 
         if (this.badgeElement) {
@@ -114,30 +126,46 @@ export class ReleaseNotes {
             this.badgeElement.hidden = !isUnread;
         }
 
-        // Rendern des Markdowns (Mit Fallback falls CDN blockiert)
-        let html = '';
+        this.contentArea.replaceChildren();
+
         if (typeof window.marked !== 'undefined' && typeof window.DOMPurify !== 'undefined') {
             if (notesArray.length === 0) {
-                html =
-                    '<div class="u-text-center u-color-muted u-padding-around-l">Keine Einträge vorhanden.</div>';
+                const emptyMsg = document.createElement('div');
+                emptyMsg.className = 'u-text-center u-color-muted u-padding-around-l';
+                emptyMsg.textContent = 'Keine Einträge vorhanden.';
+                this.contentArea.appendChild(emptyMsg);
             } else {
-                notesArray.forEach((note) => {
-                    // Auch die interpolierte Version muss zwingend durch den Sanitizer!
-                    const safeVersion = window.DOMPurify.sanitize(note.version);
-                    const safeContent = window.DOMPurify.sanitize(
-                        window.marked.parse(note.content)
-                    );
+                const mainFragment = document.createDocumentFragment();
 
-                    html += `<div class="s-markdown u-margin-block-end-l">`;
-                    html += `<h1>Version ${safeVersion}</h1>`;
-                    html += safeContent;
-                    html += `</div>`;
+                notesArray.forEach((note) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 's-markdown u-margin-block-end-l';
+
+                    const title = document.createElement('h1');
+                    title.textContent = `Version ${note.version}`;
+                    wrapper.appendChild(title);
+
+                    const parsedHtml = window.marked.parse(note.content);
+                    const safeFragment = window.DOMPurify.sanitize(parsedHtml, {
+                        RETURN_DOM_FRAGMENT: true,
+                    });
+
+                    wrapper.appendChild(safeFragment);
+                    mainFragment.appendChild(wrapper);
                 });
+
+                this.contentArea.appendChild(mainFragment);
             }
-            this.contentArea.innerHTML = html;
         } else {
-            this.contentArea.innerHTML =
-                '<div class="c-alert c-alert--danger"><div class="c-alert__content">Fehler: Markdown Parser nicht geladen.</div></div>';
+            const errorBox = document.createElement('div');
+            errorBox.className = 'c-alert c-alert--danger';
+
+            const errorContent = document.createElement('div');
+            errorContent.className = 'c-alert__content';
+            errorContent.textContent = 'Fehler: Markdown Parser nicht geladen.';
+
+            errorBox.appendChild(errorContent);
+            this.contentArea.appendChild(errorBox);
         }
 
         this.container.showModal();

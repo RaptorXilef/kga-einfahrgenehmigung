@@ -2,11 +2,8 @@ export class BankImport {
     constructor(container) {
         this.container = container;
         this.selectors = this.container.querySelectorAll('.js-bank-selector');
-
-        // FIX: GC Controller
         this.abortController = new AbortController();
 
-        // FIX: JS Hook
         const dataScript = this.container.querySelector('.js-bank-preview-data');
 
         try {
@@ -33,8 +30,6 @@ export class BankImport {
     updatePreview(selectElement) {
         const selectedIndex = parseInt(selectElement.value, 10);
         const targetClass = selectElement.getAttribute('data-preview-target');
-
-        // FIX: Strikte Klassenselektion statt getElementById
         const targetDisplay = this.container.querySelector(`.${targetClass}`);
 
         if (targetDisplay) {
@@ -42,7 +37,8 @@ export class BankImport {
                 this.rowData[selectedIndex] !== undefined && this.rowData[selectedIndex] !== ''
                     ? this.rowData[selectedIndex]
                     : '[LEER]';
-            targetDisplay.innerText = value;
+            // Reflows vermeiden durch textContent statt innerText
+            targetDisplay.textContent = value;
         }
     }
 
