@@ -34,12 +34,15 @@ final readonly class SendPaymentReminderMailListener
         // Bank-QR-Code nochmal generieren, um das Bezahlen direkt aus der Reminder-Mail zu erleichtern
         $epcQrData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
 
+        // BUGFIX: Garantiert einen sauberen Slash am Ende der URL, damit der QR-Code-Endpoint erreicht wird
+        $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
+
         $this->mailService->sendTemplate(
             $permit->getOwnerEmail(),
             "Zahlungserinnerung: Ausnahmegenehmigung {$permitCodeStr}",
             'payment_reminder',
             [
-                'baseUrl' => $this->config->getBaseUrl(),
+                'baseUrl' => $safeBaseUrl,
                 'betrag' => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
                 'dueDate' => $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y'),
                 'epcData' => \urlencode($epcQrData),

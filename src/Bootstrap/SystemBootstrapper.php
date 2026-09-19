@@ -67,7 +67,6 @@ final class SystemBootstrapper
 
     private static function initErrorLogging(string $appRoot): void
     {
-        // GEÄNDERT: Log-Ordner ist nun im Root!
         $customLogDir = $appRoot . '/logs';
         if (!\is_dir($customLogDir)) {
             \mkdir($customLogDir, 0o755, true);
@@ -78,6 +77,11 @@ final class SystemBootstrapper
     }
 
     /**
+     * Lädt alle Konfigurationsdateien in einer strikten Hierarchie (Kaskade).
+     * 1. *.default.php (Basis)
+     * 2. *.php (Normale Configs)
+     * 3. *.local.php (Höchste Priorität für Server-Overrides)
+     *
      * @return array<string, mixed>
      */
     private static function loadConfigurations(string $appRoot): array
@@ -85,44 +89,40 @@ final class SystemBootstrapper
         /** @var array<string, mixed> $settings */
         $settings = [];
 
+        // System-Basisdaten vorladen
         $settings['db_schema'] = SchemaRegistry::getSchemas();
         $settings['structure'] = PermissionRegistry::getStructure();
         $settings['admin_ui'] = ['permissions_desc_on_top' => true];
         $settings['permissions'] = self::flattenPermissions($settings['structure']);
 
-        $globResult = \glob($appRoot . '/config/*.default.php');
-        if (\is_array($globResult)) {
-            foreach ($globResult as $defaultFile) {
-                $loaded = require $defaultFile;
-                if (!\is_array($loaded)) {
-                    continue;
-                }
+        // 1. Alle Defaults laden (*.default.php)
+        $defaultFiles = \glob($appRoot . '/config/*.default.php') ?: [];
+        foreach ($defaultFiles as $file) {
+            $loaded = require $file;
+            if (\is_array($loaded)) {
                 $settings = \array_replace_recursive($settings, $loaded);
             }
         }
 
-        $hardConfigs = [
-            $appRoot . '/config/app.php',
-            $appRoot . '/config/config.php',
-            $appRoot . '/config/email.php',
-            $appRoot . '/config/legal.php',
-            $appRoot . '/config/payment.php',
-            $appRoot . '/config/permits.php',
-            $appRoot . '/config/secrets.php',
-            $appRoot . '/config/storage.php',
-            $appRoot . '/config/dev_admin.php',
-            $appRoot . '/config/config.local.php',
-        ];
-
-        foreach ($hardConfigs as $file) {
-            if (!\file_exists($file)) {
+        // 2. Normale Configs laden (*.php, außer default und local)
+        $normalFiles = \glob($appRoot . '/config/*.php') ?: [];
+        foreach ($normalFiles as $file) {
+            if (\str_ends_with($file, '.default.php') || \str_ends_with($file, '.local.php')) {
                 continue;
             }
             $loaded = require $file;
-            if (!\is_array($loaded)) {
-                continue;
+            if (\is_array($loaded)) {
+                $settings = \array_replace_recursive($settings, $loaded);
             }
-            $settings = \array_replace_recursive($settings, $loaded);
+        }
+
+        // 3. Lokale Overrides laden (*.local.php)
+        $localFiles = \glob($appRoot . '/config/*.local.php') ?: [];
+        foreach ($localFiles as $file) {
+            $loaded = require $file;
+            if (\is_array($loaded)) {
+                $settings = \array_replace_recursive($settings, $loaded);
+            }
         }
 
         /** @var array<string, mixed> $validSettings */
@@ -185,6 +185,8 @@ final class SystemBootstrapper
             \file_put_contents($devAdminPath, $defaultDevContent, \LOCK_EX);
         }
 
+        // Wir verarbeiten dev_admin noch immer hier, um die Superadmins-Logik sicherzustellen,
+        // auch wenn sie nun von loadConfigurations automatisch erfasst wird.
         $devAdmins = require $devAdminPath;
         if (!\is_array($devAdmins)) {
             $devAdmins = [];

@@ -88,7 +88,7 @@ export class VoucherManager {
         // Die QR-Code API url-encoded GANZ LOKAL AUFRUFEN (DSGVO-Konform)
         const encodedUrl = encodeURIComponent(url);
         const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
-        const qrUrl = `${baseUrl}api/qr?size=250&margin=10&data=${encodedUrl}`;
+        const qrUrl = `${baseUrl}api/qr.png?size=250&margin=10&data=${encodedUrl}`;
 
         // Bild dynamisch (frisch) erzeugen für sauberes, konfliktfreies Rendering
         const img = document.createElement('img');

@@ -24,16 +24,7 @@ const ALWAYS_IGNORE_DIRS = [
 
 const ALWAYS_IGNORE_PATHS = ['public/assets', 'public/dev'];
 
-const ALWAYS_IGNORE_FILES = [
-    '.lock',
-    '-lock.json',
-    '.DS_Store',
-    'min.js',
-    'min.css',
-    '_dev.local.php',
-    '*.local.*',
-    'config.local.php',
-];
+const ALWAYS_IGNORE_FILES = ['.lock', '-lock.json', '.DS_Store', 'min.js', 'min.css', '*.local.*'];
 
 // =============================================================================
 

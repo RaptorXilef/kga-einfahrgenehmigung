@@ -20,7 +20,7 @@ use Exception;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET', '/api/qr')]
+#[Route('GET', '/api/qr.png')] // FIX: Zwingend .png Endung, um E-Mail-Clients auszutricksen
 final readonly class QrCodeRenderAction implements ActionInterface
 {
     public function execute(ServerRequest $request): mixed

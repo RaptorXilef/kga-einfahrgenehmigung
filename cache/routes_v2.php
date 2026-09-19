@@ -128,7 +128,7 @@
         'class' => 'App\\Application\\Actions\\Admin\\VoucherDeleteAction',
         'auth' => false,
       ),
-      '/api/qr' => 
+      '/api/qr.png' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\Shared\\QrCodeRenderAction',
         'auth' => false,
