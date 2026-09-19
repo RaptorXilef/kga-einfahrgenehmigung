@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions\Admin;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ViewActionInterface;
@@ -14,12 +15,13 @@ use App\Contracts\System\SystemInfoInterface;
 use App\Core\Service\AuthService;
 
 /**
- * TODO DOCBLOCK
+ * Action zum Rendern der Changelog-Historie im Adminbereich.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/changelog')]
 #[Route('POST', '/changelog')]
+#[RequiresAuth]
 final readonly class SystemChangelogAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(

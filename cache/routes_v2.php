@@ -76,7 +76,7 @@
       '/changelog' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\SystemChangelogAction',
-        'auth' => false,
+        'auth' => true,
       ),
       '/create_backup' => 
       array (
@@ -334,7 +334,7 @@
       '/changelog' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\SystemChangelogAction',
-        'auth' => false,
+        'auth' => true,
       ),
       '/clear_cache' => 
       array (

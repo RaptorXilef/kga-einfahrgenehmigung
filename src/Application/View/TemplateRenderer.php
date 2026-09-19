@@ -82,6 +82,7 @@ final readonly class TemplateRenderer
             'terminkalender_url' => $this->config->get('terminkalender_url'),
             'vehicle_types' => $this->config->get('vehicle_types'),
             'vereins_name' => $this->config->get('vereins_name'),
+            'debug_mode' => $this->config->get('debug_mode', false), // Wird vom Footer für Metriken genutzt
         ];
     }
 }

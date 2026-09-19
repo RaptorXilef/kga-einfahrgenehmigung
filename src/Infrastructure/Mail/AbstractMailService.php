@@ -41,6 +41,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         // Lädt dank der Config-Klasse direkt den richtigen Block ('mail' oder 'mail-test')
         $mailConfig = $this->config->getMailSettings();
         $isTestMode = $this->config->isTestMode();
+        $isDebugMode = $this->config->get('debug_mode', false) === true;
         $actualRecipient = $recipient;
 
         // Im Testmodus (Sandbox) überschreiben wir den Empfänger knallhart mit dem catch_all_recipient
@@ -50,6 +51,29 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         }
 
         $body = $this->render($template, $data);
+
+        // --- DEBUG SPOOLER: Mails lokal speichern statt senden ---
+        if ($isDebugMode) {
+            $spoolDir = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/storage/debug_mails';
+            if (!\is_dir($spoolDir)) {
+                @\mkdir($spoolDir, 0o755, true);
+            }
+
+            $filename = $spoolDir . '/' . \date('Ymd_His') . '_' . \uniqid() . '.html';
+            $debugHeader = "<div style=\"background: #f8d7da; color: #721c24; padding: 15px; margin-bottom: 20px; font-family: sans-serif; border: 1px solid #f5c6cb; border-radius: 5px;\">\n";
+            $debugHeader .= "<strong>[DEBUG MODE SPOOLER]</strong><br>\n";
+            $debugHeader .= '<strong>Original Recipient:</strong> ' . \htmlspecialchars($recipient) . "<br>\n";
+            $debugHeader .= '<strong>Actual Recipient:</strong> ' . \htmlspecialchars($actualRecipient) . "<br>\n";
+            $debugHeader .= '<strong>Subject:</strong> ' . \htmlspecialchars($subject) . "<br>\n";
+            $debugHeader .= "</div>\n\n";
+
+            @\file_put_contents($filename, $debugHeader . $body);
+
+            $this->logEmail($recipient, $subject, clone new TemplateKey($template), 'Erfolg (Debug-Spool)', $replyTo, $data);
+
+            return true;
+        }
+
         $transportConfig = $this->getTransportConfig($mailConfig);
         $status = $this->dispatch($actualRecipient, $subject, $body, $transportConfig, $replyTo);
 

@@ -35,15 +35,24 @@ final class PdoFactory
 
         $portStr = !empty($db['port']) ? ";port={$db['port']}" : '';
         $dsnWithDb = "mysql:host={$db['host']}{$portStr};dbname={$db['dbname']};charset={$db['charset']}";
+
+        // Dynamischer Switch zwischen echtem PDO und dem Logging-Wrapper
+        $isDebugMode = $config->get('debug_mode', false) === true;
+        $pdoClass = $isDebugMode ? DebugPDO::class : PDO::class;
         $pdo = null;
 
         try {
-            $pdo = new PDO($dsnWithDb, $db['user'], $db['pass'], [
+            $pdo = new $pdoClass($dsnWithDb, $db['user'], $db['pass'], [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
                 PDO::ATTR_TIMEOUT => 2,
             ]);
+
+            if ($pdo instanceof DebugPDO) {
+                $logPath = \rtrim((string) $config->get('root_path', ''), '/\\') . '/logs/sql_debug.log';
+                $pdo->setLogFile($logPath);
+            }
         } catch (PDOException $e) {
             $mysqlErrorCode = $e->errorInfo[1] ?? null;
 
@@ -56,12 +65,18 @@ final class PdoFactory
             $dsnWithoutDb = "mysql:host={$db['host']}{$portStr};charset={$db['charset']}";
 
             try {
-                $pdo = new PDO($dsnWithoutDb, $db['user'], $db['pass'], [
+                $pdo = new $pdoClass($dsnWithoutDb, $db['user'], $db['pass'], [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                     PDO::ATTR_EMULATE_PREPARES => false,
                     PDO::ATTR_TIMEOUT => 2,
                 ]);
+
+                if ($pdo instanceof DebugPDO) {
+                    $logPath = \rtrim((string) $config->get('root_path', ''), '/\\') . '/logs/sql_debug.log';
+                    $pdo->setLogFile($logPath);
+                }
+
                 $sql = "CREATE DATABASE IF NOT EXISTS `{$db['dbname']}` " .
                     "CHARACTER SET {$db['charset']} COLLATE {$db['charset']}_unicode_ci";
 

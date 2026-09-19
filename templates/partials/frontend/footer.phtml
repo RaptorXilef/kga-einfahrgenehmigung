@@ -8,6 +8,7 @@ use App\Contracts\System\JsonHelperInterface;
  * Liest die Version aus der package.json und zeigt Urheberrechts- und GitHub-Informationen.
  *
  * @var JsonHelperInterface $jsonHelper
+ * @var array $settings
  * @var string|null $appRoot (optional, wird berechnet falls nicht vorhanden)
  */
 
@@ -79,6 +80,18 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
             <span class="u-color-muted">&bull;</span>
             <a href="<?php echo \htmlspecialchars($datenschutzUrl); ?>" class="u-text-link">Datenschutzerklärung</a>
         </div>
+
+        <?php
+        // PERFORMANCE METRICS FÜR DEBUG MODE (NEU)
+        if (($settings['debug_mode'] ?? false) === true) {
+            $requestTime = $_SERVER['REQUEST_TIME_FLOAT'] ?? \microtime(true);
+            $timeMs = \round((\microtime(true) - $requestTime) * 1000, 2);
+            $memoryMb = \round(\memory_get_peak_usage() / 1024 / 1024, 2);
+            ?>
+            <div class="u-text-center u-margin-block-start-m u-color-muted u-text-xs u-font-mono u-opacity-50">
+                ⏱️ <?php echo $timeMs; ?> ms &nbsp;|&nbsp; 💾 <?php echo $memoryMb; ?> MB RAM
+            </div>
+        <?php } ?>
     </div>
 </footer>
 
