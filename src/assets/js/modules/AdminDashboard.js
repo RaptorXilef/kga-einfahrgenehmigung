@@ -2,7 +2,7 @@ import { debounce } from '../utils/Utils.js';
 
 /**
  * Controller für globale Admin-Dashboard Funktionen.
- * Strenges Memory-Management mit AbortController für Event-Delegation.
+ * Strenges Memory-Management mit AbortController und Event-Delegation.
  */
 export class AdminDashboard {
     constructor(container) {
@@ -60,23 +60,27 @@ export class AdminDashboard {
             );
         }
 
-        // 1. Tab-Steuerung
-        this.tabs.forEach((btn) => {
-            btn.setAttribute('role', 'tab');
-            btn.addEventListener(
+        // BATCHED DOM WRITE: Initiale Tab-A11y Rollen setzen
+        requestAnimationFrame(() => {
+            this.tabs.forEach((btn) => btn.setAttribute('role', 'tab'));
+            this.contents.forEach((content) => content.setAttribute('role', 'tabpanel'));
+        });
+
+        // 1. Tab-Steuerung via EVENT DELEGATION
+        const tabNav = this.container.querySelector('.c-tabs__nav');
+        if (tabNav) {
+            tabNav.addEventListener(
                 'click',
                 (e) => {
-                    e.preventDefault();
-                    // Flag 'true' übergibt, dass dieser Tab-Wechsel manuell vom Nutzer kam
-                    this.switchTab(btn.getAttribute('data-tab-target'), btn, true);
+                    const btn = e.target.closest('[data-tab-target]');
+                    if (btn) {
+                        e.preventDefault();
+                        this.switchTab(btn.getAttribute('data-tab-target'), btn, true);
+                    }
                 },
                 options
             );
-        });
-
-        this.contents.forEach((content) => {
-            content.setAttribute('role', 'tabpanel');
-        });
+        }
 
         // 2. Server-Side Such-Logik (Debounce)
         if (this.searchInput) {
@@ -94,7 +98,7 @@ export class AdminDashboard {
             }
         }
 
-        // 3. Delegierte Klicks
+        // 3. Delegierte Klicks (Manuelle Aktionen)
         this.container.addEventListener(
             'click',
             async (e) => {
@@ -229,37 +233,44 @@ export class AdminDashboard {
     updateBulkPayButton() {
         const checkedCount = Array.from(this.bulkCheckboxes).filter((cb) => cb.checked).length;
         if (this.btnPay && this.btnRemind) {
-            if (this.countSpanPay) this.countSpanPay.innerText = checkedCount;
-            if (this.countSpanRemind) this.countSpanRemind.innerText = checkedCount;
+            // DOM Writes batchen
+            requestAnimationFrame(() => {
+                if (this.countSpanPay) this.countSpanPay.textContent = checkedCount;
+                if (this.countSpanRemind) this.countSpanRemind.textContent = checkedCount;
 
-            const isHidden = checkedCount === 0;
-            this.btnPay.hidden = isHidden;
-            this.btnRemind.hidden = isHidden;
+                const isHidden = checkedCount === 0;
+                this.btnPay.hidden = isHidden;
+                this.btnRemind.hidden = isHidden;
+            });
         }
     }
 
     switchTab(tabId, activeBtn, isUserClick = false) {
         if (!tabId || !activeBtn) return;
-        const target = document.getElementById(tabId);
+
+        // Scoped Query: Verhindert Konflikte bei mehreren Instanzen
+        const target = this.container.querySelector(`#${tabId}`);
         if (!target) return;
 
-        // WAI-ARIA strikt anwenden
-        this.contents.forEach((c) => {
-            c.classList.remove('is-active');
-            c.setAttribute('aria-hidden', 'true');
-        });
-        this.tabs.forEach((b) => {
-            b.classList.remove('is-active');
-            b.setAttribute('aria-selected', 'false');
-            b.setAttribute('tabindex', '-1');
-        });
+        // BATCHED DOM WRITE: Layout Thrashing verhindern
+        requestAnimationFrame(() => {
+            this.contents.forEach((c) => {
+                c.classList.remove('is-active');
+                c.setAttribute('aria-hidden', 'true');
+            });
+            this.tabs.forEach((b) => {
+                b.classList.remove('is-active');
+                b.setAttribute('aria-selected', 'false');
+                b.setAttribute('tabindex', '-1');
+            });
 
-        target.classList.add('is-active');
-        target.setAttribute('aria-hidden', 'false');
+            target.classList.add('is-active');
+            target.setAttribute('aria-hidden', 'false');
 
-        activeBtn.classList.add('is-active');
-        activeBtn.setAttribute('aria-selected', 'true');
-        activeBtn.removeAttribute('tabindex');
+            activeBtn.classList.add('is-active');
+            activeBtn.setAttribute('aria-selected', 'true');
+            activeBtn.removeAttribute('tabindex');
+        });
 
         try {
             localStorage.setItem('lastAdminTab', tabId);
@@ -308,9 +319,9 @@ export class AdminDashboard {
 
         let targetBtn = null;
         try {
-            targetBtn = document.querySelector(`[data-tab-target="${lastTab}"]`);
+            targetBtn = this.container.querySelector(`[data-tab-target="${lastTab}"]`);
         } catch {
-            targetBtn = document.querySelector('[data-tab-target="tab-active"]');
+            targetBtn = this.container.querySelector('[data-tab-target="tab-active"]');
         }
 
         // Beim automatischen Laden KEIN isUserClick Flag mitgeben, damit Parameter überleben

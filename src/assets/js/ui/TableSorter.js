@@ -1,12 +1,13 @@
 /**
  * Engine für clientseitige interaktive Tabellensortierungen.
- * Nutzt den Schwartzian Transform (Data-Caching) für O(n) DOM-Lesezugriffe,
- * um Performance-Engpässe (Layout Thrashing) bei großen Tabellen zu vermeiden.
+ * Nutzt den Schwartzian Transform (Data-Caching) für O(n log n) RAM-Zugriffe,
+ * Event-Delegation und batched DOM-Writes (rAF), um Layout Thrashing restlos zu verhindern.
  */
 export class TableSorter {
     constructor(tableElement) {
         this.table = tableElement;
         this.tbody = this.table.querySelector('tbody');
+        this.thead = this.table.querySelector('thead');
         this.headers = this.table.querySelectorAll('th.js-sort-header');
 
         // Zentraler Controller für restlose Garbage Collection
@@ -29,35 +30,45 @@ export class TableSorter {
         this.originalRows = Array.from(this.tbody.querySelectorAll('tr'));
         const options = { signal: this.abortController.signal };
 
-        this.headers.forEach((th, index) => {
-            th.classList.add('is-sortable');
-            th.title = 'Klicken zum Sortieren';
+        // BATCHED DOM WRITE: Initiale UI-Anpassungen in einem Frame bündeln
+        requestAnimationFrame(() => {
+            this.headers.forEach((th) => {
+                th.classList.add('is-sortable');
+                th.title = 'Klicken zum Sortieren';
 
-            // SICHER: Native Nodes statt insertAdjacentHTML (verhindert Listener-Zerstörung)
-            const iconSpan = document.createElement('span');
-            iconSpan.className = 'c-sort-icon';
-            iconSpan.textContent = '⇅';
-            th.appendChild(document.createTextNode(' '));
-            th.appendChild(iconSpan);
-
-            th.addEventListener('click', () => this.sortTable(th, index), options);
+                // SICHER: Native Nodes statt insertAdjacentHTML
+                const iconSpan = document.createElement('span');
+                iconSpan.className = 'c-sort-icon';
+                iconSpan.textContent = '⇅';
+                th.appendChild(document.createTextNode(' '));
+                th.appendChild(iconSpan);
+            });
         });
+
+        // EVENT DELEGATION: Nur 1 einziger Listener für die ganze Tabelle!
+        if (this.thead) {
+            this.thead.addEventListener(
+                'click',
+                (e) => {
+                    const th = e.target.closest('.js-sort-header');
+                    if (!th) return;
+
+                    // Dynamisch den Index bestimmen (Robuster als forEach-Index)
+                    const columnIndex = Array.from(th.parentElement.children).indexOf(th);
+                    this.sortTable(th, columnIndex);
+                },
+                options
+            );
+        }
     }
 
     sortTable(th, columnIndex) {
-        // Aktuellen Status ermitteln
+        // Aktuellen Status ermitteln (DOM READ)
         const currentSort = th.getAttribute('data-sort-dir') || 'none';
         let nextSort = 'asc';
 
         if (currentSort === 'asc') nextSort = 'desc';
         else if (currentSort === 'desc') nextSort = 'none';
-
-        // Alle Icons & Stati zurücksetzen
-        this.headers.forEach((header) => {
-            header.setAttribute('data-sort-dir', 'none');
-            const icon = header.querySelector('.c-sort-icon');
-            if (icon) icon.textContent = '⇅'; // textContent > innerHTML
-        });
 
         // DocumentFragment verhindert hunderte Reflows/Repaints beim Rendern!
         const fragment = document.createDocumentFragment();
@@ -68,13 +79,6 @@ export class TableSorter {
                 fragment.appendChild(row);
             });
         } else {
-            // 1. oder 2. Klick: Sortieren
-            th.setAttribute('data-sort-dir', nextSort);
-            const icon = th.querySelector('.c-sort-icon');
-            if (icon) {
-                icon.textContent = nextSort === 'asc' ? '↓' : '↑';
-            }
-
             // --- 1. MAP: Schwartzian Transform (O(n) DOM Reads) ---
             const isLikelyNumber = (str) => /^[-0-9., €]+$/.test(str.trim());
 
@@ -83,8 +87,8 @@ export class TableSorter {
                 let rawValue = '';
 
                 if (cell) {
-                    // Null-Coalescing: Bevorzuge data-sort-val (z.B. für ISO-Datum), sonst den sichtbaren Text
-                    rawValue = cell.getAttribute('data-sort-val') ?? cell.textContent.trim(); // textContent ist sicherer als innerText
+                    // Null-Coalescing: Bevorzuge data-sort-val, sonst den sichtbaren Text
+                    rawValue = cell.getAttribute('data-sort-val') ?? cell.textContent.trim();
                 }
 
                 let sortValue = rawValue;
@@ -132,8 +136,25 @@ export class TableSorter {
             });
         }
 
-        // Mit nur einem einzigen DOM-Insert die gesamte Tabelle neu rendern
-        this.tbody.appendChild(fragment);
+        // BATCHED DOM WRITE: Reflows / Layout Thrashing blockieren
+        requestAnimationFrame(() => {
+            // Alle Icons & Stati zurücksetzen
+            this.headers.forEach((header) => {
+                header.setAttribute('data-sort-dir', 'none');
+                const icon = header.querySelector('.c-sort-icon');
+                if (icon) icon.textContent = '⇅';
+            });
+
+            // Neues Icon & Status setzen
+            if (nextSort !== 'none') {
+                th.setAttribute('data-sort-dir', nextSort);
+                const icon = th.querySelector('.c-sort-icon');
+                if (icon) icon.textContent = nextSort === 'asc' ? '↓' : '↑';
+            }
+
+            // Mit nur einem einzigen DOM-Insert die gesamte Tabelle neu rendern
+            this.tbody.appendChild(fragment);
+        });
     }
 
     /**
