@@ -45,10 +45,9 @@ export default {
 
         // Warnt vor der Nutzung von Variablen für Design-Tokens
         'scale-unlimited/declaration-strict-value': [
-            ['/color/', 'font-family', 'font-size', 'font-weight', 'spacing'],
+            // ARCHITEKTUR-FIX: Präzise Regex statt gierigem /color/, um color-scheme natürlich auszuschließen
+            ['/^color$/', '/-color$/', 'font-family', 'font-size', 'font-weight', 'spacing'],
             {
-                // FIX: Verhindert, dass der /color/ Regex native CSS Eigenschaften wie color-scheme anmahnt
-                ignoreProperties: ['color-scheme'],
                 ignoreValues: [
                     '0',
                     'inherit',
