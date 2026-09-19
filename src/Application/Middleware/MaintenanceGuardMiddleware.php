@@ -9,7 +9,8 @@ use App\Application\Http\ServerRequest;
 use App\Contracts\Config\ConfigInterface;
 
 /**
- * TODO DOCBLOCK
+ * Fallback Middleware für System-Sperren.
+ * Nutzt die selbe konfigurierte Logik wie der FrontendController.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -26,26 +27,38 @@ final readonly class MaintenanceGuardMiddleware implements MiddlewareInterface
             return $next($request);
         }
 
-        // FIX: Nutzt nun den Pfad anstelle von SCRIPT_NAME
         $path = $request->getPath();
         if ($path === '/maintenance') {
             return $next($request);
         }
 
-        $adminMaintenance = $this->config->get('maintenance_mode_admin', false) === true;
-        $publicMaintenance = $this->config->get('maintenance_mode', false) === true;
-        $shouldShowMaintenance = false;
+        $mConfig = $this->config->get('maintenance', []);
 
-        if ($adminMaintenance) {
+        $frontendGlobal = $mConfig['frontend'] ?? $this->config->get('maintenance_mode', false);
+        $adminGlobal = $mConfig['admin'] ?? $this->config->get('maintenance_mode_admin', false);
+        $globalMsg = $mConfig['message'] ?? 'Wir aktualisieren gerade das System, um Ihnen den bestmöglichen Service zu bieten.';
+        $routeRules = $mConfig['routes'] ?? [];
+
+        $isFrontendRoute = \in_array($path, ['/', '/check', '/checkout', '/history', '/success', '/verify', '/datenschutz', '/impressum'], true);
+        $shouldShowMaintenance = false;
+        $message = $globalMsg;
+
+        if (isset($routeRules[$path]) && $routeRules[$path] !== false) {
             $shouldShowMaintenance = true;
-        } elseif ($publicMaintenance) {
-            $allowedAdminScripts = ['/admin', '/users', '/profile'];
-            if (!\in_array($path, $allowedAdminScripts, true) && !\str_contains($path, '/api/')) {
+            if (\is_string($routeRules[$path])) {
+                $message = $routeRules[$path];
+            }
+        }
+
+        if (!$shouldShowMaintenance) {
+            if ($adminGlobal) {
+                $shouldShowMaintenance = true;
+            } elseif ($frontendGlobal && $isFrontendRoute) {
                 $shouldShowMaintenance = true;
             }
         }
 
-        if ($shouldShowMaintenance) {
+        if ($shouldShowMaintenance && !\str_contains($path, '/api/')) {
             \http_response_code(503);
             \header('Retry-After: 3600');
 
@@ -53,7 +66,8 @@ final readonly class MaintenanceGuardMiddleware implements MiddlewareInterface
             $settings = [
                 'base_url' => $this->config->getBaseUrl(),
                 'vereins_name' => $this->config->get('vereins_name'),
-                'maintenance_mode_admin' => $adminMaintenance,
+                'maintenance_mode_admin' => $adminGlobal,
+                'maintenance_message' => $message,
             ];
 
             require $appRoot . '/public/maintenance.php';

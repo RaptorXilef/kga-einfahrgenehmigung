@@ -42,6 +42,9 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
         break;
     }
 }
+
+$displayMessage = $settings['maintenance_message'] ?? $settings['maintenance']['message'] ?? 'Wir aktualisieren gerade das System, um Ihnen den bestmöglichen Service zu bieten.';
+
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -70,9 +73,7 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
 
         <h1 class="u-margin-block-start-none">Kurze Pause!</h1>
         <p class="u-color-muted u-text-lg">
-            Wir aktualisieren gerade das System für die <br>
-            <strong class="u-color-dark"><?php echo \htmlspecialchars($vereinsName); ?></strong>, <br>
-            um Ihnen den bestmöglichen Service zu bieten.
+            <?php echo \nl2br(\htmlspecialchars($displayMessage)); ?>
         </p>
 
         <?php if (!empty($settings['maintenance_mode_admin'])) { ?>
@@ -81,12 +82,6 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
             </div>
         <?php } ?>
 
-        <p class="u-font-bold u-color-dark u-margin-block-start-l">
-            In Kürze sind wir wieder für Sie da.
-        </p>
-        <div class="u-border-block-start u-padding-block-start-m u-margin-block-start-l u-color-muted u-text-sm">
-            Vielen Dank für Ihr Verständnis.
-        </div>
     </div>
 </body>
 

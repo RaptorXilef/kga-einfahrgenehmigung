@@ -42,7 +42,7 @@ final readonly class FrontendController
 
         // FIX: Ermöglicht den manuellen Aufruf der /maintenance URL
         if ($relativePath === '/maintenance') {
-            return $this->sendMaintenanceResponse('ManualAccess');
+            return $this->sendMaintenanceResponse('ManualAccess', 'Manuelle Wartungsansicht aufgerufen.');
         }
 
         $routeMatch = $this->resolveRoute($request, $relativePath);
@@ -51,11 +51,72 @@ final readonly class FrontendController
         $className = $routeMatch['class'];
         $requiresAuth = $routeMatch['requiresAuth'];
 
-        if ($this->isMaintenanceLockActive($className, $relativePath)) {
-            return $this->sendMaintenanceResponse($className);
+        // Wartungsmodus prüfen (Global + Granular)
+        $maintenanceStatus = $this->checkMaintenanceStatus($className, $relativePath);
+        if ($maintenanceStatus['active']) {
+            return $this->sendMaintenanceResponse($className, $maintenanceStatus['message']);
         }
 
         return $this->executePipeline($request, $className, $requiresAuth);
+    }
+
+    /**
+     * Prüft die Wartungsmodus-Einstellungen (Global und pro Route).
+     *
+     * @return array{active: bool, message: string}
+     */
+    private function checkMaintenanceStatus(string $className, string $relativePath): array
+    {
+        $safeDuringMaintenance = [
+            AdminLoginAction::class,
+            ArchiveCronAction::class,
+            BackupCronAction::class,
+            ProcessMailQueueAction::class,
+            RemindersCronAction::class,
+            SpamSyncCronAction::class,
+        ];
+
+        if (\in_array($className, $safeDuringMaintenance, true)) {
+            return ['active' => false, 'message' => ''];
+        }
+
+        $mConfig = $this->config->get('maintenance', []);
+
+        // Kompatibilitäts-Fallback, falls die alten Keys noch irgendwo in einer local_config herumliegen
+        $frontendGlobal = $mConfig['frontend'] ?? $this->config->get('maintenance_mode', false);
+        $adminGlobal = $mConfig['admin'] ?? $this->config->get('maintenance_mode_admin', false);
+        $globalMsg = $mConfig['message'] ?? 'Wir aktualisieren gerade das System, um Ihnen den bestmöglichen Service zu bieten.';
+        $routeRules = $mConfig['routes'] ?? [];
+
+        $isFrontendRoute = \in_array($relativePath, ['/', '/check', '/checkout', '/history', '/success', '/verify', '/datenschutz', '/impressum'], true);
+        $isAdminLoggedIn = $this->sessionManager->getAdminGroup() === 'admin';
+
+        $isActive = false;
+        $message = $globalMsg;
+
+        // 1. Feingranulare Prüfung pro Seite/Route
+        if (isset($routeRules[$relativePath]) && $routeRules[$relativePath] !== false) {
+            $isActive = true;
+            if (\is_string($routeRules[$relativePath])) {
+                $message = $routeRules[$relativePath]; // Spezifische Nachricht überschreibt globale Nachricht
+            }
+        }
+
+        // 2. Globale Prüfung (greift, falls die Route nicht explizit geregelt ist)
+        if (!$isActive) {
+            if (!$isFrontendRoute && $adminGlobal) {
+                $isActive = true;
+            } elseif ($isFrontendRoute && $frontendGlobal) {
+                $isActive = true;
+            }
+        }
+
+        // 3. Admin-Bypass: Administratoren dürfen das gesperrte Frontend zum Testen betreten
+        if ($isActive && $isFrontendRoute && $isAdminLoggedIn) {
+            $isActive = false;
+        }
+
+        return ['active' => $isActive, 'message' => $message];
     }
 
     private function resolveRelativePath(ServerRequest $request): string
@@ -120,36 +181,7 @@ final readonly class FrontendController
         ];
     }
 
-    private function isMaintenanceLockActive(string $className, string $relativePath): bool
-    {
-        $maintenanceMode = $this->config->get('maintenance_mode', false) === true;
-        $maintenanceAdmin = $this->config->get('maintenance_mode_admin', false) === true;
-
-        $safeDuringMaintenance = [
-            AdminLoginAction::class,
-            ArchiveCronAction::class,
-            BackupCronAction::class,
-            ProcessMailQueueAction::class,
-            RemindersCronAction::class,
-            SpamSyncCronAction::class,
-        ];
-
-        if (\in_array($className, $safeDuringMaintenance, true)) {
-            return false;
-        }
-
-        $isFrontendRoute = \in_array($relativePath, ['/', '/check', '/checkout', '/history', '/success', '/verify', '/datenschutz', '/impressum'], true);
-
-        // Voller Admin-Wartungsmodus (Sperrt alles außer Logins und Cron)
-        if (!$isFrontendRoute && $maintenanceAdmin) {
-            return true;
-        }
-
-        // Frontend-Wartungsmodus: Sperrt das Frontend, es sei denn, ein Admin ist eingeloggt
-        return $isFrontendRoute && $maintenanceMode && $this->sessionManager->getAdminGroup() !== 'admin';
-    }
-
-    private function sendMaintenanceResponse(string $className): ResponseInterface
+    private function sendMaintenanceResponse(string $className, string $message): ResponseInterface
     {
         if (\str_contains($className, '\\Api')) {
             return JsonResponse::error('System wird gewartet.', 503);
@@ -162,7 +194,8 @@ final readonly class FrontendController
         $settings = [
             'base_url' => \rtrim($this->config->getBaseUrl(), '/') . '/',
             'vereins_name' => $this->config->get('vereins_name', 'KGA e.V.'),
-            'maintenance_mode_admin' => $this->config->get('maintenance_mode_admin', false),
+            'maintenance_mode_admin' => $this->config->get('maintenance', [])['admin'] ?? false,
+            'maintenance_message' => $message,
         ];
 
         require_once \rtrim($rootPath, '/\\') . '/public/maintenance.php';
