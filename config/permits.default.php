@@ -126,11 +126,11 @@ return [
             'show_company' => true,
             'active' => true,
         ],
-        'entsorg' => [
+        /*'entsorg' => [
             'label' => 'Abwasser / Entsorgung',
             'icon' => 'assets/img/icons/vehicle_types/biohazard.webp',
             'show_company' => true,
             'active' => false,
-        ],
+        ],*/
     ],
 ];

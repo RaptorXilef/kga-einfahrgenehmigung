@@ -11,9 +11,6 @@ return [
     'max_plot_number' => 1270,
     'use_long_permit_code' => false,
 
-    'disable_backdoor' => false,     // KGA Sicherheitstoggle
-    'disable_superadmin' => false,   // KGA Sicherheitstoggle
-
     'jahresFarbe' => '#2ecc71',
     'permanent_color' => '#3498db',
     'vorlaeufigFarbe' => '#f1c40f',
@@ -22,13 +19,6 @@ return [
         'default_limit' => 25,
         'allowed_limits' => [10, 25, 50, 100, 250],
     ],
-
-    // Steuert das Verhalten des Bank-Abgleichs ('simple' = sofort, 'advanced' = mit manueller Spalten-Kontrolle)
-    'bank_import_mode' => 'simple',
-
-    // NEU: Archivierung der Bank-Importe (CSV + Log als passwortgeschütztes ZIP im Ordner storage/bank_imports/)
-    'bank_import_archive_enabled' => false,
-    'bank_import_zip_password' => '',
 
     'purposes' => [
         'bau' => 'Baumaßnahmen (genehmigt)',

@@ -15,23 +15,15 @@ declare(strict_types=1);
  */
 
 return [
-    'storage_path_prefix' => 'storage/',
-    'archive_grace_days' => 0,
-
-    'backup_settings' => [
+    // --- RELATIONALES BACKEND (MYSQL) ---
+    'database' => [
         'enabled' => true,
-        'max_backups' => 15,
-        'sub_folder' => 'backups',
-        'zip_password' => '', // Optional: AES-256 Passwort für das ZIP-Archiv
-        'ftp' => [
-            'enabled' => false, // Auf true setzen für Offsite-Backups
-            'host' => 'ftp.dein-backup-server.de',
-            'port' => 21,
-            'user' => 'backup_user',
-            'pass' => 'geheim123',
-            'path' => '/kga_backups/', // Zielordner auf dem FTP
-            'ssl' => true, // Empfohlen (FTPS)
-        ],
+        'host' => 'localhost',
+        'port' => '', // Optionaler Port
+        'dbname' => 'kga_einfahrts_manager',
+        'user' => 'root',
+        'pass' => '',
+        'charset' => 'utf8mb4',
     ],
 
     'storage_config' => [
@@ -52,14 +44,29 @@ return [
         'audit_logs' => ['table' => 'audit_logs'],
     ],
 
-    // --- RELATIONALES BACKEND (MYSQL) ---
-    'database' => [
+    'storage_path_prefix' => 'storage/',
+    'archive_grace_days' => 0,
+
+    'backup_settings' => [
         'enabled' => true,
-        'host' => 'localhost',
-        'port' => '', // Optionaler Port
-        'dbname' => 'kga_einfahrts_manager',
-        'user' => 'root',
-        'pass' => '',
-        'charset' => 'utf8mb4',
+        'max_backups' => 15,
+        'sub_folder' => 'backups',
+        'zip_password' => '', // Optional: AES-256 Passwort für das ZIP-Archiv
+        'ftp' => [
+            'enabled' => false, // Auf true setzen für Offsite-Backups
+            'host' => 'ftp.dein-backup-server.de',
+            'port' => 21,
+            'user' => 'backup_user',
+            'pass' => 'geheim123',
+            'path' => '/kga_backups/', // Zielordner auf dem FTP
+            'ssl' => true, // Empfohlen (FTPS)
+        ],
     ],
+
+    // Steuert das Verhalten des Bank-Abgleichs ('simple' = sofort, 'advanced' = mit manueller Spalten-Kontrolle)
+    'bank_import_mode' => 'simple',
+
+    // Archivierung der Bank-Importe (CSV + Log als passwortgeschütztes ZIP im Ordner storage/bank_imports/)
+    'bank_import_archive_enabled' => false,
+    'bank_import_zip_password' => '',
 ];
