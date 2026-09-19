@@ -25,7 +25,9 @@
     .c-avatar--lg {
         inline-size: var(--size-avatar-lg);
         block-size: var(--size-avatar-lg);
-        border: var(--space-xs) solid var(--color-bg-white);
+
+        /* ARCHITEKTUR-FIX: Korrekte Zuordnung von Border-Tokens statt Spacing-Tokens */
+        border: var(--border-l) solid var(--color-bg-white);
         border-radius: var(--radius-xxl);
         box-shadow: var(--shadow-md);
     }

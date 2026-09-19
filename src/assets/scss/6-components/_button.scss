@@ -5,6 +5,7 @@
         --btn-bg: var(--color-bg-white);
         --btn-color: var(--color-text-main);
         --btn-border: var(--color-border);
+        --btn-icon-size: 1.4em;
 
         display: inline-flex;
         gap: var(--space-s);
@@ -39,8 +40,8 @@
 
     .c-button__icon {
         flex-shrink: 0;
-        inline-size: 1.4em;
-        block-size: 1.4em;
+        inline-size: var(--btn-icon-size);
+        block-size: var(--btn-icon-size);
         margin: 0;
     }
 
@@ -138,22 +139,16 @@
     }
 
     .c-button--icon-only {
+        --btn-icon-size: var(--size-icon-md);
+
         inline-size: var(--size-ui-md);
         padding-inline: 0;
     }
 
-    .c-button--icon-only .c-button__icon {
-        inline-size: var(--size-icon-md);
-        block-size: var(--size-icon-md);
-    }
-
     .c-button--small.c-button--icon-only {
-        inline-size: var(--size-ui-sm);
-    }
+        --btn-icon-size: var(--size-icon-sm);
 
-    .c-button--small.c-button--icon-only .c-button__icon {
-        inline-size: 1.25rem;
-        block-size: 1.25rem;
+        inline-size: var(--size-ui-sm);
     }
 
     .c-button--submit {

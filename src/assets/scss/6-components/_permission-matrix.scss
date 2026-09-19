@@ -90,6 +90,7 @@
 
     .c-switch {
         --switch-bg: var(--color-border);
+        --switch-active-bg: var(--color-success);
         --switch-thumb-x: var(--space-xs);
         --switch-text-content: attr(data-off);
         --switch-text-color: var(--color-text-muted);
@@ -106,9 +107,9 @@
         @include visually-hidden;
     }
 
-    /* ARCHITEKTUR-FIX: Sibling Selector statt :has() für den Status des Inputs */
+    /* ARCHITEKTUR-FIX: Flache Kaskade via CSS-Variables (Eliminiert Nesting) */
     .c-switch__input:checked + .c-switch__label {
-        --switch-bg: var(--color-success);
+        --switch-bg: var(--switch-active-bg);
         --switch-thumb-x: calc(var(--size-panel-xs) - var(--size-ui-sm));
         --switch-text-content: attr(data-on);
         --switch-text-color: var(--color-bg-white);
@@ -116,8 +117,8 @@
         --switch-text-inset-end: auto;
     }
 
-    .c-switch--danger .c-switch__input:checked + .c-switch__label {
-        --switch-bg: var(--color-danger);
+    .c-switch--danger {
+        --switch-active-bg: var(--color-danger);
     }
 
     .c-switch__label {

@@ -25,7 +25,7 @@ export class ConsentBanner {
         this.detailsContainer = this.container.querySelector('.js-consent-details');
 
         // FIX: Strikte Klassenselektion
-        this.chkAnalytics = this.container.querySelector('.js-consent-chk-analytics'); // TODO Prüfen wo in PHTML fehlt
+        this.chkAnalytics = this.container.querySelector('.js-consent-chk-analytics');
 
         this.init();
     }
@@ -137,15 +137,16 @@ export class ConsentBanner {
     toggleDetails() {
         const isCurrentlyHidden = this.detailsContainer.hidden;
 
+        // ARCHITEKTUR-FIX: Layout-Thrashing durch innerText verhindert (Nutze textContent)
         if (isCurrentlyHidden) {
             this.detailsContainer.hidden = false;
             this.btnSaveSelection.hidden = false;
-            this.btnToggleDetails.innerText = this.config.texts.hide_details;
+            this.btnToggleDetails.textContent = this.config.texts.hide_details;
             this.btnToggleDetails.setAttribute('aria-expanded', 'true');
         } else {
             this.detailsContainer.hidden = true;
             this.btnSaveSelection.hidden = true;
-            this.btnToggleDetails.innerText = this.config.texts.show_details;
+            this.btnToggleDetails.textContent = this.config.texts.show_details;
             this.btnToggleDetails.setAttribute('aria-expanded', 'false');
         }
     }

@@ -1,3 +1,4 @@
+import { api } from '../core/Api.js';
 import { notifier } from '../core/Notifier.js';
 
 /**
@@ -89,17 +90,10 @@ export class SystemTools {
         }
 
         try {
-            // Native fetch API absichern durch AbortSignal des Moduls (für Abbrüche beim Tab-Wechsel)
-            const response = await fetch(url, {
-                method: 'GET',
-                signal: this.abortController.signal,
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP Error: Der Server antwortete mit Status ${response.status}`);
-            }
-
-            const data = await response.json();
+            // ARCHITEKTUR-FIX: Wir nutzen den api Singleton für CSRF Handling und POST Methode!
+            // Wenn wir hier GET nutzen würden, denkt das Backend (wegen dem Token), es handele sich um
+            // einen automatisierten Server-Cronjob und verarbeitet Limits falsch. Durch POST greift das Frontend-Limit.
+            const data = await api.post(url);
 
             let msg = data.message || 'Ausführung abgeschlossen.';
 

@@ -55,7 +55,7 @@
         font-size: var(--text-sm);
     }
 
-    // ARCHITEKTUR-FIX: OKLCH-fähiger Pfeil ohne SVG Data-URIs
+    // ARCHITEKTUR-FIX: Strenge Einhaltung der OKLCH & Logical Two-Tier Tokens (Physische Pixel entfernt)
     .c-form-select {
         padding-inline-end: var(--space-2xl);
         appearance: none;
@@ -73,10 +73,10 @@
         background-repeat: no-repeat;
         background-position:
             calc(100% - var(--space-l)) 50%,
-            calc(100% - var(--space-l) + 5px) 50%;
+            calc(100% - var(--space-l) + var(--border-xl)) 50%;
         background-size:
-            5px 5px,
-            5px 5px;
+            var(--border-xl) var(--border-xl),
+            var(--border-xl) var(--border-xl);
     }
 
     .c-form-select:focus {
