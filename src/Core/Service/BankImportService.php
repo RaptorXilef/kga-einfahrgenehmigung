@@ -41,7 +41,8 @@ final readonly class BankImportService
                 return ['headers' => [], 'previewRow' => []];
             }
 
-            $csv = Reader::createFromStream($stream);
+            // FIX: Umgehung der P1007 Deprecation durch Nutzung der neuen, universellen from() Methode
+            $csv = Reader::from($stream);
             $csv->setDelimiter($this->detectDelimiter($filePath));
             $csv->setHeaderOffset(null); // Wir arbeiten mit numerischen Indizes
 
@@ -92,7 +93,8 @@ final readonly class BankImportService
                 return ['success' => false, 'message' => 'Datei konnte nicht zum Lesen geöffnet werden.'];
             }
 
-            $csv = Reader::createFromStream($stream);
+            // FIX: Umgehung der P1007 Deprecation durch Nutzung der neuen, universellen from() Methode
+            $csv = Reader::from($stream);
             $csv->setDelimiter($this->detectDelimiter($filePath));
             // Wir überspringen die Kopfzeile
             $csv->setHeaderOffset(null);
