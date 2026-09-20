@@ -53,7 +53,7 @@
     .s-markdown pre {
         padding: var(--space-m);
         margin-block-end: 1em;
-        overflow-x: auto;
+        overflow-inline: auto;
         color: var(--color-bg-light);
         background-color: var(--color-text-main);
         border-radius: var(--radius-l);

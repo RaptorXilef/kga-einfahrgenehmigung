@@ -45,6 +45,9 @@
             border-color,
             box-shadow
         );
+    }
+
+    .c-tabs__btn:focus-visible {
         @include focus-ring(var(--color-primary), 0);
     }
 
@@ -93,7 +96,6 @@
         }
     }
 
-    /* Aus dem Objects Layer gerettet, da c- Namespace! */
     .c-tab-content-container {
         display: block;
         inline-size: var(--size-full);

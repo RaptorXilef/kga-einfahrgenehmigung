@@ -6,12 +6,10 @@
 // im Scope gefangen sind (Compiler Error: "Undefined mixin").
 // Sie erben den Layer automatisch von der Komponente, die das @include aufruft.
 
-// Strikter barrierefreier Fokus-Ring für alle interaktiven Elemente
+// Strikter barrierefreier Fokus-Ring für alle interaktiven Elemente (Refactored: Ohne Nesting!)
 @mixin focus-ring($color: var(--color-primary), $offset: var(--space-xs)) {
-    &:focus-visible {
-        outline: var(--border-m) solid $color;
-        outline-offset: $offset;
-    }
+    outline: var(--border-m) solid $color;
+    outline-offset: $offset;
 }
 
 // Standardisierter Hover-Lift für Cards und Buttons

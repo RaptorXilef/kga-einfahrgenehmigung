@@ -23,6 +23,9 @@
         will-change: translate, box-shadow;
 
         @include transition-fast(translate, background-color, box-shadow);
+    }
+
+    .c-fab-refresh:focus-visible {
         @include focus-ring;
     }
 

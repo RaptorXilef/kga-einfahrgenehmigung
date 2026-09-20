@@ -48,7 +48,7 @@
 
     .c-voucher-scroll-area {
         max-block-size: var(--size-panel-5xl);
-        overflow-y: auto;
+        overflow-block: auto;
     }
 
     .c-voucher-qr-code {

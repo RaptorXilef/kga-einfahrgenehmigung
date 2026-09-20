@@ -35,6 +35,9 @@
             translate,
             box-shadow
         );
+    }
+
+    .c-button:focus-visible {
         @include focus-ring;
     }
 

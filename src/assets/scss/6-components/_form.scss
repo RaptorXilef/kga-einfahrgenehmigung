@@ -23,6 +23,10 @@
         border-radius: var(--c-input-radius-val);
 
         @include transition-fast(border-color, box-shadow);
+    }
+
+    .c-form-input:focus-visible,
+    .c-form-select:focus-visible {
         @include focus-ring(var(--color-primary), 0);
     }
 
@@ -177,7 +181,9 @@
         margin-block-start: var(--space-xs);
         cursor: pointer;
         scale: 1.2;
+    }
 
+    .c-checkbox__input:focus-visible {
         @include focus-ring;
     }
 
@@ -216,6 +222,9 @@
         opacity: var(--opacity-50);
 
         @include transition-fast(opacity);
+    }
+
+    .c-password-toggle__btn:focus-visible {
         @include focus-ring;
     }
 
@@ -223,8 +232,8 @@
         max-inline-size: var(--size-panel-md);
     }
 
-    /* UI Fix: Erlaubt Umbrüche der per JS injizierten Öffnungszeiten */
-    .c-opening-times > div {
+    /* UI Fix: Erlaubt Umbrüche der per JS injizierten Öffnungszeiten (BEM Namespace Fix) */
+    .c-opening-times__row {
         display: flex;
         flex-wrap: wrap;
         row-gap: var(--space-xs);

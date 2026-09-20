@@ -19,6 +19,9 @@
         box-shadow: var(--shadow-sm);
 
         @include transition-fast(background-color, border-color, box-shadow);
+    }
+
+    .c-accordion__summary:focus-visible {
         @include focus-ring;
     }
 

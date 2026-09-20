@@ -12,9 +12,9 @@
         color: inherit;
         background-color: transparent;
         border: none;
+    }
 
-        &::backdrop {
-            background-color: transparent;
-        }
+    dialog::backdrop {
+        background-color: transparent;
     }
 }

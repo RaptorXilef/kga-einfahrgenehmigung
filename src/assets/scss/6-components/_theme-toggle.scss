@@ -30,6 +30,9 @@
             translate,
             box-shadow
         );
+    }
+
+    .c-theme-toggle:focus-visible {
         @include focus-ring;
     }
 

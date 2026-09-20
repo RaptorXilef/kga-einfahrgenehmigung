@@ -19,7 +19,9 @@
         --dropzone-border-color: var(--color-border);
 
         cursor: pointer;
+    }
 
+    .c-dropzone--preview:focus-visible {
         @include focus-ring;
     }
 

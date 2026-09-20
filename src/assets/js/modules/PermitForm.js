@@ -323,8 +323,12 @@ export class PermitForm {
                 res.openingData.forEach((block) => {
                     const blockDiv = document.createElement('div');
 
+                    // ARCHITEKTUR-FIX: Nutzt die saubere BEM-Klasse statt wildem Nesting in CSS
+                    blockDiv.className = isMulti
+                        ? 'u-margin-block-end-xs c-opening-times__row'
+                        : 'c-opening-times__row';
+
                     if (isMulti) {
-                        blockDiv.className = 'u-margin-block-end-xs';
                         const labelSpan = document.createElement('span');
                         labelSpan.className = 'u-color-primary';
                         labelSpan.textContent = `${block.from} - ${block.to}: `;

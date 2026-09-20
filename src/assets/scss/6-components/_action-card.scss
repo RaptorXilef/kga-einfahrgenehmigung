@@ -36,6 +36,9 @@
             background-color,
             border-color
         );
+    }
+
+    .c-action-card:focus-visible {
         @include focus-ring;
     }
 

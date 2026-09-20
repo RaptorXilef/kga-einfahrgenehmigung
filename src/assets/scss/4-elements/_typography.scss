@@ -6,19 +6,21 @@
         text-decoration: underline;
         text-underline-offset: 0.2em;
         transition: color var(--time-fast) var(--ease-base);
+    }
 
-        &:hover {
-            color: color-mix(
-                in oklch,
-                var(--color-primary) var(--mix-80),
-                oklch(0% 0 0deg)
-            );
-        }
+    a:hover {
+        color: color-mix(
+            in oklch,
+            var(--color-primary) var(--mix-80),
+            oklch(0% 0 0deg)
+        );
+    }
 
+    a:focus-visible {
         @include focus-ring;
     }
 
-    /* UI Fix: Verhindert, dass ultralange Wörter (Ausnahmegenehmigung) auf kleinen Smartphones das Layout sprengen */
+    /* UI Fix: Verhindert, dass ultralange Wörter auf kleinen Smartphones das Layout sprengen */
     h1,
     h2,
     h3,
