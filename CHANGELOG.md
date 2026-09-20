@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.73.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.72.0...v0.73.0) (2026-09-20)
+
+### 🚀 Features
+
+* **mail:** Implement dompdf for reliable A4 permit attachments and inline base64 QR codes ([cab2f45](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cab2f45728f3c8ade1f9c54da7380cd759e2d097))
+
+### 🐛 Bug Fixes
+
+* **core:** Resolve DOM reflow bottlenecks and finalize semantic A11y ([089a1ae](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/089a1aefef76ac20816be7a39029742b37bd6185))
+* **core:** Resolve template path resolution error and stream print views as native PDFs ([cb85084](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cb8508430b39a584f878d08c8fa4c7e2d2904bd9))
+* **mail:** Improve permit email copy and fix PDF layout rendering ([94bb331](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/94bb331cb324f1beac0e4a86fca7a21cedb63719))
+* **mail:** Resolve broken PDF icons and restore balanced A4 typography ([3d35036](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3d35036c23e62f2d7bef775401dcd16d11b15d9e))
+* **styles:** Enforce flat SCSS architecture and logical properties ([56d44ac](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/56d44ac9a7274ffa7a891cb3752b71830b3a2c77))
+* **styles:** Synchronize CSS states with ARIA attributes and finalize A11y focus rings ([126d7d8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/126d7d8c2e9f7ed320e999ab0415efda05ed9f4d))
+* **templates:** Remove inline CSS from PDF template and rely on clean stylesheet for Dompdf ([18ee0db](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/18ee0dbf46f09490910019008aa715df328afabc))
+* **ui:** Enhance permission matrix visibility and hover states for dark mode ([5ebe778](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5ebe778389f3102e243347bbc51a7e2150a64f0f))
+* **ui:** Reorder valid badge and fix table sorter accessibility ([64a3314](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/64a3314b946e309a19269898a9e1f3b806e86d23))
+* **ui:** Resolve UI state confusion during rest periods and fix broken vehicle icons ([dbfad91](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dbfad918b2a4c33989e8496fb5e29e778d81f004))
+
+### 📚 Dokumentation
+
+* **release:** Add release notes for version v0.73.0 ([447d87e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/447d87e96f3c676477edeb990f7027422c92d432))
+
 ## [0.72.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.71.0...v0.72.0) (2026-09-20)
 
 ### 🚀 Features
