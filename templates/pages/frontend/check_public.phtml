@@ -97,8 +97,8 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
                         <span class="u-text-4xl">
                             <img src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                         </span>
-                        <h2 class="u-color-warning u-margin-block-start-m">AKTUELL RUHEZEIT<br>Keine Einfahrt erlaubt!
-                        </h2>
+                        <h2 class="u-color-warning u-margin-block-start-m">AKTUELL RUHEZEIT<br>Keine Einfahrt erlaubt!</h2>
+                        <div class="c-badge c-badge--success u-margin-block-end-m u-font-bold u-text-sm">GENEHMIGUNG GÜLTIG</div>
 
                         <?php if (\str_contains($allowedToday, 'Gültigkeit')) { ?>
                             <!-- Sonderfall: Genehmigung läuft während der Ruhezeit ab -->

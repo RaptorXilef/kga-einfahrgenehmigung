@@ -129,7 +129,7 @@ $now = new \DateTimeImmutable('today');
                             // 3. Fahrzeug Icon
                             $vKey = $permit->getVehicleType();
                             $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
-                            $iconPath = $vCfg['icon'] ?? 'warning.webp';
+                            $iconPath = $vCfg['icon'] ?? 'assets/img/icons/warning.webp';
                             $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                             ?>
                             <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
@@ -150,9 +150,8 @@ $now = new \DateTimeImmutable('today');
                                 <td class="c-table__data-cell u-text-center"
                                     data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>">
                                     <div>
-                                        <img src="<?php echo $settings['base_url'] . 'assets/img/icons/' . $iconPath; ?>"
-                                             class="c-icon <?php echo $isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
-                                             style="--icon-size: 24px; inline-size: var(--icon-size); block-size: var(--icon-size);"
+                                        <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
+                                             class="c-icon c-table__icon <?php echo $isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
                                              title="<?php echo $vLabel; ?>"
                                              loading="lazy"
                                              alt="">
