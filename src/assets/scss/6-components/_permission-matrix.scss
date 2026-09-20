@@ -29,15 +29,25 @@
         align-items: center;
         justify-content: space-between;
         padding-block: var(--space-s);
-        padding-inline: 0;
+
+        /* UI FIX: Leichtes Padding und negativer Margin für einen nahtlosen Hover-Kasten */
+        padding-inline: var(--space-s);
+        margin-inline: calc(var(--space-s) * -1);
         border-block-end: var(
             --tree-item-border,
-            var(--border-s) solid var(--color-bg-light)
+            var(--border-s) solid var(--color-border)
+                /* FIX: color-border statt bg-light für saubere Trennlinien */
         );
+        border-radius: var(--radius-m);
     }
 
     .c-tree-item:hover {
-        background-color: var(--color-bg-light);
+        /* FIX: Dynamischer Kontrast für Light/Dark Mode via color-mix() aus der Textfarbe */
+        background-color: color-mix(
+            in oklch,
+            var(--color-text-main) var(--mix-5),
+            transparent
+        );
     }
 
     .c-tree-item--root {
