@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.72.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.71.0...v0.72.0) (2026-09-20)
+
+### 🚀 Features
+
+* **infrastructure:** Integrate league/csv and endroid/qr-code for local processing ([1d3dabf](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1d3dabfbfcd074d9efa69662dbb81707a9238149))
+
+### 🐛 Bug Fixes
+
+* **api:** Resolve 404 route cache issue, fix QR code IDE warning, and harden CSV parsing ([7669234](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/76692349e141bdff1014cc83b399cf70943856d0))
+* **core:** Prevent app crash on vendor deprecations and resolve league/csv P1007 warning ([fc1dd3f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fc1dd3fe6fff59ec8e24430c094925058f4dde00))
+* **core:** Refactor config loading to be dynamic and resolve email QR code rendering issues ([969c3bd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/969c3bd10dc7b6504917eca5be1f91c40f844e0c))
+* **core:** Resolve league/csv P1007 deprecation warning for createFromStream ([bded5de](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bded5ded837e1a77a8b74967bf7d1fb4fbd82d30))
+* **mail:** Resolve print layout degradation and clarify local network limitations ([4d30fa4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4d30fa4c2a685f7a3f8ea493cd879c94351d5122))
+* **templates:** Remove obsolete color-adjust CSS property to resolve IDE warnings ([0d80f0a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0d80f0aa64cabc4ce6107bf5dd95489121c0889e))
+
+### 📚 Dokumentation
+
+* **release:** Add changelog and release notes for version v0.72.0 ([1cdd220](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1cdd22021199366b569fe758c7a87ec3c03686ab))
+
 ## [0.71.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.70.3...v0.71.0) (2026-09-19)
 
 ### 🚀 Features
