@@ -49,9 +49,16 @@ final readonly class TemplateRenderer
         \extract($systemVars);
         \extract($data); // OHNE EXTR_SKIP, damit Templates lokale Variablen setzen können!
 
+        // Intelligente Pfad-Auflösung (Verhindert den "Failed to open stream" Fehler)
+        $fullPath = $appRoot . "/templates/pages/{$templatePath}.phtml";
+        if (!\file_exists($fullPath)) {
+            // Fallback auf den Basis-Ordner (Wichtig für /emails/ und /partials/)
+            $fullPath = $appRoot . "/templates/{$templatePath}.phtml";
+        }
+
         // 1. Content in den Puffer rendern
         \ob_start();
-        include $appRoot . "/templates/pages/{$templatePath}.phtml";
+        include $fullPath;
         $content = \ob_get_clean();
 
         // 2. Layout Rendern
