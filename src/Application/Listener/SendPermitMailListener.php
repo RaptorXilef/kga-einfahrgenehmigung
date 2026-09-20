@@ -5,18 +5,22 @@ declare(strict_types=1);
 namespace App\Application\Listener;
 
 use App\Application\View\HolidayHtmlPresenter;
+use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\System\PdfGeneratorInterface;
 use App\Core\Entity\PermitStatus;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Service\BankQrGenerator;
 use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 
 /**
  * Lauscht auf PermitCreatedEvent und versendet die System-E-Mails.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class SendPermitMailListener
 {
@@ -26,6 +30,8 @@ final readonly class SendPermitMailListener
         private HolidayService $holidayService,
         private MailServiceInterface $mailService,
         private PermitService $permitService,
+        private PdfGeneratorInterface $pdfGenerator,
+        private TemplateRenderer $renderer,
     ) {
     }
 
@@ -55,6 +61,7 @@ final readonly class SendPermitMailListener
         $mailConfig = $this->config->getMailSettings();
         // Sichere Base-URL mit garantiert einem abschließenden Slash
         $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
+        $checkUrl = $safeBaseUrl . 'check?code=' . $permitCodeStr;
 
         // --- 1. MAIL AN VORSTAND ---
         if (($mailConfig['send_board_notification'] ?? true) === true) {
@@ -67,7 +74,7 @@ final readonly class SendPermitMailListener
             $boardRecipients = \array_filter(\array_map('trim', \explode(',', (string) $boardRecipientsRaw)));
 
             $data = [
-                'adminLink' => $safeBaseUrl . "check?code={$permitCodeStr}&token={$token}",
+                'adminLink' => $checkUrl . "&token={$token}",
                 'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
                 'email' => $permit->getOwnerEmail() ?: 'Keine angegeben',
                 'firma' => $permit->getCompany() ?? '',
@@ -128,28 +135,63 @@ final readonly class SendPermitMailListener
             );
         }
 
-        // --- 3. DAS A4 DOKUMENT ---
+        // --- 3. DAS A4 DOKUMENT (ALS PDF ANHANG) ---
+
+        // 3.1 QR-Code für den Anhang in Base64 generieren (Offline-Sicherheit)
+        $qrCode = new QrCode(
+            data: $checkUrl,
+            encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::Low,
+            size: 160,
+            margin: 0,
+        );
+        $writer = new PngWriter();
+        $qrResult = $writer->write($qrCode);
+        $checkQrBase64 = $qrResult->getDataUri(); // Gibt data:image/png;base64,... zurück
+
+        $pdfData = [
+            'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
+            'checkUrl' => $checkUrl,
+            'checkQrBase64' => $checkQrBase64,
+            'erstellt' => $permit->getCreatedAt()->format('d.m.Y H:i'),
+            'firma' => $permit->getCompany() ?? '',
+            'fullIdentifier' => $permitCodeStr,
+            'holidayNotice' => $holidayNotice,
+            'jahresFarbe' => $this->config->get('jahresFarbe'),
+            'kennzeichen' => $permit->getLicensePlate(),
+            'opening_html' => $opening,
+            'parzelle' => $permit->getPlotNumber(),
+            'settings' => ['base_url' => $safeBaseUrl],
+            'template_key' => $permit->template_key->value,
+            'terminkalenderUrl' => $this->config->get('terminkalender_url'),
+            'vereinsName' => $this->config->get('vereins_name'),
+            'von_formatted' => $permit->getValidFrom()->format('d.m.Y'),
+            'zweck' => $permit->getPurpose(),
+        ];
+
+        // 3.2 HTML rendern und in PDF umwandeln
+        $a4Html = $this->renderer->render('emails/permit_a4_document', $pdfData);
+        $pdfBinary = $this->pdfGenerator->generateFromHtml($a4Html);
+
+        // 3.3 Neue, kurze E-Mail versenden und PDF anhängen
         $this->mailService->sendTemplate(
             $permit->getOwnerEmail(),
             'Ausnahmegenehmigung: ' . $this->config->get('vereins_name') . ': ' . $permitCodeStr,
-            'permit_a4_document',
+            'permit_approved_with_pdf',
             [
-                'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
-                'checkUrl' => \urlencode($safeBaseUrl . 'check?code=' . $permitCodeStr),
-                'erstellt' => $permit->getCreatedAt()->format('d.m.Y H:i'),
-                'firma' => $permit->getCompany() ?? '',
+                'baseUrl' => $safeBaseUrl,
                 'fullIdentifier' => $permitCodeStr,
-                'holidayNotice' => $holidayNotice,
-                'jahresFarbe' => $this->config->get('jahresFarbe'),
-                'kennzeichen' => $permit->getLicensePlate(),
-                'opening_html' => $opening,
-                'parzelle' => $permit->getPlotNumber(),
-                'settings' => ['base_url' => $safeBaseUrl],
-                'template_key' => $permit->template_key->value,
-                'terminkalenderUrl' => $this->config->get('terminkalender_url'),
+                'name' => $permit->getOwnerName(),
                 'vereinsName' => $this->config->get('vereins_name'),
-                'von_formatted' => $permit->getValidFrom()->format('d.m.Y'),
-                'zweck' => $permit->getPurpose(),
+            ],
+            null,
+            50,
+            [
+                [
+                    'name' => "Genehmigung_{$permitCodeStr}.pdf",
+                    'mime' => 'application/pdf',
+                    'content' => $pdfBinary,
+                ],
             ],
         );
     }

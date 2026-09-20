@@ -30,7 +30,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
 
     // --- Public API ---
 
-    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50): bool|string
+    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50, array $attachments = []): bool|string
     {
         if (\in_array(\trim($recipient), ['', '0'], true)) {
             $this->logEmail('System', $subject, clone new TemplateKey($template), 'Übersprungen: Kein Empfänger angegeben', null, $data);
@@ -67,9 +67,16 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
             $debugHeader .= '<strong>Original Recipient:</strong> ' . \htmlspecialchars($recipient) . "<br>\n";
             $debugHeader .= '<strong>Actual Recipient:</strong> ' . \htmlspecialchars($actualRecipient) . "<br>\n";
             $debugHeader .= '<strong>Subject:</strong> ' . \htmlspecialchars($subject) . "<br>\n";
+            $debugHeader .= '<strong>Attachments:</strong> ' . \count($attachments) . "<br>\n";
             $debugHeader .= "</div>\n\n";
 
             @\file_put_contents($filename, $debugHeader . $body);
+
+            // PDFs ebenfalls debuggen und speichern!
+            foreach ($attachments as $i => $att) {
+                $attFileName = $spoolDir . '/' . $fileNameOnly . '_attach_' . $i . '_' . $att['name'];
+                @\file_put_contents($attFileName, $att['content']);
+            }
 
             // Wir merken uns den Filename für das Admin-Dashboard!
             $data['_debug_file'] = $fileNameOnly;
@@ -79,7 +86,8 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         }
 
         $transportConfig = $this->getTransportConfig($mailConfig);
-        $status = $this->dispatch($actualRecipient, $subject, $body, $transportConfig, $replyTo);
+        // Wir übergeben das $attachments Array an die spezifischen Transports!
+        $status = $this->dispatch($actualRecipient, $subject, $body, $transportConfig, $replyTo, $attachments);
         $logStatus = $status === true && $isTestMode ? 'Erfolg (Test-Routing an ' . $actualRecipient . ')' : $status;
         $this->logEmail($recipient, $subject, clone new TemplateKey($template), $logStatus, $replyTo, $data);
 
@@ -154,7 +162,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
     /**
      * Der spezifische Versand-Mechanismus, der von den Child-Klassen (Transports) implementiert werden muss.
      */
-    abstract protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null): bool|string;
+    abstract protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null, array $attachments = []): bool|string;
 
     protected function render(string $templatePath, array $data): string
     {

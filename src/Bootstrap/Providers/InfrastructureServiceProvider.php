@@ -31,6 +31,7 @@ use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\System\PdfGeneratorInterface;
 use App\Contracts\System\RouteCacheInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
 use App\Contracts\System\SystemInfoInterface;
@@ -60,6 +61,7 @@ use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\MySqlVoucherRepository;
 use App\Infrastructure\Storage\StorageFactory;
+use App\Infrastructure\System\DompdfGenerator;
 use App\Infrastructure\System\FileRouteCache;
 use App\Infrastructure\System\LocalAssetHelper;
 use App\Infrastructure\System\SystemInfoService;
@@ -227,7 +229,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         |--------------------------------------------------------------------------
         | 5. SYSTEM, MAINTENANCE & UTILS
         |--------------------------------------------------------------------------
-        | Hardware- und System-Tools für Backups, Updates, Migrationen und I/O.
         */
         $container->bind(BackupServiceInterface::class, fn (): mixed => $container->get(BackupService::class));
         $container->bind(ErrorLoggerInterface::class, fn (): mixed => $container->get(ErrorLogger::class));
@@ -235,8 +236,10 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(JsonHelperInterface::class, fn (): JsonHelper => new JsonHelper());
         $container->bind(StorageBootstrapperInterface::class, fn (): mixed => $container->get(StorageBootstrapper::class));
         $container->bind(SystemInfoInterface::class, fn (): mixed => $container->get(SystemInfoService::class));
-
         $container->bind(UpdateMigrationServiceInterface::class, fn (): mixed => $container->get(UpdateMigrationService::class));
+
+        // PDF Generator binden
+        $container->bind(PdfGeneratorInterface::class, fn (): DompdfGenerator => new DompdfGenerator());
 
         // Route Cache Binding für die ActionRegistry
         $container->bind(RouteCacheInterface::class, function () use ($container): FileRouteCache {

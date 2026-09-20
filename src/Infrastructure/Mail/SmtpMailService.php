@@ -13,7 +13,7 @@ use PHPMailer\PHPMailer\PHPMailer;
  */
 final class SmtpMailService extends AbstractMailService
 {
-    protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null): bool|string
+    protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null, array $attachments = []): bool|string
     {
         $mail = new PHPMailer(true);
 
@@ -37,6 +37,11 @@ final class SmtpMailService extends AbstractMailService
 
             if ($replyTo !== null && \filter_var($replyTo, \FILTER_VALIDATE_EMAIL)) {
                 $mail->addReplyTo($replyTo);
+            }
+
+            // NEU: Attachments hinzufügen
+            foreach ($attachments as $att) {
+                $mail->addStringAttachment($att['content'], $att['name'], 'base64', $att['mime'] ?? 'application/pdf');
             }
 
             $mail->isHTML(true);

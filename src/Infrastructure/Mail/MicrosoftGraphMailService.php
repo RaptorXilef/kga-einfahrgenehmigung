@@ -13,7 +13,7 @@ use Throwable;
  */
 final class MicrosoftGraphMailService extends AbstractMailService
 {
-    protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null): bool|string
+    protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null, array $attachments = []): bool|string
     {
         try {
             $provider = new Azure([
@@ -58,6 +58,21 @@ final class MicrosoftGraphMailService extends AbstractMailService
                 ];
             }
 
+            // NEU: Graph API Attachments Struktur
+            $graphAttachments = [];
+            foreach ($attachments as $att) {
+                $graphAttachments[] = [
+                    '@odata.type' => '#microsoft.graph.fileAttachment',
+                    'name' => $att['name'],
+                    'contentType' => $att['mime'] ?? 'application/pdf',
+                    'contentBytes' => \base64_encode($att['content']),
+                ];
+            }
+
+            if (!empty($graphAttachments)) {
+                $payload['message']['attachments'] = $graphAttachments;
+            }
+
             // Guzzle HTTP Client Aufruf via League OAuth2 Wrapper
             $request = $provider->getAuthenticatedRequest(
                 'POST',
@@ -71,7 +86,6 @@ final class MicrosoftGraphMailService extends AbstractMailService
                 ],
             );
 
-            // Response abrufen. Die Graph API liefert bei Erfolg einen 202 Accepted Status ohne Body.
             $provider->getParsedResponse($request);
 
             return true;

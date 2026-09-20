@@ -23,12 +23,12 @@ interface MailServiceInterface
      * @param string $template Pfad zum Template relativ zum Template-Ordner.
      * @param array<string, mixed> $data Platzhalter- und Payload-Daten für das Template.
      * @param string|null $replyTo Optionale Antwortadresse.
-     * @param int $priority Wichtigkeit (100 = Hoch/Login, 50 = Normal, 10 = Niedrig/Erinnerung).
+     * @param int $priority Wichtigkeit.
+     * @param array $attachments Anhänge im Format [['name' => '..', 'mime' => '..', 'content' => 'binary..']]
      *
      * @return bool|string True bei Erfolg, Fehlermeldung als String bei Fehlern.
      */
-    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50): bool|string;
+    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50, array $attachments = []): bool|string;
 
-    // TODO DOCBLOCK
     public function processQueue(int $limit = 5): int;
 }
