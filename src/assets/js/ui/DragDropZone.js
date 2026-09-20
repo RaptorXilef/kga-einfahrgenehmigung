@@ -109,7 +109,7 @@ export class DragDropZone {
 
             if (txt) {
                 // Für Dateien wie CSVs ändern wir einfach den Text
-                txt.innerText = `Ausgewählt: ${file.name}`;
+                txt.textContent = `Ausgewählt: ${file.name}`;
                 txt.classList.add('is-filled');
             }
 

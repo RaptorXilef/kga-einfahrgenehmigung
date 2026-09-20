@@ -126,9 +126,12 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php } elseif ($hasActiveVouchers) { ?>
                     <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
                     <div class="u-text-center u-margin-block-end-l u-flex u-justify-center">
+                        <!-- A11Y FIX: aria-expanded und aria-controls hinzugefügt -->
                         <button type="button"
                                 class="c-voucher-toggle js-voucher-toggle u-border-none"
-                                style="background: transparent; padding: 0; font: inherit;">
+                                style="background: transparent; padding: 0; font: inherit;"
+                                aria-expanded="false"
+                                aria-controls="voucher-container">
                             <img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
                                  class="c-icon"
                                  loading="lazy"
@@ -137,7 +140,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         </button>
                     </div>
 
-                    <div
+                    <!-- A11Y FIX: ID passend zum aria-controls hinzugefügt -->
+                    <div id="voucher-container"
                          class="c-voucher-container js-voucher-container c-box c-box--dashed o-container o-container--small u-margin-inline-auto">
                         <!-- Formular nur für den Gutschein-Check -->
                         <form method="GET"

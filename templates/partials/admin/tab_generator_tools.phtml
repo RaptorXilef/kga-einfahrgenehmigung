@@ -222,9 +222,16 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <label class="c-form-label u-flex u-justify-between u-align-center"
                                            for="zweck_select">
                                         <span>Einfahrts-Grund *</span>
-                                        <span class="u-text-link u-cursor-pointer js-pf-toggle-zweck" id="toggle_zweck_btn">
-                                            <img src="<?php echo $asset->url('assets/img/icons/edit.webp'); ?>" class="c-icon" loading="lazy" alt=""> Manuell
-                                        </span>
+                                        <!-- A11Y FIX: Natives Button-Element statt <span> für korrekte Tastaturnavigation -->
+                                        <button type="button"
+                                                class="u-text-link u-cursor-pointer js-pf-toggle-zweck"
+                                                id="toggle_zweck_btn"
+                                                style="background: transparent; border: none; font: inherit; padding: 0;">
+                                            <img src="<?php echo $asset->url('assets/img/icons/edit.webp'); ?>"
+                                                 class="c-icon"
+                                                 loading="lazy"
+                                                 alt=""> Manuell
+                                        </button>
                                     </label>
                                     <select name="zweck"
                                             id="zweck_select"
@@ -605,4 +612,5 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
 <script nonce="<?php echo $cspNonce; ?>">
 window.KGA_TEMPLATES = <?php echo \json_encode($tplMetadata); ?>;
+
 </script>

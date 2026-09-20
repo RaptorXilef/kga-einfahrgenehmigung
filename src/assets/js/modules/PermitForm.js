@@ -131,7 +131,7 @@ export class PermitForm {
 
         this.toggleZweckBtn?.addEventListener('click', () => this.toggleZweckMode(), options);
 
-        // Frontend: Gutschein-Toggle
+        // Frontend: Gutschein-Toggle mit WAI-ARIA State
         const voucherToggle = this.container.querySelector('.js-voucher-toggle');
         const voucherWrap = this.container.querySelector('.js-voucher-container');
 
@@ -139,7 +139,11 @@ export class PermitForm {
             voucherToggle.dataset.bound = 'true'; // Doppeltes Binden verhindern
             voucherToggle.addEventListener(
                 'click',
-                () => voucherWrap.classList.toggle('is-open'),
+                () => {
+                    const isOpen = voucherWrap.classList.toggle('is-open');
+                    // A11Y FIX: Screenreader Status mitteilen
+                    voucherToggle.setAttribute('aria-expanded', isOpen);
+                },
                 options
             );
         }
@@ -180,7 +184,8 @@ export class PermitForm {
         }
 
         if (this.labelKennzeichen) {
-            this.labelKennzeichen.innerText = isCompanyRequired
+            // PERFORMANCE FIX: textContent statt innerText
+            this.labelKennzeichen.textContent = isCompanyRequired
                 ? 'Amtl. Kennzeichen (Optional)'
                 : '* Amtl. Kennzeichen';
         }
@@ -256,7 +261,8 @@ export class PermitForm {
                 if (this.bisInput.value < minBisStr) {
                     this.bisInput.value = minBisStr;
                     if (this.warningText) {
-                        this.warningText.innerText =
+                        // PERFORMANCE FIX: textContent statt innerText
+                        this.warningText.textContent =
                             'Das Datum wurde auf die Mindestdauer der Vorlage korrigiert.';
                         this.warningBox.hidden = false;
                     }
@@ -401,7 +407,6 @@ export class PermitForm {
 
         if (res.success) {
             if (this.priceDisplay.tagName !== 'SPAN' && res.discountText) {
-                // Sicheres DOM-Building ohne DOMPurify
                 this.priceDisplay.textContent = '';
 
                 const orig = document.createElement('div');
@@ -417,8 +422,8 @@ export class PermitForm {
 
                 this.priceDisplay.append(orig, fee, hint);
             } else {
-                // Admin Darstellung (Reiner Text im Span)
-                this.priceDisplay.innerText =
+                // PERFORMANCE FIX: textContent statt innerText
+                this.priceDisplay.textContent =
                     this.priceDisplay.tagName === 'SPAN'
                         ? res.formatted
                         : `Gebühr: ${res.formatted}`;
@@ -427,8 +432,8 @@ export class PermitForm {
 
             if (res.isFree) this.priceDisplay.classList.add('c-price-display--free');
         } else {
-            // Silent-Failure beheben und UI Error-State setzen
-            this.priceDisplay.innerText =
+            // PERFORMANCE FIX: textContent statt innerText
+            this.priceDisplay.textContent =
                 this.priceDisplay.tagName === 'SPAN'
                     ? 'Fehler'
                     : 'Gebühr: Berechnung fehlgeschlagen';

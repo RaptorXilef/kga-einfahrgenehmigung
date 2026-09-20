@@ -122,13 +122,13 @@ export class SessionTimer {
 
         // Aktualisiere das Nav-Label
         if (this.container) {
-            this.container.innerText = timeStr;
+            this.container.textContent = timeStr;
             this.container.classList.toggle('is-error', remainingMs <= this.warningMs);
         }
 
         // Aktualisiere Modal-Countdown
         if (this.modalTimer && this.isWarningActive) {
-            this.modalTimer.innerText = timeStr;
+            this.modalTimer.textContent = timeStr;
         }
     }
 

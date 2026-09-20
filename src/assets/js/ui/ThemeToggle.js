@@ -69,11 +69,12 @@ export class ThemeToggle {
             if (theme === 'dark') {
                 // Im Dark Mode zeigen wir die Sonne (als Hinweis: "Klick mich für Light Mode")
                 this.icon.src = `${baseUrl}assets/img/icons/sun.webp`;
-                this.text.innerText = 'Hell';
+                // PERFORMANCE FIX: textContent statt innerText
+                this.text.textContent = 'Hell';
             } else {
                 // Im Light Mode zeigen wir den Mond (als Hinweis: "Klick mich für Dark Mode")
                 this.icon.src = `${baseUrl}assets/img/icons/moon.webp`;
-                this.text.innerText = 'Dunkel';
+                this.text.textContent = 'Dunkel';
             }
         }
     }

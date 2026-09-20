@@ -72,12 +72,13 @@ export class VoucherManager {
     showQr(code, url) {
         if (!this.modal || !this.qrBox) return;
 
-        this.modalCode.innerText = code;
+        // PERFORMANCE FIX: textContent statt innerText
+        this.modalCode.textContent = code;
 
         // Modal resetten
         this.modalLoader.hidden = false;
         this.modalLoader.classList.remove('is-error');
-        this.modalLoader.innerText = 'Wird generiert...';
+        this.modalLoader.textContent = 'Wird generiert...';
 
         // Altes Bild restlos aus dem DOM löschen (verhindert Phantom-Requests)
         const oldImg = this.qrBox.querySelector('img');
@@ -109,7 +110,7 @@ export class VoucherManager {
             if (this.abortController.signal.aborted) return;
             img.hidden = true;
             this.modalLoader.hidden = false;
-            this.modalLoader.innerText = 'Fehler: QR-Code konnte nicht generiert werden.';
+            this.modalLoader.textContent = 'Fehler: QR-Code konnte nicht generiert werden.';
             this.modalLoader.classList.add('is-error');
         };
 
@@ -137,7 +138,8 @@ export class VoucherManager {
         const originalHtml = element.innerHTML;
 
         const successAction = () => {
-            element.innerText = 'Kopiert! ✓';
+            // PERFORMANCE FIX: textContent statt innerText
+            element.textContent = 'Kopiert! ✓';
             element.classList.add('is-success');
             notifier.show('Gutschein-Link in die Zwischenablage kopiert!', 'success');
 

@@ -1,6 +1,7 @@
 @layer components {
     .c-document {
-        padding: clamp(1.5rem, 5vw, 2.5rem);
+        /* ARCHITEKTUR-FIX: Strikte Nutzung von Layout- und Viewport-Tokens statt harter Werte */
+        padding: clamp(var(--space-l), var(--vw-5), var(--space-2xl));
         background-color: var(--color-bg-white);
         border: var(--border-s) solid var(--color-border);
         border-radius: var(--radius-huge);
