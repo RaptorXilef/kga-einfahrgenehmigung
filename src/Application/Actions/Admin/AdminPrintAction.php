@@ -82,6 +82,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
             ),
             'jahresFarbe' => $this->config->get('jahresFarbe'),
             'kennzeichen' => $permit->getLicensePlate(),
+            'name' => $permit->getOwnerName(),
             'opening_html' => HolidayHtmlPresenter::formatOpeningHours(
                 $this->holidayService->getOpeningHoursDataForDateRange($permit->getValidFrom(), $permit->getValidUntil()),
             ),

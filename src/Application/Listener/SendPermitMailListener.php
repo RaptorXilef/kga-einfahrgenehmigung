@@ -159,6 +159,7 @@ final readonly class SendPermitMailListener
             'holidayNotice' => $holidayNotice,
             'jahresFarbe' => $this->config->get('jahresFarbe'),
             'kennzeichen' => $permit->getLicensePlate(),
+            'name' => $permit->getOwnerName(),
             'opening_html' => $opening,
             'parzelle' => $permit->getPlotNumber(),
             'settings' => ['base_url' => $safeBaseUrl],
