@@ -57,11 +57,6 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
 } elseif (isset($opening) && \is_string($opening) && $opening !== '') {
     $openingText = $opening;
 }
-
-$iconStopwatch = $baseUrl . 'assets/img/icons/stopwatch.webp';
-$iconInfo = $baseUrl . 'assets/img/icons/info.webp';
-$iconPrint = $baseUrl . 'assets/img/icons/print.webp';
-
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -74,7 +69,7 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         color: #1e293b;
-        line-height: 1.4;
+        line-height: 1.5;
         padding: 0;
         margin: 0;
     }
@@ -86,6 +81,7 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
         box-sizing: border-box;
     }
 
+    /* 1. KOPFBEREICH */
     .c-header-box {
         display: table;
         width: 100%;
@@ -101,7 +97,7 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
         display: table-cell;
         vertical-align: middle;
         text-align: left;
-        padding: 15px 20px;
+        padding: 25px;
     }
 
     .c-header-box__right {
@@ -113,7 +109,7 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
     }
 
     .c-title {
-        font-size: 1.4em;
+        font-size: 1.5em;
         font-weight: 800;
         margin: 0;
         color: #0f172a;
@@ -123,7 +119,7 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
 
     .c-subtitle {
         margin: 4px 0 10px 0;
-        font-size: 1.1em;
+        font-size: 1.2em;
         font-weight: 600;
         color: #64748b;
     }
@@ -136,7 +132,7 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
     .c-quarter {
         display: inline-block;
         padding: 3px 10px;
-        font-size: 9pt;
+        font-size: 10pt;
         font-weight: 800;
         border-radius: 20px;
         text-align: center;
@@ -157,7 +153,7 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
 
     .c-full-code {
         font-family: monospace;
-        font-size: 1.4em;
+        font-size: 1.5em;
         margin-top: 10px;
         font-weight: 700;
         background-color: #f1f5f9;
@@ -186,35 +182,37 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
     }
 
     .c-header-qr__text {
-        font-size: 7pt;
+        font-size: 7.5pt;
         font-weight: 800;
         text-transform: uppercase;
         display: block;
-        margin-top: 5px;
+        margin-top: 0px;
         color: #64748b;
         letter-spacing: 0.5px;
     }
 
+    /* 2. HINWEIS-BOXEN */
     .c-info-notice-box {
         background-color: #f8fafc;
         border: 1px solid #cbd5e1;
         padding: 10px 15px;
         margin-bottom: 10px;
         border-radius: 8px;
-        font-size: 10pt;
+        font-size: 11pt;
     }
 
     .c-holiday-notice {
         margin-top: 8px;
         color: #d32f2f;
         font-weight: bold;
-        font-size: 9.5pt;
+        font-size: 10.5pt;
         padding: 6px;
         background-color: #fde8e8;
         border-radius: 6px;
         border-left: 4px solid #d32f2f;
     }
 
+    /* 3. DATEN-TABELLE */
     .c-data-section {
         margin-bottom: 10px;
     }
@@ -222,7 +220,8 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
     .c-data-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 11.5pt;
+        font-size: 12.5pt;
+        /* Lesbare Größe, füllt den Platz gut aus */
     }
 
     .c-data-table td {
@@ -240,6 +239,7 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
         color: #0f172a;
     }
 
+    /* 4. EXTRAS & BEDINGUNGEN */
     .c-parking-note {
         background-color: #fefce8;
         border: 1px solid #fde047;
@@ -249,11 +249,11 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
         border-radius: 6px;
         font-weight: 600;
         color: #854d0e;
-        font-size: 10pt;
+        font-size: 11pt;
     }
 
     .c-conditions {
-        font-size: 8.5pt;
+        font-size: 10pt;
         border-top: 2px solid #e2e8f0;
         padding-top: 5px;
         margin-top: 5px;
@@ -274,7 +274,7 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
     }
 
     .c-conditions__item {
-        margin-bottom: 3px;
+        margin-bottom: 5px;
     }
 
     .c-route-box {
@@ -286,20 +286,14 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
         color: #475569;
     }
 
+    /* 5. FOOTER */
     .c-footer-info {
         margin-top: 15px;
         text-align: center;
-        font-size: 8.5pt;
+        font-size: 9pt;
         color: #64748b;
         border-top: 1px solid #e2e8f0;
         padding-top: 10px;
-    }
-
-    .pdf-icon {
-        width: 14px;
-        height: 14px;
-        vertical-align: text-bottom;
-        margin-right: 4px;
     }
 
     </style>
@@ -340,10 +334,9 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
         </div>
 
         <div class="c-info-notice-box">
-            <strong><img src="<?php echo $iconStopwatch; ?>"
-                     class="pdf-icon">Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>
+            <strong>WICHTIG: Erlaubte Einfahrzeiten (Ruhezeiten beachten)</strong><br>
             Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>
-            <span style="font-size: 11pt; color: #1e3a8a; display: block; margin-top: 4px; line-height: 1.4;">
+            <span style="font-size: 11.5pt; color: #1e3a8a; display: block; margin-top: 6px; line-height: 1.5;">
                 <?php echo $openingText; ?>
             </span>
 
@@ -387,8 +380,7 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
 
         <?php if ($isPermanent) { ?>
             <div class="c-parking-note">
-                <img src="<?php echo $iconInfo; ?>"
-                     class="pdf-icon"> Gilt auch zum Parken in der Anlage / vor dem Vereinshaus.
+                <strong>HINWEIS:</strong> Gilt auch zum Parken in der Anlage / vor dem Vereinshaus.
             </div>
         <?php } ?>
 
@@ -412,7 +404,7 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
 
             <div class="c-route-box">
                 <strong>Genehmigte Einfahrten ausschließlich über die Schranken:</strong>
-                <ul style="margin-top: 4px; font-size: 8.5pt;">
+                <ul style="margin-top: 6px; font-size: 9.5pt;">
                     <li>Nachtalbenweg - Andersenweg - Reineke-Fuchs-Weg</li>
                     <li>Malchower Aue - Reineke-Fuchs-Weg</li>
                     <li>Märchenweg - Rübezahlweg</li>
@@ -420,7 +412,7 @@ $iconPrint = $baseUrl . 'assets/img/icons/print.webp';
                 </ul>
             </div>
 
-            <p style="margin-top: 8px; font-size: 8.5pt; margin-bottom: 0;">
+            <p style="margin-top: 15px; font-size: 9.5pt; margin-bottom: 0;">
                 <strong>Torschlüssel:</strong> Kann gegen Kaution im Vereinshaus geliehen werden (offizielle
                 Sprechstunden).<br>
                 Die Sprechzeiten finden Sie unter:
