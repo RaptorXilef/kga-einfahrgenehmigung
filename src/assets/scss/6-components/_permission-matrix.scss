@@ -107,6 +107,11 @@
         @include visually-hidden;
     }
 
+    /* A11Y FIX: Durchreichen des Fokus-Rings vom versteckten Input an das Label */
+    .c-switch__input:focus-visible + .c-switch__label {
+        @include focus-ring;
+    }
+
     /* ARCHITEKTUR-FIX: Flache Kaskade via CSS-Variables (Eliminiert Nesting) */
     .c-switch__input:checked + .c-switch__label {
         --switch-bg: var(--switch-active-bg);

@@ -111,12 +111,17 @@
         @include transition-fast(color);
     }
 
+    .c-table__header-cell.is-sortable:focus-visible {
+        @include focus-ring(var(--color-primary), calc(var(--border-s) * -1));
+    }
+
     .c-table__header-cell.is-sortable:hover {
         --sortable-color: var(--color-text-dark);
     }
 
-    .c-table__header-cell[data-sort-dir='asc'],
-    .c-table__header-cell[data-sort-dir='desc'] {
+    /* A11Y-ARCHITEKTUR: CSS reagiert direkt auf den offiziellen WAI-ARIA State! */
+    .c-table__header-cell[aria-sort='ascending'],
+    .c-table__header-cell[aria-sort='descending'] {
         --sortable-color: var(--color-primary);
         --sort-icon-opacity: var(--opacity-100);
         --sort-icon-color: var(--color-primary);
