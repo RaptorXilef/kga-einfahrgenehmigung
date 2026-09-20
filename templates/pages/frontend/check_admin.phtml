@@ -65,11 +65,15 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
             </div>
         <?php } elseif ($permit && $isDateValid && !$isTimeAllowed) { ?>
             <div class="u-color-warning">
-                <span class="u-text-4xl">
+                <!-- UX-FIX: Badge nach GANZ OBEN -->
+                <div class="c-badge c-badge--success u-margin-block-end-m u-font-bold u-text-sm">GENEHMIGUNG GÜLTIG</div>
+
+                <span class="u-text-4xl u-display-block">
                     <img src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                 </span>
+
                 <h2 class="u-color-warning u-margin-block-start-s">AKTUELL RUHEZEIT</h2>
-                <div class="c-badge c-badge--success u-margin-block-end-s u-font-bold u-text-sm">GENEHMIGUNG GÜLTIG</div>
+
                 <?php if (\str_contains($allowedToday, 'Gültigkeit')) { ?>
                     <!-- Sonderfall: Genehmigung läuft während der Ruhezeit ab -->
                     <p class="u-margin-block-none u-font-semibold"><?php echo $allowedToday; ?></p>

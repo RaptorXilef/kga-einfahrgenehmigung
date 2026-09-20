@@ -94,11 +94,14 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
                     </div>
                 <?php } elseif ($isDateValid && !$isTimeAllowed) { ?>
                     <div class="u-color-warning">
-                        <span class="u-text-4xl">
+                        <!-- UX-FIX: Badge nach GANZ OBEN für den perfekten Lesefluss -->
+                        <div class="c-badge c-badge--success u-margin-block-end-m u-font-bold u-text-sm">GENEHMIGUNG GÜLTIG</div>
+
+                        <span class="u-text-4xl u-display-block u-margin-block-end-s">
                             <img src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                         </span>
-                        <h2 class="u-color-warning u-margin-block-start-m">AKTUELL RUHEZEIT<br>Keine Einfahrt erlaubt!</h2>
-                        <div class="c-badge c-badge--success u-margin-block-end-m u-font-bold u-text-sm">GENEHMIGUNG GÜLTIG</div>
+
+                        <h2 class="u-color-warning u-margin-block-start-none u-margin-block-end-m">AKTUELL RUHEZEIT<br>Keine Einfahrt erlaubt!</h2>
 
                         <?php if (\str_contains($allowedToday, 'Gültigkeit')) { ?>
                             <!-- Sonderfall: Genehmigung läuft während der Ruhezeit ab -->

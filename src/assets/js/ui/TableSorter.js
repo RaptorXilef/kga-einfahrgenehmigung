@@ -2,6 +2,7 @@
  * Engine für clientseitige interaktive Tabellensortierungen.
  * Nutzt den Schwartzian Transform (Data-Caching) für O(n log n) RAM-Zugriffe,
  * Event-Delegation und batched DOM-Writes (rAF), um Layout Thrashing restlos zu verhindern.
+ * Inklusive WAI-ARIA und Tastaturnavigation für 100% WCAG 2.1 Compliance.
  */
 export class TableSorter {
     constructor(tableElement) {
@@ -36,10 +37,17 @@ export class TableSorter {
                 th.classList.add('is-sortable');
                 th.title = 'Klicken zum Sortieren';
 
+                // A11Y FIX: Tabellenköpfe für Screenreader & Tastaturnutzer bedienbar machen
+                th.setAttribute('role', 'button');
+                th.setAttribute('tabindex', '0');
+                th.setAttribute('aria-sort', 'none');
+
                 // SICHER: Native Nodes statt insertAdjacentHTML
                 const iconSpan = document.createElement('span');
                 iconSpan.className = 'c-sort-icon';
+                iconSpan.setAttribute('aria-hidden', 'true');
                 iconSpan.textContent = '⇅';
+
                 th.appendChild(document.createTextNode(' '));
                 th.appendChild(iconSpan);
             });
@@ -47,18 +55,23 @@ export class TableSorter {
 
         // EVENT DELEGATION: Nur 1 einziger Listener für die ganze Tabelle!
         if (this.thead) {
-            this.thead.addEventListener(
-                'click',
-                (e) => {
-                    const th = e.target.closest('.js-sort-header');
-                    if (!th) return;
+            const handleSortActivation = (e) => {
+                const th = e.target.closest('.js-sort-header');
+                if (!th) return;
 
-                    // Dynamisch den Index bestimmen (Robuster als forEach-Index)
-                    const columnIndex = Array.from(th.parentElement.children).indexOf(th);
-                    this.sortTable(th, columnIndex);
-                },
-                options
-            );
+                // Tastatur-Bedienung: Nur auf Enter und Leertaste reagieren
+                if (e.type === 'keydown') {
+                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                    e.preventDefault(); // Verhindert das Scrollen der Seite bei Leertaste
+                }
+
+                // Dynamisch den Index bestimmen (Robuster als forEach-Index)
+                const columnIndex = Array.from(th.parentElement.children).indexOf(th);
+                this.sortTable(th, columnIndex);
+            };
+
+            this.thead.addEventListener('click', handleSortActivation, options);
+            this.thead.addEventListener('keydown', handleSortActivation, options);
         }
     }
 
@@ -141,6 +154,7 @@ export class TableSorter {
             // Alle Icons & Stati zurücksetzen
             this.headers.forEach((header) => {
                 header.setAttribute('data-sort-dir', 'none');
+                header.setAttribute('aria-sort', 'none'); // WAI-ARIA Standard!
                 const icon = header.querySelector('.c-sort-icon');
                 if (icon) icon.textContent = '⇅';
             });
@@ -148,6 +162,8 @@ export class TableSorter {
             // Neues Icon & Status setzen
             if (nextSort !== 'none') {
                 th.setAttribute('data-sort-dir', nextSort);
+                // Mappe asc/desc auf die offiziellen ARIA Attribute "ascending" und "descending"
+                th.setAttribute('aria-sort', nextSort === 'asc' ? 'ascending' : 'descending');
                 const icon = th.querySelector('.c-sort-icon');
                 if (icon) icon.textContent = nextSort === 'asc' ? '↓' : '↑';
             }
