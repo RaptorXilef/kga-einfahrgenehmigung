@@ -8,33 +8,40 @@ use InvalidArgumentException;
 
 /**
  * Value Object für eine KGA Parzellennummer.
+ * Darf ausschließlich eine Zahl sein (bis max. 4 Stellen, abhängig von der Config).
  */
 final readonly class PlotNumber
 {
-    public string $value;
+    public int $value;
 
-    public function __construct(string $value)
+    /**
+     * @param int|string $value Die eingegebene Parzellennummer.
+     * @param int $maxPlotNumber Das Limit aus der Config (Standard 9999 für max. 4 Stellen).
+     *
+     * @throws InvalidArgumentException Wenn die Eingabe keine Zahl ist oder das Limit überschreitet.
+     */
+    public function __construct(int|string $value, int $maxPlotNumber = 9999)
     {
-        $val = \trim($value);
+        if (!\is_numeric($value)) {
+            throw new InvalidArgumentException('Die Parzelle muss eine reine Zahl sein.');
+        }
 
-        if ($val === '' || !\preg_match('/^[a-zA-Z0-9\-\/]+$/', $val)) {
-            throw new InvalidArgumentException("Ungültiges Format für Parzelle: '{$val}'. Erlaubt sind Ziffern, Buchstaben, Binde- und Schrägstrich.");
+        $val = (int) $value;
+
+        // Wir nehmen an, dass Parzelle 0 nicht existiert.
+        if ($val < 1 || $val > $maxPlotNumber) {
+            throw new InvalidArgumentException("Die Parzellennummer muss zwischen 1 und {$maxPlotNumber} liegen.");
         }
 
         $this->value = $val;
     }
 
     /**
-     * Formatiert die Parzelle (z.B. mit führenden Nullen, falls das in der KGA üblich ist).
+     * Formatiert die Parzelle immer 4-stellig (z. B. '0020').
      */
     public function getFormatted(): string
     {
-        // Wenn es eine reine Zahl ist, z.B. 4-stellig auffüllen (0020)
-        if (\is_numeric($this->value)) {
-            return \str_pad($this->value, 4, '0', \STR_PAD_LEFT);
-        }
-
-        return $this->value;
+        return \str_pad((string) $this->value, 4, '0', \STR_PAD_LEFT);
     }
 
     public function equals(self $other): bool
