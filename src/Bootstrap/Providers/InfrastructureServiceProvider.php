@@ -68,6 +68,8 @@ use App\Modules\Identity\Domain\MagicLinkRepositoryInterface as IdentityMagicLin
 use App\Modules\Identity\Domain\UserRepositoryInterface as IdentityUserRepositoryInterface;
 use App\Modules\Identity\Infrastructure\PdoMagicLinkRepository;
 use App\Modules\Identity\Infrastructure\PdoUserRepository as IdentityPdoUserRepository;
+use App\Modules\Permit\Domain\PermitRepositoryInterface;
+use App\Modules\Permit\Infrastructure\PdoPermitRepository;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface as NewVoucherRepositoryInterface;
 use App\Modules\Voucher\Infrastructure\PdoVoucherRepository;
 use PDO;
@@ -158,6 +160,11 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         ));
 
         // --- DDD REPOSITORY BINDINGS ---
+
+        $container->bind(PermitRepositoryInterface::class, fn (): PdoPermitRepository => new PdoPermitRepository(
+            $container->get(PDO::class),
+        ));
+
         $container->bind(NewVoucherRepositoryInterface::class, fn (): PdoVoucherRepository => new PdoVoucherRepository(
             $container->get(PDO::class),
         ));
