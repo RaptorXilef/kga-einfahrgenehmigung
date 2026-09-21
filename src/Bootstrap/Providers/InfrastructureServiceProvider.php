@@ -26,7 +26,6 @@ use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
-use App\Contracts\Storage\VoucherRepositoryInterface as LegacyVoucherRepositoryInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
@@ -59,7 +58,6 @@ use App\Infrastructure\Storage\MySqlPermitArchiveRepository;
 use App\Infrastructure\Storage\MySqlRoleRepository;
 use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
-use App\Infrastructure\Storage\MySqlVoucherRepository;
 use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\System\DompdfGenerator;
 use App\Infrastructure\System\FileRouteCache;
@@ -164,14 +162,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(JsonHelperInterface::class),
         ));
 
-        // LEGACY VOUCHER REPOSITORY (Wird nur noch für das Voucher-Archiv genutzt, bis wir das refactoren)
-        $container->bind(LegacyVoucherRepositoryInterface::class, fn (): MySqlVoucherRepository => new MySqlVoucherRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-            $container->get(JsonHelperInterface::class),
-        ));
-
-        // --- NEU: VOUCHER DDD REPOSITORY BINDING ---
+        // --- VOUCHER DDD REPOSITORY BINDING ---
         $container->bind(NewVoucherRepositoryInterface::class, fn (): PdoVoucherRepository => new PdoVoucherRepository(
             $container->get(PDO::class),
         ));
@@ -252,14 +243,12 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         // Route Cache Binding für die ActionRegistry
         $container->bind(RouteCacheInterface::class, function () use ($container): FileRouteCache {
             $config = $container->get(ConfigInterface::class);
-            \assert($config instanceof ConfigInterface);
 
             return new FileRouteCache($config);
         });
 
         $container->bind(AssetHelperInterface::class, function () use ($container): LocalAssetHelper {
             $config = $container->get(ConfigInterface::class);
-            \assert($config instanceof ConfigInterface);
 
             return new LocalAssetHelper($config);
         });

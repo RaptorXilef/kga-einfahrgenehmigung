@@ -21,7 +21,6 @@ use App\Core\Entity\Status;
 use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
 use App\Core\Entity\VerificationRequest;
-use App\Core\Entity\Voucher;
 use App\Core\Event\PaymentReminderEvent;
 use App\Core\Event\PermitCancelledEvent;
 use App\Core\Event\PermitCreatedEvent;
@@ -33,6 +32,10 @@ use App\Core\ValueObject\LicensePlate;
 use App\Core\ValueObject\PermitCode;
 use App\Core\ValueObject\PlotNumber;
 use App\Core\ValueObject\Price;
+use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountHandler;
+use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountQuery;
+use App\Modules\Voucher\Application\UseCases\RedeemVoucher\RedeemVoucherCommand;
+use App\Modules\Voucher\Application\UseCases\RedeemVoucher\RedeemVoucherHandler;
 use DateTimeImmutable;
 use DomainException;
 use InvalidArgumentException;
@@ -55,7 +58,8 @@ final readonly class PermitService
         private PermitArchiveRepositoryInterface $archiveRepository,
         private StorageInterface $storage,
         private VerificationRepositoryInterface $verificationRepository,
-        // private VoucherService $voucherService,
+        private CalculateVoucherDiscountHandler $calculateDiscountHandler,
+        private RedeemVoucherHandler $redeemVoucherHandler,
     ) {
     }
 
@@ -90,7 +94,7 @@ final readonly class PermitService
         // Zugriff erfolgt jetzt direkt über ->value, da das VO intern einen int hält.
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
         if ($plotVO->value > $maxPlot) {
-            throw new InvalidArgumentException("Die eingegebene Parzelle {$plotVO->value} existiert nicht."); // Das Maximum in dieser Anlage ist {$maxPlot}.
+            throw new InvalidArgumentException("Die eingegebene Parzelle {$plotVO->value} existiert nicht.");
         }
 
         $this->validateNoCollisions(
@@ -135,7 +139,7 @@ final readonly class PermitService
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
 
         if ($plotVO->value > $maxPlot) {
-            throw new InvalidArgumentException("Die eingegebene Parzelle {$plotVO->value} existiert nicht."); // Das Maximum in dieser Anlage ist {$maxPlot}.
+            throw new InvalidArgumentException("Die eingegebene Parzelle {$plotVO->value} existiert nicht.");
         }
 
         $this->validateNoCollisions(
@@ -221,12 +225,22 @@ final readonly class PermitService
         $data['verified_at'] = $this->clock->nowAsString();
 
         $voucherCodeStr = \strtoupper(\trim((string) ($data['voucher'] ?? '')));
+
+        // --- ARCHITEKTUR-FIX: CQRS Orchestrierung statt Legacy VoucherService ---
         if ($voucherCodeStr !== '') {
-            $voucher = $this->voucherService->useVoucher($voucherCodeStr, $data);
-            if ($voucher instanceof Voucher) {
-                $originalPriceVO = new Price((float) $data['preis']);
-                $discountedPriceVO = $this->calculateDiscountedPrice($originalPriceVO, $voucher);
-                $finalPrice = $discountedPriceVO->value;
+            $discountQuery = new CalculateVoucherDiscountQuery($voucherCodeStr, (float) $data['preis']);
+            $discountDto = $this->calculateDiscountHandler->handle($discountQuery);
+
+            if ($discountDto->isValid) {
+                // Gutschein sofort einlösen!
+                $redeemCmd = new RedeemVoucherCommand(
+                    $voucherCodeStr,
+                    $data['name'] ?? 'Unbekannt',
+                    (string) ($data['parzelle'] ?? '0'),
+                );
+                $this->redeemVoucherHandler->handle($redeemCmd);
+
+                $finalPrice = $discountDto->finalPrice;
 
                 if ($finalPrice <= 0.0) {
                     $data['preis'] = 0.0;
@@ -247,7 +261,7 @@ final readonly class PermitService
 
                 $data['preis'] = $finalPrice;
                 $data['voucher_applied'] = $voucherCodeStr;
-                $data['voucher_details'] = ['type' => $voucher->type, 'value' => $voucher->value];
+                $data['voucher_details'] = ['type' => 'discount', 'value' => $discountDto->discountText];
             }
         }
 
@@ -693,27 +707,6 @@ final readonly class PermitService
         return !$this->cancelledRepository->isCodeCancelled($fullIdentifier);
     }
 
-    public function calculateDiscountedPrice(Price $originalPrice, Voucher $voucher): Price
-    {
-        $type = $voucher->type;
-        $value = $voucher->value;
-        $orig = $originalPrice->value;
-
-        $newPrice = match ($type) {
-            'fixed' => $value,
-            'free' => 0.0,
-            'percent' => $orig * (1 - ($value / 100)),
-            default => $orig,
-        };
-
-        return new Price(\max(0.0, $newPrice));
-    }
-
-    /**
-     * Storniert eine Genehmigung durch den User, verschiebt sie anonymisiert ins Archiv und löscht sie.
-     *
-     * @throws DomainException
-     */
     public function cancelPermit(string $code, string $email): void
     {
         if (!$this->config->get('allow_user_cancellation', true)) {

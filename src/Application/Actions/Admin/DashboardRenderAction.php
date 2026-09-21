@@ -21,13 +21,14 @@ use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
-use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\PermitFilterService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReleaseNotesService;
 use App\Core\Service\ReportingService;
+use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveHandler;
+use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveQuery;
 use App\Modules\Voucher\Application\UseCases\GetVoucherList\GetVoucherListHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherList\GetVoucherListQuery;
 
@@ -56,8 +57,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private StorageInterface $storage,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
-        private VoucherRepositoryInterface $voucherRepository, // Wird noch für das Archiv benötigt
-        private GetVoucherListHandler $getVoucherListHandler, // CQRS Read Model
+        private GetVoucherListHandler $getVoucherListHandler,
+        private GetVoucherArchiveHandler $getVoucherArchiveHandler,
     ) {
     }
 
@@ -119,13 +120,14 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $overdueLevels[$permit->code->value] = $this->permitService->getOverdueLevel($permit);
         }
 
-        // 5. Restliche Daten laden
+        // 5. Restliche Daten laden (Alles via CQRS!)
         // DIE MAGIE: 1 saubere Zeile, 0 Entities, rasend schnell
         $vouchers = $this->getVoucherListHandler->handle(new GetVoucherListQuery());
+        $voucherArchive = $this->getVoucherArchiveHandler->handle(new GetVoucherArchiveQuery());
 
         $cancelledPermits = $this->cancelledRepository->loadAll();
 
-        // ARCHITEKTUR-FIX: Einheitlicher DTO-Page Parameter für die Datenbank-Abfrage
+        // Einheitlicher DTO-Page Parameter für die Datenbank-Abfrage
         $auditFilter = (string) ($request->get['audit_filter'] ?? '');
         $auditData = $this->auditLogRepository->getPaginated($dto->page, $dto->limit, $auditFilter);
 
@@ -174,9 +176,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'structure' => $this->config->get('structure', []),
             'unreadReleaseNotes' => $unreadReleaseNotes,
             'userRepository' => $this->userRepository,
-            'voucherArchive' => $this->voucherRepository->loadArchive(),
+            'voucherArchive' => $voucherArchive, // <-- CQRS
             'vouchers' => $vouchers, // Nur noch unsere flachen DTOs
-            // 'voucherValidities' wurde komplett gelöscht!
             'yearlyStats' => $this->reportingService->calculateYearlyStats($allHistoricalAndActive),
             'collectiveTransfers' => $this->sessionManager->getCollectiveTransfers(),
         ]);
