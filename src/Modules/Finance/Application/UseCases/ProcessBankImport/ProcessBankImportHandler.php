@@ -2,102 +2,86 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Service;
+namespace App\Modules\Finance\Application\UseCases\ProcessBankImport;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\StorageInterface;
 use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidCommand;
 use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidHandler;
-use App\Modules\Permit\Domain\Permit;
+use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DateTimeImmutable;
 use DomainException;
 use Exception;
 use League\Csv\Reader;
+use PDO;
 use ZipArchive;
 
-final readonly class BankImportService
+/**
+ * @implements CommandHandlerInterface<ProcessBankImportCommand>
+ */
+final class ProcessBankImportHandler implements CommandHandlerInterface
 {
+    private array $runLogs = [];
+
     public function __construct(
-        private StorageInterface $storage,
-        private MarkPermitAsPaidHandler $markPaidHandler, // CQRS Command
-        private ConfigInterface $config,
+        private readonly PDO $pdo, // Nativer PDO-Zugriff statt schwerem Entity-Repository
+        private readonly MarkPermitAsPaidHandler $markPaidHandler, // CQRS Command für das Permit-Modul
+        private readonly ConfigInterface $config,
     ) {
     }
 
     /**
-     * Analysiert die hochgeladene CSV, wäscht sie komplett rein und extrahiert Header & erste Datenzeile via League\Csv.
+     * Da Handler per Interface void zurückgeben, nutzen wir ein lokales State-Feld oder werfen Exceptions.
+     * Da die Architektur aber ein Result-Array im Controller erwartet hat, nutzen wir einen Trick:
+     * Wir geben hier ausnahmsweise das DTO zurück, da es ein Workflow-Orchestrator ist.
+     *
+     * @param ProcessBankImportCommand $command
      */
-    public function analyzeCsv(string $filePath): array
+    public function handle(mixed $command): BankImportResultDto
     {
-        if (!\file_exists($filePath)) {
-            return ['headers' => [], 'previewRow' => []];
+        $this->runLogs = [];
+
+        if (!\file_exists($command->tempFile)) {
+            $this->writeLog("Fehler: Die Datei '{$command->tempFile}' konnte nicht gefunden werden.");
+
+            return new BankImportResultDto(false, 'Datei konnte nicht gefunden werden.');
         }
 
-        $this->prepareAndNormalizeFile($filePath);
+        $this->writeLog('Starte Dateireinigung und Verarbeitung der CSV via League/Csv...');
+        $this->prepareAndNormalizeFile($command->tempFile);
 
         try {
-            $stream = \fopen($filePath, 'r');
+            $stream = \fopen($command->tempFile, 'r');
             if ($stream === false) {
-                return ['headers' => [], 'previewRow' => []];
+                return new BankImportResultDto(false, 'Datei konnte nicht zum Lesen geöffnet werden.');
             }
 
             $csv = Reader::from($stream);
-            $csv->setDelimiter($this->detectDelimiter($filePath));
+            $csv->setDelimiter($this->detectDelimiter($command->tempFile));
             $csv->setHeaderOffset(null);
-
-            $iterator = $csv->getIterator();
-            $iterator->rewind();
-
-            // Zeile 0: Header
-            $headers = $iterator->valid() ? $iterator->current() : [];
-
-            // Zeile 1: Erste Datenzeile
-            $iterator->next();
-            $previewRow = $iterator->valid() ? $iterator->current() : [];
-
-            return [
-                'headers' => \is_array($headers) ? $headers : [],
-                'previewRow' => \is_array($previewRow) ? $previewRow : [],
-            ];
         } catch (Exception $e) {
-            \error_log('BankImportService (analyzeCsv) Error: ' . $e->getMessage());
+            $this->writeLog('Fehler beim Initialisieren des CSV Readers: ' . $e->getMessage());
 
-            return ['headers' => [], 'previewRow' => []];
-        }
-    }
-
-    /**
-     * Verarbeitet die gereinigte Bank-CSV-Datei, addiert Teilzahlungen auf und gleicht sie mit dem System ab.
-     */
-    public function processCsv(string $filePath, int $idCol, int $amountCol, int $dateCol): array
-    {
-        $runLogs = [];
-
-        if (!\file_exists($filePath)) {
-            $this->writeLog("Fehler: Die Datei '{$filePath}' konnte nicht gefunden werden.", $runLogs);
-
-            return ['success' => false, 'message' => 'Datei konnte nicht gefunden werden.'];
+            return new BankImportResultDto(false, 'CSV Format ist ungültig oder beschädigt.');
         }
 
-        $this->writeLog('Starte Dateireinigung und Verarbeitung der CSV via League/Csv...', $runLogs);
+        // --- HIGH-SPEED PDO FETCH STATT ENTITY HYDRATION ---
+        $stmt = $this->pdo->query('SELECT code, name, kennzeichen, status, preis FROM permits');
+        $allCodes = [];
+        $unpaidCodes = [];
+        $unpaidPlates = [];
+        $prices = [];
 
-        $this->prepareAndNormalizeFile($filePath);
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $c = $row['code'];
+            $allCodes[$c] = true;
+            $prices[$c] = (float) $row['preis'];
 
-        try {
-            $stream = \fopen($filePath, 'r');
-            if ($stream === false) {
-                return ['success' => false, 'message' => 'Datei konnte nicht zum Lesen geöffnet werden.'];
+            if ($row['status'] !== 'bezahlt') {
+                $unpaidCodes[$c] = $row['name'];
+                $unpaidPlates[$c] = $row['kennzeichen'];
             }
-
-            $csv = Reader::from($stream);
-            $csv->setDelimiter($this->detectDelimiter($filePath));
-            // Wir überspringen die Kopfzeile
-            $csv->setHeaderOffset(null);
-        } catch (Exception $e) {
-            $this->writeLog('Fehler beim Initialisieren des CSV Readers: ' . $e->getMessage(), $runLogs);
-
-            return ['success' => false, 'message' => 'CSV Format ist ungültig oder beschädigt.'];
         }
+        // ----------------------------------------------------
 
         $aggregierteZahlungen = [];
         $letztesDatumPerPermit = [];
@@ -112,19 +96,6 @@ final readonly class BankImportService
         $unlesbareZeilenDetails = [];
         $sammelTransfers = [];
 
-        $unpaidCodes = [];
-        $unpaidPlates = [];
-        $allCodes = [];
-
-        foreach ($this->storage->getAll() as $permit) {
-            $c = $permit->code->value;
-            $allCodes[$c] = true;
-            if (!$permit->isPaid()) {
-                $unpaidCodes[$c] = $permit->getOwnerName();
-                $unpaidPlates[$c] = $permit->getLicensePlate();
-            }
-        }
-
         $missingUnpaidCodes = $unpaidCodes;
         $rowNumber = 0;
 
@@ -137,24 +108,24 @@ final readonly class BankImportService
                 continue;
             }
 
-            if (!isset($row[$idCol], $row[$amountCol], $row[$dateCol])) {
+            if (!isset($row[$command->idColumn], $row[$command->amountColumn], $row[$command->dateColumn])) {
                 $colCount = \count($row);
                 $errorMsg = "Zeile {$rowNumber} (Spalten fehlen, nur {$colCount} vorhanden)";
-                $this->writeLog("[Zeile {$rowNumber}] Fehler: Benötigte Spalten fehlen. Verfügbare Spalten: {$colCount}.", $runLogs);
+                $this->writeLog("[Zeile {$rowNumber}] Fehler: Benötigte Spalten fehlen. Verfügbare Spalten: {$colCount}.");
                 $unlesbareZeilenDetails[] = $errorMsg;
                 continue;
             }
 
-            $verwendungszweck = (string) $row[$idCol];
-            $betragRaw = (string) $row[$amountCol];
-            $datumRaw = (string) $row[$dateCol];
+            $verwendungszweck = (string) $row[$command->idColumn];
+            $betragRaw = (string) $row[$command->amountColumn];
+            $datumRaw = (string) $row[$command->dateColumn];
             $zweckUpper = \strtoupper($verwendungszweck);
 
             $gefundeneCodes = [];
             $matchMethodsForLine = [];
             $matchMethodsMap = [];
 
-            // PRIO 1: Exakte Suche nach neuem Format "EFG-ID"
+            // PRIO 1: Exakte Suche
             if (\preg_match('/EFG-([A-Z0-9]{6,8})/i', $zweckUpper, $efgMatches)) {
                 $extractedShortCode = $efgMatches[1];
                 foreach ($unpaidCodes as $fullUnpaidCode => $ownerName) {
@@ -169,26 +140,23 @@ final readonly class BankImportService
                 }
             }
 
-            // PRIO 2: Fallback (Einfaches Vorhandensein der ID irgendwo im Text)
+            // PRIO 2: Fallback (Vorhandensein der ID im Text)
             if (empty($gefundeneCodes)) {
                 foreach ($unpaidCodes as $fullUnpaidCode => $ownerName) {
-                    // Wir extrahieren den Short-Code (z.B. X8Y1A2B3), da nur dieser im Verwendungszweck (EFG-X8Y1A2B3-MUELLER) steht!
                     $codeParts = \explode('-', $fullUnpaidCode);
                     $shortCode = \end($codeParts);
                     if (\str_contains($zweckUpper, $shortCode)) {
-                        $gefundeneCodes[] = $fullUnpaidCode; // Den VOLLEN Code für die DB speichern!
+                        $gefundeneCodes[] = $fullUnpaidCode;
                         $matchMethodsForLine[] = 'Direktsuche (Unbezahlt)';
                         $matchMethodsMap[$fullUnpaidCode] = 'Direktsuche';
                     }
                 }
             }
 
-            // PRIO 3: Regex Fallback (Erlaubt z.B. Tippfehler bei alten, bereits bezahlten Codes)
+            // PRIO 3: Regex Fallback
             if (empty($gefundeneCodes)) {
-                // Sucht 6 bis 8-stellige Alphanumerische Blöcke (deckt V3 und V4 Codes ab)
                 if (\preg_match_all('/([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6,8})/', $zweckUpper, $matches)) {
                     foreach ($matches[1] as $shortCodeCandidate) {
-                        // Prüfe, ob dieser gefundene Short-Code zu irgendeinem Code in unserer Datenbank gehört
                         foreach ($allCodes as $fullCode => $dummy) {
                             if (\str_ends_with($fullCode, $shortCodeCandidate)) {
                                 $gefundeneCodes[] = $fullCode;
@@ -206,7 +174,7 @@ final readonly class BankImportService
             $ueberwiesenerBetrag = (float) $cleanAmount;
             $anomalyId = 'sam_' . \md5($datumRaw . $betragRaw . $verwendungszweck);
 
-            // PRIO 4: Fallback Kennzeichen-Suche (Wenn ID komplett vergessen wurde)
+            // PRIO 4: Fallback Kennzeichen-Suche
             $gefundeneKennzeichen = [];
             if (empty($gefundeneCodes)) {
                 $zweckNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $zweckUpper);
@@ -214,6 +182,7 @@ final readonly class BankImportService
                     if (empty($plate)) {
                         continue;
                     }
+
                     $plateNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', \strtoupper($plate));
                     if (\strlen($plateNormalized) >= 4 && \str_contains($zweckNormalized, $plateNormalized)) {
                         $gefundeneKennzeichen[$unpaidCode] = $plate;
@@ -222,7 +191,7 @@ final readonly class BankImportService
             }
 
             if (empty($gefundeneCodes) && empty($gefundeneKennzeichen)) {
-                $this->writeLog("[Zeile {$rowNumber}] Info: Kein System-Code und kein Kennzeichen gefunden. Rohdaten Zweck: '{$verwendungszweck}'", $runLogs);
+                $this->writeLog("[Zeile {$rowNumber}] Info: Kein System-Code und kein Kennzeichen gefunden. Rohdaten Zweck: '{$verwendungszweck}'");
                 continue;
             }
 
@@ -231,7 +200,7 @@ final readonly class BankImportService
                 $codesStr = \implode(', ', $matchedCodes);
                 $platesStr = \implode(', ', \array_values($gefundeneKennzeichen));
 
-                $this->writeLog("[Zeile {$rowNumber}] HINWEIS: Kein Code, aber Kennzeichen [{$platesStr}] für Codes [{$codesStr}] gefunden. Ausgesteuert zur manuellen Prüfung.", $runLogs);
+                $this->writeLog("[Zeile {$rowNumber}] HINWEIS: Kein Code, aber Kennzeichen [{$platesStr}] für Codes [{$codesStr}] gefunden. Ausgesteuert zur manuellen Prüfung.");
 
                 $sammelTransfers[] = [
                     'id' => $anomalyId,
@@ -253,7 +222,7 @@ final readonly class BankImportService
 
             if (\count($gefundeneCodes) > 1) {
                 $codesStr = \implode(', ', $gefundeneCodes);
-                $this->writeLog("[Zeile {$rowNumber}] FEHLER: Mehrere Codes in einer Überweisung gefunden [{$codesStr}]. Wird zur manuellen Prüfung ausgesteuert.", $runLogs);
+                $this->writeLog("[Zeile {$rowNumber}] FEHLER: Mehrere Codes in einer Überweisung gefunden [{$codesStr}]. Wird zur manuellen Prüfung ausgesteuert.");
 
                 $sammelTransfers[] = [
                     'id' => $anomalyId,
@@ -273,7 +242,7 @@ final readonly class BankImportService
             $codesStr = \implode(', ', $gefundeneCodes);
             $methodStr = \implode(' & ', $matchMethodsForLine);
 
-            $this->writeLog("[Zeile {$rowNumber}] Info: Code(s) erkannt: [{$codesStr}] via {$methodStr}. Lese Betrag: {$ueberwiesenerBetrag} €", $runLogs);
+            $this->writeLog("[Zeile {$rowNumber}] Info: Code(s) erkannt: [{$codesStr}] via {$methodStr}. Lese Betrag: {$ueberwiesenerBetrag} €");
 
             foreach ($gefundeneCodes as $permitIdStr) {
                 $aggregierteZahlungen[$permitIdStr] ??= 0.0;
@@ -285,31 +254,30 @@ final readonly class BankImportService
         }
 
         foreach ($missingUnpaidCodes as $missingCode => $ownerName) {
-            $this->writeLog("[Code {$missingCode}] Fehlt in CSV: Unbezahlte Genehmigung für '{$ownerName}' wurde nicht gefunden.", $runLogs);
+            $this->writeLog("[Code {$missingCode}] Fehlt in CSV: Unbezahlte Genehmigung für '{$ownerName}' wurde nicht gefunden.");
             $skippedNotInCsv[] = "{$missingCode} ({$ownerName})";
         }
 
-        $this->writeLog('Dateidurchlauf beendet. Starte Datenbank-Abgleich...', $runLogs);
+        $this->writeLog('Dateidurchlauf beendet. Starte Datenbank-Abgleich...');
 
         foreach ($aggregierteZahlungen as $permitId => $gesamtsumme) {
             $method = $methodenPerPermit[$permitId] ?? 'Unbekannt';
-            $permit = $this->storage->findByHash($permitId);
 
-            if (!$permit instanceof Permit) {
-                $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank (Erkannt via: {$method}).", $runLogs);
+            if (!isset($allCodes[$permitId])) {
+                $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank (Erkannt via: {$method}).");
                 $skippedNotInDb[] = $permitId;
                 continue;
             }
 
-            $ownerName = $permit->getOwnerName();
+            $ownerName = $unpaidCodes[$permitId] ?? 'Unbekannt (Bereits bezahlt)';
 
-            if ($permit->isPaid()) {
-                $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert (Erkannt via: {$method}).", $runLogs);
+            if (!isset($unpaidCodes[$permitId])) {
+                $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert (Erkannt via: {$method}).");
                 $skippedAlreadyPaid[] = "{$permitId} ({$ownerName})";
                 continue;
             }
 
-            $sollBetrag = \round($permit->getPrice(), 2);
+            $sollBetrag = \round($prices[$permitId], 2);
             $istBetrag = \round($gesamtsumme, 2);
 
             $sollFormatted = \number_format($sollBetrag, 2, ',', '.') . ' €';
@@ -319,25 +287,24 @@ final readonly class BankImportService
                 $datumRaw = (string) $letztesDatumPerPermit[$permitId];
                 $formatierterTag = $this->parseDate($datumRaw);
                 $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . $istFormatted . ')';
-                $codeToActivate = \is_string($permit->code) ? $permit->code : $permit->code->value;
 
                 try {
-                    // FIX: CQRS Handler anstelle PermitService aufrufen!
-                    $this->markPaidHandler->handle(new MarkPermitAsPaidCommand($codeToActivate, $grund, $formatierterTag));
+                    // Domain-Kommunikation! Das Finance-Modul triggert einen Use-Case im Permit-Modul.
+                    $this->markPaidHandler->handle(new MarkPermitAsPaidCommand($permitId, $grund, $formatierterTag));
 
-                    $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).", $runLogs);
+                    $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).");
                     $erfolgreichDetails[] = "{$permitId} ({$ownerName})";
                 } catch (DomainException $e) {
-                    $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).", $runLogs);
+                    $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).");
                     $fehlerhaftStorage[] = "{$permitId} ({$ownerName})";
                 }
             } else {
-                $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €) (Erkannt via: {$method}).", $runLogs);
+                $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €) (Erkannt via: {$method}).");
                 $fehlerhaftPartial[] = "{$permitId} ({$ownerName}: {$istFormatted} statt {$sollFormatted})";
             }
         }
 
-        // Bündelung für das Frontend (Lesbare Listen statt Chaos)
+        // Bündelung für das Frontend
         $erfolgreichDetails = \array_values(\array_unique($erfolgreichDetails));
         $skippedNotInCsv = \array_values(\array_unique($skippedNotInCsv));
         $skippedAlreadyPaid = \array_values(\array_unique($skippedAlreadyPaid));
@@ -354,7 +321,7 @@ final readonly class BankImportService
             $uebersprungenDetails['Bereits verbucht'] = $skippedAlreadyPaid;
         }
         if (!empty($skippedNotInDb)) {
-            $uebersprungenDetails['Unbekannter Code in CSV (Tippfehler?)'] = $skippedNotInDb;
+            $uebersprungenDetails['Unbekannter Code in CSV'] = $skippedNotInDb;
         }
 
         $fehlerhaftDetails = [];
@@ -372,28 +339,29 @@ final readonly class BankImportService
         $uebCount = \count($skippedNotInCsv) + \count($skippedAlreadyPaid) + \count($skippedNotInDb);
         $fehlCount = \count($fehlerhaftPartial) + \count($fehlerhaftStorage) + \count($unlesbareZeilenDetails) + \count($sammelTransfers);
 
-        $this->writeLog("Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}\n---", $runLogs);
+        $this->writeLog("Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}\n---");
 
         $archiveEnabled = (bool) $this->config->get('bank_import_archive_enabled', false);
         if ($archiveEnabled) {
-            $this->createArchiveZip($filePath, $runLogs);
+            $this->createArchiveZip($command->tempFile, $this->runLogs);
         }
 
-        @\unlink($filePath);
+        @\unlink($command->tempFile);
 
-        return [
-            'success' => true,
-            'erfolgreich_count' => $erfCount,
-            'uebersprungen_count' => $uebCount,
-            'fehlerhaft_count' => $fehlCount,
-            'erfolgreich_details' => $erfolgreichDetails,
-            'uebersprungen_details' => $uebersprungenDetails,
-            'fehlerhaft_details' => $fehlerhaftDetails,
-            'sammel_transfers' => $sammelTransfers,
-        ];
+        return new BankImportResultDto(
+            success: true,
+            message: 'Import abgeschlossen.',
+            successCount: $erfCount,
+            skippedCount: $uebCount,
+            errorCount: $fehlCount,
+            successDetails: $erfolgreichDetails,
+            skippedDetails: $uebersprungenDetails,
+            errorDetails: $fehlerhaftDetails,
+            collectiveTransfers: $sammelTransfers,
+        );
     }
 
-    private function writeLog(string $message, array &$runLogs = []): void
+    private function writeLog(string $message): void
     {
         $logDir = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/logs';
         if (!\is_dir($logDir)) {
@@ -403,7 +371,7 @@ final readonly class BankImportService
         $timestamp = \date('d-M-Y H:i:s e');
         $formattedMessage = "[$timestamp] BankImport: $message\n";
         @\file_put_contents($logFile, $formattedMessage, \FILE_APPEND | \LOCK_EX);
-        $runLogs[] = $formattedMessage;
+        $this->runLogs[] = $formattedMessage;
     }
 
     private function createArchiveZip(string $csvFilePath, array $logs): void
@@ -441,11 +409,10 @@ final readonly class BankImportService
         if (!\is_string($content) || $content === '') {
             return;
         }
-
-        // 1. UTF-8 BOM entfernen (Hex: EF BB BF)
         if (\str_starts_with($content, "\xEF\xBB\xBF")) {
             $content = \substr($content, 3);
         }
+
         $encoding = \mb_detect_encoding($content, ['UTF-8', 'Windows-1252', 'ISO-8859-15', 'ISO-8859-1', 'ASCII'], true);
         if ($encoding && $encoding !== 'UTF-8') {
             $content = \mb_convert_encoding($content, 'UTF-8', $encoding);
@@ -467,6 +434,7 @@ final readonly class BankImportService
         if ($firstLine === false) {
             return ';';
         }
+
         $delimiters = [
             ';' => \substr_count($firstLine, ';'),
             ',' => \substr_count($firstLine, ','),

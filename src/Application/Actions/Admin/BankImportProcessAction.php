@@ -13,8 +13,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
-use App\Core\Service\AuditLoggerService;
-use App\Core\Service\BankImportService;
+use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportCommand;
+use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportHandler;
 use Throwable;
 
 #[Route('POST', '/bank_import_process')]
@@ -22,10 +22,9 @@ use Throwable;
 final readonly class BankImportProcessAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
-        private BankImportService $importService,
         private SessionManager $sessionManager,
         private ConfigInterface $config,
+        private ProcessBankImportHandler $processHandler, // CQRS
     ) {
     }
 
@@ -38,22 +37,17 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
     {
         try {
             $dto = BankImportProcessRequest::fromArray($request->post);
-            $res = $this->importService->processCsv($dto->tempFile, $dto->idColumn, $dto->amountColumn, $dto->dateColumn);
 
-            if (\file_exists($dto->tempFile)) {
-                @\unlink($dto->tempFile);
-            }
+            $result = $this->processHandler->handle(new ProcessBankImportCommand(
+                $dto->tempFile,
+                $dto->idColumn,
+                $dto->amountColumn,
+                $dto->dateColumn,
+            ));
 
-            if (($res['success'] ?? false) === true) {
-                $erfolgreichCount = (int) ($res['erfolgreich_count'] ?? 0);
-                $uebersprungenCount = (int) ($res['uebersprungen_count'] ?? 0);
-                $fehlerhaftCount = (int) ($res['fehlerhaft_count'] ?? 0);
-
-                // Sammelüberweisungen aus dem Service in die Session schieben
-                $fehlerhaftDetails = $res['fehlerhaft_details'] ?? [];
-
-                if (!empty($res['sammel_transfers'])) {
-                    foreach ($res['sammel_transfers'] as $transfer) {
+            if ($result->success) {
+                if (!empty($result->collectiveTransfers)) {
+                    foreach ($result->collectiveTransfers as $transfer) {
                         $this->sessionManager->addCollectiveTransfer($transfer);
                     }
                 }
@@ -80,54 +74,22 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 };
 
                 $htmlDetails = [];
-                // FIX: Verwendung der neuen atomaren Icons
-                if (!empty($res['erfolgreich_details'])) {
-                    $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/success.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Freigeschaltet:</strong>' . $formatList($res['erfolgreich_details']) . '</div>';
+                if (!empty($result->successDetails)) {
+                    $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/success.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Freigeschaltet:</strong>' . $formatList($result->successDetails) . '</div>';
                 }
-                if (!empty($res['uebersprungen_details'])) {
-                    $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/skip.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
+                if (!empty($result->skippedDetails)) {
+                    $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/skip.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Übersprungen:</strong>' . $formatList($result->skippedDetails) . '</div>';
                 }
-                if (!empty($fehlerhaftDetails)) {
-                    $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/warning.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($fehlerhaftDetails) . '</div>';
+                if (!empty($result->errorDetails)) {
+                    $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/warning.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($result->errorDetails) . '</div>';
                 }
 
-                $msg = "<div class=\"u-margin-bottom-m\">Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.</div>";
+                $msg = "<div class=\"u-margin-bottom-m\">Bank-Abgleich beendet: <strong>{$result->successCount}</strong> Permits freigeschaltet, {$result->skippedCount} übersprungen, {$result->errorCount} fehlerhaft.</div>";
                 $fullMsg = $msg . \implode('', $htmlDetails);
 
-                // Audit Log (Flach)
-                $flattenForLog = function (array $categories): string {
-                    $parts = [];
-                    foreach ($categories as $cat => $items) {
-                        if (\is_numeric($cat)) {
-                            $parts[] = (string) $items;
-                        } else {
-                            $parts[] = $cat . ': ' . \implode(', ', (array) $items);
-                        }
-                    }
-
-                    return \implode(' | ', $parts);
-                };
-
-                $logDetails = [];
-                if (!empty($res['erfolgreich_details'])) {
-                    $logDetails[] = 'Freigeschaltet: [' . $flattenForLog($res['erfolgreich_details']) . ']';
-                }
-                if (!empty($res['uebersprungen_details'])) {
-                    $logDetails[] = 'Übersprungen: [' . $flattenForLog($res['uebersprungen_details']) . ']';
-                }
-                if (!empty($fehlerhaftDetails)) {
-                    $logDetails[] = 'Fehlerhaft: [' . $flattenForLog($fehlerhaftDetails) . ']';
-                }
-
-                $logStr = "CSV-Import abgeschlossen: {$erfolgreichCount} erfolgreich, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.";
-                if ($logDetails !== []) {
-                    $logStr .= ' | ' . \implode(' | ', $logDetails);
-                }
-
-                $this->auditLogger->log('BANK_IMPORT', $logStr);
                 $this->sessionManager->addFlash('success', $fullMsg);
             } else {
-                $this->sessionManager->addFlash('error', (string) ($res['message'] ?? 'Fehler bei der CSV-Verarbeitung.'));
+                $this->sessionManager->addFlash('error', $result->message);
             }
 
             // Bei Fehler auch dorthin zurückspringen, wo der User gestartet ist
