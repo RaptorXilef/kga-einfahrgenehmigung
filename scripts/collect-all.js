@@ -97,7 +97,7 @@ const configs = {
         exclDirs: [],
         exclFiles: [],
     },
-    // NEU: Explizite Dateien für die Entwicklungsumgebung
+    // Explizite Dateien für die Entwicklungsumgebung
     ENV: {
         name: 'Entwicklungsumgebung',
         explicitFiles: [
@@ -110,7 +110,52 @@ const configs = {
     },
 };
 
-// --- 3. Formatierungs-Logik (Ohne Token-Minimierung) ---
+// --- 3. Daten-Bereinigung & Formatierungs-Logik ---
+
+/**
+ * Leert sensible Daten aus package.json und composer.json
+ */
+function sanitizeJsonContent(filePath, rawContent) {
+    const baseName = path.basename(filePath).toLowerCase();
+
+    // Nur bei composer.json und package.json eingreifen
+    if (baseName !== 'composer.json' && baseName !== 'package.json') {
+        return rawContent;
+    }
+
+    try {
+        const parsed = JSON.parse(rawContent);
+        let indent = 4;
+
+        if (baseName === 'composer.json') {
+            if ('name' in parsed) parsed.name = '';
+            if ('description' in parsed) parsed.description = '';
+            if ('license' in parsed) parsed.license = '';
+
+            if (Array.isArray(parsed.authors)) {
+                parsed.authors.forEach((author) => {
+                    if (typeof author === 'object') {
+                        if ('name' in author) author.name = '';
+                        if ('email' in author) author.email = '';
+                    }
+                });
+            }
+        }
+
+        if (baseName === 'package.json') {
+            indent = 2;
+            if ('name' in parsed) parsed.name = '';
+            if ('description' in parsed) parsed.description = '';
+            if ('author' in parsed) parsed.author = '';
+            if ('license' in parsed) parsed.license = '';
+        }
+
+        return JSON.stringify(parsed, null, indent);
+    } catch (e) {
+        // Falls das JSON defekt ist, geben wir sicherheitshalber den Roh-Inhalt zurück
+        return rawContent;
+    }
+}
 
 function formatContent(content) {
     // Teilt den Inhalt in einzelne Zeilen auf
@@ -195,7 +240,11 @@ function startStructureMirror() {
     let count = 0;
     for (const file of foundFiles) {
         try {
-            const rawContent = fs.readFileSync(file.fullPath, 'utf-8');
+            let rawContent = fs.readFileSync(file.fullPath, 'utf-8');
+
+            // Sensible Daten aus package.json/composer.json entfernen
+            rawContent = sanitizeJsonContent(file.relPath, rawContent);
+
             const formattedContent = formatContent(rawContent);
 
             const fileOutputDir = path.join(targetDir, path.dirname(file.relPath));
@@ -268,7 +317,11 @@ function startFileCollection(configKey, silent = false) {
     let combinedContent = '';
     for (const file of foundFiles) {
         try {
-            const rawContent = fs.readFileSync(file.fullPath, 'utf-8');
+            let rawContent = fs.readFileSync(file.fullPath, 'utf-8');
+
+            // Sensible Daten aus package.json/composer.json entfernen
+            rawContent = sanitizeJsonContent(file.relPath, rawContent);
+
             const formattedContent = formatContent(rawContent);
 
             const extName = file.ext.toLowerCase().replace('.', '');
