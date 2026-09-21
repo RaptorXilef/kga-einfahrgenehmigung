@@ -58,7 +58,11 @@ final readonly class PermitFinancialCalculator
     {
         $pattern = (string) $this->config->get('usage_pattern', 'EFG-{{code}}-{{nachname}}');
 
-        $shortCode = \substr($permit->code->value, -6);
+        // FIX: Wir holen sauber alles NACH dem letzten Bindestrich.
+        // Das deckt die neuen 8-stelligen (V4) Codes und auch alte 6-stellige Legacy-Codes fehlerfrei ab!
+        $codeParts = \explode('-', $permit->code->value);
+        $shortCode = \end($codeParts);
+
         $nameParts = \explode(' ', $permit->getOwnerName());
         $vorname = $nameParts[0] ?? '';
         $nachname = $nameParts[\count($nameParts) - 1] ?? '';

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Core\Entity\Permit;
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitDto;
+use App\Modules\Permit\Domain\Permit;
 use DateTimeImmutable;
 
 /**

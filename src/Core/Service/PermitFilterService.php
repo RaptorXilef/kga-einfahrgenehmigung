@@ -6,13 +6,8 @@ namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
-use App\Core\Entity\Permit;
+use App\Modules\Permit\Domain\Permit;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class PermitFilterService
 {
     public function __construct(
@@ -27,6 +22,7 @@ final readonly class PermitFilterService
         $permitTemplates = $this->config->get('permit_templates', []);
         $queryLower = \strtolower(\trim($searchQuery));
 
+        // FIX: Der Typehint ist jetzt das neue App\Modules\Permit\Domain\Permit
         return \array_filter($allPermits, function (Permit $permit) use ($filterStart, $filterEnd, $filterType, $permitTemplates, $queryLower): bool {
             $date = $permit->getCreatedAt()->format('Y-m-d');
             if ($date < $filterStart || $date > $filterEnd) {

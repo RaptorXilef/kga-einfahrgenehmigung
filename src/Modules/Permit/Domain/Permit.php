@@ -141,7 +141,7 @@ final class Permit
 
     public function getOwnerEmail(): string
     {
-        return $this->owner->email ? (string) $this->owner->email : '';
+        return $this->owner->email !== null ? $this->owner->email->value : '';
     }
 
     public function getLicensePlate(): string
