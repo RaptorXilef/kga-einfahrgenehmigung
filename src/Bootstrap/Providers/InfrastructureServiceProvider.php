@@ -24,8 +24,9 @@ use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
-use App\Contracts\Storage\UserRepositoryInterface;
+use App\Contracts\Storage\UserRepositoryInterface; // Legacy
 use App\Contracts\Storage\VerificationRepositoryInterface;
+use App\Contracts\Storage\VoucherRepositoryInterface as LegacyVoucherRepositoryInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
@@ -56,14 +57,17 @@ use App\Infrastructure\Storage\MySqlMagicLinkRepository;
 use App\Infrastructure\Storage\MySqlMailQueueRepository;
 use App\Infrastructure\Storage\MySqlPermitArchiveRepository;
 use App\Infrastructure\Storage\MySqlRoleRepository;
-use App\Infrastructure\Storage\MySqlUserRepository;
+use App\Infrastructure\Storage\MySqlUserRepository; // Legacy
 use App\Infrastructure\Storage\MySqlVerificationRepository;
+use App\Infrastructure\Storage\MySqlVoucherRepository;
 use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\System\DompdfGenerator;
 use App\Infrastructure\System\FileRouteCache;
 use App\Infrastructure\System\LocalAssetHelper;
 use App\Infrastructure\System\SystemInfoService;
 use App\Infrastructure\Utils\SystemClock;
+use App\Modules\Identity\Domain\UserRepositoryInterface as IdentityUserRepositoryInterface;
+use App\Modules\Identity\Infrastructure\PdoUserRepository as IdentityPdoUserRepository;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface as NewVoucherRepositoryInterface;
 use App\Modules\Voucher\Infrastructure\PdoVoucherRepository;
 use PDO;
@@ -107,11 +111,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         // Mapping des System-Clocks für testbare Zeitstempel
         $container->bind(ClockInterface::class, fn (): mixed => $container->get(SystemClock::class));
 
-        /*
-        |--------------------------------------------------------------------------
-        | 2. DATA REPOSITORIES (FACTORY PATTERN)
-        |--------------------------------------------------------------------------
-        */
+        // --- LEGACY REPOSITORIES ---
         $container->bind(AuditLogRepositoryInterface::class, fn (): MySqlAuditLogRepository => new MySqlAuditLogRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
@@ -162,17 +162,23 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(JsonHelperInterface::class),
         ));
 
-        // --- VOUCHER DDD REPOSITORY BINDING ---
+        $container->bind(LegacyVoucherRepositoryInterface::class, fn (): MySqlVoucherRepository => new MySqlVoucherRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
+        ));
+
+        // --- DDD REPOSITORY BINDINGS ---
         $container->bind(NewVoucherRepositoryInterface::class, fn (): PdoVoucherRepository => new PdoVoucherRepository(
             $container->get(PDO::class),
         ));
 
-        /*
-        |--------------------------------------------------------------------------
-        | 3. NETWORK & THIRD-PARTY SERVICES
-        |--------------------------------------------------------------------------
-        | Externe APIs, Payment-Provider und E-Mail Versand.
-        */
+        // --- IDENTITY DDD REPOSITORY BINDING ---
+        $container->bind(IdentityUserRepositoryInterface::class, fn (): IdentityPdoUserRepository => new IdentityPdoUserRepository(
+            $container->get(PDO::class),
+        ));
+
+        // --- NETWORK & THIRD-PARTY SERVICES ---
         $container->bind(PaymentProviderInterface::class, fn (): mixed => $container->get(PayPalService::class));
 
         // Dynamische Mail-Transport Auflösung (Strategy Pattern)
@@ -214,21 +220,12 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get('mail.transport'),
         ));
 
-        /*
-        |--------------------------------------------------------------------------
-        | 4. SECURITY & SESSION MANAGEMENT
-        |--------------------------------------------------------------------------
-        | Schutzmechanismen gegen Brute-Force, Dateizugriff und Auth-Handling.
-        */
+        // --- SECURITY ---
         $container->bind(AuthSessionInterface::class, fn (): object => clone $container->get(SessionManager::class));
         $container->bind(LockManagerInterface::class, fn (): mixed => $container->get(FileLockManager::class));
         $container->bind(RateLimiterInterface::class, fn (): mixed => $container->get(RateLimiter::class));
 
-        /*
-        |--------------------------------------------------------------------------
-        | 5. SYSTEM, MAINTENANCE & UTILS
-        |--------------------------------------------------------------------------
-        */
+        // --- SYSTEM ---
         $container->bind(BackupServiceInterface::class, fn (): mixed => $container->get(BackupService::class));
         $container->bind(ErrorLoggerInterface::class, fn (): mixed => $container->get(ErrorLogger::class));
         $container->bind(ImageStorageInterface::class, fn (): mixed => $container->get(ImageStorageService::class));

@@ -7,6 +7,7 @@ namespace App\Modules\Identity\Application\UseCases\AuthenticateAdmin;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Core\Service\AuthService;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DomainException;
@@ -21,6 +22,7 @@ final readonly class AuthenticateAdminHandler implements CommandHandlerInterface
         private AuthSessionInterface $session,
         private RateLimiterInterface $rateLimiter,
         private ConfigInterface $config,
+        private AuthService $authService, // Temporary Legacy Bridge für die Rechte-Kompilierung
     ) {
     }
 
@@ -80,6 +82,10 @@ final readonly class AuthenticateAdminHandler implements CommandHandlerInterface
         $this->session->regenerate();
         $this->session->rotateCsrfToken();
         $this->session->setAuthSession($userId, $roleId, $label, $hash);
+
+        // Rechte kompilieren und in die Session schreiben
+        $this->authService->refreshSessionPermissions($roleId);
+
         $this->rateLimiter->clearAttempts($ip);
     }
 }

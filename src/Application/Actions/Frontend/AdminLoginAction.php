@@ -14,9 +14,12 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Storage\RoleRepositoryInterface;
-use App\Contracts\Storage\UserRepositoryInterface;
+use App\Contracts\Storage\UserRepositoryInterface; // Nur noch für das View-Rendering gebraucht
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\AuthService;
+use App\Core\Service\AuthService; // Nur noch für das View-Rendering gebraucht
+use App\Modules\Identity\Application\UseCases\AuthenticateAdmin\AuthenticateAdminCommand;
+use App\Modules\Identity\Application\UseCases\AuthenticateAdmin\AuthenticateAdminHandler;
+use DomainException;
 use RuntimeException;
 
 #[Route('GET', '/admin_login')]
@@ -30,6 +33,7 @@ final readonly class AdminLoginAction implements ActionInterface
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
+        private AuthenticateAdminHandler $loginHandler, // <-- CQRS Injected
     ) {
     }
 
@@ -37,13 +41,7 @@ final readonly class AdminLoginAction implements ActionInterface
     {
         // Sauberer GET-Handler: Rendert einfach das Formular
         if ($request->getMethod() === 'GET') {
-            $html = $this->renderer->render('admin/login', [
-                'auth' => $this->auth,
-                'roleRepository' => $this->roleRepository,
-                'userRepository' => $this->userRepository,
-            ]);
-
-            return new HtmlResponse($html);
+            return $this->renderForm('');
         }
 
         // Ab hier: Verarbeitung des POST-Logins
@@ -56,19 +54,26 @@ final readonly class AdminLoginAction implements ActionInterface
         }
 
         try {
-            if ($this->auth->login($dto->username, $dto->password, $request->getIp())) {
-                $this->auditLogger->log('LOGIN', 'Erfolgreicher Login in den Adminbereich.');
-                if ($dto->redirectCode !== '') {
-                    return new RedirectResponse('check?code=' . \urlencode($dto->redirectCode));
-                }
+            // CQRS Command triggern
+            $command = new AuthenticateAdminCommand(
+                $dto->username,
+                $dto->password,
+                $request->getIp(),
+            );
 
-                return new RedirectResponse('admin');
+            $this->loginHandler->handle($command);
+
+            // Wenn handle() keine Exception wirft, war der Login erfolgreich!
+            $this->auditLogger->log('LOGIN', 'Erfolgreicher Login in den Adminbereich.');
+
+            if ($dto->redirectCode !== '') {
+                return new RedirectResponse('check?code=' . \urlencode($dto->redirectCode));
             }
 
-            $this->rescueFormData($request);
+            return new RedirectResponse('admin');
 
-            return $this->renderForm('Benutzername oder Passwort ist falsch.');
-        } catch (RuntimeException $e) {
+        } catch (DomainException|RuntimeException $e) {
+            // Fängt "Falsches Passwort", "Gesperrt" oder "Zu viele Versuche" ab
             $this->rescueFormData($request);
 
             return $this->renderForm($e->getMessage());
