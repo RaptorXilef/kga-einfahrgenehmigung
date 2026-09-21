@@ -22,9 +22,9 @@ final class Permit
         public readonly Validity $validity,
         private Status $status,
         public readonly DateTimeImmutable $erstellt,
-        public readonly ?string $interner_kommentar = null,
+        public ?string $interner_kommentar = null,
         public readonly array $agreements = [],
-        public readonly ?DateTimeImmutable $bezahlt_am = null,
+        public ?DateTimeImmutable $bezahlt_am = null,
     ) {
     }
 
@@ -45,12 +45,8 @@ final class Permit
         return $now >= $this->validity->von && $now <= $endOfPeriod;
     }
 
-    public function markAsPaid(?string $grund = null, ?DateTimeImmutable $buchungsdatum = null): void
+    public function markAsPaid(?string $kommentar = null, ?DateTimeImmutable $buchungsdatum = null): void
     {
-        if ($this->status->current === PermitStatus::Bezahlt) {
-            return;
-        }
-
         $this->status = new Status(
             PermitStatus::Bezahlt,
             $this->status->is_suspended,
@@ -58,8 +54,8 @@ final class Permit
             $this->status->last_reminder_at,
         );
 
-        // $bezahlt_am und Kommentare müssten idealerweise in ein neues Objekt kopiert werden
-        // (Immigrability), aber wir halten es für die VSA-Übergangsphase pragmatisch.
+        $this->bezahlt_am = $buchungsdatum;
+        $this->interner_kommentar = $kommentar;
     }
 
     public function suspend(string $reason): void
@@ -85,5 +81,76 @@ final class Permit
     public function getSuspensionReason(): ?string
     {
         return $this->status->suspension_reason;
+    }
+
+    // Legacy Getter / Wrapper (Vorrübergehend für Actions)
+    public function getOwnerName(): string
+    {
+        return $this->owner->name;
+    }
+
+    public function getPlotNumber(): string
+    {
+        return $this->owner->parzelle->getFormatted();
+    }
+
+    public function getOwnerEmail(): string
+    {
+        return $this->owner->email ? $this->owner->email->value : '';
+    }
+
+    public function getLicensePlate(): string
+    {
+        return $this->vehicle->kennzeichen->value;
+    }
+
+    public function getVehicleType(): string
+    {
+        return $this->vehicle->typ;
+    }
+
+    public function getCompany(): ?string
+    {
+        return $this->vehicle->firma;
+    }
+
+    public function getPurpose(): string
+    {
+        return $this->validity->zweck;
+    }
+
+    public function getPrice(): float
+    {
+        return $this->validity->preis->value;
+    }
+
+    public function getValidFrom(): DateTimeImmutable
+    {
+        return $this->validity->von;
+    }
+
+    public function getValidUntil(): DateTimeImmutable
+    {
+        return $this->validity->bis;
+    }
+
+    public function getCreatedAt(): DateTimeImmutable
+    {
+        return $this->erstellt;
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->status->current === PermitStatus::Bezahlt;
+    }
+
+    public function isExpired(DateTimeImmutable $now): bool
+    {
+        return $this->validity->bis < $now;
+    }
+
+    public function isFuture(DateTimeImmutable $now): bool
+    {
+        return $this->validity->von > $now;
     }
 }

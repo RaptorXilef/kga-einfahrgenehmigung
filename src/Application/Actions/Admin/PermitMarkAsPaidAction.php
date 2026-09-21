@@ -11,12 +11,12 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidCommand;
+use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidHandler;
+use DomainException;
 
 /**
- * Action zum manuellen Markieren einer Genehmigung als 'bezahlt'.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Action zum manuellen Markieren einer Genehmigung als 'bezahlt' (VSA CQRS).
  */
 #[Route('GET', '/mark_as_paid')]
 #[Route('POST', '/mark_as_paid')]
@@ -24,8 +24,8 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private PermitService $permitService,
         private SessionManager $sessionManager,
+        private MarkPermitAsPaidHandler $markPaidHandler, // <-- NEU
     ) {
     }
 
@@ -60,9 +60,11 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
         $errorCount = 0;
 
         foreach ($codes as $code) {
-            if ($this->permitService->manualActivate($code)) {
+            try {
+                $command = new MarkPermitAsPaidCommand($code, 'Manuell bestätigt');
+                $this->markPaidHandler->handle($command);
                 ++$successCount;
-            } else {
+            } catch (DomainException $e) {
                 ++$errorCount;
             }
         }
@@ -75,7 +77,7 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
             $this->sessionManager->addFlash('success', "Zahlung für {$successCount} Genehmigungen erfolgreich bestätigt.");
         } elseif ($successCount > 0 && $errorCount > 0) {
             $this->auditLogger->log('PERMIT_PAID', "Teilweiser Erfolg: {$successCount} Zahlungen bestätigt, {$errorCount} fehlerhaft.");
-            $this->sessionManager->addFlash('warning', "{$successCount} Zahlungen bestätigt, {$errorCount} fehlerhaft (evtl. bereits bezahlt).");
+            $this->sessionManager->addFlash('warning', "{$successCount} Zahlungen bestätigt, {$errorCount} fehlerhaft (evtl. nicht gefunden).");
         } else {
             $this->sessionManager->addFlash('error', 'Fehler: Keine der gewählten Genehmigungen konnte aktualisiert werden.');
         }

@@ -104,9 +104,13 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
                 }
 
                 $pNum = \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT);
-                $periodStats['plots'][$pNum] ??= ['count' => 0, 'revenue' => 0.0, 'name' => $row['name']];
+                // FIX: E-Mail Feld initialisieren und stets updaten!
+                $periodStats['plots'][$pNum] ??= ['count' => 0, 'revenue' => 0.0, 'name' => $row['name'], 'email' => $row['email']];
                 ++$periodStats['plots'][$pNum]['count'];
                 $periodStats['plots'][$pNum]['revenue'] += $price;
+                // Immer die Daten des aktuellsten Antrags (der am weitesten oben steht) merken
+                $periodStats['plots'][$pNum]['name'] = $row['name'];
+                $periodStats['plots'][$pNum]['email'] = $row['email'];
 
                 // ---- C) Monats-Statistiken für den Chart (NUR gefilterte Daten) ----
                 $monthlyStats[$monthKey] ??= ['sort_key' => $monthSortKey, 'count' => 0, 'revenue' => 0.0];

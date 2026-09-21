@@ -12,12 +12,12 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\TogglePermitSuspension\TogglePermitSuspensionCommand;
+use App\Modules\Permit\Application\UseCases\TogglePermitSuspension\TogglePermitSuspensionHandler;
+use DomainException;
 
 /**
- * Action zum Sperren oder Entsperren einer aktiven Genehmigung.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Action zum Sperren oder Entsperren einer aktiven Genehmigung (VSA CQRS).
  */
 #[Route('GET', '/suspend_permit')]
 #[Route('POST', '/suspend_permit')]
@@ -27,8 +27,8 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private PermitService $permitService,
         private SessionManager $sessionManager,
+        private TogglePermitSuspensionHandler $toggleHandler,
     ) {
     }
 
@@ -47,19 +47,19 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
             return new RedirectResponse('admin');
         }
 
-        if ($this->permitService->toggleSuspension($dto->code, $dto->isSuspended, $dto->reason)) {
+        try {
+            $command = new TogglePermitSuspensionCommand($dto->code, $dto->isSuspended, $dto->reason);
+            $this->toggleHandler->handle($command);
+
             $actionStr = $dto->isSuspended ? 'gesperrt' : 'freigegeben';
             $msg = 'Genehmigung wurde ' . $actionStr . '.';
 
-            // LOG SCHREIBEN
             $this->auditLogger->log('PERMIT_SUSPENSION', "Genehmigung '{$dto->code}' wurde {$actionStr}. Grund: {$dto->reason}");
-
             $this->sessionManager->addFlash('success', $msg);
 
-            return new RedirectResponse('admin');
+        } catch (DomainException $e) {
+            $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
         }
-
-        $this->sessionManager->addFlash('error', 'Fehler: Genehmigung nicht gefunden.');
 
         return new RedirectResponse('admin');
     }
