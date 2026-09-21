@@ -12,18 +12,17 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\StorageInterface;
-use App\Core\Entity\Permit;
-use App\Core\Entity\PermitStatus;
 use App\Core\Service\BankQrGenerator;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
+use App\Modules\Permit\Domain\Permit;
+use App\Modules\Permit\Domain\PermitFinancialCalculator;
+use App\Modules\Permit\Domain\PermitStatus;
 
 /**
  * Action für die Erfolgs- und Bestätigungsseite nach Abschluss eines Antrags.
  * Generiert bei Bedarf Bank-QR-Codes (EPC) für offene Überweisungen und zeigt
  * dem Benutzer die finalen Zahlungsanweisungen an.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/success')]
 #[Route('POST', '/success')]
@@ -32,8 +31,8 @@ final readonly class SuccessAction implements ViewActionInterface
     public function __construct(
         private BankQrGenerator $bankQrGenerator,
         private ConfigInterface $config,
-        private PermitService $permitService,
-        private StorageInterface $storage,
+        private GetPermitByCodeHandler $getPermitByCodeHandler, // CQRS
+        private PermitFinancialCalculator $financialCalculator, // Domain Service
         private TemplateRenderer $renderer,
     ) {
     }
@@ -49,7 +48,8 @@ final readonly class SuccessAction implements ViewActionInterface
         $code = $dto->code;
         $method = $dto->method;
 
-        $permit = $this->storage->findByHash($code);
+        $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($code));
+
         if (!$permit instanceof Permit) {
             return new RedirectResponse('index');
         }
@@ -58,14 +58,14 @@ final readonly class SuccessAction implements ViewActionInterface
         $usage = '';
 
         if ($method === 'wire' && $permit->getStatus() !== PermitStatus::Bezahlt) {
-            $usage = $this->permitService->generateUsageText($permit);
+            $usage = $this->financialCalculator->generateUsageText($permit);
             $epcData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
         }
 
         $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
 
         // Dynamisches Datum laden und formatieren
-        $dueDate = $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y');
+        $dueDate = $this->financialCalculator->calculatePaymentDueDate($permit)->format('d.m.Y');
 
         $html = $this->renderer->render('frontend/checkout_success', [
             'dueDate' => $dueDate,

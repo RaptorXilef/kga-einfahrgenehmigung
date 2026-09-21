@@ -12,9 +12,10 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Security\RateLimiterInterface;
-use App\Core\Service\PermitService;
 use App\Modules\Identity\Application\UseCases\RequestMagicLink\RequestMagicLinkCommand;
 use App\Modules\Identity\Application\UseCases\RequestMagicLink\RequestMagicLinkHandler;
+use App\Modules\Permit\Application\UseCases\GetPermitHistory\GetPermitHistoryHandler;
+use App\Modules\Permit\Application\UseCases\GetPermitHistory\GetPermitHistoryQuery;
 
 /**
  * Action für die Anforderung eines Magic-Links zur Historie.
@@ -24,10 +25,10 @@ use App\Modules\Identity\Application\UseCases\RequestMagicLink\RequestMagicLinkH
 final readonly class HistoryRequestLinkAction implements ViewActionInterface
 {
     public function __construct(
-        private PermitService $permitService,
+        private GetPermitHistoryHandler $historyHandler, // CQRS
         private RateLimiterInterface $rateLimiter,
         private SessionManager $sessionManager,
-        private RequestMagicLinkHandler $requestHandler, // <-- CQRS
+        private RequestMagicLinkHandler $requestHandler,
     ) {
     }
 
@@ -42,16 +43,13 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
         }
 
         // Cross-Module Check: Hat die E-Mail überhaupt Genehmigungen?
-        $permits = $this->permitService->getHistoryByEmail($dto->email);
+        $permits = $this->historyHandler->handle(new GetPermitHistoryQuery($dto->email));
 
         if ($permits === []) {
             $this->rateLimiter->recordFailedAttempt($dto->ip);
         } else {
             $this->rateLimiter->clearAttempts($dto->ip);
-
-            // CQRS Command
-            $command = new RequestMagicLinkCommand($dto->email);
-            $this->requestHandler->handle($command);
+            $this->requestHandler->handle(new RequestMagicLinkCommand($dto->email));
         }
 
         $this->sessionManager->addFlash('success', 'Falls Genehmigungen zu dieser E-Mail existieren, wurde ein Code gesendet.');

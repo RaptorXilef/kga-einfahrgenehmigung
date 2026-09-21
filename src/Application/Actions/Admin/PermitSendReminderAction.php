@@ -11,14 +11,16 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\SendPaymentReminders\SendPaymentRemindersCommand;
+use App\Modules\Permit\Application\UseCases\SendPaymentReminders\SendPaymentRemindersHandler;
+use Exception;
 
 #[Route('POST', '/send_reminder')]
 final readonly class PermitSendReminderAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private PermitService $permitService,
+        private SendPaymentRemindersHandler $reminderHandler, // CQRS
         private SessionManager $sessionManager,
     ) {
     }
@@ -46,11 +48,13 @@ final readonly class PermitSendReminderAction implements ActionInterface, Requir
 
         $successCount = 0;
         foreach ($codes as $code) {
-            if (!$this->permitService->dispatchReminder($code, true)) {
-                continue;
+            try {
+                // Der Handler übernimmt den Cooldown-Check selbst!
+                $this->reminderHandler->handle(new SendPaymentRemindersCommand($code, true));
+                ++$successCount;
+            } catch (Exception $e) {
+                // Fehler beim individuellen Senden ignorieren
             }
-
-            ++$successCount;
         }
 
         if ($successCount > 0) {

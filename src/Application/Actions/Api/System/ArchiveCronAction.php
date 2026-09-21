@@ -10,15 +10,16 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\ArchiveExpiredPermits\ArchiveExpiredPermitsCommand;
+use App\Modules\Permit\Application\UseCases\ArchiveExpiredPermits\ArchiveExpiredPermitsHandler;
 
 #[Route('GET', '/api/cron/archive')]
 #[Route('POST', '/api/cron/archive')]
 final readonly class ArchiveCronAction implements ViewActionInterface
 {
     public function __construct(
-        private PermitService $permitService,
-        private PermitArchiveRepositoryInterface $archiveRepository,
+        private ArchiveExpiredPermitsHandler $archiveHandler, // CQRS
+        private PermitArchiveRepositoryInterface $archiveRepository, // Für Anonymisierung
         private ConfigInterface $config,
     ) {
     }
@@ -30,12 +31,11 @@ final readonly class ArchiveCronAction implements ViewActionInterface
         }
 
         $graceDays = (int) $this->config->get('archive_grace_days', 0);
-        $archivedCount = $this->permitService->autoArchiveExpiredPermits($graceDays);
+        $this->archiveHandler->handle(new ArchiveExpiredPermitsCommand($graceDays));
         $anonymizedCount = $this->archiveRepository->anonymizeOldRecords(10);
 
         return JsonResponse::success([
-            'message' => 'Bereinigung erfolgreich.',
-            'archived' => $archivedCount,
+            'message' => 'Bereinigung erfolgreich durchgelaufen.',
             'anonymized' => $anonymizedCount,
         ]);
     }

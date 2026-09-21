@@ -8,21 +8,20 @@ use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
+use App\Modules\Permit\Domain\Permit;
 
 /**
  * Guard für die Druck-Berechtigung.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private AuthService $auth,
-        private PermitService $permitService,
         private SessionManager $sessionManager,
+        private GetPermitByCodeHandler $getPermitByCodeHandler, // CQRS
     ) {
     }
 
@@ -33,7 +32,8 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
             return $next($request);
         }
 
-        $permit = $this->permitService->resolvePermit($code);
+        $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($code));
+
         if (!$permit instanceof Permit) {
             return $next($request);
         }

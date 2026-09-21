@@ -9,14 +9,15 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\SendPaymentReminders\SendPaymentRemindersCommand;
+use App\Modules\Permit\Application\UseCases\SendPaymentReminders\SendPaymentRemindersHandler;
 
 #[Route('GET', '/api/cron/reminders')]
 #[Route('POST', '/api/cron/reminders')]
 final readonly class RemindersCronAction implements ViewActionInterface
 {
     public function __construct(
-        private PermitService $permitService,
+        private SendPaymentRemindersHandler $reminderHandler, // CQRS
         private ConfigInterface $config,
     ) {
     }
@@ -27,11 +28,11 @@ final readonly class RemindersCronAction implements ViewActionInterface
             return JsonResponse::error('Unautorisiert.', 403);
         }
 
-        $sentCount = $this->permitService->sendPaymentReminders();
+        // Führt den Job für alle Permits aus (da $code = null)
+        $this->reminderHandler->handle(new SendPaymentRemindersCommand());
 
         return JsonResponse::success([
-            'message' => 'Zahlungserinnerungen erfolgreich versendet.',
-            'sent_emails' => $sentCount,
+            'message' => 'Zahlungserinnerungs-Prozess erfolgreich durchlaufen.',
         ]);
     }
 }

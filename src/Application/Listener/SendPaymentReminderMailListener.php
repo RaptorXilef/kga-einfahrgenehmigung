@@ -8,7 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Core\Event\PaymentReminderEvent;
 use App\Core\Service\BankQrGenerator;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Domain\PermitFinancialCalculator;
 
 final readonly class SendPaymentReminderMailListener
 {
@@ -16,7 +16,7 @@ final readonly class SendPaymentReminderMailListener
         private BankQrGenerator $bankQrGenerator,
         private ConfigInterface $config,
         private MailServiceInterface $mailService,
-        private PermitService $permitService,
+        private PermitFinancialCalculator $financialCalculator, // Domain Service
     ) {
     }
 
@@ -29,12 +29,12 @@ final readonly class SendPaymentReminderMailListener
         }
 
         $permitCodeStr = $permit->code->value;
-        $usage = $this->permitService->generateUsageText($permit);
+        $usage = $this->financialCalculator->generateUsageText($permit);
 
         // Bank-QR-Code nochmal generieren, um das Bezahlen direkt aus der Reminder-Mail zu erleichtern
         $epcQrData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
 
-        // BUGFIX: Garantiert einen sauberen Slash am Ende der URL, damit der QR-Code-Endpoint erreicht wird
+        // Garantiert einen sauberen Slash am Ende der URL, damit der QR-Code-Endpoint erreicht wird
         $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
 
         $this->mailService->sendTemplate(
@@ -44,7 +44,7 @@ final readonly class SendPaymentReminderMailListener
             [
                 'baseUrl' => $safeBaseUrl,
                 'betrag' => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
-                'dueDate' => $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y'),
+                'dueDate' => $this->financialCalculator->calculatePaymentDueDate($permit)->format('d.m.Y'),
                 'epcData' => \urlencode($epcQrData),
                 'fullIdentifier' => $permitCodeStr,
                 'iban' => $this->config->get('iban'),

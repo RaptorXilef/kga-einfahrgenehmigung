@@ -12,7 +12,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\CancelPermit\CancelPermitCommand;
+use App\Modules\Permit\Application\UseCases\CancelPermit\CancelPermitHandler;
 use DomainException;
 
 #[Route('GET', '/history_cancel_permit')]
@@ -21,7 +22,7 @@ final readonly class HistoryCancelPermitAction implements ViewActionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private PermitService $permitService,
+        private CancelPermitHandler $cancelHandler, // CQRS
         private SessionManager $sessionManager,
     ) {
     }
@@ -42,10 +43,9 @@ final readonly class HistoryCancelPermitAction implements ViewActionInterface
         }
 
         try {
-            $this->permitService->cancelPermit($dto->code, $email);
+            $this->cancelHandler->handle(new CancelPermitCommand($dto->code, $email));
 
             $this->auditLogger->log('USER_PERMIT_CANCEL', "Pächter (Email: {$email}) hat die Genehmigung '{$dto->code}' selbstständig storniert.");
-
             $this->sessionManager->addFlash('success', 'Genehmigung wurde erfolgreich storniert.');
 
             return new RedirectResponse('history');

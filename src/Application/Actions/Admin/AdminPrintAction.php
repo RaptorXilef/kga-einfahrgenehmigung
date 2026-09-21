@@ -15,10 +15,10 @@ use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\PdfGeneratorInterface;
-use App\Core\Entity\Permit;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\HolidayService;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
@@ -32,7 +32,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
         private AuditLoggerService $auditLogger,
         private ConfigInterface $config,
         private HolidayService $holidayService,
-        private PermitService $permitService,
+        private GetPermitByCodeHandler $getPermitByCodeHandler, // CQRS
         private PdfGeneratorInterface $pdfGenerator,
         private TemplateRenderer $renderer,
     ) {
@@ -47,9 +47,9 @@ final readonly class AdminPrintAction implements ViewActionInterface
         }
 
         $code = $dto->code;
-        $permit = $this->permitService->resolvePermit($code);
+        $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($code));
 
-        if (!$permit instanceof Permit) {
+        if ($permit === null) {
             return null;
         }
 

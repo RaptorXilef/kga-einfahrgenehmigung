@@ -16,10 +16,11 @@ use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\PdfGeneratorInterface;
-use App\Core\Entity\Permit;
 use App\Core\Security\Sanitizer;
 use App\Core\Service\HolidayService;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
+use App\Modules\Permit\Domain\Permit;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
@@ -32,7 +33,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
     public function __construct(
         private ConfigInterface $config,
         private HolidayService $holidayService,
-        private PermitService $permitService,
+        private GetPermitByCodeHandler $getPermitByCodeHandler, // CQRS
         private SessionManager $sessionManager,
         private PdfGeneratorInterface $pdfGenerator,
         private TemplateRenderer $renderer,
@@ -53,7 +54,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
         $code = $dto->code;
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();
 
-        $permit = $this->permitService->resolvePermit($code);
+        $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($code));
 
         // Vergleicht die E-Mails via Normalisierung (+ Aliase) für höchste Zuverlässigkeit
         if ($permit instanceof Permit && Sanitizer::normalizeEmail($permit->getOwnerEmail()) === Sanitizer::normalizeEmail($emailInSession)) {

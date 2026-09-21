@@ -14,7 +14,9 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Core\Security\Sanitizer;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\GetPermitHistory\GetPermitHistoryHandler;
+use App\Modules\Permit\Application\UseCases\GetPermitHistory\GetPermitHistoryQuery;
+use App\Modules\Permit\Domain\PermitFinancialCalculator;
 
 #[Route('GET', '/history')]
 final readonly class HistoryRenderAction implements ViewActionInterface
@@ -22,7 +24,8 @@ final readonly class HistoryRenderAction implements ViewActionInterface
     public function __construct(
         private ConfigInterface $config,
         private PermitArchiveRepositoryInterface $archiveRepository,
-        private PermitService $permitService,
+        private GetPermitHistoryHandler $historyHandler, // CQRS
+        private PermitFinancialCalculator $financialCalculator, // Domain Service
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
     ) {
@@ -42,7 +45,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
             return new HtmlResponse($html);
         }
 
-        $permits = $this->permitService->getHistoryByEmail($emailInSession);
+        $permits = $this->historyHandler->handle(new GetPermitHistoryQuery($emailInSession));
         $loadedYear = $dto->loadArchive;
 
         if ($loadedYear > 0) {
@@ -61,7 +64,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
 
         $overdueLevels = [];
         foreach ($permits as $permit) {
-            $overdueLevels[$permit->code->value] = $this->permitService->getOverdueLevel($permit);
+            $overdueLevels[$permit->code->value] = $this->financialCalculator->getOverdueLevel($permit);
         }
 
         $html = $this->renderer->render('frontend/history_list', [
