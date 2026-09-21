@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\DTO;
 
 use App\Application\Exception\ValidationException;
-use App\Core\DTO\PermitFormData;
+use App\Modules\Permit\Application\DTO\PermitFormData;
 
 /**
  * DTO für das manuelle Anlegen einer Genehmigung im Admin-Panel.

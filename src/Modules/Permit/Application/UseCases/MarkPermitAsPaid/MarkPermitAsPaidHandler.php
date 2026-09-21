@@ -45,7 +45,8 @@ final readonly class MarkPermitAsPaidHandler implements CommandHandlerInterface
             $dtBezahltAm = $this->clock->now();
         }
 
-        $aktuellerKommentar = $permit->interner_kommentar ?? '';
+        // FIX: Sauberer Getter Aufruf statt Private-Property Zugriff
+        $aktuellerKommentar = $permit->getInternalComment() ?? '';
         $neuerKommentar = $aktuellerKommentar;
 
         if ($command->reason !== null && !\str_contains($aktuellerKommentar, $command->reason)) {
