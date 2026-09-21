@@ -97,6 +97,17 @@ const configs = {
         exclDirs: [],
         exclFiles: [],
     },
+    // NEU: Explizite Dateien für die Entwicklungsumgebung
+    ENV: {
+        name: 'Entwicklungsumgebung',
+        explicitFiles: [
+            'composer.json',
+            // 'package.json',
+            // 'deptrac.yaml',
+            // '.github/workflows/deploy.yml', // Mit Slashes angeben, wird durch path.normalize systemübergreifend korrekt verarbeitet
+        ],
+        ext: '.md',
+    },
 };
 
 // --- 3. Formatierungs-Logik (Ohne Token-Minimierung) ---
@@ -217,13 +228,37 @@ function startFileCollection(configKey, silent = false) {
     if (!silent)
         console.log(`\n${c.cyan}🚀 Starte RAW-Sammlung: ${c.bright}${conf.name}${c.reset}...`);
 
-    const foundFiles = getFiles(
-        basePath,
-        conf.filter,
-        conf.exclDirs,
-        conf.exclFiles,
-        globalIncludeRootFiles
-    );
+    let foundFiles = [];
+
+    // Unterscheidung zwischen rekursiver Dateisuche oder explizit definierten Dateien
+    if (conf.explicitFiles) {
+        for (const filePath of conf.explicitFiles) {
+            // Normalisiert die Pfade für das jeweilige Betriebssystem (z.B. \ vs /)
+            const normalizedPath = path.normalize(filePath);
+            const fullPath = path.join(basePath, normalizedPath);
+
+            if (fs.existsSync(fullPath)) {
+                foundFiles.push({
+                    fullPath: fullPath,
+                    relPath: normalizedPath,
+                    ext: path.extname(fullPath),
+                });
+            } else {
+                if (!silent)
+                    console.log(
+                        `${c.yellow} ! Überspringe (nicht gefunden): ${normalizedPath}${c.reset}`
+                    );
+            }
+        }
+    } else {
+        foundFiles = getFiles(
+            basePath,
+            conf.filter,
+            conf.exclDirs,
+            conf.exclFiles,
+            globalIncludeRootFiles
+        );
+    }
 
     if (foundFiles.length === 0) {
         if (!silent) console.log(`${c.red}❌ Keine Dateien gefunden.${c.reset}`);
@@ -244,7 +279,11 @@ function startFileCollection(configKey, silent = false) {
                 php: 'php',
                 phtml: 'phtml',
                 scss: 'scss',
+                json: 'json',
+                yml: 'yaml',
+                yaml: 'yaml',
             };
+            // Fallback auf die Erweiterung selbst, falls sie nicht in der Map ist
             const lang = langMap[extName] || extName;
 
             // Sorge für saubere Forward-Slashes im Markdown-Pfad
@@ -277,6 +316,10 @@ function showHelp() {
         { Argument: '--phtml', Beschreibung: 'Sammelt nur PHTML Dateien' },
         { Argument: '--scss', Beschreibung: 'Sammelt nur SCSS Dateien' },
         { Argument: '--project', Beschreibung: 'Projektweite Zusammenfassung (*.md)' },
+        {
+            Argument: '--env',
+            Beschreibung: 'Sammelt Entwicklungsumgebungs-Dateien (composer.json etc.)',
+        },
         { Argument: '--mirror', Beschreibung: 'Spiegelt die gesamte Ordnerstruktur' },
         { Argument: '--all', Beschreibung: 'Führt Punkt 1-4 automatisch aus' },
         { Argument: '--root', Beschreibung: 'Bezieht Dateien im Root-Verzeichnis mit ein' },
@@ -305,6 +348,7 @@ if (args.length > 0) {
         if (args.includes('--phtml')) startFileCollection('PHTML', true);
         if (args.includes('--scss')) startFileCollection('SCSS', true);
         if (args.includes('--project')) startFileCollection('PROJECT', true);
+        if (args.includes('--env')) startFileCollection('ENV', true);
         if (args.includes('--mirror')) startStructureMirror();
     }
     process.exit(0);
@@ -331,6 +375,9 @@ if (args.length > 0) {
         );
         console.log(
             `${c.bright} 6)${c.reset} ${c.green}PROJEKT-STRUKTUR SPIEGELN${c.reset} (Einzeldateien in Verzeichnissen)`
+        );
+        console.log(
+            `${c.bright} 7)${c.reset} ${c.blue}ENTWICKLUNGSUMGEBUNG${c.reset} (composer, yaml, etc.)`
         );
         console.log(`${c.gray}-----------------------------------------------${c.reset}`);
         console.log(`${c.bright} T)${c.reset} Toggle Root-Files: [${rootStatus}]`);
@@ -366,7 +413,7 @@ if (args.length > 0) {
                 return;
             }
 
-            const map = { 1: 'JS', 2: 'PHP', 3: 'PHTML', 4: 'SCSS', 5: 'PROJECT' };
+            const map = { 1: 'JS', 2: 'PHP', 3: 'PHTML', 4: 'SCSS', 5: 'PROJECT', 7: 'ENV' };
             if (map[choice]) {
                 startFileCollection(map[choice]);
                 rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);

@@ -1,6 +1,3 @@
-# deptrac.yaml
-# @description Erzwingt die architektonische Integrität des universellen OOP/DTO Blueprints.
-
 deptrac:
   paths:
     - src
@@ -8,49 +5,51 @@ deptrac:
   cache_file: .cache/deptrac/.deptrac.cache
 
   layers:
-    - name: Domain # Reines Datenmodell (Entities, ValueObjects)
+    # --- 1. SHARED KERNEL ---
+    - name: SharedKernel
       collectors:
         - type: directory
-          value: src/Core/Entity/.*
-        - type: directory
-          value: src/Core/ValueObject/.*
+          value: src/SharedKernel/.*
 
-    - name: Contracts # Globale Schnittstellen (z.B. UserRepositoryInterface)
+    # --- 2. SCHICHTEN INNERHALB DER MODULE ---
+    - name: ModuleDomain
       collectors:
-        - type: directory
-          value: src/Contracts/.*
+        - type: classNameRegex
+          value: ^App\\Modules\\[^\\]+\\Domain\\.*
 
-    - name: Core # Anwendungsspezifische Logik (Services, Events, DTOs, Utils, Security)
+    - name: ModuleApplication
       collectors:
-        - type: directory
-          value: src/Core/Service/.*
-        - type: directory
-          value: src/Core/Event/.*
-        - type: directory
-          value: src/Core/DTO/.*
-        - type: directory
-          value: src/Core/Utils/.*
-        - type: directory
-          value: src/Core/Security/.*
-        - type: directory
-          value: src/Core/Exception/.*
+        - type: classNameRegex
+          value: ^App\\Modules\\[^\\]+\\Application\\.*
 
-    - name: Infrastructure # Externe Implementierungen (MySQL-Repository, Mailer, API-Clients)
+    - name: ModulePresentation
       collectors:
-        - type: directory
-          value: src/Infrastructure/.*
+        - type: classNameRegex
+          value: ^App\\Modules\\[^\\]+\\Presentation\\.*
 
-    - name: Application # Einstiegspunkt (Controller/Actions, HTTP, CLI, Middlewares)
+    - name: ModuleInfrastructure
       collectors:
-        - type: directory
-          value: src/Application/.*
+        - type: classNameRegex
+          value: ^App\\Modules\\[^\\]+\\Infrastructure\\.*
 
-    - name: Bootstrap # DI-Container, Configuration, App-Initialisierung
+    # --- 3. MODUL-GRENZEN (Für KGA) ---
+    - name: PermitModule
       collectors:
-        - type: directory
-          value: src/Bootstrap/.*
+        - type: classNameRegex
+          value: ^App\\Modules\\Permit\\.*
 
-    - name: Vendor # Alles was nicht zu uns gehört (PHP-Core, Composer-Pakete)
+    - name: FinanceModule
+      collectors:
+        - type: classNameRegex
+          value: ^App\\Modules\\Finance\\.*
+
+    - name: VoucherModule
+      collectors:
+        - type: classNameRegex
+          value: ^App\\Modules\\Voucher\\.*
+
+    # --- 4. EXTERN ---
+    - name: Vendor
       collectors:
         - type: bool
           must:
@@ -61,43 +60,41 @@ deptrac:
               value: src/.*
 
   ruleset:
-    # 1. Domain ist unabhängig von allem (darf nur native PHP-Klassen/Vendor nutzen)
-    Domain:
+    # --- LAYER-REGELN (Gilt innerhalb jedes Moduls) ---
+    ModuleDomain:
+      - SharedKernel
       - Vendor
 
-    # 2. Contracts kennen nur die Domain (für Typisierungen) und Vendor
-    Contracts:
-      - Domain
+    ModuleApplication:
+      - ModuleDomain
+      - SharedKernel
       - Vendor
 
-    # 3. Core nutzt Contracts und Domain. Hier leben deine DTOs und Services.
-    Core:
-      - Contracts
-      - Domain
+    ModulePresentation:
+      - ModuleApplication
+      - ModuleDomain
+      - SharedKernel
       - Vendor
 
-    # 4. INFRASTRUKTUR: Kennt KEINEN Core mehr!
-    # Sie implementiert nur die Contracts und nutzt Domain-Objekte.
-    Infrastructure:
-      - Contracts
-      - Domain
+    ModuleInfrastructure:
+      - ModuleApplication
+      - ModuleDomain
+      - SharedKernel
       - Vendor
 
-    # 5. Application nimmt Input an, baut DTOs und schickt sie in den Core.
-    Application:
-      - Contracts
-      - Core
-      - Domain
-      - Vendor # Application darf keine Bootstrap-Kenntnis haben!
-
-    # 6. Bootstrap darf alles kennen, um die Abhängigkeiten via DI-Container aufzulösen.
-    Bootstrap:
-      - Application
-      - Contracts
-      - Core
-      - Domain
-      - Infrastructure
+    SharedKernel:
       - Vendor
 
-  # Wir brauchen KEINE Ausnahmen mehr! Das System ist zu 100% sauber entkoppelt.
-  # skip_violations: ~
+    # --- MODUL-GRENZEN REGELN ---
+    # Quer-Zugriffe über Infrastruktur verboten!
+    PermitModule:
+      - SharedKernel
+      - Vendor
+
+    FinanceModule:
+      - SharedKernel
+      - Vendor
+
+    VoucherModule:
+      - SharedKernel
+      - Vendor
