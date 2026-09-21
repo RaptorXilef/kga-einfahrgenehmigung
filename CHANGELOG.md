@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.77.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.76.0...v0.77.0) (2026-09-21)
+
+### 🚀 Features
+
+* **permit:** Execute the final kill-strike on the legacy PermitService ([1b21907](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1b219077af14ff73d889ec8e719091485896ef0a))
+* **permit:** Execute the final kill-strike on the legacy PermitService ([bbc5543](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bbc554352218e5dd9f2d69c82283171d093cbf37))
+* **permit:** Implement Frontend VSA slices for Permit submission and checkout ([9147a9e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9147a9ea92a54955563efee159900b676b9ef819))
+
+### 🐛 Bug Fixes
+
+* **mail:** Resolve TemplateKey namespace errors and optimize CSV Bank Import matching ([aff6e22](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/aff6e22c6c3504a57f1a9297d81d6169e8d372dd))
+* **permit:** Fix EmailAddress s, legacy Permit namespace, and usage text generation ([f8bc95f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f8bc95ff03a30db322289870f96a15fd663d51ec))
+* **permit:** Move missing VOs to SharedKernel and establish strict DDD Entity patterns ([784aae0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/784aae0e175fe70ded1cfbfe32a343415551ee80))
+* **permit:** Resolve final missing properties and dependencies after PermitService removal ([6a8790f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6a8790fc20d11e25fdb9ac6f548a8a6e20603f36))
+* **permit:** Resolve namespace collisions and visibility errors post PermitService removal ([6eb0a7d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6eb0a7d705e1dc7c6b9ccd1383f4553339bfdec7))
+* **permit:** Resolve namespace collisions, inaccessible properties and strict type warnings ([65838dc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/65838dcb54068cd187e4ab9ab175febaf5bfe42b))
+* **stats:** Resolve undefined array key 'email' in ranking tab ([dda8437](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dda843785295ef2dcf70ea3fda6b3c3196b6e123))
+* **ui:** Restore missing dashboard tab badges and ranking data ([351336c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/351336cde16769677617c55cd750e26c00e78ca2))
+
 ## [0.76.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.75.0...v0.76.0) (2026-09-21)
 
 ### 🚀 Features
