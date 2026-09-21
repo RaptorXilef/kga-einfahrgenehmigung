@@ -45,7 +45,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
             bezahlt_am=VALUES(bezahlt_am), last_reminder_at=VALUES(last_reminder_at)';
 
         // Explizite Null-Prüfung für Intelephense
-        $emailValue = $permit->owner->email ? (string) $permit->owner->email : null;
+        $emailValue = $permit->owner->email !== null ? (string) $permit->owner->email : null;
 
         // Nutzt nun sauber die öffentlichen Getter für private Domain-States!
         $this->pdo->prepare($sql)->execute([
@@ -58,7 +58,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
             'typ' => $permit->vehicle->typ,
             'firma' => $permit->vehicle->firma,
             'zweck' => $permit->validity->zweck,
-            'preis' => $permit->validity->preis->value,
+            'preis' => $permit->validity->preis->amount,
             'von' => $permit->validity->von->format('Y-m-d'),
             'bis' => $permit->validity->bis->format('Y-m-d'),
             'status' => $permit->getStatus()->value,

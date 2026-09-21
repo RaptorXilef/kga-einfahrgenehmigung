@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Storage;
 
 use App\Modules\Permit\Domain\Owner;
-use App\Modules\Permit\Domain\Permit; // WICHTIG!
+use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\Status;
 use App\Modules\Permit\Domain\Validity;
@@ -25,8 +25,6 @@ use Exception;
  * Kapselt Konvertierungslogiken, um geschachtelte Domain-Entitäten (Permit, Owner, Vehicle...)
  * in flache, speicherbare Array-Strukturen zu transformieren und umgekehrt (Hydrierung).
  * Dient als Data Mapper für alle Storage-Engines.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 trait StorageMapperTrait
 {
@@ -126,28 +124,10 @@ trait StorageMapperTrait
         return new Permit(
             code: clone new PermitCode($codeStr),
             template_key: clone new TemplateKey($tKeyStr),
-            owner: new Owner(
-                $name,
-                $emailObj,
-                clone new PlotNumber($pzInt),
-            ),
-            vehicle: new Vehicle(
-                (string) ($item['typ'] ?? 'pkw'),
-                clone new LicensePlate($kzStr),
-                $item['firma'] ?? null,
-            ),
-            validity: new Validity(
-                $dtVon,
-                $dtBis,
-                new Price((float) ($item['preis'] ?? 0.0)),
-                (string) ($item['zweck'] ?? 'Privat'),
-            ),
-            status: new Status(
-                $statusEnum,
-                $is_suspended,
-                $suspReason,
-                $dtLastReminder,
-            ),
+            owner: new Owner($name, $emailObj, clone new PlotNumber($pzInt)),
+            vehicle: new Vehicle((string) ($item['typ'] ?? 'pkw'), clone new LicensePlate($kzStr), $item['firma'] ?? null),
+            validity: new Validity($dtVon, $dtBis, new Price((float) ($item['preis'] ?? 0.0)), (string) ($item['zweck'] ?? 'Privat')),
+            status: new Status($statusEnum, $is_suspended, $suspReason, $dtLastReminder),
             erstellt: $dtCreated,
             interner_kommentar: $kommentar,
             agreements: $agreements,
@@ -165,7 +145,6 @@ trait StorageMapperTrait
      */
     private function flattenEntity(Permit $permit): array
     {
-        // FIX: Saubere Nutzung der öffentlichen Getter, anstatt private Properties zu erzwingen!
         return [
             'agreements' => \is_array($permit->agreements) ? \json_encode($permit->agreements, \JSON_UNESCAPED_UNICODE) : '{}',
             'bezahlt_am' => $permit->getPaidAt() instanceof DateTimeImmutable ? $permit->getPaidAt()->format('Y-m-d H:i:s') : null,
@@ -179,7 +158,7 @@ trait StorageMapperTrait
             'kennzeichen' => $permit->vehicle->kennzeichen->value,
             'name' => $permit->getOwnerName(),
             'parzelle' => $permit->owner->parzelle->value,
-            'preis' => $permit->validity->preis->value,
+            'preis' => $permit->validity->preis->amount,
             'last_reminder_at' => $permit->getStatusObject()->last_reminder_at instanceof DateTimeImmutable ? $permit->getStatusObject()->last_reminder_at->format('Y-m-d H:i:s') : null,
             'status' => $permit->getStatus()->value,
             'suspension_reason' => $permit->getSuspensionReason(),

@@ -6,8 +6,11 @@ namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
-use App\Core\Entity\Permit;
+use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidCommand;
+use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidHandler;
+use App\Modules\Permit\Domain\Permit; // <-- Richtiges Modul
 use DateTimeImmutable;
+use DomainException;
 use Exception;
 use League\Csv\Reader;
 use ZipArchive;
@@ -16,15 +19,13 @@ final readonly class BankImportService
 {
     public function __construct(
         private StorageInterface $storage,
-        private PermitService $permitService,
+        private MarkPermitAsPaidHandler $markPaidHandler, // <-- CQRS statt PermitService
         private ConfigInterface $config,
     ) {
     }
 
     /**
      * Analysiert die hochgeladene CSV, wäscht sie komplett rein und extrahiert Header & erste Datenzeile via League\Csv.
-     *
-     * @return array{headers: array<int, string>, previewRow: array<int, string>}
      */
     public function analyzeCsv(string $filePath): array
     {
@@ -35,16 +36,14 @@ final readonly class BankImportService
         $this->prepareAndNormalizeFile($filePath);
 
         try {
-            // FIX: Umgehung der createFromPath Deprecation (P1007) durch Verwendung eines direkten Streams
             $stream = \fopen($filePath, 'r');
             if ($stream === false) {
                 return ['headers' => [], 'previewRow' => []];
             }
 
-            // FIX: Umgehung der P1007 Deprecation durch Nutzung der neuen, universellen from() Methode
             $csv = Reader::from($stream);
             $csv->setDelimiter($this->detectDelimiter($filePath));
-            $csv->setHeaderOffset(null); // Wir arbeiten mit numerischen Indizes
+            $csv->setHeaderOffset(null);
 
             $iterator = $csv->getIterator();
             $iterator->rewind();
@@ -69,8 +68,6 @@ final readonly class BankImportService
 
     /**
      * Verarbeitet die gereinigte Bank-CSV-Datei, addiert Teilzahlungen auf und gleicht sie mit dem System ab.
-     *
-     * @return array<string, mixed> Resultat der Verarbeitung inklusive detaillierter Begründungen.
      */
     public function processCsv(string $filePath, int $idCol, int $amountCol, int $dateCol): array
     {
@@ -87,13 +84,11 @@ final readonly class BankImportService
         $this->prepareAndNormalizeFile($filePath);
 
         try {
-            // FIX: Umgehung der createFromPath Deprecation (P1007)
             $stream = \fopen($filePath, 'r');
             if ($stream === false) {
                 return ['success' => false, 'message' => 'Datei konnte nicht zum Lesen geöffnet werden.'];
             }
 
-            // FIX: Umgehung der P1007 Deprecation durch Nutzung der neuen, universellen from() Methode
             $csv = Reader::from($stream);
             $csv->setDelimiter($this->detectDelimiter($filePath));
             // Wir überspringen die Kopfzeile
@@ -135,12 +130,9 @@ final readonly class BankImportService
 
         foreach ($csv->getRecords() as $index => $row) {
             ++$rowNumber;
-
-            // Header (Zeile 0) überspringen
             if ($index === 0) {
                 continue;
             }
-
             if (\count($row) === 1 && ($row[0] === null || \trim((string) $row[0]) === '')) {
                 continue;
             }
@@ -156,7 +148,6 @@ final readonly class BankImportService
             $verwendungszweck = (string) $row[$idCol];
             $betragRaw = (string) $row[$amountCol];
             $datumRaw = (string) $row[$dateCol];
-
             $zweckUpper = \strtoupper($verwendungszweck);
 
             $gefundeneCodes = [];
@@ -192,7 +183,6 @@ final readonly class BankImportService
             $cleanAmount = \str_replace('.', '', $betragRaw);
             $cleanAmount = \str_replace(',', '.', $cleanAmount);
             $ueberwiesenerBetrag = (float) $cleanAmount;
-
             $anomalyId = 'sam_' . \md5($datumRaw . $betragRaw . $verwendungszweck);
 
             // 3. Fallback: Kennzeichen-Suche (Wenn ID komplett vergessen wurde)
@@ -203,7 +193,6 @@ final readonly class BankImportService
                     if (empty($plate)) {
                         continue;
                     }
-
                     $plateNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', \strtoupper($plate));
                     if (\strlen($plateNormalized) >= 4 && \str_contains($zweckNormalized, $plateNormalized)) {
                         $gefundeneKennzeichen[$unpaidCode] = $plate;
@@ -309,13 +298,15 @@ final readonly class BankImportService
                 $datumRaw = (string) $letztesDatumPerPermit[$permitId];
                 $formatierterTag = $this->parseDate($datumRaw);
                 $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . $istFormatted . ')';
-
                 $codeToActivate = \is_string($permit->code) ? $permit->code : $permit->code->value;
 
-                if ($this->permitService->manualActivate($codeToActivate, $grund, $formatierterTag)) {
+                try {
+                    // FIX: CQRS Handler anstelle PermitService aufrufen!
+                    $this->markPaidHandler->handle(new MarkPermitAsPaidCommand($codeToActivate, $grund, $formatierterTag));
+
                     $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).", $runLogs);
                     $erfolgreichDetails[] = "{$permitId} ({$ownerName})";
-                } else {
+                } catch (DomainException $e) {
                     $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).", $runLogs);
                     $fehlerhaftStorage[] = "{$permitId} ({$ownerName})";
                 }
@@ -387,13 +378,10 @@ final readonly class BankImportService
         if (!\is_dir($logDir)) {
             @\mkdir($logDir, 0o755, true);
         }
-
         $logFile = $logDir . '/bank_import.log';
         $timestamp = \date('d-M-Y H:i:s e');
         $formattedMessage = "[$timestamp] BankImport: $message\n";
-
         @\file_put_contents($logFile, $formattedMessage, \FILE_APPEND | \LOCK_EX);
-
         $runLogs[] = $formattedMessage;
     }
 
@@ -404,7 +392,6 @@ final readonly class BankImportService
         if (!\is_dir($archiveDir)) {
             @\mkdir($archiveDir, 0o755, true);
         }
-
         $htaccessPath = $archiveDir . '/.htaccess';
         if (!\file_exists($htaccessPath)) {
             @\file_put_contents($htaccessPath, "Order allow,deny\nDeny from all\n");
@@ -413,12 +400,10 @@ final readonly class BankImportService
         $timestamp = \date('Ymd_His');
         $uniq = \uniqid();
         $zipFilename = $archiveDir . '/import_' . $timestamp . '_' . $uniq . '.zip';
-
         $zip = new ZipArchive();
         if ($zip->open($zipFilename, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
             $zip->addFile($csvFilePath, 'import_' . $timestamp . '.csv');
             $zip->addFromString('import_' . $timestamp . '.log', \implode('', $logs));
-
             $password = (string) $this->config->get('bank_import_zip_password', '');
             if ($password !== '') {
                 $zip->setPassword($password);
@@ -440,14 +425,12 @@ final readonly class BankImportService
         if (\str_starts_with($content, "\xEF\xBB\xBF")) {
             $content = \substr($content, 3);
         }
-
         $encoding = \mb_detect_encoding($content, ['UTF-8', 'Windows-1252', 'ISO-8859-15', 'ISO-8859-1', 'ASCII'], true);
         if ($encoding && $encoding !== 'UTF-8') {
             $content = \mb_convert_encoding($content, 'UTF-8', $encoding);
         } elseif (!$encoding) {
             $content = \mb_convert_encoding($content, 'UTF-8', 'Windows-1252');
         }
-
         $content = \str_replace(["\r\n", "\r"], "\n", $content);
         \file_put_contents($filePath, $content);
     }
@@ -458,21 +441,17 @@ final readonly class BankImportService
         if ($handle === false) {
             return ';';
         }
-
         $firstLine = \fgets($handle);
         \fclose($handle);
-
         if ($firstLine === false) {
             return ';';
         }
-
         $delimiters = [
             ';' => \substr_count($firstLine, ';'),
             ',' => \substr_count($firstLine, ','),
             "\t" => \substr_count($firstLine, "\t"),
             '|' => \substr_count($firstLine, '|'),
         ];
-
         \arsort($delimiters);
 
         return (string) \array_key_first($delimiters);
@@ -482,7 +461,6 @@ final readonly class BankImportService
     {
         $trimmed = \trim($rawDate);
         $dateObj = DateTimeImmutable::createFromFormat('d.m.y', $trimmed);
-
         if ($dateObj === false) {
             $dateObj = DateTimeImmutable::createFromFormat('d.m.Y', $trimmed);
         }

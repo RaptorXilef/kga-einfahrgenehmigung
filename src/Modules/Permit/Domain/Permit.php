@@ -93,8 +93,6 @@ final class Permit
         return $this->validity->von > $now;
     }
 
-    // --- Getters für Repositories und Read-Models ---
-
     public function getStatusObject(): Status
     {
         return $this->status;
@@ -166,9 +164,10 @@ final class Permit
         return $this->validity->zweck;
     }
 
+    // FIX: Price nutzt ->amount, nicht ->value!
     public function getPrice(): float
     {
-        return $this->validity->preis->value;
+        return $this->validity->preis->amount;
     }
 
     public function getValidFrom(): DateTimeImmutable
@@ -184,5 +183,24 @@ final class Permit
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->erstellt;
+    }
+
+    // FIX: matchesSearch ist zurück (für das Legacy Tab Filtering)
+    public function matchesSearch(string $queryLower): bool
+    {
+        if ($queryLower === '') {
+            return true;
+        }
+
+        $searchString = \strtolower(
+            $this->code->value . ' ' .
+            $this->owner->name . ' ' .
+            $this->getOwnerEmail() . ' ' .
+            $this->vehicle->kennzeichen->value . ' ' .
+            $this->owner->parzelle->getFormatted() . ' ' .
+            $this->validity->zweck,
+        );
+
+        return \str_contains($searchString, $queryLower);
     }
 }

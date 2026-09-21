@@ -50,7 +50,7 @@ final readonly class SubmitPermitRequestHandler
             $allVerified = $this->verificationRepository->loadVerified();
             $oldData = isset($allVerified[$command->editToken]) ? $allVerified[$command->editToken]->data : null;
 
-            if ($oldData !== null && Sanitizer::normalizeEmail((string) $newData->email?->value) === Sanitizer::normalizeEmail($command->sessionEmail)) {
+            if ($oldData !== null && Sanitizer::normalizeEmail((string) $newData->email) === Sanitizer::normalizeEmail($command->sessionEmail)) {
 
                 $priceRelevantChanged = ($oldData['template_key'] ?? '') !== $rawDataArray['template_key']
                     || ($oldData['typ'] ?? '') !== $rawDataArray['typ']
@@ -140,7 +140,7 @@ final readonly class SubmitPermitRequestHandler
     {
         return [
             'name' => $dto->name,
-            'email' => $dto->email?->value,
+            'email' => $dto->email ? (string) $dto->email : null,
             'parzelle' => (string) $dto->parzelle->value,
             'typ' => $dto->typ,
             'kennzeichen' => $dto->kennzeichen->value,
@@ -149,11 +149,11 @@ final readonly class SubmitPermitRequestHandler
             'template_key' => $dto->templateKey->value,
             'datum_von' => $dto->datumVon,
             'datum_bis' => $dto->datumBis,
-            'manual_price' => $dto->manualPrice->value,
+            'manual_price' => $dto->manualPrice->amount,
             'status' => $dto->status->value,
             'interner_kommentar' => $dto->internerKommentar,
             'agreements' => $dto->agreements,
-            'voucher' => $dto->voucher?->value,
+            'voucher' => $dto->voucher ? (string) $dto->voucher : null,
         ];
     }
 }
