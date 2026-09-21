@@ -12,8 +12,8 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\VoucherRepositoryInterface;
-use App\Core\Service\VoucherService;
+use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailableVouchersHandler;
+use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailableVouchersQuery;
 
 #[Route('GET', '/')]
 final readonly class PermitRenderAction implements ViewActionInterface
@@ -22,8 +22,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
         private ConfigInterface $config,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
-        private VoucherRepositoryInterface $voucherRepository,
-        private VoucherService $voucherService,
+        private CheckAvailableVouchersHandler $checkVouchersHandler, // CQRS Injected
     ) {
     }
 
@@ -47,25 +46,14 @@ final readonly class PermitRenderAction implements ViewActionInterface
         $html = $this->renderer->render('frontend/formular', [
             'agreements' => $this->getParsedAgreements(),
             'formData' => $this->sessionManager->getFormData(),
-            'hasActiveVouchers' => $this->checkAvailableVouchers(),
+            // CQRS Query ausführen
+            'hasActiveVouchers' => $this->checkVouchersHandler->handle(new CheckAvailableVouchersQuery()),
             'success' => $dto->isSuccess,
             'message' => $successMessage,
             'flashes' => $flashes,
         ]);
 
         return new HtmlResponse($html);
-    }
-
-    private function checkAvailableVouchers(): bool
-    {
-        $vouchers = $this->voucherRepository->loadAll();
-        foreach ($vouchers as $v) {
-            if ($this->voucherService->isValid($v)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private function getParsedAgreements(): array

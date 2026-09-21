@@ -11,25 +11,21 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\RateLimiterInterface;
-use App\Contracts\Storage\VoucherRepositoryInterface;
-use App\Core\Service\PermitService;
-use App\Core\Service\VoucherService;
-use App\Core\ValueObject\Price;
+use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountHandler;
+use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountQuery;
 use Throwable;
 
 /**
  * Action für die dynamische Preisberechnung via API.
- * Evaluiert Vorlagen-Preise, Fahrzeugtypen und Gutscheincodes.
+ * Evaluiert Vorlagen-Preise, Fahrzeugtypen und Gutscheincodes über CQRS.
  */
 #[Route('POST', '/api/get_template_price')]
 final readonly class GetTemplatePriceAction implements ViewActionInterface
 {
     public function __construct(
         private ConfigInterface $config,
-        private PermitService $permitService,
         private RateLimiterInterface $rateLimiter,
-        private VoucherRepositoryInterface $voucherRepo,
-        private VoucherService $voucherService,
+        private CalculateVoucherDiscountHandler $discountHandler, // CQRS Injected
     ) {
     }
 
@@ -48,32 +44,25 @@ final readonly class GetTemplatePriceAction implements ViewActionInterface
             $finalPrice = $originalPrice;
             $discountText = '';
 
+            // Wenn ein Gutschein angegeben wurde, Handler aufrufen
             if ($dto->voucherCode !== '') {
-                $vouchers = $this->voucherRepo->loadAll();
-                $v = $vouchers[$dto->voucherCode] ?? null;
+                $query = new CalculateVoucherDiscountQuery($dto->voucherCode, $originalPrice);
+                $discountDto = $this->discountHandler->handle($query);
 
-                if ($v && $this->voucherService->isValid($v)) {
+                if ($discountDto->isValid) {
                     $this->rateLimiter->clearAttempts($request->getIp());
-                    $discountedPriceVO = $this->permitService->calculateDiscountedPrice(new Price($originalPrice), $v);
-                    $finalPrice = $discountedPriceVO->value;
-
-                    $discountText = match ($v->type) {
-                        'fixed' => 'Sonderpreis aktiviert',
-                        'free' => '100% Rabatt (Kostenlos)',
-                        'percent' => $v->value . '% Rabatt',
-                        default => ''
-                    };
+                    $finalPrice = $discountDto->finalPrice;
+                    $discountText = $discountDto->discountText;
                 } else {
                     $this->rateLimiter->recordFailedAttempt($request->getIp());
-                    $isDeactivated = $v && $v->isDeactivated();
-                    $discountText = $v ? ($isDeactivated ? 'Code gesperrt' : 'Code abgelaufen') : 'Ungültiger Code';
+                    $discountText = $discountDto->errorMessage;
                 }
             }
 
             return JsonResponse::success([
                 'discountText' => $discountText,
                 'formatted' => \number_format($finalPrice, 2, ',', '.') . ' €',
-                'isFree' => $finalPrice <= 0,
+                'isFree' => $finalPrice <= 0.001,
                 'original' => $originalPrice,
                 'price' => $finalPrice,
             ]);
