@@ -28,17 +28,22 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
         $permitTemplates = $this->config->get('permit_templates', []);
 
         // 1. Schlanker PDO Fetch über beide Tabellen (ohne schwere Entity Hydration!)
+        // FIX: Eindeutige Parameter :minArchiveYear1 und :minArchiveYear2 für ATTR_EMULATE_PREPARES = false
         $sql = '
             SELECT template_key, typ, status, preis, erstellt, parzelle, name, email, kennzeichen, zweck
             FROM permits
             UNION ALL
             SELECT template_key, typ, status, preis, erstellt, parzelle, name, email, kennzeichen, zweck
             FROM permits_archive
-            WHERE YEAR(erstellt) >= :minArchiveYear OR YEAR(von) >= :minArchiveYear
+            WHERE YEAR(erstellt) >= :minArchiveYear1 OR YEAR(von) >= :minArchiveYear2
         ';
 
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(['minArchiveYear' => $query->minArchiveYear]);
+        $stmt->execute([
+            'minArchiveYear1' => $query->minArchiveYear,
+            'minArchiveYear2' => $query->minArchiveYear,
+        ]);
+
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
         // 2. Initialisiere leere Statistik-Container
