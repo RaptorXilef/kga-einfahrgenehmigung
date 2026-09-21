@@ -13,7 +13,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Core\Service\HolidayService;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestHandler;
+use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestQuery;
 use DateTimeImmutable;
 use Exception;
 
@@ -27,7 +28,7 @@ final readonly class CheckoutAction implements ViewActionInterface
 {
     public function __construct(
         private HolidayService $holidayService,
-        private PermitService $permitService,
+        private GetVerifiedRequestHandler $getVerifiedHandler, // <-- CQRS
         private TemplateRenderer $renderer,
     ) {
     }
@@ -48,7 +49,7 @@ final readonly class CheckoutAction implements ViewActionInterface
         }
 
         $token = $dto->token;
-        $tempData = $this->permitService->getVerifiedRequest($token);
+        $tempData = $this->getVerifiedHandler->handle(new GetVerifiedRequestQuery($token));
 
         if ($tempData === null) {
             return new RedirectResponse('/');

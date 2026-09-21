@@ -11,21 +11,20 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Payment\PaymentProviderInterface;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestHandler;
+use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestQuery;
 use Exception;
 use Throwable;
 
 /**
  * Action zur Erstellung einer Zahlungs-Order (PayPal) aus dem Checkout.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('POST', '/api/create_order')]
 final readonly class CreateOrderAction implements ViewActionInterface
 {
     public function __construct(
         private PaymentProviderInterface $payment,
-        private PermitService $permitService,
+        private GetVerifiedRequestHandler $getVerifiedHandler,
     ) {
     }
 
@@ -38,7 +37,7 @@ final readonly class CreateOrderAction implements ViewActionInterface
         }
 
         try {
-            $tempRequest = $this->permitService->getVerifiedRequest($dto->identifier);
+            $tempRequest = $this->getVerifiedHandler->handle(new GetVerifiedRequestQuery($dto->identifier));
             if ($tempRequest === null) {
                 throw new Exception('Sitzung nicht gefunden oder abgelaufen');
             }

@@ -11,21 +11,23 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Payment\PaymentProviderInterface;
-use App\Core\Entity\PermitStatus;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitCommand;
+use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitHandler;
+use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestHandler;
+use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestQuery;
+use App\Modules\Permit\Domain\PermitStatus;
 use Exception;
 
 /**
  * Action zur Abwicklung und Erfassung externer Zahlungen (PayPal-Capture).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('POST', '/api/capture')]
 final readonly class CapturePaymentAction implements ViewActionInterface
 {
     public function __construct(
         private PaymentProviderInterface $paymentProvider,
-        private PermitService $permitService,
+        private GetVerifiedRequestHandler $getVerifiedHandler,
+        private FinalizePermitHandler $finalizeHandler,
     ) {
     }
 
@@ -39,7 +41,7 @@ final readonly class CapturePaymentAction implements ViewActionInterface
 
         try {
             // ORCHESTRIERUNG: Die Action steuert jetzt die Abläufe, nicht mehr der Service!
-            $tempRequest = $this->permitService->getVerifiedRequest($dto->token);
+            $tempRequest = $this->getVerifiedHandler->handle(new GetVerifiedRequestQuery($dto->token));
 
             if ($tempRequest === null) {
                 return JsonResponse::error('Sitzung nicht gefunden oder abgelaufen', 400);
@@ -48,7 +50,7 @@ final readonly class CapturePaymentAction implements ViewActionInterface
             // Zahlung ausführen
             if ($this->paymentProvider->captureOrder($dto->orderId, (float) $tempRequest['preis'])) {
                 // Bei Erfolg: Den Service anweisen, die Genehmigung zu finalisieren
-                $this->permitService->finaliseRequest($dto->token, PermitStatus::Bezahlt, 'Bezahlt via PayPal');
+                $this->finalizeHandler->handle(new FinalizePermitCommand($dto->token, PermitStatus::Bezahlt, 'Bezahlt via PayPal'));
 
                 return JsonResponse::success(['message' => 'Zahlung verarbeitet und Antrag finalisiert']);
             }

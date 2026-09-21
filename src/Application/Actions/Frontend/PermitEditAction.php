@@ -10,20 +10,19 @@ use App\Application\DTO\SimpleTokenRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestHandler;
+use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestQuery;
 
 /**
  * Action für den "Daten korrigieren" Einstieg aus dem Checkout.
  * Lädt die temporären Daten und bereitet die Formular-Session vor.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/permit_edit')]
 #[Route('POST', '/permit_edit')]
 final readonly class PermitEditAction implements ViewActionInterface
 {
     public function __construct(
-        private PermitService $permitService,
+        private GetVerifiedRequestHandler $getVerifiedHandler,
         private SessionManager $sessionManager,
     ) {
     }
@@ -31,14 +30,14 @@ final readonly class PermitEditAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         $dto = SimpleTokenRequest::fromArray($request->get);
-        $tempData = $this->permitService->getVerifiedRequest($dto->token);
+        $tempData = $this->getVerifiedHandler->handle(new GetVerifiedRequestQuery($dto->token));
 
         if ($tempData !== null) {
             $this->sessionManager->setFormData($tempData);
             $this->sessionManager->setEditState($tempData['email'] ?? '', $dto->token);
         }
 
-        // FIX: Sicherer relativer Redirect zur Startseite inkl. visuellem Hinweis-Parameter
+        // Sicherer relativer Redirect zur Startseite inkl. visuellem Hinweis-Parameter
         return new RedirectResponse('./?edit=1');
     }
 }

@@ -10,20 +10,22 @@ use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
-use App\Core\Entity\PermitStatus;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitCommand;
+use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitHandler;
+use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestHandler;
+use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestQuery;
+use App\Modules\Permit\Domain\PermitStatus;
 use Throwable;
 
 /**
  * Action zum finalisieren eines Antrags via klassischer Banküberweisung oder Kostenlos-Abschluss.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('POST', '/api/finalize_wire')]
 final readonly class FinalizeWireAction implements ViewActionInterface
 {
     public function __construct(
-        private PermitService $permitService,
+        private GetVerifiedRequestHandler $getVerifiedHandler,
+        private FinalizePermitHandler $finalizeHandler,
     ) {
     }
 
@@ -36,8 +38,8 @@ final readonly class FinalizeWireAction implements ViewActionInterface
         }
 
         try {
-            // FIX: Preis des Antrags prüfen, um intelligent den Status zu setzen
-            $tempRequest = $this->permitService->getVerifiedRequest($dto->identifier);
+            // Preis des Antrags prüfen, um intelligent den Status zu setzen
+            $tempRequest = $this->getVerifiedHandler->handle(new GetVerifiedRequestQuery($dto->identifier));
             if ($tempRequest === null) {
                 return JsonResponse::error('Sitzung abgelaufen oder nicht gefunden.');
             }
@@ -48,11 +50,11 @@ final readonly class FinalizeWireAction implements ViewActionInterface
             $targetStatus = $price <= 0.0 ? PermitStatus::Bezahlt : PermitStatus::Offen;
             $comment = $price <= 0.0 ? 'Kostenlos / Gebührenfrei' : 'Zahlung per Überweisung gewählt';
 
-            $permit = $this->permitService->finaliseRequest(
+            $permit = $this->finalizeHandler->handle(new FinalizePermitCommand(
                 $dto->identifier,
                 $targetStatus,
                 $comment,
-            );
+            ));
 
             return JsonResponse::success(['code' => $permit->code->value]);
         } catch (Throwable $e) {

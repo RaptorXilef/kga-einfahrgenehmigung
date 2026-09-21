@@ -118,4 +118,24 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
     {
         $this->pdo->prepare('DELETE FROM permits WHERE code = :code')->execute(['code' => $code]);
     }
+
+    public function hasCollision(int $plotNumber, DateTimeImmutable $start, DateTimeImmutable $end): bool
+    {
+        $stmt = $this->pdo->prepare('SELECT 1 FROM permits WHERE parzelle = ? AND von <= ? AND bis >= ? LIMIT 1');
+        $stmt->execute([$plotNumber, $end->format('Y-m-d'), $start->format('Y-m-d')]);
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    public function isCodeUnique(string $code): bool
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT 1 FROM permits WHERE code = ?
+            UNION SELECT 1 FROM permits_archive WHERE code = ?
+            UNION SELECT 1 FROM permits_cancelled WHERE code = ? LIMIT 1
+        ');
+        $stmt->execute([$code, $code, $code]);
+
+        return !(bool) $stmt->fetchColumn();
+    }
 }

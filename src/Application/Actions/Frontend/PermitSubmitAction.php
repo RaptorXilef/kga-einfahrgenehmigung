@@ -12,9 +12,11 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Exception\PermitCollisionException;
-use App\Core\Service\PermitService;
 use App\Core\Service\Security\BotProtectionService;
 use App\Core\Service\Security\EmailValidationService;
+use App\Modules\Permit\Application\DTO\PermitFormData;
+use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\SubmitPermitRequestCommand;
+use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\SubmitPermitRequestHandler;
 use InvalidArgumentException;
 use Throwable;
 
@@ -25,7 +27,7 @@ use Throwable;
 final readonly class PermitSubmitAction implements ViewActionInterface
 {
     public function __construct(
-        private PermitService $permitService,
+        private SubmitPermitRequestHandler $submitHandler, // <-- CQRS
         private SessionManager $sessionManager,
         private BotProtectionService $botProtection,
         private EmailValidationService $emailValidation,
@@ -63,47 +65,38 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             return new RedirectResponse('index');
         }
 
-        // Wenn die Validierung klappt, speichern wir das formal saubere DTO
-        $this->sessionManager->setFormData($dto->toDomainDto());
-
         try {
-            $verifiedEmail = $this->sessionManager->getVerifiedEmail();
-            $editToken = $this->sessionManager->getEditToken();
+            $command = new SubmitPermitRequestCommand(
+                PermitFormData::fromArray($dto->toDomainDto()),
+                $this->sessionManager->getEditToken(),
+                $this->sessionManager->getVerifiedEmail(),
+            );
 
-            if ($verifiedEmail !== null && $editToken !== null) {
-                $result = $this->permitService->updateVerifiedRequest($editToken, $verifiedEmail, $dto->toDomainDto());
-                $this->sessionManager->clearFormData();
-                $this->sessionManager->clearEditState();
-                $this->sessionManager->clearFormStartTime(); // Timer zurücksetzen
+            $result = $this->submitHandler->handle($command);
 
-                $this->botProtection->recordStrike($ip); // Erfolgreichen Antrag zählen
-
-                if ($result === 'redirect_checkout') {
-                    return new RedirectResponse('checkout?token=' . $editToken);
-                }
-
-                $this->sessionManager->addFlash('success', 'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Bitte E-Mail erneut bestätigen.');
-
-                return new RedirectResponse('?sent=1');
-            }
-
-            $this->permitService->createPendingVerification($dto->toDomainDto());
             $this->sessionManager->clearFormData();
             $this->sessionManager->clearEditState();
-            $this->sessionManager->clearFormStartTime(); // Timer zurücksetzen
+            $this->sessionManager->clearFormStartTime();
+            $this->botProtection->recordStrike($ip);
 
-            $this->botProtection->recordStrike($ip); // Erfolgreichen Antrag zählen
+            if ($result->action === 'redirect_checkout') {
+                return new RedirectResponse('checkout?token=' . $result->token);
+            }
+
+            if ($this->sessionManager->getVerifiedEmail() !== null) {
+                $this->sessionManager->addFlash(
+                    'success',
+                    'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Bitte E-Mail erneut bestätigen.',
+                );
+            }
 
             return new RedirectResponse('?sent=1');
-        } catch (PermitCollisionException $exception) { // Zuerst die Kollision fangen
-            // 1. Detaillierter Log für Admin im Hintergrund
-            \error_log('Permit Collision: ' . $exception->getMessage());
 
-            // 2. Datenschutzkonforme, vage UI-Meldung für den User
+        } catch (PermitCollisionException $exception) {
+            \error_log('Permit Collision: ' . $exception->getMessage());
             $this->sessionManager->addFlash(
                 'error',
-                'Überschneidung: Für diese Parzelle liegt in dem gewählten Zeitraum bereits eine Anfrage oder ' .
-                    'Genehmigung vor. Falls Sie den Status prüfen möchten, nutzen Sie bitte den Genehmigungs-"Verlauf".',
+                'Überschneidung: Für diese Parzelle liegt in dem gewählten Zeitraum bereits eine Anfrage oder Genehmigung vor.',
             );
 
             return new RedirectResponse('index');
@@ -114,7 +107,10 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             return new RedirectResponse('index');
         } catch (Throwable $exception) {
             \error_log('Permit Creation Error: ' . $exception->getMessage() . "\n" . $exception->getTraceAsString());
-            $this->sessionManager->addFlash('error', 'Ein unerwarteter Systemfehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+            $this->sessionManager->addFlash(
+                'error',
+                'Ein unerwarteter Systemfehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+            );
 
             return new RedirectResponse('index');
         }
