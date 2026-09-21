@@ -15,12 +15,14 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
-use App\Core\Service\VoucherService;
+use App\Modules\Voucher\Application\UseCases\CreateVoucher\CreateVoucherCommand;
+use App\Modules\Voucher\Application\UseCases\CreateVoucher\CreateVoucherHandler;
+use DomainException;
 use InvalidArgumentException;
 use Throwable;
 
 /**
- * Action zum Erstellen eines neuen Gutscheins.
+ * Action zum Erstellen eines neuen Gutscheins (VSA Refactored).
  */
 #[Route('GET', '/create_voucher')]
 #[Route('POST', '/create_voucher')]
@@ -31,7 +33,7 @@ final readonly class VoucherCreateAction implements ActionInterface, RequiresPer
         private AuthService $auth,
         private ConfigInterface $config,
         private SessionManager $sessionManager,
-        private VoucherService $voucherService,
+        private CreateVoucherHandler $createHandler,
     ) {
     }
 
@@ -49,6 +51,7 @@ final readonly class VoucherCreateAction implements ActionInterface, RequiresPer
     {
         try {
             $maxPlot = (int) $this->config->get('max_plot_number', 9999);
+            // Nutze das alte DTO als Input-Validator
             $dto = VoucherCreateRequest::fromArray($request->post, $maxPlot);
         } catch (ValidationException|InvalidArgumentException $e) {
             // UX-Rettung für die Gutschein-Erstellung
@@ -61,7 +64,8 @@ final readonly class VoucherCreateAction implements ActionInterface, RequiresPer
         }
 
         try {
-            $code = $this->voucherService->createVoucher(
+            // Mapping Input-DTO -> Command
+            $command = new CreateVoucherCommand(
                 $dto->reason,
                 $this->auth->getUserId(),
                 $dto->templateKey,
@@ -75,17 +79,26 @@ final readonly class VoucherCreateAction implements ActionInterface, RequiresPer
                 $dto->dateMode,
             );
 
-            // LOG SCHREIBEN
-            $this->auditLogger->log('VOUCHER_CREATE', "Gutscheincode '{$code}' erstellt. Grund/Notiz: {$dto->reason}");
-            $this->sessionManager->addFlash('success', "Gutschein erstellt: <strong>$code</strong>");
+            $this->createHandler->handle($command);
+
+            $this->auditLogger->log('VOUCHER_CREATE', "Gutscheincode verarbeitet. Grund/Notiz: {$dto->reason}");
+            $this->sessionManager->addFlash('success', 'Gutschein wurde erfolgreich generiert!');
 
             // Wenn erfolgreich, direkt zum Gutschein-Reiter springen
             return new RedirectResponse('admin?focus=tab-vouchers');
-        } catch (Throwable $e) {
+
+        } catch (DomainException $e) {
             $postData = $request->post;
             unset($postData['csrf_token']);
             $this->sessionManager->setFormData($postData);
             $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
+
+            return new RedirectResponse('admin?focus=tab-tools');
+        } catch (Throwable $e) {
+            $postData = $request->post;
+            unset($postData['csrf_token']);
+            $this->sessionManager->setFormData($postData);
+            $this->sessionManager->addFlash('error', 'Kritischer Fehler: ' . $e->getMessage());
 
             return new RedirectResponse('admin?focus=tab-tools');
         }

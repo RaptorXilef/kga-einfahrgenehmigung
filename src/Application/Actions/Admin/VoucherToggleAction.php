@@ -14,7 +14,9 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\VoucherService;
+use App\Modules\Voucher\Application\UseCases\ToggleVoucher\ToggleVoucherCommand;
+use App\Modules\Voucher\Application\UseCases\ToggleVoucher\ToggleVoucherHandler;
+use DomainException;
 
 #[Route('POST', '/activate_voucher')]
 #[Route('POST', '/deactivate_voucher')]
@@ -24,7 +26,7 @@ final readonly class VoucherToggleAction implements ActionInterface, RequiresPer
     public function __construct(
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
-        private VoucherService $voucherService,
+        private ToggleVoucherHandler $toggleHandler,
     ) {
     }
 
@@ -48,15 +50,19 @@ final readonly class VoucherToggleAction implements ActionInterface, RequiresPer
             return new RedirectResponse('admin');
         }
 
-        $this->voucherService->toggleStatus($dto->code, $dto->targetStatus);
+        try {
+            $command = new ToggleVoucherCommand($dto->code, $dto->targetStatus);
+            $this->toggleHandler->handle($command);
 
-        $actionStr = $dto->targetStatus === 'aktiv' ? 'reaktiviert' : 'deaktiviert (gesperrt)';
+            $actionStr = $dto->targetStatus === 'aktiv' ? 'reaktiviert' : 'deaktiviert (gesperrt)';
 
-        // LOG SCHREIBEN
-        $this->auditLogger->log('VOUCHER_TOGGLE', "Gutscheincode '{$dto->code}' wurde {$actionStr}.");
+            // LOG SCHREIBEN
+            $this->auditLogger->log('VOUCHER_TOGGLE', "Gutscheincode '{$dto->code}' wurde {$actionStr}.");
+            $this->sessionManager->addFlash('success', "Gutschein wurde {$actionStr}.");
 
-        $msg = 'Gutschein wurde ' . ($dto->targetStatus === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
-        $this->sessionManager->addFlash('success', $msg);
+        } catch (DomainException $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
+        }
 
         return new RedirectResponse('admin');
     }

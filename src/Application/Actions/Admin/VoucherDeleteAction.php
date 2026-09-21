@@ -13,12 +13,11 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\VoucherService;
+use App\Modules\Voucher\Application\UseCases\DeleteVoucher\DeleteVoucherCommand;
+use App\Modules\Voucher\Application\UseCases\DeleteVoucher\DeleteVoucherHandler;
 
 /**
  * Action zum unwiderruflichen Löschen eines Gutscheins.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/delete_voucher')]
 #[Route('POST', '/delete_voucher')]
@@ -27,7 +26,7 @@ final readonly class VoucherDeleteAction implements ActionInterface, RequiresPer
     public function __construct(
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
-        private VoucherService $voucherService,
+        private DeleteVoucherHandler $deleteHandler,
     ) {
     }
 
@@ -46,12 +45,11 @@ final readonly class VoucherDeleteAction implements ActionInterface, RequiresPer
             return new RedirectResponse('admin');
         }
 
-        if ($this->voucherService->deleteVoucher($dto->identifier)) {
-            $this->auditLogger->log('VOUCHER_DELETE', "Gutscheincode '{$dto->identifier}' endgültig gelöscht.");
-            $this->sessionManager->addFlash('success', "Gutschein '{$dto->identifier}' gelöscht.");
-        } else {
-            $this->sessionManager->addFlash('error', "Fehler: Gutschein '{$dto->identifier}' nicht gefunden.");
-        }
+        $command = new DeleteVoucherCommand($dto->identifier);
+        $this->deleteHandler->handle($command);
+
+        $this->auditLogger->log('VOUCHER_DELETE', "Gutscheincode '{$dto->identifier}' endgültig gelöscht.");
+        $this->sessionManager->addFlash('success', "Gutschein '{$dto->identifier}' gelöscht.");
 
         return new RedirectResponse('admin');
     }

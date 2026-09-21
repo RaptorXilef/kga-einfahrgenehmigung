@@ -5,22 +5,28 @@ declare(strict_types=1);
 namespace App\Modules\Voucher\Application\UseCases\GetVoucherList;
 
 /**
- * Read-Model für die Listenansicht von Gutscheinen.
- * Flach, stark typisiert und hochgradig performant.
+ * 100% View-spezifisches DTO.
+ * Enthält fertige Strings und CSS-Klassen für das PHTML-Template.
  */
 final readonly class VoucherListDto
 {
     public function __construct(
         public string $code,
         public string $reason,
-        public string $type,
-        public float $value,
-        public bool $isMultiUse,
-        public int $maxUses,
-        public int $currentUses,
-        public string $status,
-        public ?string $expiresAtFormatted,
-        public string $createdAtFormatted,
+        public bool $isInvalid,         // Für die ausgegraute Zeile
+        public string $rowClass,        // c-table__row--danger u-opacity-50 oder leer
+        public string $discountText,    // z.B. "100% Rabatt"
+        public string $discountBadgeClass,
+        public string $usageBadgeText,  // z.B. "Mehrfach (0/10)"
+        public ?string $usageBadgeIcon, // z.B. "sync.webp"
+        public string $dateModeText,    // "Flexible Datenwahl"
+        public ?string $prefilledName,
+        public ?string $prefilledPlot,
+        public ?string $expiresText,    // "Gültig bis: 12.12.2026 Uhr"
+        public bool $isDeactivated,
+        public string $toggleActionUrl, // "activate_voucher"
+        public string $toggleIcon,      // "unlock.webp"
+        public string $toggleTitle,      // "Aktivieren"
     ) {
     }
 }

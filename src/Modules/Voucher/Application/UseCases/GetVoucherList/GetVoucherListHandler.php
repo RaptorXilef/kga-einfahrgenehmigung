@@ -35,29 +35,56 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
         }
 
         $sql .= ' ORDER BY created_at DESC';
-
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        $now = new DateTimeImmutable();
         $dtos = [];
-        foreach ($rows as $row) {
-            $expiresAt = null;
-            if (!empty($row['expires_at'])) {
-                $expiresAt = (new DateTimeImmutable($row['expires_at']))->format('d.m.Y H:i');
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $isMultiUse = (bool) $row['is_multi_use'];
+            $currentUses = (int) $row['current_uses'];
+            $maxUses = (int) $row['max_uses'];
+            $status = (string) $row['status'];
+            $type = (string) $row['type'];
+            $value = (float) $row['value'];
+
+            $expiresAtObj = $row['expires_at'] ? new DateTimeImmutable($row['expires_at']) : null;
+            $prefill = \json_decode((string) $row['prefill_data'], true) ?: [];
+
+            // 1. Logik-Auswertung
+            $isDeactivated = $status !== 'aktiv';
+            $isExpired = $expiresAtObj !== null && $expiresAtObj < $now;
+            $isDepleted = ($isMultiUse && $currentUses >= $maxUses) || (!$isMultiUse && $currentUses > 0);
+            $isInvalid = $isDeactivated || $isExpired || $isDepleted;
+
+            // 2. Formatierungen für die View
+            $reasonText = $row['reason'] . ($isExpired ? ' <span class="u-color-danger u-text-xs u-margin-inline-start-s">(Abgelaufen)</span>' : '');
+
+            $discountText = 'Kostenlos';
+            if ($type === 'percent') {
+                $discountText = "{$value}% Rabatt";
+            } elseif ($type === 'fixed') {
+                $discountText = \number_format($value, 2, ',', '.') . ' € Festpreis';
             }
 
             $dtos[] = new VoucherListDto(
                 code: (string) $row['code'],
-                reason: (string) $row['reason'],
-                type: (string) $row['type'],
-                value: (float) $row['value'],
-                isMultiUse: (bool) $row['is_multi_use'],
-                maxUses: (int) $row['max_uses'],
-                currentUses: (int) $row['current_uses'],
-                status: (string) $row['status'],
-                expiresAtFormatted: $expiresAt,
-                createdAtFormatted: (new DateTimeImmutable($row['created_at']))->format('d.m.Y H:i'),
+                reason: $reasonText,
+                isInvalid: $isInvalid,
+                rowClass: $isInvalid ? 'c-table__row--danger u-opacity-50' : '',
+                discountText: $discountText,
+                discountBadgeClass: $type === 'free' ? 'c-badge--success' : 'c-badge--primary',
+                usageBadgeText: $isMultiUse ? "Mehrfach ({$currentUses}/" . ($maxUses > 0 ? $maxUses : '&infin;') . ')' : 'Einweg',
+                usageBadgeIcon: $isMultiUse ? 'sync.webp' : null,
+                dateModeText: empty($prefill['datum_von']) ? 'Flexible Datenwahl' : 'Gefixte Daten',
+                prefilledName: !empty($prefill['name']) ? (string) $prefill['name'] : null,
+                prefilledPlot: !empty($prefill['parzelle']) ? (string) $prefill['parzelle'] : null,
+                expiresText: $expiresAtObj ? "Gültig bis: <strong class=\"u-color-dark\">{$expiresAtObj->format('d.m.Y H:i')} Uhr</strong>" : null,
+                isDeactivated: $isDeactivated,
+                toggleActionUrl: $isDeactivated ? 'activate_voucher' : 'deactivate_voucher',
+                toggleIcon: $isDeactivated ? 'unlock.webp' : 'denied.webp',
+                toggleTitle: $isDeactivated ? 'Aktivieren' : 'Sperren',
             );
         }
 
