@@ -7,16 +7,17 @@ namespace App\Application\Listener;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Core\Event\PaymentReminderEvent;
-use App\Core\Service\BankQrGenerator;
+use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrHandler;
+use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrQuery;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
 
 final readonly class SendPaymentReminderMailListener
 {
     public function __construct(
-        private BankQrGenerator $bankQrGenerator,
         private ConfigInterface $config,
         private MailServiceInterface $mailService,
         private PermitFinancialCalculator $financialCalculator, // Domain Service
+        private GenerateEpcQrHandler $qrHandler, // CQRS
     ) {
     }
 
@@ -32,7 +33,7 @@ final readonly class SendPaymentReminderMailListener
         $usage = $this->financialCalculator->generateUsageText($permit);
 
         // Bank-QR-Code nochmal generieren, um das Bezahlen direkt aus der Reminder-Mail zu erleichtern
-        $epcQrData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
+        $epcQrData = $this->qrHandler->handle(new GenerateEpcQrQuery($permit->getPrice(), $usage));
 
         // Garantiert einen sauberen Slash am Ende der URL, damit der QR-Code-Endpoint erreicht wird
         $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';

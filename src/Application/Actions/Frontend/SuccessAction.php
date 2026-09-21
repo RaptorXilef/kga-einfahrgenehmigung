@@ -12,7 +12,8 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Core\Service\BankQrGenerator;
+use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrHandler;
+use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrQuery;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
 use App\Modules\Permit\Domain\Permit;
@@ -29,11 +30,11 @@ use App\Modules\Permit\Domain\PermitStatus;
 final readonly class SuccessAction implements ViewActionInterface
 {
     public function __construct(
-        private BankQrGenerator $bankQrGenerator,
         private ConfigInterface $config,
         private GetPermitByCodeHandler $getPermitByCodeHandler, // CQRS
         private PermitFinancialCalculator $financialCalculator, // Domain Service
         private TemplateRenderer $renderer,
+        private GenerateEpcQrHandler $qrHandler, // CQRS
     ) {
     }
 
@@ -45,10 +46,7 @@ final readonly class SuccessAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         $dto = SuccessRequest::fromArray($request->get);
-        $code = $dto->code;
-        $method = $dto->method;
-
-        $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($code));
+        $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($dto->code));
 
         if (!$permit instanceof Permit) {
             return new RedirectResponse('index');
@@ -57,9 +55,9 @@ final readonly class SuccessAction implements ViewActionInterface
         $epcData = '';
         $usage = '';
 
-        if ($method === 'wire' && $permit->getStatus() !== PermitStatus::Bezahlt) {
+        if ($dto->method === 'wire' && $permit->getStatus() !== PermitStatus::Bezahlt) {
             $usage = $this->financialCalculator->generateUsageText($permit);
-            $epcData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
+            $epcData = $this->qrHandler->handle(new GenerateEpcQrQuery($permit->getPrice(), $usage));
         }
 
         $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
@@ -70,7 +68,7 @@ final readonly class SuccessAction implements ViewActionInterface
         $html = $this->renderer->render('frontend/checkout_success', [
             'dueDate' => $dueDate,
             'epcData' => \urlencode($epcData),
-            'method' => $method,
+            'method' => $dto->method,
             'permit' => $permit,
             'requirePayment' => $requirePayment,
             'usage' => $usage,

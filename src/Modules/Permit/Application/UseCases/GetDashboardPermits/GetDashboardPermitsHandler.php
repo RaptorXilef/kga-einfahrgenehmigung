@@ -115,8 +115,11 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
         $offset = ($page - 1) * $query->limit;
         $limit = $query->limit;
 
+        // FIX: Explizite Spaltenauswahl, um UNION ALL Cardinality Exceptions zu verhindern
+        $cols = 'code, template_key, name, email, kennzeichen, parzelle, typ, firma, zweck, preis, von, bis, status, is_suspended, suspension_reason, erstellt';
+
         if ($tab === 'tab-cancelled') {
-            $sql = "SELECT * FROM permits_cancelled WHERE {$whereStr} ORDER BY erstellt DESC LIMIT {$limit} OFFSET {$offset}";
+            $sql = "SELECT {$cols} FROM permits_cancelled WHERE {$whereStr} ORDER BY erstellt DESC LIMIT {$limit} OFFSET {$offset}";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute($binds);
 
@@ -134,9 +137,9 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
 
         $sql = "
             SELECT * FROM (
-                SELECT * FROM permits WHERE {$whereStr} {$tabCond}
+                SELECT {$cols} FROM permits WHERE {$whereStr} {$tabCond}
                 UNION ALL
-                SELECT * FROM permits_archive WHERE {$archiveWhereStr} {$tabCond}
+                SELECT {$cols} FROM permits_archive WHERE {$archiveWhereStr} {$tabCond}
             ) as combined
             ORDER BY erstellt DESC LIMIT {$limit} OFFSET {$offset}
         ";

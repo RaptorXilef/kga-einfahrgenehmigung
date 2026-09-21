@@ -13,8 +13,8 @@ use App\Application\Response\EmptyResponse;
 use App\Application\Response\FileDownloadResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\ExportService;
-use App\Core\Service\PermitFilterService;
+use App\Modules\Finance\Application\UseCases\ExportFinanceData\ExportFinanceDataHandler;
+use App\Modules\Finance\Application\UseCases\ExportFinanceData\ExportFinanceDataQuery;
 
 #[Route('GET', '/dashboard_export')]
 #[Route('POST', '/dashboard_export')]
@@ -22,9 +22,8 @@ final readonly class DashboardExportAction implements ViewActionInterface, Requi
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private ExportService $exportService,
-        private PermitFilterService $filterService,
         private SessionManager $sessionManager,
+        private ExportFinanceDataHandler $exportHandler, // CQRS
     ) {
     }
 
@@ -38,26 +37,20 @@ final readonly class DashboardExportAction implements ViewActionInterface, Requi
         $sessionFilters = $this->sessionManager->getAdminFilters();
         $dto = ExportRequest::fromRequest($request, $sessionFilters);
 
-        $start = $dto->start;
-        $end = $dto->end;
-        $type = $sessionFilters['type'] ?? 'all';
-        $query = $sessionFilters['q'] ?? '';
+        $query = new ExportFinanceDataQuery(
+            $dto->format,
+            $dto->start,
+            $dto->end,
+            $sessionFilters['type'] ?? 'all',
+            $sessionFilters['q'] ?? '',
+        );
 
-        $filtered = $this->filterService->getFilteredPermits($start, $end, $type, $query);
-        $filename = $this->exportService->generateFilename($dto->format, $start, $end);
+        $result = $this->exportHandler->handle($query);
 
-        $this->auditLogger->log('DATA_EXPORT', "Daten-Export ausgeführt. Format: {$dto->format}, Einträge: " . \count($filtered));
+        $this->auditLogger->log('DATA_EXPORT', "Daten-Export ausgeführt. Format: {$dto->format}.");
 
-        if ($dto->format === 'json') {
-            return new FileDownloadResponse($this->exportService->generateJson($filtered), $filename, 'application/json');
-        }
-
-        if ($dto->format === 'csv') {
-            return new FileDownloadResponse($this->exportService->generateCsv($filtered), $filename, 'text/csv; charset=utf-8');
-        }
-
-        if ($dto->format === 'csv_stats') {
-            return new FileDownloadResponse($this->exportService->generateStatsCsv($filtered), $filename, 'text/csv; charset=utf-8');
+        if ($result->content !== '') {
+            return new FileDownloadResponse($result->content, $result->filename, $result->contentType);
         }
 
         return new EmptyResponse(400);
