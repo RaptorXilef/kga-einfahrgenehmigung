@@ -13,14 +13,13 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\CreateManualPermit\CreateManualPermitCommand;
+use App\Modules\Permit\Application\UseCases\CreateManualPermit\CreateManualPermitHandler;
 use InvalidArgumentException;
 use Throwable;
 
 /**
- * Action zur manuellen Ausstellung einer Genehmigung (ohne Zahlungsfluss).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Action zur manuellen Ausstellung einer Genehmigung (CQRS Refactored).
  */
 #[Route('GET', '/create_manual')]
 #[Route('POST', '/create_manual')]
@@ -28,8 +27,8 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private PermitService $permitService,
         private SessionManager $sessionManager,
+        private CreateManualPermitHandler $createHandler, // <-- CQRS Injected
     ) {
     }
 
@@ -54,22 +53,22 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
             $postData = $request->post;
             unset($postData['csrf_token']);
             $this->sessionManager->setFormData($postData);
-
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('admin?focus=tab-tools');
         }
 
         try {
-            $this->permitService->createPermit($dto->formData, $dto->sendEmail);
+            $command = new CreateManualPermitCommand($dto->formData, $dto->sendEmail);
+            $this->createHandler->handle($command);
 
             // LOG SCHREIBEN
             $this->auditLogger->log('PERMIT_CREATE', "Manuelle Genehmigung erstellt für: {$dto->formData->name} (Parzelle {$dto->formData->parzelle->getFormatted()})");
-
             $this->sessionManager->addFlash('success', 'Manuelle Genehmigung wurde erfolgreich erstellt.');
 
             // Wenn erfolgreich, schicken wir den User auf den Aktive-Reiter
             return new RedirectResponse('admin?focus=tab-active');
+
         } catch (InvalidArgumentException $e) {
             $postData = $request->post;
             unset($postData['csrf_token']);

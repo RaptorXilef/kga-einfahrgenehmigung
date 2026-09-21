@@ -44,6 +44,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
             suspension_reason=VALUES(suspension_reason), interner_kommentar=VALUES(interner_kommentar),
             bezahlt_am=VALUES(bezahlt_am), last_reminder_at=VALUES(last_reminder_at)';
 
+        // Nutzt nun sauber die öffentlichen Getter für private Domain-States!
         $this->pdo->prepare($sql)->execute([
             'code' => $permit->code->value,
             'tpl' => $permit->template_key->value,
@@ -61,10 +62,10 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
             'sus' => (int) $permit->isSuspended(),
             'susr' => $permit->getSuspensionReason(),
             'erst' => $permit->erstellt->format('Y-m-d H:i:s'),
-            'ik' => $permit->interner_kommentar,
+            'ik' => $permit->getInternalComment(),
             'agr' => \json_encode($permit->agreements, \JSON_UNESCAPED_UNICODE),
-            'bez' => $permit->bezahlt_am?->format('Y-m-d H:i:s'),
-            'rem' => $permit->status->last_reminder_at?->format('Y-m-d H:i:s'),
+            'bez' => $permit->getPaidAt()?->format('Y-m-d H:i:s'),
+            'rem' => $permit->getStatusObject()->last_reminder_at?->format('Y-m-d H:i:s'),
         ]);
     }
 

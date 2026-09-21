@@ -9,8 +9,9 @@ use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 
 /**
- * Die absolute Kern-Entität unseres Systems.
- * Behält ihren internen State konsequent bei und schützt ihn.
+ * Die absolute Kern-Entität unseres Systems (Aggregate Root).
+ * Nach strengen DDD-Regeln: Identität ist readonly, State ist private und wird
+ * nur über Business-Methoden mutiert.
  */
 final class Permit
 {
@@ -22,28 +23,13 @@ final class Permit
         public readonly Validity $validity,
         private Status $status,
         public readonly DateTimeImmutable $erstellt,
-        public ?string $interner_kommentar = null,
+        private ?string $interner_kommentar = null,
         public readonly array $agreements = [],
-        public ?DateTimeImmutable $bezahlt_am = null,
+        private ?DateTimeImmutable $bezahlt_am = null,
     ) {
     }
 
-    public function isValid(bool $requirePayment = false): bool
-    {
-        $now = new DateTimeImmutable();
-
-        if ($this->status->is_suspended) {
-            return false;
-        }
-
-        if ($requirePayment && $this->status->current !== PermitStatus::Bezahlt) {
-            return false;
-        }
-
-        $endOfPeriod = $this->validity->bis->setTime(23, 59, 59);
-
-        return $now >= $this->validity->von && $now <= $endOfPeriod;
-    }
+    // --- Domain Business Logic (State Mutation) ---
 
     public function markAsPaid(?string $kommentar = null, ?DateTimeImmutable $buchungsdatum = null): void
     {
@@ -68,6 +54,52 @@ final class Permit
         $this->status = new Status($this->status->current, false, null, $this->status->last_reminder_at);
     }
 
+    public function recordReminder(DateTimeImmutable $now): void
+    {
+        $this->status = new Status(
+            $this->status->current,
+            $this->status->is_suspended,
+            $this->status->suspension_reason,
+            $now,
+        );
+    }
+
+    // --- Domain Validation ---
+
+    public function isValid(bool $requirePayment = false): bool
+    {
+        $now = new DateTimeImmutable();
+
+        if ($this->status->is_suspended) {
+            return false;
+        }
+
+        if ($requirePayment && $this->status->current !== PermitStatus::Bezahlt) {
+            return false;
+        }
+
+        $endOfPeriod = $this->validity->bis->setTime(23, 59, 59);
+
+        return $now >= $this->validity->von && $now <= $endOfPeriod;
+    }
+
+    public function isExpired(DateTimeImmutable $now): bool
+    {
+        return $this->validity->bis < $now;
+    }
+
+    public function isFuture(DateTimeImmutable $now): bool
+    {
+        return $this->validity->von > $now;
+    }
+
+    // --- Getters für Repositories und Read-Models ---
+
+    public function getStatusObject(): Status
+    {
+        return $this->status;
+    }
+
     public function getStatus(): PermitStatus
     {
         return $this->status->current;
@@ -83,7 +115,22 @@ final class Permit
         return $this->status->suspension_reason;
     }
 
-    // Legacy Getter / Wrapper (Vorrübergehend für Actions)
+    public function getInternalComment(): ?string
+    {
+        return $this->interner_kommentar;
+    }
+
+    public function getPaidAt(): ?DateTimeImmutable
+    {
+        return $this->bezahlt_am;
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->status->current === PermitStatus::Bezahlt;
+    }
+
+    // Legacy Delegate Getters
     public function getOwnerName(): string
     {
         return $this->owner->name;
@@ -137,20 +184,5 @@ final class Permit
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->erstellt;
-    }
-
-    public function isPaid(): bool
-    {
-        return $this->status->current === PermitStatus::Bezahlt;
-    }
-
-    public function isExpired(DateTimeImmutable $now): bool
-    {
-        return $this->validity->bis < $now;
-    }
-
-    public function isFuture(DateTimeImmutable $now): bool
-    {
-        return $this->validity->von > $now;
     }
 }
