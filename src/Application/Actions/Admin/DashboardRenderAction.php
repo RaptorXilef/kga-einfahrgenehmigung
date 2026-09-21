@@ -27,7 +27,10 @@ use App\Core\Service\PermitFilterService;
 use App\Core\Service\PermitService;
 use App\Core\Service\PermitViewMapper;
 use App\Core\Service\ReleaseNotesService;
-use App\Core\Service\ReportingService;
+use App\Modules\Permit\Application\UseCases\GetDashboardStats\GetDashboardStatsHandler;
+use App\Modules\Permit\Application\UseCases\GetDashboardStats\GetDashboardStatsQuery;
+use App\Modules\Permit\Application\UseCases\GetFinanceList\GetFinanceListHandler;
+use App\Modules\Permit\Application\UseCases\GetFinanceList\GetFinanceListQuery;
 use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveQuery;
 use App\Modules\Voucher\Application\UseCases\GetVoucherList\GetVoucherListHandler;
@@ -54,14 +57,15 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private PermitFilterService $filterService,
         private PermitService $permitService,
         private ReleaseNotesService $releaseNotesService,
-        private ReportingService $reportingService,
         private SessionManager $sessionManager,
         private StorageInterface $storage,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
         private GetVoucherListHandler $getVoucherListHandler,
         private GetVoucherArchiveHandler $getVoucherArchiveHandler,
-        private PermitViewMapper $permitMapper, // <-- NEU
+        private PermitViewMapper $permitMapper,
+        private GetFinanceListHandler $financeListHandler,
+        private GetDashboardStatsHandler $statsHandler,
     ) {
     }
 
@@ -74,7 +78,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $this->sessionManager->clearAdminFilters();
         }
 
-        // 1. Aktive Daten holen
+        // 1. Aktive & Archiv Daten holen (nur für die 3 Legacy-Tabs: Active, Future, Expired)
         $allActivePermits = $this->storage->getAll();
         $filteredActive = $this->filterService->getFilteredPermits($dto->start, $dto->end, $dto->type, $dto->query);
 
@@ -108,31 +112,33 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $filteredHistoricalAndActive[] = $p;
         }
 
-        // 4. Tab-Gruppierungen erstellen
-        $permitGroups = $this->reportingService->groupPermits($filteredHistoricalAndActive);
-
-        // --- MAP DTOs FÜR DIE VIEWS (Das macht die PHTMLs dumm und sicher) ---
+        // Manuelles Filtern für die ersten 3 Tabs (bis diese auf PDO umgestellt sind)
         $now = new DateTimeImmutable('today');
+        $activeGroups = ['active' => [], 'future' => [], 'expired' => []];
+        foreach ($filteredHistoricalAndActive as $permit) {
+            if ($permit->isExpired($now)) {
+                $activeGroups['expired'][] = $permit;
+            } elseif ($permit->isFuture($now)) {
+                $activeGroups['future'][] = $permit;
+            } else {
+                $activeGroups['active'][] = $permit;
+            }
+        }
+
         $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
-
-        $activePermitsDto = \array_map(fn ($p) => $this->permitMapper->mapToDashboardDto($p, $now, $requirePayment), $permitGroups['active'] ?? []);
-        $futurePermitsDto = \array_map(fn ($p) => $this->permitMapper->mapToDashboardDto($p, $now, $requirePayment), $permitGroups['future'] ?? []);
-        $expiredPermitsDto = \array_map(fn ($p) => $this->permitMapper->mapToDashboardDto($p, $now, $requirePayment), $permitGroups['expired'] ?? []);
-
-        // Zähler für die Tabs!
-        $totalActive = \count($activePermitsDto);
-        $totalFuture = \count($futurePermitsDto);
-        $totalExpired = \count($expiredPermitsDto);
-
-        // 5. Restliche Daten laden (Alles via CQRS!)
-        // DIE MAGIE: 1 saubere Zeile, 0 Entities, rasend schnell
-        $vouchers = $this->getVoucherListHandler->handle(new GetVoucherListQuery());
-        $voucherArchive = $this->getVoucherArchiveHandler->handle(new GetVoucherArchiveQuery());
+        $activePermitsDto = \array_map(fn ($p) => $this->permitMapper->mapToDashboardDto($p, $now, $requirePayment), $activeGroups['active']);
+        $futurePermitsDto = \array_map(fn ($p) => $this->permitMapper->mapToDashboardDto($p, $now, $requirePayment), $activeGroups['future']);
+        $expiredPermitsDto = \array_map(fn ($p) => $this->permitMapper->mapToDashboardDto($p, $now, $requirePayment), $activeGroups['expired']);
 
         $cancelledPermits = $this->cancelledRepository->loadAll();
-        // Cancelled DTO Mapping
         $cancelledPermitsDto = \array_map(fn ($p) => $this->permitMapper->mapToDashboardDto($p, $now, $requirePayment), $cancelledPermits);
-        $totalCancelled = \count($cancelledPermitsDto);
+
+        // --- CQRS FINANCE & STATS SLICES ---
+        $financePermitsDto = $this->financeListHandler->handle(new GetFinanceListQuery());
+        $statsDto = $this->statsHandler->handle(new GetDashboardStatsQuery($dto->start, $dto->end, $dto->type, $dto->query, $minArchiveYear));
+
+        $vouchers = $this->getVoucherListHandler->handle(new GetVoucherListQuery());
+        $voucherArchive = $this->getVoucherArchiveHandler->handle(new GetVoucherArchiveQuery());
 
         // Einheitlicher DTO-Page Parameter für die Datenbank-Abfrage
         $auditFilter = (string) ($request->get['audit_filter'] ?? '');
@@ -155,25 +161,26 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             }
         }
 
-        // 6. View rendern
+        // View rendern
         $html = $this->renderer->render('admin/dashboard', [
             'allowedLimits' => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
-            'allPermits' => $allHistoricalAndActive,
             'allReleaseNotes' => $allReleaseNotes,
             'auditFilter' => $auditFilter,
             'auditLogs' => $auditData['items'],
             'auditTotal' => $auditData['total'],
             'auth' => $this->auth,
             'backups' => $this->auth->hasPermission('system.backup.manage') ? $this->backupService->listBackups() : [],
-            // DTO Variablen übergeben:
             'activePermitsDto' => $activePermitsDto,
             'futurePermitsDto' => $futurePermitsDto,
             'expiredPermitsDto' => $expiredPermitsDto,
             'cancelledPermitsDto' => $cancelledPermitsDto,
-            'totalActive' => $totalActive,
-            'totalFuture' => $totalFuture,
-            'totalExpired' => $totalExpired,
-            'totalCancelled' => $totalCancelled,
+            'financePermitsDto' => $financePermitsDto, // <-- NEU
+            'totalActive' => \count($activePermitsDto),
+            'totalFuture' => \count($futurePermitsDto),
+            'totalExpired' => \count($expiredPermitsDto),
+            'totalCancelled' => \count($cancelledPermitsDto),
+            'totalUnpaid' => \count($financePermitsDto), // <-- NEU
+            'statsDto' => $statsDto, // <-- NEU
             'currentPage' => $dto->page,
             'filterEnd' => $dto->end,
             'filterQuery' => $dto->query,
@@ -185,14 +192,11 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'itemsPerPage' => $dto->limit,
             'mailLogs' => $this->mailLog->loadLogs(),
             'minArchiveYear' => $minArchiveYear,
-            'periodStats' => $this->reportingService->calculateDetailedStats($filteredHistoricalAndActive),
-            'permitGroups' => $permitGroups, // Bleibt für Finance/Stats Tab vorerst drin
             'structure' => $this->config->get('structure', []),
             'unreadReleaseNotes' => $unreadReleaseNotes,
             'userRepository' => $this->userRepository,
             'voucherArchive' => $voucherArchive,
             'vouchers' => $vouchers,
-            'yearlyStats' => $this->reportingService->calculateYearlyStats($allHistoricalAndActive),
             'collectiveTransfers' => $this->sessionManager->getCollectiveTransfers(),
         ]);
 

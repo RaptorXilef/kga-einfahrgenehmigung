@@ -2,8 +2,7 @@
 
 use App\Contracts\System\AssetHelperInterface;
 use App\Core\Service\AuthService;
-use App\Core\Service\PermitService;
-use App\Infrastructure\Config\Config;
+use App\Modules\Permit\Application\UseCases\GetFinanceList\FinancePermitDto;
 
 /**
  * Partial: Dashboard Tab - Finance Monitoring
@@ -12,37 +11,21 @@ use App\Infrastructure\Config\Config;
  *
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
- * @var Config $config
- * @var PermitService $permitService
- * @var array $permitGroups
  * @var array $settings
  * @var array $collectiveTransfers
  * @var string $appRoot
+ * @var FinancePermitDto[] $financePermitsDto
+ * @var int $totalUnpaid
  */
-$dueDaysCfg = (int) $config->get('payment_due_days', 14);
-$now = new \DateTimeImmutable('today');
-$allUnpaid = $permitGroups['unpaid'] ?? [];
-$collectiveTransfers ??= [];
-
-// Sortierung - Am längsten überfällig / am wenigsten Zeit zuerst
-\usort($allUnpaid, function ($a, $b) use ($dueDaysCfg) {
-    $deadlineA = $a->getCreatedAt()->modify("+$dueDaysCfg days");
-    $deadlineB = $b->getCreatedAt()->modify("+$dueDaysCfg days");
-
-    return $deadlineA <=> $deadlineB; // Älteste Deadline zuerst
-});
-
-// Paginierungs-Logik: Schützt vor Parameter-Bleeding aus anderen Tabs
 $limit = $itemsPerPage ?? 25;
 $focus = $_GET['focus'] ?? 'tab-active';
 $page = ($focus === 'tab-finance') ? ($currentPage ?? 1) : 1;
 
-$totalCount = \count($allUnpaid);
-$totalPages = \max(1, (int) \ceil($totalCount / $limit));
+$totalPages = \max(1, (int) \ceil($totalUnpaid / $limit));
 $page = \min($page, $totalPages);
 $offset = ($page - 1) * $limit;
 
-$unpaidPermits = \array_slice($allUnpaid, $offset, $limit);
+$unpaidPermits = \array_slice($financePermitsDto, $offset, $limit);
 
 $hasBulkRight = $auth->hasPermission('finance.mark_paid');
 $privacyEmail = $auth->hasPermission('privacy.emails.view');
@@ -51,12 +34,12 @@ $colspan = 5 + ($privacyEmail ? 1 : 0) + ($privacyFinance ? 1 : 0) + ($hasBulkRi
 
 \ob_start();
 $paginationParam = 'page';
+$totalCount = $totalUnpaid;
 $tabFocusId = 'tab-finance';
 include $appRoot . '/templates/partials/admin/pagination.phtml';
 $paginationHtml = \ob_get_clean();
-
-if ($auth->hasPermission('finance.view')) {
-    ?>
+?>
+<?php if ($auth->hasPermission('finance.view')) { ?>
     <div class="c-tab-content-container">
         <section class="c-card c-card--warning">
             <header class="c-card__header u-flex u-justify-between u-align-center">
@@ -65,7 +48,7 @@ if ($auth->hasPermission('finance.view')) {
                          loading="lazy"
                          alt=""> Zahlungsüberwachung</h3>
                 <div class="u-flex u-align-center u-gap-m">
-                    <?php if ($hasBulkRight && $totalCount > 0) { ?>
+                    <?php if ($hasBulkRight && $totalUnpaid > 0) { ?>
                         <button type="submit"
                                 form="bulk-action-form"
                                 formaction="<?php echo $settings['base_url']; ?>mark_as_paid"
@@ -79,7 +62,6 @@ if ($auth->hasPermission('finance.view')) {
                                  alt="">
                             <span class="js-bulk-pay-count">0</span> als Bezahlt markieren
                         </button>
-
                         <button type="submit"
                                 form="bulk-action-form"
                                 formaction="<?php echo $settings['base_url']; ?>send_reminder"
@@ -93,7 +75,7 @@ if ($auth->hasPermission('finance.view')) {
                                  alt=""> <span class="js-bulk-remind-count">0</span> erinnern
                         </button>
                     <?php } ?>
-                    <span class="c-badge c-badge--danger">OFFEN: <?php echo \count($allUnpaid); ?></span>
+                    <span class="c-badge c-badge--danger">OFFEN: <?php echo $totalUnpaid; ?></span>
                 </div>
             </header>
 
@@ -108,15 +90,11 @@ if ($auth->hasPermission('finance.view')) {
                             <div class="c-alert__content">
                                 <h4 class="u-margin-block-start-none u-margin-block-end-s u-flex u-align-center u-gap-s">
                                     <span class="u-text-xl">
-                                        <img src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
-                                    </span>
+                                        <img src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt=""></span>
                                     Manuelle Zahlungszuordnung erforderlich
                                 </h4>
-                                <p class="u-margin-block-start-none u-margin-block-end-m u-text-sm">
-                                    Das System hat in der Bankdatei Überweisungen gefunden, die manuell geprüft werden
-                                    müssen.
-                                </p>
-
+                                <p class="u-margin-block-start-none u-margin-block-end-m u-text-sm">Das System hat in
+                                    der Bankdatei Überweisungen gefunden, die manuell geprüft werden müssen.</p>
                                 <div class="u-flex u-flex-column u-gap-s u-inline-size-100">
                                     <?php foreach ($collectiveTransfers as $ct) { ?>
                                         <div class="c-box c-box--warning u-bg-white u-flex u-justify-between u-align-center u-gap-m u-flex-wrap">
@@ -165,7 +143,6 @@ if ($auth->hasPermission('finance.view')) {
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-
                     <table class="c-table js-sort-table u-inline-size-100">
                         <thead>
                             <tr>
@@ -200,24 +177,11 @@ if ($auth->hasPermission('finance.view')) {
                                         Konten ausgeglichen.</td>
                                 </tr>
                             <?php } else { ?>
-                                <?php foreach ($unpaidPermits as $permit) {
-                                    $overdueLevel = $overdueLevels[$permit->code->value] ?? 0;
-                                    $deadline = $permit->getCreatedAt()->modify("+$dueDaysCfg days");
-                                    $diff = $now->diff($deadline);
-                                    $days = (int) $diff->format('%r%a');
-                                    $is_suspended = $permit->isSuspended();
-                                    $cooldownDays = (int) $config->get('payment_reminder_cooldown_days', 7);
-                                    $lastRem = $permit->status->last_reminder_at;
-                                    $isOnCooldown = $lastRem !== null && $now < $lastRem->modify("+$cooldownDays days");
-                                    $vKey = $permit->getVehicleType();
-                                    $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
-                                    $iconPath = $vCfg['icon'] ?? 'warning.webp';
-                                    $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
-                                    ?>
-                                    <tr class="u-hover-fade <?php echo ($overdueLevel === 2 || $is_suspended) ? 'c-table__row--danger' : ''; ?>">
+                                <?php foreach ($unpaidPermits as $permit) { ?>
+                                    <tr class="u-hover-fade <?php echo $permit->rowClass; ?>">
                                         <?php if ($hasBulkRight) { ?>
                                             <td class="c-table__data-cell u-text-center">
-                                                <?php if (!$is_suspended) { ?>
+                                                <?php if (!$permit->isSuspended) { ?>
                                                     <label class="c-checkbox u-margin-block-none"
                                                            style="justify-content: center;">
                                                         <input type="checkbox"
@@ -225,7 +189,7 @@ if ($auth->hasPermission('finance.view')) {
                                                                value="<?php echo $permit->code; ?>"
                                                                class="js-bulk-pay-cb c-checkbox__input"
                                                                style="margin-block-start: 0;"
-                                                               aria-label="Genehmigung <?php echo $permit->code; ?> für Sammelaktion auswählen">
+                                                               aria-label="Genehmigung <?php echo $permit->code; ?> auswählen">
                                                     </label>
                                                 <?php } else { ?>
                                                     <span title="Gesperrt" class="u-opacity-50">
@@ -236,69 +200,61 @@ if ($auth->hasPermission('finance.view')) {
                                         <?php } ?>
                                         <!-- 1. Name, Code & Parzelle -->
                                         <td class="c-table__data-cell"
-                                            data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>">
+                                            data-sort-val="<?php echo \htmlspecialchars($permit->ownerName); ?>">
                                             <div class="u-flex u-flex-column">
-                                                <span class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->getOwnerName()); ?></span>
+                                                <span class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->ownerName); ?></span>
                                                 <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs"><?php echo $permit->code; ?></code>
-                                                <div><span class="c-badge c-badge--primary">PARZELLE <?php echo $permit->getPlotNumber(); ?></span>
+                                                <div><span class="c-badge c-badge--primary">PARZELLE <?php echo $permit->plotNumber; ?></span>
                                                 </div>
                                             </div>
                                         </td>
 
                                         <!-- 2. Fahrzeug & Kennzeichen darunter -->
                                         <td class="c-table__data-cell u-text-center"
-                                            data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>">
+                                            data-sort-val="<?php echo \htmlspecialchars($permit->licensePlate); ?>">
                                             <div>
-                                                <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
+                                                <img src="<?php echo $asset->url($permit->vehicleIcon); ?>"
                                                      class="c-icon c-table__icon"
-                                                     title="<?php echo $vLabel; ?>"
+                                                     title="<?php echo \htmlspecialchars($permit->vehicleLabel); ?>"
                                                      loading="lazy"
                                                      alt="">
                                             </div>
                                             <div class="u-margin-block-start-xs">
-                                                <span class="c-license-plate c-table__license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
+                                                <span class="c-license-plate c-table__license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->licensePlate); ?></span>
                                             </div>
                                         </td>
 
                                         <!-- 3. E-Mail -->
                                         <?php if ($privacyEmail) { ?>
                                             <td class="c-table__data-cell"
-                                                data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>">
-                                                <?php if ($permit->getOwnerEmail()) { ?>
-                                                    <small>
-                                                        <a href="mailto:<?php echo \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8'); ?>" class="u-text-link c-table__mail-link">
-                                                            <?php echo \str_replace('@', '<wbr>@', \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8')); ?>
-                                                        </a>
-                                                    </small>
-                                                <?php } else { ?>
-                                                    <small class="u-color-muted"><em>Keine Mail</em></small>
-                                                <?php } ?>
+                                                data-sort-val="<?php echo \htmlspecialchars(\strip_tags($permit->emailHtml)); ?>">
+                                                <?php echo $permit->emailHtml; ?>
                                             </td>
                                         <?php } ?>
 
                                         <!-- 4. Mahnstatus & Zähler -->
                                         <td class="c-table__data-cell u-text-center"
-                                            data-sort-val="<?php echo $deadline->format('Y-m-d'); ?>">
-                                            <?php if ($overdueLevel === 2) { ?>
+                                            data-sort-val="<?php echo \strtotime($permit->deadlineDate); ?>">
+                                            <?php if ($permit->overdueLevel === 2) { ?>
                                                 <span class="c-badge c-badge--danger u-text-nowrap">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/siren.webp'); ?>" class="c-icon" loading="lazy" alt=""> <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
+                                                    <img src="<?php echo $asset->url('assets/img/icons/siren.webp'); ?>" class="c-icon" loading="lazy" alt=""> <?php echo \str_replace('-', '', $permit->daysOverdueText); ?> TAGE ÜBERFÄLLIG
                                                 </span>
-                                            <?php } elseif ($overdueLevel === 1) { ?>
+                                            <?php } elseif ($permit->overdueLevel === 1) { ?>
                                                 <span class="c-badge c-badge--warning u-text-nowrap">MAHNFRIST ABGELAUFEN</span>
                                             <?php } else { ?>
-                                                <span class="c-badge c-badge--outline u-text-nowrap">Noch <?php echo $days; ?> Tage</span>
+                                                <span class="c-badge c-badge--outline u-text-nowrap">Noch <?php echo $permit->daysOverdueText; ?> Tage</span>
                                             <?php } ?>
-                                            <br><small class="u-color-muted u-text-nowrap">Ziel: <?php echo $deadline->format('d.m.Y'); ?></small>
-                                            <?php if ($lastRem) { ?>
-                                                <br><small class="u-font-semibold u-text-nowrap <?php echo $isOnCooldown ? 'u-color-primary' : 'u-color-danger'; ?>">
-                                                    Erinnert: <?php echo $lastRem->format('d.m.Y'); ?>
+                                            <br><small class="u-color-muted u-text-nowrap">Ziel: <?php echo $permit->deadlineDate; ?></small>
+                                            <?php if ($permit->lastReminderText) { ?>
+                                                <br><small class="u-font-semibold u-text-nowrap <?php echo $permit->isOnCooldown ? 'u-color-primary' : 'u-color-danger'; ?>">
+                                                    Erinnert: <?php echo $permit->lastReminderText; ?>
                                                 </small>
                                             <?php } ?>
                                         </td>
                                         <td class="c-table__data-cell u-text-center"
-                                            data-sort-val="<?php echo $is_suspended ? '1' : '0'; ?>">
-                                            <?php if ($is_suspended) { ?>
-                                                <span class="c-badge c-badge--danger" title="<?php echo \htmlspecialchars($permit->getSuspensionReason()); ?>">GESPERRT</span>
+                                            data-sort-val="<?php echo $permit->isSuspended ? '1' : '0'; ?>">
+                                            <?php if ($permit->isSuspended) { ?>
+                                                <span class="c-badge c-badge--danger" title="<?php echo \htmlspecialchars($permit->suspensionReason ?? ''); ?>">GESPERRT</span>
                                             <?php } else { ?>
                                                 <span class="c-badge c-badge--success">AKTIV</span>
                                             <?php } ?>
@@ -307,15 +263,14 @@ if ($auth->hasPermission('finance.view')) {
                                         <!-- 5. Betrag -->
                                         <?php if ($privacyFinance) { ?>
                                             <td class="c-table__data-cell u-text-end"
-                                                data-sort-val="<?php echo $permit->getPrice(); ?>">
-                                                <strong class="u-color-danger u-text-md u-text-nowrap"><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?>
-                                                    €</strong>
+                                                data-sort-val="<?php echo $permit->priceRaw; ?>">
+                                                <strong class="u-color-danger u-text-md u-text-nowrap"><?php echo $permit->priceFormatted; ?></strong>
                                             </td>
                                         <?php } ?>
 
                                         <!-- 6. Aktionen -->
                                         <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
-                                            <div class="u-flex u-gap-xs u-justify-end u-flex-wrap">
+                                            <div class="u-flex u-gap-xs u-justify-end u-text-nowrap u-flex-wrap">
                                                 <?php if ($auth->hasPermission('finance.view')) { ?>
                                                     <a href="check?code=<?php echo $permit->code; ?>"
                                                        target="_blank"
@@ -326,7 +281,7 @@ if ($auth->hasPermission('finance.view')) {
                                                     </a>
                                                 <?php } ?>
                                                 <?php if ($auth->hasPermission('permits.suspend')) { ?>
-                                                    <?php if ($is_suspended) { ?>
+                                                    <?php if ($permit->isSuspended) { ?>
                                                         <button type="button"
                                                                 class="c-button c-button--success c-button--small c-button--icon-only js-submit-form"
                                                                 data-target=".js-form-unsuspend[data-code='<?php echo $permit->code; ?>']"
@@ -362,25 +317,15 @@ if ($auth->hasPermission('finance.view')) {
                                                              loading="lazy"
                                                              alt="">
                                                     </button>
-                                                    <form method="POST"
-                                                          action="<?php echo $settings['base_url']; ?>send_reminder"
-                                                          class="u-margin-block-none js-form-send-reminder">
-                                                        <input type="hidden"
-                                                               name="csrf_token"
-                                                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                                        <input type="hidden"
-                                                               name="code"
-                                                               value="<?php echo $permit->code; ?>">
-                                                        <button type="submit"
-                                                                class="c-button <?php echo $isOnCooldown ? 'c-button--secondary' : 'c-button--danger'; ?> c-button--small c-button--icon-only"
-                                                                title="Zahlungserinnerung senden <?php echo $isOnCooldown ? '(Cooldown aktiv)' : ''; ?>"
-                                                                aria-label="Zahlungserinnerung für Genehmigung <?php echo $permit->code; ?> senden">
-                                                            <img src="<?php echo $asset->url('assets/img/icons/bell.webp'); ?>"
-                                                                 class="c-icon c-button__icon"
-                                                                 loading="lazy"
-                                                                 alt="">
-                                                        </button>
-                                                    </form>
+                                                    <button type="button"
+                                                            class="c-button <?php echo $permit->isOnCooldown ? 'c-button--secondary' : 'c-button--danger'; ?> c-button--small c-button--icon-only js-submit-form"
+                                                            data-target=".js-form-send-reminder[data-code='<?php echo $permit->code; ?>']"
+                                                            title="Zahlungserinnerung senden <?php echo $permit->isOnCooldown ? '(Cooldown aktiv)' : ''; ?>">
+                                                        <img src="<?php echo $asset->url('assets/img/icons/bell.webp'); ?>"
+                                                             class="c-icon c-button__icon"
+                                                             loading="lazy"
+                                                             alt="">
+                                                    </button>
                                                 <?php } ?>
                                             </div>
                                         </td>
@@ -398,6 +343,17 @@ if ($auth->hasPermission('finance.view')) {
                               id="single_pay_<?php echo $permit->code; ?>"
                               action="<?php echo $settings['base_url']; ?>mark_as_paid"
                               class="u-hidden js-form-single-pay"
+                              data-code="<?php echo $permit->code; ?>">
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <input type="hidden"
+                                   name="code"
+                                   value="<?php echo $permit->code; ?>">
+                        </form>
+                        <form method="POST"
+                              action="<?php echo $settings['base_url']; ?>send_reminder"
+                              class="u-hidden js-form-send-reminder"
                               data-code="<?php echo $permit->code; ?>">
                             <input type="hidden"
                                    name="csrf_token"
@@ -447,7 +403,6 @@ if ($auth->hasPermission('finance.view')) {
             </div>
 
             <?php echo $paginationHtml; ?>
-
         </section>
     </div>
 <?php } ?>

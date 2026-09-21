@@ -2,8 +2,7 @@
 
 use App\Contracts\System\AssetHelperInterface;
 use App\Core\Service\AuthService;
-use App\Core\Service\PermitService;
-use App\Infrastructure\Config\Config;
+use App\Modules\Permit\Application\UseCases\GetDashboardStats\DashboardStatsDto;
 
 /**
  * Partial: Dashboard Tab - Statistics & Charts
@@ -12,50 +11,15 @@ use App\Infrastructure\Config\Config;
  *
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
- * @var Config $config
- * @var PermitService $permitService
- * @var array $periodStats
+ * @var DashboardStatsDto $statsDto
  * @var array $settings
- * @var array $yearlyStats
  * @var int $minArchiveYear
  * @var string $cspNonce
  * @var string $filterEnd
  * @var string $filterStart
  */
-
-// --- Monatliche Statistiken für den Chart berechnen ---
-$allPermitsForStats = $allPermits ?? [];
-$monthlyStats = [];
-foreach ($allPermitsForStats as $permit) {
-    $mKey = $permit->getCreatedAt()->format('m.Y'); // z.B. "05.2024" für schöne Anzeige
-    if (!isset($monthlyStats[$mKey])) {
-        // Wir nutzen den Zeitstempel für die korrekte Sortierung, da m.Y textuell falsch sortiert würde
-        $monthlyStats[$mKey] = [
-            'sort_key' => $permit->getCreatedAt()->format('Y-m'),
-            'count' => 0,
-            'revenue' => 0.0,
-        ];
-    }
-    ++$monthlyStats[$mKey]['count'];
-    $monthlyStats[$mKey]['revenue'] += $permit->getPrice();
-}
-
-// Nach dem unsichtbaren sort_key (Y-m) aufsteigend sortieren
-\uasort($monthlyStats, fn ($a, $b) => $a['sort_key'] <=> $b['sort_key']);
-
-$monthLabels = \array_keys($monthlyStats);
-$monthRevenue = \array_map(fn ($d) => $d['revenue'], $monthlyStats);
-$monthCounts = \array_map(fn ($d) => $d['count'], $monthlyStats);
-
-// Payload für JS aufbereiten
-$chartDataPayload = [
-    'yearLabels' => \array_reverse(\array_keys($yearlyStats)),
-    'yearRevenue' => \array_reverse(\array_map(fn ($d) => $d['paid'] + $d['unpaid'], $yearlyStats)),
-    'yearCounts' => \array_reverse(\array_map(fn ($d) => $d['count'], $yearlyStats)),
-    'monthLabels' => \array_values($monthLabels),
-    'monthRevenue' => \array_values($monthRevenue),
-    'monthCounts' => \array_values($monthCounts),
-];
+$periodStats = $statsDto->periodStats;
+$yearlyStats = $statsDto->yearlyStats;
 ?>
 
 <?php if ($auth->hasPermission('stats.view')) { ?>
@@ -105,11 +69,13 @@ $chartDataPayload = [
 
                         <div class="c-stat-card__footer">
                             <?php
-                            $vConfig = $config->get('vehicle_types', []);
+                            $vConfig = $settings['vehicle_types'] ?? [];
+            $typeItems = [];
             foreach (($periodStats['types'] ?? []) as $typeKey => $count) {
                 if ($count === 0) {
                     continue;
                 }
+
                 if ($typeKey === '__legacy__') {
                     $label = 'Sonstige / Ehem.';
                     $icon = 'assets/img/icons/warning.webp';
@@ -147,7 +113,8 @@ $chartDataPayload = [
                     id="chart-data"
                     class="js-chart-data"
                     nonce="<?php echo $cspNonce; ?>">
-                <?php echo \json_encode($chartDataPayload, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+            <?php echo \json_encode($statsDto->chartDataPayload, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+
             </script>
 
             <section class="c-card c-card--primary u-margin-block-end-l">
@@ -177,7 +144,7 @@ $chartDataPayload = [
 
         <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
             <h3 class="u-margin-block-end-m u-flex u-align-center u-gap-s">
-                <img src="<?php echo $asset->url('assets/img/icons/document.webp'); // scroll?>"
+                <img src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
                      class="c-icon c-icon--md"
                      loading="lazy"
                      alt=""> Historische Jahresabschlüsse
@@ -187,8 +154,7 @@ $chartDataPayload = [
                 <details class="c-accordion">
                     <summary class="c-accordion__summary">
                         <span class="c-accordion__title">
-                            <img src="<?php echo $asset->url('assets/img/icons/calendar.webp'); ?>" class="c-icon" loading="lazy" alt="">
-                            Geschäftsjahr <strong><?php echo $year; ?></strong>
+                            <img src="<?php echo $asset->url('assets/img/icons/calendar.webp'); ?>" class="c-icon" loading="lazy" alt=""> Geschäftsjahr <strong><?php echo $year; ?></strong>
                         </span>
                         <div class="c-accordion__meta">
                             <span class="u-color-success u-font-bold">+ <?php echo \number_format($data['paid'], 0, ',', '.'); ?> €</span>
@@ -215,7 +181,7 @@ $chartDataPayload = [
                                 <div
                                      class="u-text-xs u-color-muted u-flex u-justify-center u-gap-s u-flex-wrap u-align-center">
                                     <?php
-                        $vConfig = $config->get('vehicle_types', []);
+                        $vConfig = $settings['vehicle_types'] ?? [];
                 $typeItems = [];
                 foreach ($data['types'] as $tKey => $count) {
                     if ($count === 0) {
@@ -252,12 +218,12 @@ $chartDataPayload = [
             <div class="u-text-center u-margin-block-start-l">
                 <?php
                 $queryParams = $_GET;
-                // Verhindere, dass Paginierungen beim Laden von Archiven mitgenommen werden
-                unset($queryParams['page'], $queryParams['audit_page']);
-                $queryParams['archive_depth'] = $minArchiveYear - 1;
-                $queryParams['focus'] = 'tab-stats'; // Zwingt den Tab nach dem Laden wieder auf Statistiken
-                $loadUrl = '?' . \http_build_query($queryParams);
-                ?>
+            // Verhindere, dass Paginierungen beim Laden von Archiven mitgenommen werden
+            unset($queryParams['page'], $queryParams['audit_page']);
+            $queryParams['archive_depth'] = $minArchiveYear - 1;
+            $queryParams['focus'] = 'tab-stats'; // Zwingt den Tab nach dem Laden wieder auf Statistiken
+            $loadUrl = '?' . \http_build_query($queryParams);
+            ?>
                 <a href="<?php echo $loadUrl; ?>" class="c-button c-button--secondary">
                     <img src="<?php echo $asset->url('assets/img/icons/inbox.webp'); ?>"
                          class="c-icon c-button__icon"
