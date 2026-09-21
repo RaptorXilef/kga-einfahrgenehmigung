@@ -8,7 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidCommand;
 use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidHandler;
-use App\Modules\Permit\Domain\Permit; // <-- Richtiges Modul
+use App\Modules\Permit\Domain\Permit;
 use DateTimeImmutable;
 use DomainException;
 use Exception;
@@ -19,7 +19,7 @@ final readonly class BankImportService
 {
     public function __construct(
         private StorageInterface $storage,
-        private MarkPermitAsPaidHandler $markPaidHandler, // <-- CQRS statt PermitService
+        private MarkPermitAsPaidHandler $markPaidHandler, // CQRS Command
         private ConfigInterface $config,
     ) {
     }
@@ -154,27 +154,48 @@ final readonly class BankImportService
             $matchMethodsForLine = [];
             $matchMethodsMap = [];
 
-            // 1. Hauptverarbeitung: Suche aktiv nach unbezahlten IDs
-            foreach ($unpaidCodes as $unpaidCode => $ownerName) {
-                if (\str_contains($zweckUpper, $unpaidCode)) {
-                    $gefundeneCodes[] = $unpaidCode;
-                    $matchMethodsForLine[] = 'Direktsuche (Unbezahlt)';
-                    $matchMethodsMap[$unpaidCode] = 'Direktsuche';
+            // PRIO 1: Exakte Suche nach neuem Format "EFG-ID"
+            if (\preg_match('/EFG-([A-Z0-9]{6,8})/i', $zweckUpper, $efgMatches)) {
+                $extractedShortCode = $efgMatches[1];
+                foreach ($unpaidCodes as $fullUnpaidCode => $ownerName) {
+                    $codeParts = \explode('-', $fullUnpaidCode);
+                    $dbShortCode = \end($codeParts);
+                    if ($dbShortCode === $extractedShortCode) {
+                        $gefundeneCodes[] = $fullUnpaidCode;
+                        $matchMethodsForLine[] = 'Exaktes Muster (EFG-Code)';
+                        $matchMethodsMap[$fullUnpaidCode] = 'Exaktes Muster';
+                        break;
+                    }
                 }
             }
 
-            // 2. Fallback: Regex, um alte/bezahlte Codes oder reine Tippfehler zu finden
+            // PRIO 2: Fallback (Einfaches Vorhandensein der ID irgendwo im Text)
             if (empty($gefundeneCodes)) {
-                if (\preg_match_all('/([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8})/', $zweckUpper, $matches)) {
-                    foreach ($matches[1] as $m) {
-                        if (isset($allCodes[$m])) {
-                            $gefundeneCodes[] = $m;
-                            $matchMethodsForLine[] = 'Regex Fallback (Bereits im System)';
-                            $matchMethodsMap[$m] = 'Regex: Bezahlt';
-                        } elseif (\preg_match('/\b' . $m . '\b/', $zweckUpper)) {
-                            $gefundeneCodes[] = $m;
-                            $matchMethodsForLine[] = 'Regex Fallback (Unbekannter Code, isoliertes Wort)';
-                            $matchMethodsMap[$m] = 'Regex: Unbekannt';
+                foreach ($unpaidCodes as $fullUnpaidCode => $ownerName) {
+                    // Wir extrahieren den Short-Code (z.B. X8Y1A2B3), da nur dieser im Verwendungszweck (EFG-X8Y1A2B3-MUELLER) steht!
+                    $codeParts = \explode('-', $fullUnpaidCode);
+                    $shortCode = \end($codeParts);
+                    if (\str_contains($zweckUpper, $shortCode)) {
+                        $gefundeneCodes[] = $fullUnpaidCode; // Den VOLLEN Code für die DB speichern!
+                        $matchMethodsForLine[] = 'Direktsuche (Unbezahlt)';
+                        $matchMethodsMap[$fullUnpaidCode] = 'Direktsuche';
+                    }
+                }
+            }
+
+            // PRIO 3: Regex Fallback (Erlaubt z.B. Tippfehler bei alten, bereits bezahlten Codes)
+            if (empty($gefundeneCodes)) {
+                // Sucht 6 bis 8-stellige Alphanumerische Blöcke (deckt V3 und V4 Codes ab)
+                if (\preg_match_all('/([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6,8})/', $zweckUpper, $matches)) {
+                    foreach ($matches[1] as $shortCodeCandidate) {
+                        // Prüfe, ob dieser gefundene Short-Code zu irgendeinem Code in unserer Datenbank gehört
+                        foreach ($allCodes as $fullCode => $dummy) {
+                            if (\str_ends_with($fullCode, $shortCodeCandidate)) {
+                                $gefundeneCodes[] = $fullCode;
+                                $matchMethodsForLine[] = 'Regex Fallback (Bereits im System)';
+                                $matchMethodsMap[$fullCode] = 'Regex: Bezahlt';
+                                break;
+                            }
                         }
                     }
                 }
@@ -185,7 +206,7 @@ final readonly class BankImportService
             $ueberwiesenerBetrag = (float) $cleanAmount;
             $anomalyId = 'sam_' . \md5($datumRaw . $betragRaw . $verwendungszweck);
 
-            // 3. Fallback: Kennzeichen-Suche (Wenn ID komplett vergessen wurde)
+            // PRIO 4: Fallback Kennzeichen-Suche (Wenn ID komplett vergessen wurde)
             $gefundeneKennzeichen = [];
             if (empty($gefundeneCodes)) {
                 $zweckNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $zweckUpper);

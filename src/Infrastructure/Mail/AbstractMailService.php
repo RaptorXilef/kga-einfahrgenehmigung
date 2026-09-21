@@ -9,7 +9,7 @@ use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MailLogEntry;
-use App\Core\ValueObject\TemplateKey;
+use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 use Exception;
 use PDO;

@@ -7,7 +7,7 @@ namespace App\Infrastructure\Mail;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Core\Entity\MailJob;
-use App\Core\ValueObject\TemplateKey;
+use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 use Exception;
 

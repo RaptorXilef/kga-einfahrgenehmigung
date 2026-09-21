@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\SharedKernel\Domain\ValueObject;
 
 use InvalidArgumentException;
+use Stringable;
 
 /**
  * Value Object für eine KGA Parzellennummer.
  * Darf ausschließlich eine Zahl sein (bis max. 4 Stellen, abhängig von der Config).
  */
-final readonly class PlotNumber
+final readonly class PlotNumber implements Stringable
 {
     public int $value;
 
@@ -22,18 +23,25 @@ final readonly class PlotNumber
      */
     public function __construct(int|string $value, int $maxPlotNumber = 9999)
     {
-        if (!\is_numeric($value)) {
-            throw new InvalidArgumentException('Die Parzelle muss eine reine Zahl sein.');
+        if (\is_string($value)) {
+            $value = \trim($value);
+            if ($value === '') {
+                throw new InvalidArgumentException('Die Parzellennummer darf nicht leer sein.');
+            }
+
+            if (!\ctype_digit($value)) {
+                throw new InvalidArgumentException('Fehler: Die Parzellennummer darf ausschließlich aus Zahlen bestehen.');
+            }
         }
 
-        $val = (int) $value;
+        $intVal = (int) $value;
 
-        // Wir nehmen an, dass Parzelle 0 nicht existiert.
-        if ($val < 1 || $val > $maxPlotNumber) {
+        // FIX: Erlaubt >= 0. (0 wird für DSGVO-Anonymisierung zwingend benötigt!)
+        if ($intVal < 0 || $intVal > $maxPlotNumber) {
             throw new InvalidArgumentException("Die Parzellennummer muss zwischen 1 und {$maxPlotNumber} liegen.");
         }
 
-        $this->value = $val;
+        $this->value = $intVal;
     }
 
     /**
@@ -42,6 +50,11 @@ final readonly class PlotNumber
     public function getFormatted(): string
     {
         return \str_pad((string) $this->value, 4, '0', \STR_PAD_LEFT);
+    }
+
+    public function __toString(): string
+    {
+        return $this->getFormatted();
     }
 
     public function equals(self $other): bool

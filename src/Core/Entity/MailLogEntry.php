@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core\Entity;
 
-use App\Core\ValueObject\TemplateKey;
+use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 
-/**
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class MailLogEntry
 {
     public function __construct(
