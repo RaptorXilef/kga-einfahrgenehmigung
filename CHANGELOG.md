@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.74.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.73.0...v0.74.0) (2026-09-21)
+
+### 🚀 Features
+
+* **admin:** Migrate DashboardRenderAction to Voucher CQRS read model ([91b6f16](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/91b6f16616c410e3da0b6e099b502ae1da7516fe))
+* **identity:** Scaffold Identity module and AuthenticateAdmin vertical slice ([f19caa3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f19caa3ee1763e229c341ce92f66f8d8174021e4))
+* **script:** Add development environment file collection feature ([2e9813b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2e9813b9ba5944466c6eea38a52a9ba5a07217f8))
+* **script:** Add environment export and sensitive data sanitization ([3054e40](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3054e400a2c8f3ef5d18d9310e4e2019294d4b02))
+* **shared-kernel/voucher:** Update PlotNumber VO and scaffold Voucher module slice ([e9958ca](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e9958ca596dbb4a23c817d081bfa0a4b8b455ca7))
+* **shared-kernel:** Implement CQRS interfaces, Domain Events and core Value Objects ([2299bfd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2299bfdb8cb69bdc2110aa9a7a104cd4414356be))
+* **voucher:** Add discount calculation slices, fix DB schema and remove legacy VoucherService ([204564f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/204564f7da19ee2eae7927e2a00a39628d698416))
+* **voucher:** Add Toggle and Delete use cases ([fdde88c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fdde88cbee16af88c9d1d134f81c43e1ae73a634))
+* **voucher:** Implement GetVoucherList query slice with native PDO ([37f3d6c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/37f3d6ccae3f8591bedf5a4cd496a7acea1a8300))
+* **voucher:** Implement Infrastructure, Read-Model and migrate HTTP Actions ([6e5f795](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6e5f795f06960621e5dbd6a62177a6ef760a0075))
+
+### 🐛 Bug Fixes
+
+* **di:** Bind new VoucherRepositoryInterface to PdoVoucherRepository in DI container ([b591aea](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b591aeabb966d0dddd9363e7bc8886acbedb9d65))
+* **voucher:** Eradicate legacy Voucher dependencies and complete CQRS migration ([a7e1cd6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a7e1cd62c8d9457b35e6e1c609a29e4858f26826))
+
 ## [0.73.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.72.0...v0.73.0) (2026-09-20)
 
 ### 🚀 Features
