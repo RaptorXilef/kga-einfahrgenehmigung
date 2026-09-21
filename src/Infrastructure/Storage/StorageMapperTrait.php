@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace App\Infrastructure\Storage;
 
 use App\Contracts\System\JsonHelperInterface;
-use App\Core\Entity\Owner;
-use App\Core\Entity\Permit;
-use App\Core\Entity\PermitStatus;
-use App\Core\Entity\Status;
-use App\Core\Entity\Validity;
-use App\Core\Entity\Vehicle;
-use App\Core\ValueObject\EmailAddress;
-use App\Core\ValueObject\LicensePlate;
-use App\Core\ValueObject\PermitCode;
-use App\Core\ValueObject\PlotNumber;
-use App\Core\ValueObject\Price;
-use App\Core\ValueObject\TemplateKey;
+use App\Modules\Permit\Domain\Owner;
+use App\Modules\Permit\Domain\Permit; // <-- WICHTIG: Neues Modul!
+use App\Modules\Permit\Domain\PermitStatus;
+use App\Modules\Permit\Domain\Status;
+use App\Modules\Permit\Domain\Validity;
+use App\Modules\Permit\Domain\Vehicle;
+use App\SharedKernel\Domain\ValueObject\EmailAddress;
+use App\SharedKernel\Domain\ValueObject\LicensePlate;
+use App\SharedKernel\Domain\ValueObject\PermitCode;
+use App\SharedKernel\Domain\ValueObject\PlotNumber;
+use App\SharedKernel\Domain\ValueObject\Price;
+use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 use Exception;
 

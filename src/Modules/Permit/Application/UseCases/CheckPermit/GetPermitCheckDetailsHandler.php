@@ -8,7 +8,8 @@ use App\Application\View\HolidayHtmlPresenter;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\HolidayService;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
 
@@ -18,8 +19,8 @@ use DateTimeImmutable;
 final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterface
 {
     public function __construct(
-        private PermitService $permitService,
-        private StorageInterface $storage, // <-- FIX: Wir holen uns direkten Lesezugriff!
+        private GetPermitByCodeHandler $getPermitByCodeHandler, // CQRS statt PermitService
+        private StorageInterface $storage,
         private HolidayService $holidayService,
         private ConfigInterface $config,
     ) {
@@ -33,7 +34,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
         $now = new DateTimeImmutable();
 
         // 1. Genehmigung suchen (Zuerst via Code in allen Tabellen)
-        $permit = $this->permitService->resolvePermit($query->codeOrPlate);
+        $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($query->codeOrPlate));
 
         if ($permit === null) {
             // Fallback auf Kennzeichensuche im aktiven Storage

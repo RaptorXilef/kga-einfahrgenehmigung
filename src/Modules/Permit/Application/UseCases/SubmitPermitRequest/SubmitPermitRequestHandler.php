@@ -13,6 +13,7 @@ use App\Core\Event\VerificationRequestedEvent;
 use App\Core\Exception\PermitCollisionException;
 use App\Core\Security\Sanitizer;
 use App\Core\Utils\DateRangeHelper;
+use App\Modules\Permit\Application\DTO\PermitFormData;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
 use DateTimeImmutable;
@@ -135,7 +136,7 @@ final readonly class SubmitPermitRequestHandler
         }
     }
 
-    private function transformDtoToArray($dto): array
+    private function transformDtoToArray(PermitFormData $dto): array
     {
         return [
             'name' => $dto->name,

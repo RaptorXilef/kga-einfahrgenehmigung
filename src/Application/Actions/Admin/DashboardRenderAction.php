@@ -24,7 +24,6 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\PermitFilterService;
-use App\Core\Service\PermitService;
 use App\Core\Service\PermitViewMapper;
 use App\Core\Service\ReleaseNotesService;
 use App\Modules\Permit\Application\UseCases\GetDashboardStats\GetDashboardStatsHandler;
@@ -55,7 +54,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private MailLogInterface $mailLog,
         private PermitArchiveRepositoryInterface $archiveRepository,
         private PermitFilterService $filterService,
-        private PermitService $permitService,
         private ReleaseNotesService $releaseNotesService,
         private SessionManager $sessionManager,
         private StorageInterface $storage,

@@ -44,8 +44,8 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
             suspension_reason=VALUES(suspension_reason), interner_kommentar=VALUES(interner_kommentar),
             bezahlt_am=VALUES(bezahlt_am), last_reminder_at=VALUES(last_reminder_at)';
 
-        // FIX: Explizite Null-Prüfung für Intelephense
-        $emailValue = $permit->owner->email !== null ? $permit->owner->email->value : null;
+        // Explizite Null-Prüfung für Intelephense
+        $emailValue = $permit->owner->email ? (string) $permit->owner->email : null;
 
         // Nutzt nun sauber die öffentlichen Getter für private Domain-States!
         $this->pdo->prepare($sql)->execute([

@@ -11,20 +11,19 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\ApiSearchPermitsRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
-use App\Core\Service\PermitService;
+use App\Modules\Permit\Application\UseCases\SearchPermits\SearchPermitsHandler;
+use App\Modules\Permit\Application\UseCases\SearchPermits\SearchPermitsQuery;
 use Throwable;
 
 /**
  * Action für die asynchrone Suche nach Genehmigungen im Admin-Dashboard.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('POST', '/api/search_permits')]
 #[RequiresAuth]
 final readonly class SearchPermitsAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private PermitService $permitService,
+        private SearchPermitsHandler $searchHandler, // <-- CQRS
     ) {
     }
 
@@ -38,13 +37,13 @@ final readonly class SearchPermitsAction implements ViewActionInterface, Require
         try {
             $dto = ApiSearchPermitsRequest::fromArray($request->post);
 
-            $result = $this->permitService->searchAndPaginate(
+            $result = $this->searchHandler->handle(new SearchPermitsQuery(
                 $dto->query,
-                $dto->tab,
-                $dto->template,
                 $dto->page,
                 $dto->limit,
-            );
+                $dto->tab,
+                $dto->template,
+            ));
 
             return JsonResponse::success([
                 'data' => $result['items'],

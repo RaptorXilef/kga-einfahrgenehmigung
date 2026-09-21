@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contracts\Storage;
 
-use App\Core\Entity\Permit;
+use App\Modules\Permit\Domain\Permit;
 
 interface CancelledPermitRepositoryInterface
 {
