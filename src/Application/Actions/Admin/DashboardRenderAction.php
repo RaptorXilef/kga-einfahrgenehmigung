@@ -28,7 +28,8 @@ use App\Core\Service\PermitFilterService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReleaseNotesService;
 use App\Core\Service\ReportingService;
-use App\Core\Service\VoucherService;
+use App\Modules\Voucher\Application\UseCases\GetVoucherList\GetVoucherListHandler;
+use App\Modules\Voucher\Application\UseCases\GetVoucherList\GetVoucherListQuery;
 
 /**
  * Rendert das zentrale Admin-Dashboard.
@@ -55,8 +56,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private StorageInterface $storage,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
-        private VoucherRepositoryInterface $voucherRepository,
-        private VoucherService $voucherService,
+        private VoucherRepositoryInterface $voucherRepository, // Wird noch für das Archiv benötigt
+        private GetVoucherListHandler $getVoucherListHandler, // CQRS Read Model
     ) {
     }
 
@@ -110,7 +111,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $filteredHistoricalAndActive[] = $p;
         }
 
-        // 4. Tab-Gruppierungen ERST JETZT aus den kombinierten Daten erstellen!
+        // 4. Tab-Gruppierungen erstellen
         $permitGroups = $this->reportingService->groupPermits($filteredHistoricalAndActive);
 
         $overdueLevels = [];
@@ -119,11 +120,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         }
 
         // 5. Restliche Daten laden
-        $vouchers = $this->voucherRepository->loadAll();
-        $voucherValidities = [];
-        foreach ($vouchers as $code => $v) {
-            $voucherValidities[$code] = $this->voucherService->isValid($v);
-        }
+        // DIE MAGIE: 1 saubere Zeile, 0 Entities, rasend schnell
+        $vouchers = $this->getVoucherListHandler->handle(new GetVoucherListQuery());
 
         $cancelledPermits = $this->cancelledRepository->loadAll();
 
@@ -177,8 +175,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'unreadReleaseNotes' => $unreadReleaseNotes,
             'userRepository' => $this->userRepository,
             'voucherArchive' => $this->voucherRepository->loadArchive(),
-            'vouchers' => $vouchers,
-            'voucherValidities' => $voucherValidities,
+            'vouchers' => $vouchers, // Nur noch unsere flachen DTOs
+            // 'voucherValidities' wurde komplett gelöscht!
             'yearlyStats' => $this->reportingService->calculateYearlyStats($allHistoricalAndActive),
             'collectiveTransfers' => $this->sessionManager->getCollectiveTransfers(),
         ]);
