@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.77.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.0...v0.77.1) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **dashboard:** resolve SQL cardinality violation in UNION ALL ([fa777fa](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fa777fa74af860370c2e3affb26a30f019593cde))
+
+### ⚙️ Refactoring
+
+* **dashboard:** implement fast PDO read-models for permit tabs ([5909d71](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5909d715256f87895fd6f23d7f7b9dce99665ba4))
+
 ## [0.77.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.76.0...v0.77.0) (2026-09-21)
 
 ### 🚀 Features
