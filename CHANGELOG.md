@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.77.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.1...v0.77.2) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **di:** bind PermitRepositoryInterface to PdoPermitRepository in service provider ([5b19603](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5b1960398737d96f577bf064c3510720ff3d2414))
+* **finance:** resolve readonly property assignment in BankImportAnalyzeAction ([1b634d8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1b634d811aaeebe7643419d9d31cedb17b9332cf))
+* **finance:** resolve void return type and state issues in Bank Import ([87b3425](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/87b3425abbafde83efb420d20568f99fb87a3f73))
+
+### ⚙️ Refactoring
+
+* **finance:** migrate BankImportService to isolated VSA slices ([7361c1b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7361c1b0a1b6ec77c855674db5e57df7ec6eb60c))
+
 ## [0.77.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.0...v0.77.1) (2026-09-21)
 
 ### 🐛 Bug Fixes
