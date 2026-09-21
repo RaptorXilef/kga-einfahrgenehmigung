@@ -7,7 +7,6 @@ namespace App\Modules\Finance\Application\UseCases\ProcessBankImport;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidCommand;
 use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidHandler;
-use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DateTimeImmutable;
 use DomainException;
 use Exception;
@@ -16,16 +15,15 @@ use PDO;
 use ZipArchive;
 
 /**
- * @implements CommandHandlerInterface<ProcessBankImportCommand>
+ * Orchestriert den Bank-Import. Da wir ein ResultDTO zurückgeben, implementiert
+ * dieser Use-Case ganz pragmatisch NICHT das strenge CommandHandlerInterface (void).
  */
-final class ProcessBankImportHandler implements CommandHandlerInterface
+final readonly class ProcessBankImportHandler
 {
-    private array $runLogs = [];
-
     public function __construct(
-        private readonly PDO $pdo, // Nativer PDO-Zugriff statt schwerem Entity-Repository
-        private readonly MarkPermitAsPaidHandler $markPaidHandler, // CQRS Command für das Permit-Modul
-        private readonly ConfigInterface $config,
+        private PDO $pdo,
+        private MarkPermitAsPaidHandler $markPaidHandler,
+        private ConfigInterface $config,
     ) {
     }
 
@@ -33,20 +31,18 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
      * Da Handler per Interface void zurückgeben, nutzen wir ein lokales State-Feld oder werfen Exceptions.
      * Da die Architektur aber ein Result-Array im Controller erwartet hat, nutzen wir einen Trick:
      * Wir geben hier ausnahmsweise das DTO zurück, da es ein Workflow-Orchestrator ist.
-     *
-     * @param ProcessBankImportCommand $command
      */
-    public function handle(mixed $command): BankImportResultDto
+    public function handle(ProcessBankImportCommand $command): BankImportResultDto
     {
-        $this->runLogs = [];
+        $runLogs = []; // Zustand wandert in die Methode, Klasse bleibt readonly!
 
         if (!\file_exists($command->tempFile)) {
-            $this->writeLog("Fehler: Die Datei '{$command->tempFile}' konnte nicht gefunden werden.");
+            $this->writeLog("Fehler: Die Datei '{$command->tempFile}' konnte nicht gefunden werden.", $runLogs);
 
             return new BankImportResultDto(false, 'Datei konnte nicht gefunden werden.');
         }
 
-        $this->writeLog('Starte Dateireinigung und Verarbeitung der CSV via League/Csv...');
+        $this->writeLog('Starte Dateireinigung und Verarbeitung der CSV via League/Csv...', $runLogs);
         $this->prepareAndNormalizeFile($command->tempFile);
 
         try {
@@ -59,12 +55,12 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
             $csv->setDelimiter($this->detectDelimiter($command->tempFile));
             $csv->setHeaderOffset(null);
         } catch (Exception $e) {
-            $this->writeLog('Fehler beim Initialisieren des CSV Readers: ' . $e->getMessage());
+            $this->writeLog('Fehler beim Initialisieren des CSV Readers: ' . $e->getMessage(), $runLogs);
 
             return new BankImportResultDto(false, 'CSV Format ist ungültig oder beschädigt.');
         }
 
-        // --- HIGH-SPEED PDO FETCH STATT ENTITY HYDRATION ---
+        // --- HIGH-SPEED PDO FETCH ---
         $stmt = $this->pdo->query('SELECT code, name, kennzeichen, status, preis FROM permits');
         $allCodes = [];
         $unpaidCodes = [];
@@ -81,7 +77,7 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
                 $unpaidPlates[$c] = $row['kennzeichen'];
             }
         }
-        // ----------------------------------------------------
+        // -----------------------------
 
         $aggregierteZahlungen = [];
         $letztesDatumPerPermit = [];
@@ -111,7 +107,7 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
             if (!isset($row[$command->idColumn], $row[$command->amountColumn], $row[$command->dateColumn])) {
                 $colCount = \count($row);
                 $errorMsg = "Zeile {$rowNumber} (Spalten fehlen, nur {$colCount} vorhanden)";
-                $this->writeLog("[Zeile {$rowNumber}] Fehler: Benötigte Spalten fehlen. Verfügbare Spalten: {$colCount}.");
+                $this->writeLog("[Zeile {$rowNumber}] Fehler: Benötigte Spalten fehlen. Verfügbare Spalten: {$colCount}.", $runLogs);
                 $unlesbareZeilenDetails[] = $errorMsg;
                 continue;
             }
@@ -191,7 +187,7 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
             }
 
             if (empty($gefundeneCodes) && empty($gefundeneKennzeichen)) {
-                $this->writeLog("[Zeile {$rowNumber}] Info: Kein System-Code und kein Kennzeichen gefunden. Rohdaten Zweck: '{$verwendungszweck}'");
+                $this->writeLog("[Zeile {$rowNumber}] Info: Kein System-Code und kein Kennzeichen gefunden. Rohdaten Zweck: '{$verwendungszweck}'", $runLogs);
                 continue;
             }
 
@@ -200,7 +196,7 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
                 $codesStr = \implode(', ', $matchedCodes);
                 $platesStr = \implode(', ', \array_values($gefundeneKennzeichen));
 
-                $this->writeLog("[Zeile {$rowNumber}] HINWEIS: Kein Code, aber Kennzeichen [{$platesStr}] für Codes [{$codesStr}] gefunden. Ausgesteuert zur manuellen Prüfung.");
+                $this->writeLog("[Zeile {$rowNumber}] HINWEIS: Kein Code, aber Kennzeichen [{$platesStr}] für Codes [{$codesStr}] gefunden. Ausgesteuert zur manuellen Prüfung.", $runLogs);
 
                 $sammelTransfers[] = [
                     'id' => $anomalyId,
@@ -222,7 +218,7 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
 
             if (\count($gefundeneCodes) > 1) {
                 $codesStr = \implode(', ', $gefundeneCodes);
-                $this->writeLog("[Zeile {$rowNumber}] FEHLER: Mehrere Codes in einer Überweisung gefunden [{$codesStr}]. Wird zur manuellen Prüfung ausgesteuert.");
+                $this->writeLog("[Zeile {$rowNumber}] FEHLER: Mehrere Codes in einer Überweisung gefunden [{$codesStr}]. Wird zur manuellen Prüfung ausgesteuert.", $runLogs);
 
                 $sammelTransfers[] = [
                     'id' => $anomalyId,
@@ -242,7 +238,7 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
             $codesStr = \implode(', ', $gefundeneCodes);
             $methodStr = \implode(' & ', $matchMethodsForLine);
 
-            $this->writeLog("[Zeile {$rowNumber}] Info: Code(s) erkannt: [{$codesStr}] via {$methodStr}. Lese Betrag: {$ueberwiesenerBetrag} €");
+            $this->writeLog("[Zeile {$rowNumber}] Info: Code(s) erkannt: [{$codesStr}] via {$methodStr}. Lese Betrag: {$ueberwiesenerBetrag} €", $runLogs);
 
             foreach ($gefundeneCodes as $permitIdStr) {
                 $aggregierteZahlungen[$permitIdStr] ??= 0.0;
@@ -254,17 +250,17 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
         }
 
         foreach ($missingUnpaidCodes as $missingCode => $ownerName) {
-            $this->writeLog("[Code {$missingCode}] Fehlt in CSV: Unbezahlte Genehmigung für '{$ownerName}' wurde nicht gefunden.");
+            $this->writeLog("[Code {$missingCode}] Fehlt in CSV: Unbezahlte Genehmigung für '{$ownerName}' wurde nicht gefunden.", $runLogs);
             $skippedNotInCsv[] = "{$missingCode} ({$ownerName})";
         }
 
-        $this->writeLog('Dateidurchlauf beendet. Starte Datenbank-Abgleich...');
+        $this->writeLog('Dateidurchlauf beendet. Starte Datenbank-Abgleich...', $runLogs);
 
         foreach ($aggregierteZahlungen as $permitId => $gesamtsumme) {
             $method = $methodenPerPermit[$permitId] ?? 'Unbekannt';
 
             if (!isset($allCodes[$permitId])) {
-                $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank (Erkannt via: {$method}).");
+                $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank (Erkannt via: {$method}).", $runLogs);
                 $skippedNotInDb[] = $permitId;
                 continue;
             }
@@ -272,7 +268,7 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
             $ownerName = $unpaidCodes[$permitId] ?? 'Unbekannt (Bereits bezahlt)';
 
             if (!isset($unpaidCodes[$permitId])) {
-                $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert (Erkannt via: {$method}).");
+                $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert (Erkannt via: {$method}).", $runLogs);
                 $skippedAlreadyPaid[] = "{$permitId} ({$ownerName})";
                 continue;
             }
@@ -292,14 +288,14 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
                     // Domain-Kommunikation! Das Finance-Modul triggert einen Use-Case im Permit-Modul.
                     $this->markPaidHandler->handle(new MarkPermitAsPaidCommand($permitId, $grund, $formatierterTag));
 
-                    $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).");
+                    $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).", $runLogs);
                     $erfolgreichDetails[] = "{$permitId} ({$ownerName})";
                 } catch (DomainException $e) {
-                    $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).");
+                    $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).", $runLogs);
                     $fehlerhaftStorage[] = "{$permitId} ({$ownerName})";
                 }
             } else {
-                $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €) (Erkannt via: {$method}).");
+                $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €) (Erkannt via: {$method}).", $runLogs);
                 $fehlerhaftPartial[] = "{$permitId} ({$ownerName}: {$istFormatted} statt {$sollFormatted})";
             }
         }
@@ -339,11 +335,10 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
         $uebCount = \count($skippedNotInCsv) + \count($skippedAlreadyPaid) + \count($skippedNotInDb);
         $fehlCount = \count($fehlerhaftPartial) + \count($fehlerhaftStorage) + \count($unlesbareZeilenDetails) + \count($sammelTransfers);
 
-        $this->writeLog("Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}\n---");
+        $this->writeLog("Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}\n---", $runLogs);
 
-        $archiveEnabled = (bool) $this->config->get('bank_import_archive_enabled', false);
-        if ($archiveEnabled) {
-            $this->createArchiveZip($command->tempFile, $this->runLogs);
+        if ((bool) $this->config->get('bank_import_archive_enabled', false)) {
+            $this->createArchiveZip($command->tempFile, $runLogs);
         }
 
         @\unlink($command->tempFile);
@@ -361,7 +356,7 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
         );
     }
 
-    private function writeLog(string $message): void
+    private function writeLog(string $message, array &$runLogs): void
     {
         $logDir = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/logs';
         if (!\is_dir($logDir)) {
@@ -371,7 +366,8 @@ final class ProcessBankImportHandler implements CommandHandlerInterface
         $timestamp = \date('d-M-Y H:i:s e');
         $formattedMessage = "[$timestamp] BankImport: $message\n";
         @\file_put_contents($logFile, $formattedMessage, \FILE_APPEND | \LOCK_EX);
-        $this->runLogs[] = $formattedMessage;
+
+        $runLogs[] = $formattedMessage;
     }
 
     private function createArchiveZip(string $csvFilePath, array $logs): void
