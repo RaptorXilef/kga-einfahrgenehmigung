@@ -13,22 +13,19 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\MagicLinkService;
+use App\Modules\Identity\Application\UseCases\VerifyMagicLink\VerifyMagicLinkCommand;
+use App\Modules\Identity\Application\UseCases\VerifyMagicLink\VerifyMagicLinkHandler;
+use DomainException;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 #[Route('GET', '/history_verify_token')]
 #[Route('POST', '/history_verify_token')]
 final readonly class HistoryVerifyTokenAction implements ViewActionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private MagicLinkService $magicLinkService,
         private RateLimiterInterface $rateLimiter,
         private SessionManager $sessionManager,
+        private VerifyMagicLinkHandler $verifyHandler, // <-- CQRS
     ) {
     }
 
@@ -45,21 +42,19 @@ final readonly class HistoryVerifyTokenAction implements ViewActionInterface
             return new RedirectResponse('history?sent=1');
         }
 
-        $verifiedEmail = $this->magicLinkService->verifyAny($dto->token);
+        try {
+            $command = new VerifyMagicLinkCommand($dto->token, $ip);
+            $this->verifyHandler->handle($command);
 
-        if ($verifiedEmail) {
-            $this->rateLimiter->clearAttempts($ip);
-            $this->sessionManager->regenerate();
-            $this->sessionManager->setHistoryEmail($verifiedEmail);
-
+            $verifiedEmail = $this->sessionManager->getHistoryEmail();
             $this->auditLogger->log('USER_HISTORY_LOGIN', "Pächter (Email: {$verifiedEmail}) hat sich via Magic-Link im Genehmigungsverlauf eingeloggt.");
 
             return new RedirectResponse('history');
+
+        } catch (DomainException $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('history?sent=1');
         }
-
-        $this->rateLimiter->recordFailedAttempt($ip);
-        $this->sessionManager->addFlash('error', 'Der Link ist ungültig oder abgelaufen.');
-
-        return new RedirectResponse('history?sent=1');
     }
 }

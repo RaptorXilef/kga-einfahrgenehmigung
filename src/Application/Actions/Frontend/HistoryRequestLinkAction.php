@@ -11,27 +11,23 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Security\RateLimiterInterface;
-use App\Core\Event\MagicLinkRequestedEvent;
-use App\Core\Service\MagicLinkService;
 use App\Core\Service\PermitService;
+use App\Modules\Identity\Application\UseCases\RequestMagicLink\RequestMagicLinkCommand;
+use App\Modules\Identity\Application\UseCases\RequestMagicLink\RequestMagicLinkHandler;
 
 /**
  * Action für die Anforderung eines Magic-Links zur Historie.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/history_request_link')]
 #[Route('POST', '/history_request_link')]
 final readonly class HistoryRequestLinkAction implements ViewActionInterface
 {
     public function __construct(
-        private EventDispatcherInterface $eventDispatcher,
-        private MagicLinkService $magicLinkService,
         private PermitService $permitService,
         private RateLimiterInterface $rateLimiter,
         private SessionManager $sessionManager,
+        private RequestMagicLinkHandler $requestHandler, // <-- CQRS
     ) {
     }
 
@@ -45,18 +41,17 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
             return new RedirectResponse('history');
         }
 
+        // Cross-Module Check: Hat die E-Mail überhaupt Genehmigungen?
         $permits = $this->permitService->getHistoryByEmail($dto->email);
+
         if ($permits === []) {
             $this->rateLimiter->recordFailedAttempt($dto->ip);
         } else {
             $this->rateLimiter->clearAttempts($dto->ip);
-            $data = $this->magicLinkService->createToken($dto->email);
 
-            $this->eventDispatcher->dispatch(new MagicLinkRequestedEvent(
-                $dto->email,
-                $data['token'],
-                $data['code'],
-            ));
+            // CQRS Command
+            $command = new RequestMagicLinkCommand($dto->email);
+            $this->requestHandler->handle($command);
         }
 
         $this->sessionManager->addFlash('success', 'Falls Genehmigungen zu dieser E-Mail existieren, wurde ein Code gesendet.');

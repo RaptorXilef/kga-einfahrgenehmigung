@@ -19,7 +19,6 @@ use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\LoginAttemptRepositoryInterface;
-use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\RoleRepositoryInterface;
@@ -53,7 +52,6 @@ use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\MySqlAuditLogRepository;
 use App\Infrastructure\Storage\MySqlCancelledPermitRepository;
 use App\Infrastructure\Storage\MySqlLoginAttemptRepository;
-use App\Infrastructure\Storage\MySqlMagicLinkRepository;
 use App\Infrastructure\Storage\MySqlMailQueueRepository;
 use App\Infrastructure\Storage\MySqlPermitArchiveRepository;
 use App\Infrastructure\Storage\MySqlRoleRepository;
@@ -66,7 +64,9 @@ use App\Infrastructure\System\FileRouteCache;
 use App\Infrastructure\System\LocalAssetHelper;
 use App\Infrastructure\System\SystemInfoService;
 use App\Infrastructure\Utils\SystemClock;
+use App\Modules\Identity\Domain\MagicLinkRepositoryInterface as IdentityMagicLinkRepositoryInterface;
 use App\Modules\Identity\Domain\UserRepositoryInterface as IdentityUserRepositoryInterface;
+use App\Modules\Identity\Infrastructure\PdoMagicLinkRepository;
 use App\Modules\Identity\Infrastructure\PdoUserRepository as IdentityPdoUserRepository;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface as NewVoucherRepositoryInterface;
 use App\Modules\Voucher\Infrastructure\PdoVoucherRepository;
@@ -80,8 +80,6 @@ use PDO;
  * sicher, dass die Core-Logik ausschließlich mit Interfaces (Contracts)
  * kommuniziert, ohne die tatsächlichen Implementierungsdetails (z.B.
  * MySQL, JSON, PayPal, SMTP) zu kennen.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final class InfrastructureServiceProvider implements ServiceProviderInterface
 {
@@ -92,12 +90,8 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
      */
     public function register(ContainerInterface $container): void
     {
-        /*
-        |--------------------------------------------------------------------------
-        | 1. CORE SYSTEM & DATABASE
-        |--------------------------------------------------------------------------
-        | Grundlegende Datenbankverbindungen und persistente Systemspeicher.
-        */
+
+        // --- CORE SYSTEM & DATABASE ---
         $container->bind(PDO::class, fn (): ?PDO => PdoFactory::create(
             $container->get(ConfigInterface::class),
         ));
@@ -130,11 +124,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         ));
 
         $container->bind(LoginAttemptRepositoryInterface::class, fn (): MySqlLoginAttemptRepository => new MySqlLoginAttemptRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
-
-        $container->bind(MagicLinkRepositoryInterface::class, fn (): MySqlMagicLinkRepository => new MySqlMagicLinkRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
         ));
@@ -175,6 +164,10 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
 
         // --- IDENTITY DDD REPOSITORY BINDING ---
         $container->bind(IdentityUserRepositoryInterface::class, fn (): IdentityPdoUserRepository => new IdentityPdoUserRepository(
+            $container->get(PDO::class),
+        ));
+
+        $container->bind(IdentityMagicLinkRepositoryInterface::class, fn (): PdoMagicLinkRepository => new PdoMagicLinkRepository(
             $container->get(PDO::class),
         ));
 
