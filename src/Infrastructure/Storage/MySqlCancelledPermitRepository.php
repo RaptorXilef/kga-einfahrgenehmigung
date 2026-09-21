@@ -7,7 +7,7 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
-use App\Core\Entity\Permit;
+use App\Modules\Permit\Domain\Permit;
 use PDO;
 
 final readonly class MySqlCancelledPermitRepository implements CancelledPermitRepositoryInterface

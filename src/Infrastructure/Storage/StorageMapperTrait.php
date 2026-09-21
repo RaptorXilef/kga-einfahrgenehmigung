@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Storage;
 
-use App\Contracts\System\JsonHelperInterface;
 use App\Modules\Permit\Domain\Owner;
-use App\Modules\Permit\Domain\Permit; // <-- WICHTIG: Neues Modul!
+use App\Modules\Permit\Domain\Permit; // WICHTIG!
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\Status;
 use App\Modules\Permit\Domain\Validity;
@@ -27,8 +26,6 @@ use Exception;
  * in flache, speicherbare Array-Strukturen zu transformieren und umgekehrt (Hydrierung).
  * Dient als Data Mapper für alle Storage-Engines.
  *
- * @property JsonHelperInterface $jsonHelper
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 trait StorageMapperTrait
@@ -41,10 +38,6 @@ trait StorageMapperTrait
      * Hydriert ein primitives, assoziatives Rohdaten-Array in ein stark typisiertes Permit-Objekt.
      * Unterstützt Legacy-Feldnamen (Abwärtskompatibilität für Altdaten wie 'pächter' oder 'erstellt_am'),
      * padded Parzellennummern auf 4 Stellen auf und baut rekursiv alle benötigten Unter-Werteobjekte auf.
-     *
-     * @param array<string, mixed> $item Zeilen-Rohdaten aus einer JSON-Datei oder SQL-Abfrage.
-     *
-     * @return Permit Die fertig zusammengesetzte, einsatzbereite Domain-Entität.
      */
     public function mapToEntity(array $item): Permit
     {
@@ -136,7 +129,7 @@ trait StorageMapperTrait
             owner: new Owner(
                 $name,
                 $emailObj,
-                clone new PlotNumber($pzInt), // VO bekommt einen int
+                clone new PlotNumber($pzInt),
             ),
             vehicle: new Vehicle(
                 (string) ($item['typ'] ?? 'pkw'),
@@ -169,28 +162,25 @@ trait StorageMapperTrait
      *
      * Transformiert eine hochkomplexe Permit-Entität in ein eindimensionales, primitives Datenarray.
      * Formatiert DateTime-Objekte in ISO-Strings für SQL- oder JSON-Schreibvorgänge.
-     *
-     * @param Permit $permit Die zu dekonstruierende Entität.
-     *
-     * @return array<string, mixed> Flaches Konvertierungs-Array für Treiber-Injektionen.
      */
     private function flattenEntity(Permit $permit): array
     {
+        // FIX: Saubere Nutzung der öffentlichen Getter, anstatt private Properties zu erzwingen!
         return [
             'agreements' => \is_array($permit->agreements) ? \json_encode($permit->agreements, \JSON_UNESCAPED_UNICODE) : '{}',
-            'bezahlt_am' => $permit->bezahlt_am instanceof DateTimeImmutable ? $permit->bezahlt_am->format('Y-m-d H:i:s') : null,
+            'bezahlt_am' => $permit->getPaidAt() instanceof DateTimeImmutable ? $permit->getPaidAt()->format('Y-m-d H:i:s') : null,
             'bis' => $permit->getValidUntil()->format('Y-m-d'),
             'code' => $permit->code->value,
             'email' => $permit->owner->email instanceof EmailAddress ? $permit->owner->email->value : '',
             'erstellt' => $permit->getCreatedAt()->format('Y-m-d H:i:s'),
             'firma' => $permit->getCompany(),
-            'interner_kommentar' => $permit->interner_kommentar,
+            'interner_kommentar' => $permit->getInternalComment(),
             'is_suspended' => (int) $permit->isSuspended(),
             'kennzeichen' => $permit->vehicle->kennzeichen->value,
             'name' => $permit->getOwnerName(),
-            'parzelle' => $permit->owner->parzelle->value, // Schreibt den reinen INT in die DB!
+            'parzelle' => $permit->owner->parzelle->value,
             'preis' => $permit->validity->preis->value,
-            'last_reminder_at' => $permit->status->last_reminder_at instanceof DateTimeImmutable ? $permit->status->last_reminder_at->format('Y-m-d H:i:s') : null,
+            'last_reminder_at' => $permit->getStatusObject()->last_reminder_at instanceof DateTimeImmutable ? $permit->getStatusObject()->last_reminder_at->format('Y-m-d H:i:s') : null,
             'status' => $permit->getStatus()->value,
             'suspension_reason' => $permit->getSuspensionReason(),
             'template_key' => $permit->template_key->value,

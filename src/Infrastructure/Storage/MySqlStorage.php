@@ -6,7 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\System\JsonHelperInterface;
-use App\Core\Entity\Permit;
+use App\Modules\Permit\Domain\Permit;
 use PDO;
 
 /**
