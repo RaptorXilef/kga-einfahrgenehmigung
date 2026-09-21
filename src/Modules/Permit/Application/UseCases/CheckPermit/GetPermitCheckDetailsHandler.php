@@ -6,6 +6,7 @@ namespace App\Modules\Permit\Application\UseCases\CheckPermit;
 
 use App\Application\View\HolidayHtmlPresenter;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
@@ -18,6 +19,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
 {
     public function __construct(
         private PermitService $permitService,
+        private StorageInterface $storage, // <-- FIX: Wir holen uns direkten Lesezugriff!
         private HolidayService $holidayService,
         private ConfigInterface $config,
     ) {
@@ -28,12 +30,17 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
      */
     public function handle(mixed $query): PermitCheckDetailsDto
     {
-        $now = new DateTimeImmutable();                  // 1. Genehmigung suchen$permit = $this->permitService->resolvePermit($query->codeOrPlate);
-        if (!$permit) {
-            // Fallback auf Kennzeichensuche
-            $permit = $this->permitService->findByLicensePlate($query->codeOrPlate); // *Angenommene Methode im PermitService*
+        $now = new DateTimeImmutable();
+
+        // 1. Genehmigung suchen (Zuerst via Code in allen Tabellen)
+        $permit = $this->permitService->resolvePermit($query->codeOrPlate);
+
+        if ($permit === null) {
+            // Fallback auf Kennzeichensuche im aktiven Storage
+            $permit = $this->storage->findByLicensePlate($query->codeOrPlate);
+
             // Da du im CodeDump `storage->findByLicensePlate` in der Action nutzt, machen wir es hier sicher:
-            if (!$permit) {
+            if ($permit === null) {
                 return $this->createNotFoundDto();
             }
         }
@@ -66,7 +73,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
             $statusHeadline = 'ZUTRITT VERWEIGERT';
             $statusSubTextHtml = '<p class="u-font-semibold u-margin-block-none">Diese Genehmigung ist gesperrt/widerrufen.</p>';
 
-            if (!$showAdminView && $permit->getSuspensionReason()) {
+            if (!$showAdminView && $permit->getSuspensionReason() !== null && $permit->getSuspensionReason() !== '') {
                 $reason = \htmlspecialchars($permit->getSuspensionReason());
                 $statusSubTextHtml .= <<<HTML
                     <div class="c-box c-box--danger-soft u-margin-block-start-m u-text-center">
@@ -90,7 +97,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
             $nextSlot = $this->holidayService->getNextAvailableSlot($now);
             $nextText = 'Keine weitere Einfahrt möglich.';
 
-            if ($nextSlot) {
+            if ($nextSlot !== null) {
                 if ($nextSlot > $permit->getValidUntil()) {
                     $nextText = 'Die Gültigkeit endet, bevor die Anlage wieder befahren werden darf.';
                 } else {
@@ -111,7 +118,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
             if (\str_contains($nextText, 'Gültigkeit')) {
                 $statusSubTextHtml = '<p class="u-margin-block-none u-font-semibold">' . $nextText . '</p>';
             } else {
-                $statusSubTextHtml = '<p class="u-margin-block-none">Nächste Einfahrt möglich: <strong class="u-font-semibold">' . $nextText . '</strong></p>';
+                $statusSubTextHtml = '<p class="u-margin-block-none">Nächste Einfahrt möglich:<br><strong class="u-font-semibold">' . $nextText . '</strong></p>';
             }
         }
 
