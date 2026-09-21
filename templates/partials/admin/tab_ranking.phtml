@@ -2,6 +2,7 @@
 
 use App\Contracts\System\AssetHelperInterface;
 use App\Core\Service\AuthService;
+use App\Modules\Permit\Application\UseCases\GetDashboardStats\DashboardStatsDto;
 
 /**
  * Partial: Dashboard Tab - Plot Ranking
@@ -10,8 +11,9 @@ use App\Core\Service\AuthService;
  *
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
+ * @var DashboardStatsDto $statsDto
  */
-$plots = $periodStats['plots'] ?? [];
+$plots = $statsDto->periodStats['plots'] ?? [];
 ?>
 <?php if ($auth->hasPermission('stats.ranking')) { ?>
     <div class="c-tab-content-container">
@@ -49,16 +51,17 @@ $plots = $periodStats['plots'] ?? [];
                             <tr>
                                 <td colspan="7"
                                     class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
-                                    Keine Daten im Zeitraum gefunden.</td>
+                                    Keine Daten im Zeitraum gefunden.
+                                </td>
                             </tr>
-                        <?php } else {
-                            $rank = 1;
-                            $firstPlot = \reset($plots);
-                            $maxCount = $firstPlot['count'] > 0 ? $firstPlot['count'] : 1;
+                            <?php } else {
+                                $rank = 1;
+                                $firstPlot = \reset($plots);
+                                $maxCount = $firstPlot['count'] > 0 ? $firstPlot['count'] : 1;
 
-                            foreach (\array_slice($plots, 0, 30, true) as $pNum => $data) {
-                                $perc = ($data['count'] / $maxCount) * 100;
-                                ?>
+                                foreach (\array_slice($plots, 0, 30, true) as $pNum => $data) {
+                                    $perc = ($data['count'] / $maxCount) * 100;
+                                    ?>
                                 <tr class="u-hover-fade">
                                     <!-- RANG -->
                                     <td class="c-table__data-cell u-text-center">
@@ -118,7 +121,7 @@ $plots = $periodStats['plots'] ?? [];
                                     </td>
                                 </tr>
                         <?php }
-                            } ?>
+                                } ?>
                     </tbody>
                 </table>
             </div>

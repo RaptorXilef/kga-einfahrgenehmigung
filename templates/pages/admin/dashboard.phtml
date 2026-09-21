@@ -2,81 +2,45 @@
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
-use App\Contracts\System\JsonHelperInterface;
 use App\Core\Service\AuthService;
-use App\Core\Service\PermitService;
-use App\Core\Service\VoucherService;
+use App\Modules\Permit\Application\UseCases\GetDashboardStats\DashboardStatsDto;
 
 /**
  * Page: Main Admin Dashboard Wrapper
  *
- * Haupt-Dashboard für die Administration (Zentralansicht).
- *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth Service für die Rechteprüfung im Template.
- * @var ConfigInterface $config Anwendungs-Konfiguration.
- * @var JsonHelperInterface $jsonHelper Hilfsklasse für JSON-Operationen.
- * @var PermitService $permitService Zentraler Genehmigungs-Dienst.
- * @var VoucherService $voucherService Dienst zur Validierung/Verwaltung von Gutscheinen.
- * @var array $mailLogs Die chronologischen E-Mail-Versandprotokolle.
- * @var array $settings Globale UI- und Mapping-Einstellungen.
- * @var array $structure Verschachtelter Berechtigungsbaum.
- * @var array $vouchers Liste aller aktiven Gutscheine im System.
- * @var array<string, array<int, \App\Core\Entity\Permit>> $permitGroups Genehmigungen gruppiert nach Status.
- * @var array<string, array<string, mixed>> $yearlyStats Historische Jahres-Statistiken (Umsatz, Fahrzeugtypen).
- * @var array<string, mixed> $periodStats Detaillierte Umsatz- & Plot-Statistiken des Filterzeitraums.
+ * @var AuthService $auth
+ * @var ConfigInterface $config
+ * @var DashboardStatsDto $statsDto
+ * @var array $settings
  * @var array $unreadReleaseNotes Die vom User ungelesenen Markdown Release-Notes.
- * @var array $allReleaseNotes Alle Markdown Release-Notes.
- * @var string $appRoot Absoluter Pfad zum Installationsverzeichnis.
+ * @var int $totalActive
+ * @var int $totalCancelled
+ * @var int $totalExpired
+ * @var int $totalFuture
+ * @var int $totalUnpaid
+ * @var string $appRoot
  * @var string $cspNonce
- * @var string $filterEnd Aktives Filter-Enddatum (Y-m-d).
- * @var string $filterStart Aktives Filter-Startdatum (Y-m-d).
- * @var string $filterType Aktiver Filter-Fahrzeugtyp.
  */
-
-// Aktiviere das Admin-Layout
 $layout = 'admin';
-$now = new \DateTimeImmutable('today');
-$tplMetadata = [];
-foreach ($config->get('permit_templates', []) as $key => $tpl) {
-    $tplMetadata[$key] = [
-        'days' => $tpl['days'],
-        'type' => $tpl['type'],
-        'prices' => $tpl['prices'],
-    ];
-}
 
-// ARCHITEKTUR-FIX: Server-Side Tab Routing
-// Bestimmt nativ den aktiven Tab beim Seitenaufbau. Verhindert UI-Flickern!
 $focus = $_GET['focus'] ?? 'tab-active';
 
 // Wenn eine Bank-Vorschau aktiv ist, erzwingen wir den Bank-Tab
 if (isset($formData['bank_wizard']['headers']) && !empty($formData['bank_wizard']['headers'])) {
     $focus = 'tab-bank-import';
-    $bank_headers = true; // Für Kompatibilität mit dem Partial
+    $bank_headers = true;
 }
 
-$isActive = function (string $tabId) use ($focus): string {
-    return $focus === $tabId ? 'is-active' : '';
-};
-
-$ariaSelected = function (string $tabId) use ($focus): string {
-    return $focus === $tabId ? 'true' : 'false';
-};
-
-$tabIndex = function (string $tabId) use ($focus): string {
-    return $focus === $tabId ? '0' : '-1';
-};
-
-$ariaHidden = function (string $tabId) use ($focus): string {
-    return $focus === $tabId ? 'false' : 'true';
-};
+$isActive = fn (string $tabId): string => $focus === $tabId ? 'is-active' : '';
+$ariaSelected = fn (string $tabId): string => $focus === $tabId ? 'true' : 'false';
+$tabIndex = fn (string $tabId): string => $focus === $tabId ? '0' : '-1';
+$ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true';
 ?>
 
 <main class="js-admin-dashboard c-tab-content-container u-padding-block-l">
-
     <div class="u-inline-size-100">
-        <!-- 1. NAVIGATION (TABS) - NUN MIT INITIALEM WAI-ARIA -->
+        <!-- 1. NAVIGATION (TABS) -->
         <div class="c-tabs">
             <div class="c-tabs__nav u-margin-block-end-l"
                  role="tablist"
@@ -92,8 +56,11 @@ $ariaHidden = function (string $tabId) use ($focus): string {
                         <img src="<?php echo $asset->url('assets/img/icons/active.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
-                             alt=""> Aktiv (<?php echo \count($permitGroups['active'] ?? []); ?>)
+                             alt="">
+                        Aktiv
+                        <span class="c-badge c-badge--primary c-badge--small u-margin-inline-start-xs"><?php echo $totalActive ?? 0; ?></span>
                     </button>
+
                     <button class="c-tabs__btn <?php echo $isActive('tab-future'); ?>"
                             role="tab"
                             aria-selected="<?php echo $ariaSelected('tab-future'); ?>"
@@ -104,8 +71,11 @@ $ariaHidden = function (string $tabId) use ($focus): string {
                         <img src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
-                             alt=""> Zukünftig (<?php echo \count($permitGroups['future'] ?? []); ?>)
+                             alt="">
+                        Zukünftig
+                        <span class="c-badge c-badge--primary c-badge--small u-margin-inline-start-xs"><?php echo $totalFuture ?? 0; ?></span>
                     </button>
+
                     <button class="c-tabs__btn <?php echo $isActive('tab-expired'); ?>"
                             role="tab"
                             aria-selected="<?php echo $ariaSelected('tab-expired'); ?>"
@@ -116,8 +86,11 @@ $ariaHidden = function (string $tabId) use ($focus): string {
                         <img src="<?php echo $asset->url('assets/img/icons/expired.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
-                             alt=""> Abgelaufen (<?php echo \count($permitGroups['expired'] ?? []); ?>)
+                             alt="">
+                        Abgelaufen
+                        <span class="c-badge c-badge--outline c-badge--small u-margin-inline-start-xs"><?php echo $totalExpired ?? 0; ?></span>
                     </button>
+
                     <button class="c-tabs__btn <?php echo $isActive('tab-cancelled'); ?>"
                             role="tab"
                             aria-selected="<?php echo $ariaSelected('tab-cancelled'); ?>"
@@ -128,7 +101,9 @@ $ariaHidden = function (string $tabId) use ($focus): string {
                         <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
                              class="c-icon c-tabs__icon"
                              loading="lazy"
-                             alt=""> Storniert (<?php echo \count($cancelledPermits ?? []); ?>)
+                             alt="">
+                        Storniert
+                        <span class="c-badge c-badge--danger c-badge--small u-margin-inline-start-xs"><?php echo $totalCancelled ?? 0; ?></span>
                     </button>
                 <?php } ?>
 
@@ -159,10 +134,9 @@ $ariaHidden = function (string $tabId) use ($focus): string {
                              class="c-icon c-tabs__icon"
                              loading="lazy"
                              alt=""> Finanzen
-                        <?php $openCount = \count($permitGroups['unpaid'] ?? []);
-                    if ($openCount > 0) {
-                        echo '<span class="c-badge c-badge--danger u-margin-inline-start-xs">' . $openCount . '</span>';
-                    } ?>
+                        <?php if (($totalUnpaid ?? 0) > 0) { ?>
+                            <span class="c-badge c-badge--danger c-badge--small u-margin-inline-start-xs"><?php echo $totalUnpaid; ?></span>
+                        <?php } ?>
                     </button>
                 <?php } ?>
 
@@ -453,22 +427,20 @@ $ariaHidden = function (string $tabId) use ($focus): string {
     </div>
 </main>
 
-<!-- RELEASE NOTES MODAL BASE (Nativ & WAI-ARIA) -->
+<!-- RELEASE NOTES MODAL BASE -->
 <?php if (!empty($allReleaseNotes)) { ?>
     <!-- https://cdnjs.com/libraries/dompurify -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.15/purify.min.js"
             integrity="sha512-jeyPlk6E7VcWU2QTRw5UAe4iKLrWOJkyLc4GkOAOey1tOeTyxfTzrCY7p84VSer8/lRON5p236RGVeTErze9fA=="
             crossorigin="anonymous"
             referrerpolicy="no-referrer"
-            nonce="<?php echo $cspNonce; ?>">
-    </script>
+            nonce="<?php echo $cspNonce; ?>"></script>
     <!-- https://cdnjs.com/libraries/marked/15.0.12 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.12/marked.min.js"
             integrity="sha512-rCQgmUulW6f6QegOvTntKKb5IAoxTpGVCdWqYjkXEpzAns6XUFs8NKVqWe+KQpctp/EoRSFSuykVputqknLYMg=="
             crossorigin="anonymous"
             referrerpolicy="no-referrer"
-            nonce="<?php echo $cspNonce; ?>">
-    </script>
+            nonce="<?php echo $cspNonce; ?>"></script>
 
     <dialog id="release-notes-modal"
             class="js-release-notes-modal c-modal"
@@ -487,9 +459,7 @@ $ariaHidden = function (string $tabId) use ($focus): string {
                     <span class="c-badge c-badge--success js-release-notes-badge" hidden>Updates verfügbar</span>
                     <button type="button"
                             class="c-button c-button--danger c-button--icon-only js-close-release-notes"
-                            title="Schließen & Gelesen">
-                        &times;
-                    </button>
+                            title="Schließen & Gelesen">&times;</button>
                 </div>
             </header>
             <div class="c-card__body u-padding-block-l u-text-start u-overflow-y-auto u-flex-grow-1">
