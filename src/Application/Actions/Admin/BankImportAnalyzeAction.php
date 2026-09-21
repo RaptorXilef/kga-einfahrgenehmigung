@@ -99,15 +99,22 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
         // Im Simple Mode delegieren wir den Request direkt an den Process Handler und rufen die Helper Action auf.
         $processAction = new BankImportProcessAction($this->sessionManager, $this->config, $this->processHandler);
 
-        // Simuliere einen Request mit den geratenen Spalten
-        $simulatedRequest = $request->withInput(\array_merge($request->input, [
+        // Simuliere einen Request mit den geratenen Spalten (Als sauberes, neues Readonly-Objekt)
+        $simulatedPost = \array_merge($request->post, [
             'temp_file' => $tempPath,
             'col_id' => $guessedId,
             'col_amount' => $guessedAmount,
             'col_date' => $guessedDate,
-        ]));
-        // Wir füllen das POST Array für das DTO auf
-        $simulatedRequest->post = $simulatedRequest->input;
+        ]);
+
+        $simulatedRequest = new ServerRequest(
+            get: $request->get,
+            post: $simulatedPost,
+            files: $request->files,
+            server: $request->server,
+            input: $simulatedPost,
+            cookie: $request->cookie,
+        );
 
         return $processAction->execute($simulatedRequest);
     }
