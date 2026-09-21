@@ -11,17 +11,11 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
-use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\RoleRepositoryInterface;
-use App\Contracts\Storage\StorageInterface;
-use App\Contracts\Storage\UserRepositoryInterface;
-use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
-use App\Core\Service\HolidayService;
-use App\Core\Service\PermitService;
-use DateTimeImmutable;
+use App\Modules\Permit\Application\UseCases\CheckPermit\GetPermitCheckDetailsHandler;
+use App\Modules\Permit\Application\UseCases\CheckPermit\GetPermitCheckDetailsQuery;
 
 /**
  * Action zur Überprüfung von Genehmigungen und Kennzeichen.
@@ -33,13 +27,9 @@ final readonly class CheckPermitAction implements ViewActionInterface
     public function __construct(
         private AuthService $auth,
         private ConfigInterface $config,
-        private RoleRepositoryInterface $roleRepository,
-        private HolidayService $holidayService,
-        private PermitService $permitService,
         private SessionManager $sessionManager,
-        private StorageInterface $storage,
         private TemplateRenderer $renderer,
-        private UserRepositoryInterface $userRepository,
+        private GetPermitCheckDetailsHandler $checkHandler, // <-- CQRS Injected
     ) {
     }
 
@@ -53,19 +43,12 @@ final readonly class CheckPermitAction implements ViewActionInterface
             return new HtmlResponse($html);
         }
 
-        $code = $dto->code;
-        $now = new DateTimeImmutable();
+        // CQRS Query feuern - Die ganze Logik ist jetzt im Backend!
+        $query = new GetPermitCheckDetailsQuery($dto->code, $this->auth->isLoggedIn(), $dto->token);
+        $details = $this->checkHandler->handle($query);
 
-        // 1. Suche in ALLEN Permits (Aktiv, Archiviert, Storniert)
-        $permit = $this->permitService->resolvePermit($code);
-
-        // Wenn über den Code nichts gefunden wurde, versuche es als Kennzeichen (hier macht nur die Live-Tabelle Sinn!)
-        if (!$permit instanceof Permit) {
-            $permit = $this->storage->findByLicensePlate($code);
-        }
-
-        if (!$permit instanceof Permit) {
-            $this->sessionManager->addFlash('error', "Code '{$code}' nicht gefunden.");
+        if (!$details->isFound) {
+            $this->sessionManager->addFlash('error', "Code '{$dto->code}' nicht gefunden.");
             $html = $this->renderer->render('frontend/check_search');
 
             return new HtmlResponse($html);
@@ -75,94 +58,17 @@ final readonly class CheckPermitAction implements ViewActionInterface
         $adminData = [
             'adminUser' => $this->auth->getUsername(),
             'adminId' => $this->auth->getUserId(),
-            'adminGroup' => $this->auth->getRole(), // Aus Kompatibilität zum Template Key behalten, Methode geändert
+            'adminGroup' => $this->auth->getRole(),
         ];
 
-        // --- Logik für den nächsten befahrbaren Slot ---
-        $nextAllowedSlotText = 'Keine weitere Einfahrt möglich.';
-        $nextSlot = $this->holidayService->getNextAvailableSlot($now);
+        // Template rendern - Das PHTML benötigt jetzt nur noch das $details DTO
+        $template = $details->showAdminView ? 'frontend/check_admin' : 'frontend/check_public';
 
-        if ($nextSlot instanceof DateTimeImmutable) {
-            // Prüfung: Ist der nächste Slot noch innerhalb der Genehmigungszeit?
-            // Spezialfall: Letzter Tag / Ablaufprüfung
-            if ($nextSlot > $permit->getValidUntil()) {
-                $nextAllowedSlotText = 'Die Gültigkeit endet, bevor die Anlage wieder befahren werden darf.';
-            } else {
-                // Normale Zeit-Formatierung
-                $datePart = $nextSlot->format('d.m.Y');
-                $today = $now->format('d.m.Y');
-                $tomorrow = $now->modify('+1 day')->format('d.m.Y');
-
-                if ($datePart === $today) {
-                    // "heute ab 15:00 Uhr"
-                    $nextAllowedSlotText = 'heute ab ' . $nextSlot->format('H:i') . ' Uhr';
-                } elseif ($datePart === $tomorrow) {
-                    // "morgen ab 08:00 Uhr"
-                    $nextAllowedSlotText = 'morgen ab ' . $nextSlot->format('H:i') . ' Uhr';
-                } else {
-                    // "am 04.05.2026 ab 08:00 Uhr"
-                    $nextAllowedSlotText = 'am ' . $datePart . ' ab ' . $nextSlot->format('H:i') . ' Uhr';
-                }
-            }
-        }
-
-        // Fall 2: Genehmigung gefunden
-        $showAdminView = $this->determineViewPrivileges($permit, $dto->token);
-
-        // Config auslesen
-        $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
-        // Pfade angepasst auf Unterordner check/
-        $html = $this->renderer->render(
-            $showAdminView ? 'frontend/check_admin' : 'frontend/check_public',
-            \array_merge($adminData, [
-                'allowedToday' => $nextAllowedSlotText,
-                'auth' => $this->auth,
-                'roleRepository' => $this->roleRepository,
-                'holidayNotice' => \implode(', ', $this->holidayService->getHolidaysInRange(
-                    $permit->getValidFrom(),
-                    $permit->getValidUntil(),
-                )),
-                'isDateValid' => $permit->isValid($requirePayment),
-                'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
-                'opening' => HolidayHtmlPresenter::formatOpeningHours(
-                    $this->holidayService->getOpeningHoursDataForDateRange(
-                        $permit->getValidFrom(),
-                        $permit->getValidUntil(),
-                    ),
-                ),
-                'permit' => $permit,
-                'showAdminView' => $showAdminView,
-                'userRepository' => $this->userRepository,
-            ]),
-        );
+        $html = $this->renderer->render($template, \array_merge($adminData, [
+            'auth' => $this->auth,
+            'details' => $details, // <-- DTO Übergabe
+        ]));
 
         return new HtmlResponse($html);
-    }
-
-    /**
-     * Bestimmt die Rechte des aktuellen Betrachters für die Detailansicht.
-     * Evaluierte Bedingungen: Admin eingeloggt oder gültiger Signatur-Hash.
-     *
-     * @param Permit $permit Das zu prüfende Genehmigungs-Objekt.
-     *
-     * @return bool True, wenn erweiterte Admin-Informationen angezeigt werden dürfen.
-     */
-    private function determineViewPrivileges(Permit $permit, string $token): bool
-    {
-        // B. Eingeloggter Admin (Session)
-        if ($this->auth->isLoggedIn()) {
-            return true;
-        }
-
-        $geheimnis = (string) $this->config->get('geheimnis', '');
-
-        // Verhindere Bypass-Berechnungen durch unkonfiguriertes System-Geheimnis!
-        if ($geheimnis === '') {
-            return false;
-        }
-
-        $expected = \hash_hmac('sha256', $permit->code->value, $geheimnis);
-
-        return \hash_equals($expected, $token);
     }
 }

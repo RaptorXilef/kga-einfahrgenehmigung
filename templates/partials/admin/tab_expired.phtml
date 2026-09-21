@@ -14,9 +14,27 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
  * @var array $settings
  * @var int $minArchiveYear
  * @var string $appRoot
- * @var DashboardPermitDto[] $expiredPermits
- * @var string $paginationHtml
+ * @var DashboardPermitDto[] $expiredPermitsDto
+ * @var int $totalExpired
  */
+
+// Paginierungs-Logik
+$limit = $itemsPerPage ?? 25;
+$focus = $_GET['focus'] ?? 'tab-active';
+$page = ($focus === 'tab-expired') ? ($currentPage ?? 1) : 1;
+
+$totalPages = \max(1, (int) \ceil($totalExpired / $limit));
+$page = \min($page, $totalPages);
+$offset = ($page - 1) * $limit;
+
+$expiredPermits = \array_slice($expiredPermitsDto, $offset, $limit);
+
+\ob_start();
+$paginationParam = 'page';
+$totalCount = $totalExpired;
+$tabFocusId = 'tab-expired';
+include $appRoot . '/templates/partials/admin/pagination.phtml';
+$paginationHtml = \ob_get_clean();
 ?>
 <?php if ($auth->hasPermission('permits.view')) { ?>
     <div class="c-tab-content-container">
@@ -32,6 +50,8 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
                     <p class="u-color-muted u-text-sm u-margin-block-none">Abgelaufene Genehmigungen aus dem gewählten
                         Zeitraum.</p>
                 </div>
+                <!-- FIX: Zähler Badge ist wieder da! -->
+                <span class="c-badge c-badge--outline">ARCHIV: <?php echo $totalExpired; ?></span>
             </header>
 
             <?php echo $paginationHtml; ?>
@@ -46,12 +66,14 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
                                 <th class="c-table__header-cell js-sort-header u-text-start">Kontakt (E-Mail)</th>
                             <?php } ?>
                             <th class="c-table__header-cell js-sort-header u-text-center">Zeitraum</th>
+                            <!-- FIX: Spalte Verwaltung ist wieder da! -->
+                            <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Verwaltung</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($expiredPermits)) { ?>
                             <tr>
-                                <td colspan="4"
+                                <td colspan="5"
                                     class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
                                     Keine abgelaufenen Einträge im gewählten Zeitraum.
                                 </td>
@@ -91,13 +113,27 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
                                             <?php echo $permit->emailHtml; ?>
                                         </td>
                                     <?php } ?>
-                                    <!-- 4. Zeitraum -->
                                     <td class="c-table__data-cell u-text-center u-text-nowrap">
                                         <div class="u-flex u-flex-column u-gap-xs">
                                             <small class="u-color-muted">
                                                 <?php echo $permit->validFromDate; ?> -<br>
                                                 <?php echo $permit->validUntilDate; ?>
                                             </small>
+                                        </div>
+                                    </td>
+                                    <!-- FIX: Buttons in Spalte Verwaltung für Expired Tab hinzugefügt -->
+                                    <td class="c-table__data-cell u-text-end u-text-nowrap u-padding-inline-end-m">
+                                        <div class="u-flex u-gap-xs u-justify-end">
+                                            <?php if ($auth->hasPermission('permits.print')) { ?>
+                                                <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Drucken">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+                                                </a>
+                                            <?php } ?>
+                                            <?php if ($auth->hasPermission('permits.view')) { ?>
+                                                <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+                                                </a>
+                                            <?php } ?>
                                         </div>
                                     </td>
                                 </tr>

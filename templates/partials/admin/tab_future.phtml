@@ -13,9 +13,27 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
  * @var AuthService $auth
  * @var array $settings
  * @var string $appRoot
- * @var DashboardPermitDto[] $futurePermits
- * @var string $paginationHtml
+ * @var DashboardPermitDto[] $futurePermitsDto
+ * @var int $totalFuture
  */
+
+// Paginierungs-Logik
+$limit = $itemsPerPage ?? 25;
+$focus = $_GET['focus'] ?? 'tab-active';
+$page = ($focus === 'tab-future') ? ($currentPage ?? 1) : 1;
+
+$totalPages = \max(1, (int) \ceil($totalFuture / $limit));
+$page = \min($page, $totalPages);
+$offset = ($page - 1) * $limit;
+
+$futurePermits = \array_slice($futurePermitsDto, $offset, $limit);
+
+\ob_start();
+$paginationParam = 'page';
+$totalCount = $totalFuture;
+$tabFocusId = 'tab-future';
+include $appRoot . '/templates/partials/admin/pagination.phtml';
+$paginationHtml = \ob_get_clean();
 ?>
 <?php if ($auth->hasPermission('permits.view')) { ?>
     <div class="c-tab-content-container">
@@ -30,6 +48,8 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
                     </h3>
                     <p class="u-color-muted u-text-sm u-margin-block-none">Geplante Einfahrten in der Zukunft.</p>
                 </div>
+                <!-- FIX: Datensätze Badge ist wieder da! -->
+                <span class="c-badge c-badge--primary">DATENSÄTZE: <?php echo $totalFuture; ?></span>
             </header>
 
             <?php echo $paginationHtml; ?>
@@ -102,7 +122,6 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
                                             </div>
                                         </div>
                                     </td>
-                                    <!-- 5. Finanz-Status -->
                                     <td class="c-table__data-cell u-text-center"
                                         data-sort-val="<?php echo $permit->isSuspended ? '1' : '0'; ?>">
                                         <?php echo $permit->statusBadgeHtml; ?>

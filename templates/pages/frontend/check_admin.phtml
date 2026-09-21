@@ -162,7 +162,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($details ? $details->code : 'Fehler');
                 </table>
             </div>
 
-            <!-- MANUELLE FREISCHALTUNG (Bleibt vorerst im PHTML logikgesteuert durch das DTO) -->
+            <!-- MANUELLE FREISCHALTUNG -->
             <?php if (!$details->isPaid) { ?>
                 <footer class="c-card__footer u-text-center">
                     <form method="POST"

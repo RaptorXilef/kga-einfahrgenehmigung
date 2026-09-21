@@ -13,9 +13,27 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
  * @var AuthService $auth
  * @var array $settings
  * @var string $appRoot
- * @var DashboardPermitDto[] $activePermits
- * @var string $paginationHtml
+ * @var DashboardPermitDto[] $activePermitsDto
+ * @var int $totalActive
  */
+
+// Paginierungs-Logik
+$limit = $itemsPerPage ?? 25;
+$focus = $_GET['focus'] ?? 'tab-active';
+$page = ($focus === 'tab-active') ? ($currentPage ?? 1) : 1;
+
+$totalPages = \max(1, (int) \ceil($totalActive / $limit));
+$page = \min($page, $totalPages);
+$offset = ($page - 1) * $limit;
+
+$activePermits = \array_slice($activePermitsDto, $offset, $limit);
+
+\ob_start();
+$paginationParam = 'page';
+$totalCount = $totalActive;
+$tabFocusId = 'tab-active';
+include $appRoot . '/templates/partials/admin/pagination.phtml';
+$paginationHtml = \ob_get_clean();
 ?>
 <?php if ($auth->hasPermission('permits.view')) { ?>
     <div class="c-tab-content-container">
@@ -31,6 +49,8 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
                     <p class="u-color-muted u-text-sm u-margin-block-none">Alle aktuell gültigen Einfahrtsberechtigungen
                         im System.</p>
                 </div>
+                <!-- FIX: Der Live Badge ist wieder da! -->
+                <span class="c-badge c-badge--success">LIVE: <?php echo $totalActive; ?></span>
             </header>
 
             <?php echo $paginationHtml; ?>

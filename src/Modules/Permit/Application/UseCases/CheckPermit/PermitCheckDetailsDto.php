@@ -6,7 +6,7 @@ namespace App\Modules\Permit\Application\UseCases\CheckPermit;
 
 /**
  * Read-Model für die QR-Code Scanner Ansicht (Check).
- * Liefert exakte CSS-Klassen und Texte für den Status-Banner.
+ * 100% Logikfrei für die View.
  */
 final readonly class PermitCheckDetailsDto
 {
@@ -35,6 +35,7 @@ final readonly class PermitCheckDetailsDto
         public string $financeStatusClass,// "success", "warning"
         public bool $isSuspended,
         public ?string $suspensionReason,
+        public bool $isPaid,
     ) {
     }
 }

@@ -7,8 +7,9 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
 /**
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
- * @var DashboardPermitDto[] $cancelledPermits
+ * @var DashboardPermitDto[] $cancelledPermitsDto
  * @var array $settings
+ * @var int $totalCancelled
  */
 ?>
 <?php if ($auth->hasPermission('permits.view')) { ?>
@@ -25,6 +26,8 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
                     <p class="u-color-muted u-text-sm u-margin-block-none">
                         Übersicht aller durch Pächter zurückgezogenen Anträge (DSGVO-konform anonymisiert).</p>
                 </div>
+                <!-- FIX: Der Badge ist wieder da! -->
+                <span class="c-badge c-badge--danger">STORNIERT: <?php echo $totalCancelled; ?></span>
             </header>
 
             <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
@@ -40,7 +43,7 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (empty($cancelledPermits)) { ?>
+                        <?php if (empty($cancelledPermitsDto)) { ?>
                             <tr>
                                 <td colspan="5"
                                     class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
@@ -48,7 +51,7 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
                                 </td>
                             </tr>
                         <?php } else { ?>
-                            <?php foreach ($cancelledPermits as $permit) { ?>
+                            <?php foreach ($cancelledPermitsDto as $permit) { ?>
                                 <tr class="u-hover-fade <?php echo $permit->rowClass; ?>">
                                     <td class="c-table__data-cell">
                                         <div class="u-flex u-flex-column">
