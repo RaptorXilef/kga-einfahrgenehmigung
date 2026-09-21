@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.76.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.75.0...v0.76.0) (2026-09-21)
+
+### 🚀 Features
+
+* **permit:** Implement Finance and Stats CQRS read models and eliminate ReportingService ([b6b6426](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b6b64267e234b133f4a5a47279fd73198e2cf251))
+
+### 🐛 Bug Fixes
+
+* **stats:** Resolve PDO invalid parameter number exception in Dashboard stats ([d4bc30d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d4bc30df2003df6b8f4d7bdb100cfa6c4763ecf3))
+
 ## [0.75.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.74.0...v0.75.0) (2026-09-21)
 
 ### 🚀 Features
