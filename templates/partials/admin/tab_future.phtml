@@ -19,14 +19,12 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
 
 // Paginierungs-Logik
 $limit = $itemsPerPage ?? 25;
-$focus = $_GET['focus'] ?? 'tab-active';
-$page = ($focus === 'tab-future') ? ($currentPage ?? 1) : 1;
+$page = $currentPage ?? 1;
 
 $totalPages = \max(1, (int) \ceil($totalFuture / $limit));
-$page = \min($page, $totalPages);
 $offset = ($page - 1) * $limit;
 
-$futurePermits = \array_slice($futurePermitsDto, $offset, $limit);
+$futurePermits = $futurePermitsDto;
 
 \ob_start();
 $paginationParam = 'page';

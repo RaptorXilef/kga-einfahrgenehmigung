@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\GetDashboardPermits;
 
 /**
- * Kapselt die Liste der Permits für den aktuellen Tab PLUS alle Badge-Zähler für die Navigation.
+ * Kapselt die Liste der Permits für die Tabs PLUS alle Badge-Zähler für die Navigation.
  */
 final readonly class DashboardPermitsResultDto
 {
@@ -13,8 +13,19 @@ final readonly class DashboardPermitsResultDto
         /**
          * @var DashboardPermitDto[]
          */
-        public array $items,
-        public int $totalItems,
+        public array $activePermitsDto,
+        /**
+         * @var DashboardPermitDto[]
+         */
+        public array $futurePermitsDto,
+        /**
+         * @var DashboardPermitDto[]
+         */
+        public array $expiredPermitsDto,
+        /**
+         * @var DashboardPermitDto[]
+         */
+        public array $cancelledPermitsDto,
         public int $countActive,
         public int $countFuture,
         public int $countExpired,

@@ -10,7 +10,22 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
  * @var DashboardPermitDto[] $cancelledPermitsDto
  * @var array $settings
  * @var int $totalCancelled
+ * @var string $appRoot
  */
+
+// Paginierungs-Logik
+$limit = $itemsPerPage ?? 25;
+$page = $currentPage ?? 1;
+
+$totalPages = \max(1, (int) \ceil($totalCancelled / $limit));
+$offset = ($page - 1) * $limit;
+
+\ob_start();
+$paginationParam = 'page';
+$totalCount = $totalCancelled;
+$tabFocusId = 'tab-cancelled';
+include $appRoot . '/templates/partials/admin/pagination.phtml';
+$paginationHtml = \ob_get_clean();
 ?>
 <?php if ($auth->hasPermission('permits.view')) { ?>
     <div class="c-tab-content-container">
@@ -29,6 +44,8 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
                 <!-- FIX: Der Badge ist wieder da! -->
                 <span class="c-badge c-badge--danger">STORNIERT: <?php echo $totalCancelled; ?></span>
             </header>
+
+            <?php echo $paginationHtml; ?>
 
             <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
                 <table class="c-table js-sort-table u-inline-size-100">
@@ -91,6 +108,9 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
                     </tbody>
                 </table>
             </div>
+
+            <?php echo $paginationHtml; ?>
+
         </section>
     </div>
 <?php } ?>
