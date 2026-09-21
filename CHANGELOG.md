@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.75.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.74.0...v0.75.0) (2026-09-21)
+
+### 🚀 Features
+
+* **identity:** Implement PdoUserRepository, migrate AdminLoginAction and clean up AuthService ([1a6f97d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1a6f97deb76cb1c20d3d9b4881bfa1c6876f4bfd))
+* **identity:** Migrate MagicLink handling to Identity module via VSA ([22fb092](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/22fb092aa5608543e0e611b8c6dfadbef4dae678))
+* **permit:** Implement VSA read models and logic-free view templates for Dashboard and Check pages ([29e7190](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/29e719060f08da669708b651a118e0dfcbd16859))
+
+### 🐛 Bug Fixes
+
+* **permit:** Resolve undefined variable and missing method in Check Permit handler ([81d2e87](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/81d2e87d4684b18dc845a9a6162d24d5c6aa74ac))
+* **ui:** Restore missing layout elements and fix undefined properties in Permit views ([a4b7c69](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a4b7c69e3e2ab9ca853edf51fb937953a4ab4c12))
+
 ## [0.74.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.73.0...v0.74.0) (2026-09-21)
 
 ### 🚀 Features
