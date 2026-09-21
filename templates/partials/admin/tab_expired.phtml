@@ -2,7 +2,7 @@
 
 use App\Contracts\System\AssetHelperInterface;
 use App\Core\Service\AuthService;
-use App\Infrastructure\Config\Config;
+use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitDto;
 
 /**
  * Partial: Dashboard Tab - Expired Permits
@@ -11,36 +11,14 @@ use App\Infrastructure\Config\Config;
  *
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
- * @var Config $config
- * @var array $permitGroups
  * @var array $settings
  * @var int $minArchiveYear
  * @var string $appRoot
+ * @var DashboardPermitDto[] $expiredPermits
+ * @var string $paginationHtml
  */
-$allExpired = $permitGroups['expired'] ?? [];
-
-\usort($allExpired, fn ($a, $b) => $b->getValidUntil() <=> $a->getValidUntil());
-
-// Paginierungs-Logik: Schützt vor Parameter-Bleeding aus anderen Tabs
-$limit = $itemsPerPage ?? 25;
-$focus = $_GET['focus'] ?? 'tab-active';
-$page = ($focus === 'tab-expired') ? ($currentPage ?? 1) : 1;
-
-$totalCount = \count($allExpired);
-$totalPages = \max(1, (int) \ceil($totalCount / $limit));
-$page = \min($page, $totalPages);
-$offset = ($page - 1) * $limit;
-
-$expiredPermits = \array_slice($allExpired, $offset, $limit);
-
-\ob_start();
-$paginationParam = 'page';
-$tabFocusId = 'tab-expired';
-include $appRoot . '/templates/partials/admin/pagination.phtml';
-$paginationHtml = \ob_get_clean();
-
-if ($auth->hasPermission('permits.view')) {
-    ?>
+?>
+<?php if ($auth->hasPermission('permits.view')) { ?>
     <div class="c-tab-content-container">
         <section class="c-card c-card--dark">
             <header class="c-card__header u-flex u-justify-between u-align-center">
@@ -54,7 +32,6 @@ if ($auth->hasPermission('permits.view')) {
                     <p class="u-color-muted u-text-sm u-margin-block-none">Abgelaufene Genehmigungen aus dem gewählten
                         Zeitraum.</p>
                 </div>
-                <span class="c-badge c-badge--outline">ARCHIV: <?php echo \count($allExpired); ?></span>
             </header>
 
             <?php echo $paginationHtml; ?>
@@ -69,93 +46,58 @@ if ($auth->hasPermission('permits.view')) {
                                 <th class="c-table__header-cell js-sort-header u-text-start">Kontakt (E-Mail)</th>
                             <?php } ?>
                             <th class="c-table__header-cell js-sort-header u-text-center">Zeitraum</th>
-                            <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Verwaltung</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($expiredPermits)) { ?>
                             <tr>
-                                <td colspan="5"
+                                <td colspan="4"
                                     class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
                                     Keine abgelaufenen Einträge im gewählten Zeitraum.
                                 </td>
                             </tr>
                         <?php } else { ?>
-                            <?php foreach ($expiredPermits as $permit) {
-                                $vKey = $permit->getVehicleType();
-                                $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
-                                $iconPath = $vCfg['icon'] ?? 'assets/img/icons/warning.webp';
-                                $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
-                                ?>
-                                <tr class="u-hover-fade u-opacity-75">
+                            <?php foreach ($expiredPermits as $permit) { ?>
+                                <tr class="u-hover-fade <?php echo $permit->rowClass; ?>">
                                     <!-- 1. Pächter, Code & Parzelle -->
                                     <td class="c-table__data-cell"
-                                        data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>">
+                                        data-sort-val="<?php echo \htmlspecialchars($permit->ownerName); ?>">
                                         <div class="u-flex u-flex-column">
-                                            <span class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->getOwnerName()); ?></span>
+                                            <span class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->ownerName); ?></span>
                                             <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs"><?php echo $permit->code; ?></code>
                                             <div>
-                                                <span class="c-badge c-badge--primary">PARZELLE <?php echo $permit->getPlotNumber(); ?></span>
+                                                <span class="c-badge c-badge--primary">PARZELLE <?php echo $permit->plotNumber; ?></span>
                                             </div>
                                         </div>
                                     </td>
                                     <!-- 2. Fahrzeug unter Icon (Nummernschild-Style) -->
                                     <td class="c-table__data-cell u-text-center"
-                                        data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>">
+                                        data-sort-val="<?php echo \htmlspecialchars($permit->licensePlate); ?>">
                                         <div>
-                                            <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
+                                            <img src="<?php echo $asset->url($permit->vehicleIcon); ?>"
                                                  class="c-icon c-table__icon u-grayscale u-opacity-50"
-                                                 title="<?php echo $vLabel; ?>"
+                                                 title="<?php echo \htmlspecialchars($permit->vehicleLabel); ?>"
                                                  loading="lazy"
                                                  alt="">
                                         </div>
                                         <div class="u-margin-block-start-xs">
-                                            <span class="c-license-plate c-table__license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
+                                            <span class="c-license-plate c-table__license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->licensePlate); ?></span>
                                         </div>
                                     </td>
                                     <!-- 3. E-Mail -->
                                     <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
                                         <td class="c-table__data-cell"
-                                            data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>">
-                                            <?php if ($permit->getOwnerEmail()) { ?>
-                                                <div class="u-flex u-align-center u-gap-xs">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/envelope.webp'); ?>"
-                                                         class="c-icon c-icon--inline"
-                                                         loading="lazy"
-                                                         alt="">
-                                                    <small>
-                                                        <a href="mailto:<?php echo \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8'); ?>" class="u-text-link c-table__mail-link">
-                                                            <?php echo \str_replace('@', '<wbr>@', \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8')); ?>
-                                                        </a>
-                                                    </small>
-                                                </div>
-                                            <?php } else { ?>
-                                                <small class="u-color-muted"><em>keine Angabe</em></small>
-                                            <?php } ?>
+                                            data-sort-val="<?php echo \htmlspecialchars(\strip_tags($permit->emailHtml)); ?>">
+                                            <?php echo $permit->emailHtml; ?>
                                         </td>
                                     <?php } ?>
                                     <!-- 4. Zeitraum -->
-                                    <td class="c-table__data-cell u-text-center u-text-nowrap"
-                                        data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>">
-                                        <div>
+                                    <td class="c-table__data-cell u-text-center u-text-nowrap">
+                                        <div class="u-flex u-flex-column u-gap-xs">
                                             <small class="u-color-muted">
-                                                <?php echo $permit->getValidFrom()->format('d.m.Y'); ?> -<br>
-                                                <?php echo $permit->getValidUntil()->format('d.m.Y'); ?>
+                                                <?php echo $permit->validFromDate; ?> -<br>
+                                                <?php echo $permit->validUntilDate; ?>
                                             </small>
-                                        </div>
-                                    </td>
-                                    <td class="c-table__data-cell u-text-end u-text-nowrap u-padding-inline-end-m">
-                                        <div class="u-flex u-gap-xs u-justify-end">
-                                            <?php if ($auth->hasPermission('permits.print')) { ?>
-                                                <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Drucken">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
-                                                </a>
-                                            <?php } ?>
-                                            <?php if ($auth->hasPermission('permits.view')) { ?>
-                                                <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
-                                                </a>
-                                            <?php } ?>
                                         </div>
                                     </td>
                                 </tr>

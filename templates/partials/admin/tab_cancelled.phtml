@@ -1,16 +1,15 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
+use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitDto;
 
 /**
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
- * @var Permit[] $cancelledPermits
+ * @var DashboardPermitDto[] $cancelledPermits
  * @var array $settings
  */
-$cancelledPermits ??= [];
 ?>
 <?php if ($auth->hasPermission('permits.view')) { ?>
     <div class="c-tab-content-container">
@@ -26,7 +25,6 @@ $cancelledPermits ??= [];
                     <p class="u-color-muted u-text-sm u-margin-block-none">
                         Übersicht aller durch Pächter zurückgezogenen Anträge (DSGVO-konform anonymisiert).</p>
                 </div>
-                <span class="c-badge c-badge--danger">STORNIERT: <?php echo \count($cancelledPermits); ?></span>
             </header>
 
             <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
@@ -51,38 +49,38 @@ $cancelledPermits ??= [];
                             </tr>
                         <?php } else { ?>
                             <?php foreach ($cancelledPermits as $permit) { ?>
-                                <tr class="u-hover-fade u-opacity-75">
+                                <tr class="u-hover-fade <?php echo $permit->rowClass; ?>">
                                     <td class="c-table__data-cell">
                                         <div class="u-flex u-flex-column">
-                                            <span class="u-font-bold u-color-main">[ANONYMISIERT]</span>
+                                            <span class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->ownerName); ?></span>
                                             <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs"><?php echo $permit->code; ?></code>
                                         </div>
                                     </td>
                                     <td class="c-table__data-cell u-text-center">
                                         <div>
-                                            <img src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>"
+                                            <img src="<?php echo $asset->url($permit->vehicleIcon); ?>"
                                                  class="c-icon c-icon--md u-grayscale u-opacity-50"
                                                  loading="lazy"
                                                  alt="">
                                         </div>
                                         <div class="u-margin-block-start-xs">
-                                            <span class="c-license-plate u-opacity-50">[ANONYM]</span>
+                                            <span class="c-license-plate u-opacity-50"><?php echo \htmlspecialchars($permit->licensePlate); ?></span>
                                         </div>
                                     </td>
                                     <td class="c-table__data-cell u-text-center u-text-nowrap">
                                         <div class="u-flex u-flex-column u-gap-xs">
                                             <small class="u-color-muted">
-                                                <?php echo $permit->getValidFrom()->format('d.m.Y'); ?> -<br>
-                                                <?php echo $permit->getValidUntil()->format('d.m.Y'); ?>
+                                                <?php echo $permit->validFromDate; ?> -<br>
+                                                <?php echo $permit->validUntilDate; ?>
                                             </small>
                                         </div>
                                     </td>
                                     <td class="c-table__data-cell u-text-end u-text-nowrap">
-                                        <strong class="u-color-dark"><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?> €</strong>
+                                        <strong class="u-color-dark"><?php echo $permit->priceFormatted; ?></strong>
                                     </td>
                                     <td class="c-table__data-cell u-text-end u-text-nowrap u-padding-inline-end-m">
-                                        <strong class="u-color-danger"><?php echo $permit->getCreatedAt()->format('d.m.Y'); ?></strong><br>
-                                        <small class="u-color-muted"><?php echo $permit->getCreatedAt()->format('H:i'); ?> Uhr</small>
+                                        <strong class="u-color-danger"><?php echo $permit->createdAtDate; ?></strong><br>
+                                        <small class="u-color-muted"><?php echo $permit->createdAtTime; ?></small>
                                     </td>
                                 </tr>
                             <?php } ?>
