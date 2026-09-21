@@ -55,7 +55,7 @@ final readonly class PermitService
         private PermitArchiveRepositoryInterface $archiveRepository,
         private StorageInterface $storage,
         private VerificationRepositoryInterface $verificationRepository,
-        private VoucherService $voucherService,
+        // private VoucherService $voucherService,
     ) {
     }
 

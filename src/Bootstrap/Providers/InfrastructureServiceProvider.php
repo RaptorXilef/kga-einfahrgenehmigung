@@ -26,7 +26,7 @@ use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
-use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Contracts\Storage\VoucherRepositoryInterface as LegacyVoucherRepositoryInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
@@ -66,6 +66,8 @@ use App\Infrastructure\System\FileRouteCache;
 use App\Infrastructure\System\LocalAssetHelper;
 use App\Infrastructure\System\SystemInfoService;
 use App\Infrastructure\Utils\SystemClock;
+use App\Modules\Voucher\Domain\VoucherRepositoryInterface as NewVoucherRepositoryInterface;
+use App\Modules\Voucher\Infrastructure\PdoVoucherRepository;
 use PDO;
 
 /**
@@ -162,10 +164,16 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(JsonHelperInterface::class),
         ));
 
-        $container->bind(VoucherRepositoryInterface::class, fn (): MySqlVoucherRepository => new MySqlVoucherRepository(
+        // LEGACY VOUCHER REPOSITORY (Wird nur noch für das Voucher-Archiv genutzt, bis wir das refactoren)
+        $container->bind(LegacyVoucherRepositoryInterface::class, fn (): MySqlVoucherRepository => new MySqlVoucherRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
+        ));
+
+        // --- NEU: VOUCHER DDD REPOSITORY BINDING ---
+        $container->bind(NewVoucherRepositoryInterface::class, fn (): PdoVoucherRepository => new PdoVoucherRepository(
+            $container->get(PDO::class),
         ));
 
         /*
