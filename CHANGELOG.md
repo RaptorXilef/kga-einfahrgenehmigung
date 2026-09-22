@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.78.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.7...v0.78.0) (2026-09-22)
+
+### 🚀 Features
+
+* **permit:** refine permit collision logic for multi-tenant and delivery scenarios ([f811403](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f8114038ce394abefe3b77a1cb413d147a84791e))
+
+### 🐛 Bug Fixes
+
+* **permit:** retain form data on domain validation errors during submission ([83a363a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/83a363a43fa8f23b7c6056a3b03f87435d1aee13))
+
 ## [0.77.7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.6...v0.77.7) (2026-09-22)
 
 ### 🐛 Bug Fixes
