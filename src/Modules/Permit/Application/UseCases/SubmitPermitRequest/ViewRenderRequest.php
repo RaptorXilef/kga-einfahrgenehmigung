@@ -2,13 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Permit\Application\UseCases\SubmitPermitRequest;
 
-/**
- * DTO für alle allgemeinen View-Render-Requests (GET-Parameter).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class ViewRenderRequest
 {
     private function __construct(

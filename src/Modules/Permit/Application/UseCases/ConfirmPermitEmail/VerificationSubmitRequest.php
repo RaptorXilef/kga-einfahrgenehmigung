@@ -2,16 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Permit\Application\UseCases\ConfirmPermitEmail;
 
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 
-/**
- * DTO für die Übermittlung des Verifizierungscodes inklusive IP-Kapselung.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class VerificationSubmitRequest
 {
     private function __construct(

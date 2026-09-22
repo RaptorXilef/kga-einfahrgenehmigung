@@ -2,13 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\System\Application\UseCases\ViewDashboard;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class DashboardFilterRequest
 {
     private function __construct(
@@ -20,10 +15,8 @@ final readonly class DashboardFilterRequest
     ) {
     }
 
-    // TODO DOCBLOCK
     public static function fromArray(array $post): self
     {
-        // Ein Filter wirft keine Fehler, er nutzt saubere Standardwerte!
         return new self(
             (string) ($post['start'] ?? ''),
             (string) ($post['end'] ?? ''),

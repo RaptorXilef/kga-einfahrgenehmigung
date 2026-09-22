@@ -2,16 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Identity\Application\UseCases\RequestMagicLink;
 
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 
-/**
- * DTO für die Anforderung eines Magic-Links inklusive IP-Kapselung.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class HistoryRequestLinkRequest
 {
     private function __construct(

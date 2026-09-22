@@ -5,17 +5,17 @@
     array (
       '/admin_print' => 
       array (
-        'class' => 'App\\Application\\Actions\\Admin\\AdminPrintAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\PrintPermit\\AdminPrintAction',
         'auth' => true,
       ),
       '/filter_dashboard' => 
       array (
-        'class' => 'App\\Application\\Actions\\Admin\\DashboardFilterAction',
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewDashboard\\DashboardFilterAction',
         'auth' => false,
       ),
       '/admin' => 
       array (
-        'class' => 'App\\Application\\Actions\\Admin\\DashboardRenderAction',
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewDashboard\\DashboardRenderAction',
         'auth' => true,
       ),
       '/create_manual' => 
@@ -30,82 +30,82 @@
       ),
       '/api/qr.png' => 
       array (
-        'class' => 'App\\Application\\Actions\\Api\\Shared\\QrCodeRenderAction',
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\QrCode\\QrCodeRenderAction',
         'auth' => false,
       ),
       '/checkout' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\CheckoutAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetVerifiedRequest\\CheckoutAction',
         'auth' => false,
       ),
       '/check' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\CheckPermitAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CheckPermit\\CheckPermitAction',
         'auth' => false,
       ),
       '/datenschutz' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\DatenschutzAction',
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewLegal\\DatenschutzAction',
         'auth' => false,
       ),
       '/history_cancel_permit' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistoryCancelPermitAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CancelPermit\\HistoryCancelPermitAction',
         'auth' => false,
       ),
       '/history_logout' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistoryLogoutAction',
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistoryLogoutAction',
         'auth' => false,
       ),
       '/history_print' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistoryPrintAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\PrintPermit\\HistoryPrintAction',
         'auth' => false,
       ),
       '/history' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistoryRenderAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetPermitHistory\\HistoryRenderAction',
         'auth' => false,
       ),
       '/history_request_link' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistoryRequestLinkAction',
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\RequestMagicLink\\HistoryRequestLinkAction',
         'auth' => false,
       ),
       '/history_submit_code' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistorySubmitCodeAction',
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistorySubmitCodeAction',
         'auth' => false,
       ),
       '/history_verify_token' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistoryVerifyTokenAction',
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistoryVerifyTokenAction',
         'auth' => false,
       ),
       '/impressum' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\ImpressumAction',
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewLegal\\ImpressumAction',
         'auth' => false,
       ),
       '/permit_edit' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\PermitEditAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetVerifiedRequest\\PermitEditAction',
         'auth' => false,
       ),
       '/' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\PermitRenderAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SubmitPermitRequest\\PermitRenderAction',
         'auth' => false,
       ),
       '/success' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\SuccessAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\SuccessAction',
         'auth' => false,
       ),
       '/verify' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\VerificationAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\ConfirmPermitEmail\\VerificationAction',
         'auth' => false,
       ),
       '/bank_import_analyze' => 
@@ -248,7 +248,7 @@
     array (
       '/filter_dashboard' => 
       array (
-        'class' => 'App\\Application\\Actions\\Admin\\DashboardFilterAction',
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewDashboard\\DashboardFilterAction',
         'auth' => false,
       ),
       '/create_manual' => 
@@ -268,87 +268,87 @@
       ),
       '/api/search_permits' => 
       array (
-        'class' => 'App\\Application\\Actions\\Api\\Admin\\SearchPermitsAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SearchPermits\\SearchPermitsAction',
         'auth' => true,
       ),
       '/api/capture' => 
       array (
-        'class' => 'App\\Application\\Actions\\Api\\Frontend\\CapturePaymentAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\CapturePaymentAction',
         'auth' => false,
       ),
       '/api/create_order' => 
       array (
-        'class' => 'App\\Application\\Actions\\Api\\Frontend\\CreateOrderAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\CreateOrderAction',
         'auth' => false,
       ),
       '/api/finalize_wire' => 
       array (
-        'class' => 'App\\Application\\Actions\\Api\\Frontend\\FinalizeWireAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\FinalizeWireAction',
         'auth' => false,
       ),
       '/api/get_date_info' => 
       array (
-        'class' => 'App\\Application\\Actions\\Api\\Shared\\GetDateInfoAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetDateInfo\\GetDateInfoAction',
         'auth' => false,
       ),
       '/api/get_template_price' => 
       array (
-        'class' => 'App\\Application\\Actions\\Api\\Shared\\GetTemplatePriceAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetTemplatePrice\\GetTemplatePriceAction',
         'auth' => false,
       ),
       '/datenschutz' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\DatenschutzAction',
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewLegal\\DatenschutzAction',
         'auth' => false,
       ),
       '/history_cancel_permit' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistoryCancelPermitAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CancelPermit\\HistoryCancelPermitAction',
         'auth' => false,
       ),
       '/history_logout' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistoryLogoutAction',
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistoryLogoutAction',
         'auth' => false,
       ),
       '/history_print' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistoryPrintAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\PrintPermit\\HistoryPrintAction',
         'auth' => false,
       ),
       '/history_request_link' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistoryRequestLinkAction',
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\RequestMagicLink\\HistoryRequestLinkAction',
         'auth' => false,
       ),
       '/history_submit_code' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistorySubmitCodeAction',
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistorySubmitCodeAction',
         'auth' => false,
       ),
       '/history_verify_token' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistoryVerifyTokenAction',
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistoryVerifyTokenAction',
         'auth' => false,
       ),
       '/impressum' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\ImpressumAction',
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewLegal\\ImpressumAction',
         'auth' => false,
       ),
       '/permit_edit' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\PermitEditAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetVerifiedRequest\\PermitEditAction',
         'auth' => false,
       ),
       '/success' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\SuccessAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\SuccessAction',
         'auth' => false,
       ),
       '/verify' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\VerificationAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\ConfirmPermitEmail\\VerificationAction',
         'auth' => false,
       ),
       '/bank_import_analyze' => 

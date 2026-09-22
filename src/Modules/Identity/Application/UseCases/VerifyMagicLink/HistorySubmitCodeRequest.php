@@ -2,16 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Identity\Application\UseCases\VerifyMagicLink;
 
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 
-/**
- * DTO für die Code-Eingabe im History-Portal inklusive IP-Kapselung.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class HistorySubmitCodeRequest
 {
     private function __construct(

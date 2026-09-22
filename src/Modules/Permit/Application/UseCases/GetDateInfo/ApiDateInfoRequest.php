@@ -2,17 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Permit\Application\UseCases\GetDateInfo;
 
 use DateTimeImmutable;
 use Exception;
 
-/**
- * DTO für den asynchronen PayPal-Webhook/API-Call.
- * Kapselt das Lesen aus dem php://input Stream.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class ApiDateInfoRequest
 {
     private function __construct(public DateTimeImmutable $von, public DateTimeImmutable $bis)

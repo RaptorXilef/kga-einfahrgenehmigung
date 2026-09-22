@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Permit\Application\UseCases\CancelPermit;
 
 use App\Application\Exception\ValidationException;
 

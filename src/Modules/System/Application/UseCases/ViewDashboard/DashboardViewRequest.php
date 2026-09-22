@@ -2,13 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\System\Application\UseCases\ViewDashboard;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class DashboardViewRequest
 {
     private function __construct(
