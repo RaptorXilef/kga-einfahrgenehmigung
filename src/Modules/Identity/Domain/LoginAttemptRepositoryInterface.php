@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contracts\Storage;
-
-use App\Core\Entity\LoginAttempt;
+namespace App\Modules\Identity\Domain;
 
 interface LoginAttemptRepositoryInterface
 {

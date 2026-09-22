@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contracts\Storage;
-
-use App\Core\Entity\AuditLog;
+namespace App\Modules\System\Domain;
 
 interface AuditLogRepositoryInterface
 {

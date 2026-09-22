@@ -151,7 +151,7 @@ function sanitizeJsonContent(filePath, rawContent) {
         }
 
         return JSON.stringify(parsed, null, indent);
-    } catch (e) {
+    } catch (_e) { // Linter-Fix: "e" zu "_e" geändert, da ungenutzt
         // Falls das JSON defekt ist, geben wir sicherheitshalber den Roh-Inhalt zurück
         return rawContent;
     }
@@ -178,6 +178,22 @@ function formatContent(content) {
 // FILE SYSTEM & CLI LOGIC
 // =============================================================================
 
+/**
+ * NEU: Prüft, ob ein Ziel-String (Datei/Ordner) auf ein Pattern passt.
+ * Unterstützt * als Wildcard (z.B. '*.local.*') oder normale Teilstrings.
+ */
+function matchPattern(target, pattern) {
+    if (pattern.includes('*')) {
+        // RegEx-Sonderzeichen escapen, außer das Sternchen
+        const escapeRegex = (s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+        // Linter-Fix: Template Literal statt String-Konkatenation
+        const regexStr = `^${pattern.split('*').map(escapeRegex).join('.*')}$`;
+        return new RegExp(regexStr, 'i').test(target);
+    }
+    // Fallback: Normale Teilstring-Suche (wie bisher)
+    return target.toLowerCase().includes(pattern.toLowerCase());
+}
+
 function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = []) {
     const files = fs.readdirSync(dir);
 
@@ -189,12 +205,12 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
         if (stat.isDirectory()) {
             const normalizedRelPath = relPath.replace(/\\/g, '/').toLowerCase();
 
+            // NEU: matchPattern() verwendet und file.startsWith('.') für bessere Performance vorgezogen
             const isExcluded =
-                ALWAYS_IGNORE_DIRS.some(
-                    (d) => file.toLowerCase().includes(d.toLowerCase()) || file.startsWith('.')
-                ) ||
-                ALWAYS_IGNORE_PATHS.some((p) => normalizedRelPath.includes(p.toLowerCase())) ||
-                exclDirs.some((d) => normalizedRelPath.includes(d.toLowerCase()));
+                file.startsWith('.') ||
+                ALWAYS_IGNORE_DIRS.some((d) => matchPattern(file, d)) ||
+                ALWAYS_IGNORE_PATHS.some((p) => matchPattern(normalizedRelPath, p)) ||
+                exclDirs.some((d) => matchPattern(normalizedRelPath, d));
 
             if (!isExcluded) {
                 getFiles(fullPath, filter, exclDirs, exclFiles, includeRoot, currentFiles);
@@ -204,9 +220,11 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
             if (!includeRoot && isRootFile) continue;
 
             const matchesFilter = filter.test(file);
+
+            // NEU: matchPattern() hier für Dateien verwendet, um *.local.* abzufangen
             const isExcludedFile =
-                ALWAYS_IGNORE_FILES.some((f) => file.toLowerCase().includes(f.toLowerCase())) ||
-                exclFiles.some((f) => file.toLowerCase().includes(f.toLowerCase()));
+                ALWAYS_IGNORE_FILES.some((f) => matchPattern(file, f)) ||
+                exclFiles.some((f) => matchPattern(file, f));
 
             if (matchesFilter && !isExcludedFile) {
                 currentFiles.push({ fullPath, relPath, ext: path.extname(file) });

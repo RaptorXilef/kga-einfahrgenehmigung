@@ -2,16 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Storage;
+namespace App\Modules\System\Infrastructure;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\AuditLogRepositoryInterface;
-use App\Core\Entity\AuditLog;
-use App\Core\ValueObject\IpAddress;
+use App\Infrastructure\Storage\DynamicSqlTrait;
+use App\Modules\System\Domain\AuditLog;
+use App\Modules\System\Domain\AuditLogRepositoryInterface;
+use App\SharedKernel\Domain\ValueObject\IpAddress;
 use DateTimeImmutable;
 use PDO;
 
-final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterface
+final readonly class PdoAuditLogRepository implements AuditLogRepositoryInterface
 {
     use DynamicSqlTrait;
 
@@ -58,7 +59,7 @@ final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterf
         $total = (int) $stmtCount->fetchColumn();
 
         // Items holen
-        $sql = "SELECT * FROM `{$table}` $where ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
+        $sql = "SELECT * FROM `{$table}` $where ORDER BY created_at DESC LIMIT $limit OFFSET$offset";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
 

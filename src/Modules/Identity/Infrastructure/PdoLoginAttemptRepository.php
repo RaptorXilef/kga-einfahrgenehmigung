@@ -2,19 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Storage;
+namespace App\Modules\Identity\Infrastructure;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\LoginAttemptRepositoryInterface;
-use App\Core\Entity\LoginAttempt;
-use App\Core\ValueObject\IpAddress;
+use App\Infrastructure\Storage\DynamicSqlTrait;
+use App\Modules\Identity\Domain\LoginAttempt;
+use App\Modules\Identity\Domain\LoginAttemptRepositoryInterface;
+use App\SharedKernel\Domain\ValueObject\IpAddress;
 use DateTimeImmutable;
 use PDO;
 
-/**
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-final readonly class MySqlLoginAttemptRepository implements LoginAttemptRepositoryInterface
+final readonly class PdoLoginAttemptRepository implements LoginAttemptRepositoryInterface
 {
     use DynamicSqlTrait;
 

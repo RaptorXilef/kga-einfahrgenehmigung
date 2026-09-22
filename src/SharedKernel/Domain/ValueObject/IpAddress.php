@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\ValueObject;
+namespace App\SharedKernel\Domain\ValueObject;
 
 use InvalidArgumentException;
 use Stringable;

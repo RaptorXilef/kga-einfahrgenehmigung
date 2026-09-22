@@ -2,14 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Entity;
+namespace App\Modules\Identity\Domain;
 
-use App\Core\ValueObject\IpAddress;
+use App\SharedKernel\Domain\ValueObject\IpAddress;
 use DateTimeImmutable;
 
-/**
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class LoginAttempt
 {
     public function __construct(

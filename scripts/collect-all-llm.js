@@ -201,7 +201,7 @@ function optimizeTokens(content, fileExtension) {
                 // PHP Operatoren
                 phpCode = phpCode.replace(operatorRegex, ' $1 ');
 
-                return openTag + phpCode + closeTag;
+                return `${openTag}${phpCode}${closeTag}`;
             }
         );
     }
@@ -239,14 +239,11 @@ function optimizeTokens(content, fileExtension) {
                 optimizedLines.push(line);
                 continue;
             }
-
             if (
                 optimizedLines.length > 0 &&
                 !(ext === '.php' && /^<\?php/i.test(optimizedLines[optimizedLines.length - 1]))
             ) {
-                const lastLine = optimizedLines[optimizedLines.length - 1];
-
-                // \) und % am Ende sowie \- am Anfang für CSS-Funktionen (url, rgba) und Prozentwerte
+                const lastLine = optimizedLines[optimizedLines.length - 1]; // \) und % am Ende sowie \- am Anfang für CSS-Funktionen (url, rgba) und Prozentwerte
                 if (/[a-zA-Z0-9_\])%]$/.test(lastLine) && /^[a-zA-Z0-9_$-]/.test(line)) {
                     optimizedLines[optimizedLines.length - 1] += ` ${line}`;
                 } else {
@@ -278,6 +275,20 @@ function optimizeTokens(content, fileExtension) {
 // FILE SYSTEM & CLI LOGIC
 // =============================================================================
 
+/**
+ * NEU: Prüft, ob ein Ziel-String (Datei/Ordner) auf ein Pattern passt.
+ * Unterstützt * als Wildcard (z.B. '*.local.*') oder normale Teilstrings.
+ */
+function matchPattern(target, pattern) {
+    if (pattern.includes('*')) {
+        const escapeRegex = (s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+        // Linter-Fix: Template Literal statt String-Concatenation
+        const regexStr = `^${pattern.split('*').map(escapeRegex).join('.*')}$`;
+        return new RegExp(regexStr, 'i').test(target);
+    }
+    return target.toLowerCase().includes(pattern.toLowerCase());
+}
+
 function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = []) {
     const files = fs.readdirSync(dir);
 
@@ -289,12 +300,12 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
         if (stat.isDirectory()) {
             const normalizedRelPath = relPath.replace(/\\/g, '/').toLowerCase();
 
+            // Linter & Wildcard Fix
             const isExcluded =
-                ALWAYS_IGNORE_DIRS.some(
-                    (d) => file.toLowerCase().includes(d.toLowerCase()) || file.startsWith('.')
-                ) ||
-                ALWAYS_IGNORE_PATHS.some((p) => normalizedRelPath.includes(p.toLowerCase())) ||
-                exclDirs.some((d) => normalizedRelPath.includes(d.toLowerCase()));
+                file.startsWith('.') ||
+                ALWAYS_IGNORE_DIRS.some((d) => matchPattern(file, d)) ||
+                ALWAYS_IGNORE_PATHS.some((p) => matchPattern(normalizedRelPath, p)) ||
+                exclDirs.some((d) => matchPattern(normalizedRelPath, d));
 
             if (!isExcluded) {
                 getFiles(fullPath, filter, exclDirs, exclFiles, includeRoot, currentFiles);
@@ -304,9 +315,11 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
             if (!includeRoot && isRootFile) continue;
 
             const matchesFilter = filter.test(file);
+
+            // Linter & Wildcard Fix
             const isExcludedFile =
-                ALWAYS_IGNORE_FILES.some((f) => file.toLowerCase().includes(f.toLowerCase())) ||
-                exclFiles.some((f) => file.toLowerCase().includes(f.toLowerCase()));
+                ALWAYS_IGNORE_FILES.some((f) => matchPattern(file, f)) ||
+                exclFiles.some((f) => matchPattern(file, f));
 
             if (matchesFilter && !isExcludedFile) {
                 currentFiles.push({ fullPath, relPath, ext: path.extname(file) });
@@ -361,7 +374,8 @@ function startStructureMirror() {
                     (match) => `${match}\n${commentPrefix.trim()}`
                 );
             } else {
-                optimizedContent = commentPrefix + optimizedContent;
+                // Linter-Fix: Template Literal
+                optimizedContent = `${commentPrefix}${optimizedContent}`;
             }
 
             const fileOutputDir = path.join(targetDir, path.dirname(file.relPath));
@@ -442,6 +456,7 @@ function startFileCollection(configKey, silent = false) {
 
             if (!silent) console.log(`${c.gray} + [Optimiert] ${file.relPath}${c.reset}`);
         } catch (_e) {
+            // Linter-Fix: Unused variable mit "_" kennzeichnen
             if (!silent) console.log(`${c.gray} ! Überspringe (Binär?): ${file.relPath}${c.reset}`);
         }
     }

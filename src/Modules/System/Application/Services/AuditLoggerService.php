@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\System\Application\Services;
 
 use App\Contracts\Security\AuthSessionInterface;
-use App\Contracts\Storage\AuditLogRepositoryInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Core\Entity\AuditLog;
-use App\Core\ValueObject\IpAddress;
+use App\Modules\System\Domain\AuditLog;
+use App\Modules\System\Domain\AuditLogRepositoryInterface;
+use App\SharedKernel\Domain\ValueObject\IpAddress;
 
 /**
  * Service for logging domain and system events securely.

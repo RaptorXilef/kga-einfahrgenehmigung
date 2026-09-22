@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Entity;
+namespace App\Modules\System\Domain;
 
-use App\Core\ValueObject\IpAddress;
+use App\SharedKernel\Domain\ValueObject\IpAddress;
 use DateTimeImmutable;
 
 final readonly class AuditLog

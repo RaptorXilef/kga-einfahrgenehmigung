@@ -14,11 +14,9 @@ use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
-use App\Contracts\Storage\AuditLogRepositoryInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
-use App\Contracts\Storage\LoginAttemptRepositoryInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
@@ -46,9 +44,7 @@ use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\FileLockManager;
 use App\Infrastructure\Storage\ImageStorageService;
 use App\Infrastructure\Storage\JsonHelper;
-use App\Infrastructure\Storage\MySqlAuditLogRepository;
 use App\Infrastructure\Storage\MySqlCancelledPermitRepository;
-use App\Infrastructure\Storage\MySqlLoginAttemptRepository;
 use App\Infrastructure\Storage\MySqlMailQueueRepository;
 use App\Infrastructure\Storage\MySqlPermitArchiveRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
@@ -58,14 +54,18 @@ use App\Infrastructure\System\FileRouteCache;
 use App\Infrastructure\System\LocalAssetHelper;
 use App\Infrastructure\System\SystemInfoService;
 use App\Infrastructure\Utils\SystemClock;
+use App\Modules\Identity\Domain\LoginAttemptRepositoryInterface;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface as IdentityMagicLinkRepositoryInterface;
 use App\Modules\Identity\Domain\RoleRepositoryInterface as IdentityRoleRepositoryInterface;
 use App\Modules\Identity\Domain\UserRepositoryInterface as IdentityUserRepositoryInterface;
+use App\Modules\Identity\Infrastructure\PdoLoginAttemptRepository;
 use App\Modules\Identity\Infrastructure\PdoMagicLinkRepository;
 use App\Modules\Identity\Infrastructure\PdoRoleRepository;
 use App\Modules\Identity\Infrastructure\PdoUserRepository as IdentityPdoUserRepository;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Infrastructure\PdoPermitRepository;
+use App\Modules\System\Domain\AuditLogRepositoryInterface;
+use App\Modules\System\Infrastructure\PdoAuditLogRepository;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface as NewVoucherRepositoryInterface;
 use App\Modules\Voucher\Infrastructure\PdoVoucherRepository;
 use PDO;
@@ -102,18 +102,10 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(ClockInterface::class, fn (): mixed => $container->get(SystemClock::class));
 
         // --- LEGACY REPOSITORIES ---
-        $container->bind(AuditLogRepositoryInterface::class, fn (): MySqlAuditLogRepository => new MySqlAuditLogRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
         $container->bind(CancelledPermitRepositoryInterface::class, fn (): MySqlCancelledPermitRepository => new MySqlCancelledPermitRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
-        ));
-        $container->bind(LoginAttemptRepositoryInterface::class, fn (): MySqlLoginAttemptRepository => new MySqlLoginAttemptRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
         ));
         $container->bind(MailQueueRepositoryInterface::class, fn (): MySqlMailQueueRepository => new MySqlMailQueueRepository(
             $container->get(PDO::class),
@@ -131,10 +123,18 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(JsonHelperInterface::class),
         ));
 
-        // --- DDD REPOSITORY BINDINGS ---
+        // --- SYSTEM DDD REPOSITORY BINDINGS ---
+        $container->bind(AuditLogRepositoryInterface::class, fn (): PdoAuditLogRepository => new PdoAuditLogRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+        ));
+
+        // --- PERMIT DDD REPOSITORY BINDINGS ---
         $container->bind(PermitRepositoryInterface::class, fn (): PdoPermitRepository => new PdoPermitRepository(
             $container->get(PDO::class),
         ));
+
+        // --- VOUCHER DDD REPOSITORY BINDINGS ---
         $container->bind(NewVoucherRepositoryInterface::class, fn (): PdoVoucherRepository => new PdoVoucherRepository(
             $container->get(PDO::class),
         ));
@@ -148,6 +148,10 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         ));
         $container->bind(IdentityRoleRepositoryInterface::class, fn (): PdoRoleRepository => new PdoRoleRepository(
             $container->get(PDO::class),
+        ));
+        $container->bind(LoginAttemptRepositoryInterface::class, fn (): PdoLoginAttemptRepository => new PdoLoginAttemptRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
         ));
 
         // --- NETWORK & THIRD-PARTY SERVICES ---
@@ -208,7 +212,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(PdfGeneratorInterface::class, fn (): DompdfGenerator => new DompdfGenerator());
 
         // Route Cache Binding für die ActionRegistry
-        // FIX: Arrow Functions fangen den Scope automatisch ($container) ein. "use" ist hier ein Syntax Error in PHP 7.4+
         $container->bind(RouteCacheInterface::class, fn (): FileRouteCache => new FileRouteCache(
             $container->get(ConfigInterface::class),
         ));
