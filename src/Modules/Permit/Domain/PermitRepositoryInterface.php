@@ -12,7 +12,26 @@ interface PermitRepositoryInterface
 
     public function findByCode(string $code): ?Permit;
 
+    public function findByLicensePlate(string $plate): ?Permit;
+
     public function delete(string $code): void;
+
+    public function deleteMultiple(array $codes): int;
+
+    /**
+     * @return Permit[] Liste aller Genehmigungen, bei denen eine E-Mail-Adresse hinterlegt ist.
+     */
+    public function findAllWithEmail(): array;
+
+    /**
+     * @return Permit[] Liste aller abgelaufenen Genehmigungen, die bezahlt oder storniert sind.
+     */
+    public function findExpired(DateTimeImmutable $cutoffDate): array;
+
+    /**
+     * @return Permit[] Liste aller noch nicht bezahlten, aktiven Genehmigungen.
+     */
+    public function findUnpaid(): array;
 
     /**
      * Prüft extrem performant direkt in der Datenbank, ob eine zeitliche Kollision vorliegt.

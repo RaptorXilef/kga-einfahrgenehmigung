@@ -6,10 +6,10 @@ namespace App\Modules\Permit\Application\UseCases\CheckPermit;
 
 use App\Application\View\HolidayHtmlPresenter;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\StorageInterface;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
+use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
 
@@ -20,7 +20,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
 {
     public function __construct(
         private GetPermitByCodeHandler $getPermitByCodeHandler, // CQRS statt PermitService
-        private StorageInterface $storage,
+        private PermitRepositoryInterface $repository,
         private HolidayService $holidayService,
         private ConfigInterface $config,
     ) {
@@ -38,7 +38,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
 
         if ($permit === null) {
             // Fallback auf Kennzeichensuche im aktiven Storage
-            $permit = $this->storage->findByLicensePlate($query->codeOrPlate);
+            $permit = $this->repository->findByLicensePlate($query->codeOrPlate);
 
             if ($permit === null) {
                 return $this->createNotFoundDto();

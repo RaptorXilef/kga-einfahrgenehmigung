@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\GetPermitByCode;
 
-use App\Contracts\Storage\StorageInterface;
 use App\Modules\Permit\Domain\CancelledPermitRepositoryInterface;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
+use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 
 /**
@@ -17,7 +17,7 @@ use App\SharedKernel\Application\Query\QueryHandlerInterface;
 final readonly class GetPermitByCodeHandler implements QueryHandlerInterface
 {
     public function __construct(
-        private StorageInterface $storage,
+        private PermitRepositoryInterface $repository,
         private PermitArchiveRepositoryInterface $archiveRepository,
         private CancelledPermitRepositoryInterface $cancelledRepository,
     ) {
@@ -25,7 +25,7 @@ final readonly class GetPermitByCodeHandler implements QueryHandlerInterface
 
     public function handle(mixed $query): ?Permit
     {
-        $permit = $this->storage->findByHash($query->code);
+        $permit = $this->repository->findByCode($query->code);
         if ($permit instanceof Permit) {
             return $permit;
         }

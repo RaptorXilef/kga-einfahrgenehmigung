@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\ArchiveExpiredPermits;
 
-use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
-use App\Modules\Permit\Domain\PermitStatus;
+use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 
 /**
@@ -16,7 +15,7 @@ use App\SharedKernel\Application\Command\CommandHandlerInterface;
 final readonly class ArchiveExpiredPermitsHandler implements CommandHandlerInterface
 {
     public function __construct(
-        private StorageInterface $storage,
+        private PermitRepositoryInterface $repository,
         private PermitArchiveRepositoryInterface $archiveRepository,
         private ClockInterface $clock,
     ) {
@@ -24,29 +23,21 @@ final readonly class ArchiveExpiredPermitsHandler implements CommandHandlerInter
 
     public function handle(mixed $command): void
     {
-        // Interface gibt bei uns void zurück. Die Anzahl der verarbeiteten Mails verwalten wir bei Cronjobs ggf. anders.
-        $allPermits = $this->storage->getAll();
-
-        $toArchive = [];
-        $codesToDelete = [];
         $cutoffDate = $this->clock->now()->modify("-{$command->graceDays} days")->setTime(0, 0, 0);
 
-        foreach ($allPermits as $permit) {
-            if ($permit->getValidUntil() >= $cutoffDate) {
-                continue;
-            }
+        // Nutzt jetzt die hochperformante SQL-Suche, anstatt alle Permits in den RAM zu laden!
+        $expiredPermits = $this->repository->findExpired($cutoffDate);
 
-            if (!\in_array($permit->getStatus(), [PermitStatus::Bezahlt, PermitStatus::Storniert], true)) {
-                continue;
-            }
+        if ($expiredPermits === []) {
+            return;
+        }
 
-            $toArchive[] = $permit;
+        $codesToDelete = [];
+        foreach ($expiredPermits as $permit) {
             $codesToDelete[] = $permit->code->value;
         }
 
-        if ($toArchive !== []) {
-            $this->archiveRepository->archivePermits(0, $toArchive);
-            $this->storage->deleteMultiple($codesToDelete);
-        }
+        $this->archiveRepository->archivePermits(0, $expiredPermits);
+        $this->repository->deleteMultiple($codesToDelete);
     }
 }

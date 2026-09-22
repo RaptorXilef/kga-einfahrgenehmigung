@@ -16,7 +16,6 @@ use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\LockManagerInterface;
-use App\Contracts\Storage\StorageInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
@@ -40,7 +39,6 @@ use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\FileLockManager;
 use App\Infrastructure\Storage\ImageStorageService;
 use App\Infrastructure\Storage\JsonHelper;
-use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\System\DompdfGenerator;
 use App\Infrastructure\System\FileRouteCache;
 use App\Infrastructure\System\LocalAssetHelper;
@@ -91,11 +89,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         // --- CORE SYSTEM & DATABASE ---
         $container->bind(PDO::class, fn (): ?PDO => PdoFactory::create(
             $container->get(ConfigInterface::class),
-        ));
-        $container->bind(StorageInterface::class, fn (): StorageInterface => StorageFactory::create(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-            $container->get(JsonHelperInterface::class),
         ));
 
         // Mapping des System-Clocks für testbare Zeitstempel

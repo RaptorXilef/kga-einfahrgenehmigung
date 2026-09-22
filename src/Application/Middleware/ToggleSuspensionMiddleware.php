@@ -10,9 +10,9 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\StorageInterface;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Permit\Domain\Permit;
+use App\Modules\Permit\Domain\PermitRepositoryInterface;
 
 /**
  * Guard für das Sperren/Entsperren von Genehmigungen.
@@ -24,7 +24,7 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
     public function __construct(
         private AuthService $auth,
         private SessionManager $sessionManager,
-        private StorageInterface $storage,
+        private PermitRepositoryInterface $repository,
     ) {
     }
 
@@ -39,7 +39,7 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
             return $next($request);
         }
 
-        $permit = $this->storage->findByHash($code);
+        $permit = $this->repository->findByCode($code);
         if (!$permit instanceof Permit) {
             return $next($request);
         }

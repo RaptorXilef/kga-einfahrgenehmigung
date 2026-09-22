@@ -6,13 +6,13 @@ namespace App\Modules\Permit\Application\UseCases\CancelPermit;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
-use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Core\Event\PermitCancelledEvent;
 use App\Core\Security\Sanitizer;
 use App\Modules\Permit\Domain\CancelledPermitRepositoryInterface;
 use App\Modules\Permit\Domain\Owner;
 use App\Modules\Permit\Domain\Permit;
+use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\Status;
 use App\Modules\Permit\Domain\Vehicle;
@@ -28,7 +28,7 @@ final readonly class CancelPermitHandler implements CommandHandlerInterface
 {
     public function __construct(
         private ConfigInterface $config,
-        private StorageInterface $storage,
+        private PermitRepositoryInterface $repository,
         private CancelledPermitRepositoryInterface $cancelledRepository,
         private ClockInterface $clock,
         private EventDispatcherInterface $eventDispatcher,
@@ -41,7 +41,7 @@ final readonly class CancelPermitHandler implements CommandHandlerInterface
             throw new DomainException('Stornierungen sind derzeit deaktiviert.');
         }
 
-        $permit = $this->storage->findByHash($command->code);
+        $permit = $this->repository->findByCode($command->code);
 
         if (!$permit instanceof Permit) {
             throw new DomainException('Genehmigung nicht gefunden.');
@@ -77,6 +77,6 @@ final readonly class CancelPermitHandler implements CommandHandlerInterface
         );
 
         $this->cancelledRepository->saveCancelled($anonymizedPermit);
-        $this->storage->delete($permit->code->value);
+        $this->repository->delete($permit->code->value);
     }
 }

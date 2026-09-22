@@ -74,7 +74,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
 
     public function findByCode(string $code): ?Permit
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM permits WHERE code = :code');
+        $stmt = $this->pdo->prepare('SELECT * FROM permits WHERE code = :code LIMIT 1');
         $stmt->execute(['code' => $code]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -82,6 +82,115 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
             return null;
         }
 
+        return $this->mapRowToEntity($row);
+    }
+
+    public function findByLicensePlate(string $plate): ?Permit
+    {
+        $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($plate));
+
+        if ($searchPlate === '') {
+            return null;
+        }
+
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM `permits` WHERE REPLACE(REPLACE(kennzeichen, ' ', ''), '-', '') = ?",
+        );
+        $stmt->execute([$searchPlate]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!$rows) {
+            return null;
+        }
+
+        $candidates = \array_map($this->mapRowToEntity(...), $rows);
+
+        // Sortierung: 1. Aktive Genehmigungen zuerst, 2. nach dem Enddatum (neueste zuerst)
+        \usort($candidates, function (Permit $a, Permit $b): int {
+            $aValid = $a->isValid();
+            $bValid = $b->isValid();
+
+            if ($aValid && !$bValid) {
+                return -1;
+            }
+            if (!$aValid && $bValid) {
+                return 1;
+            }
+
+            return $b->validity->bis <=> $a->validity->bis;
+        });
+
+        return $candidates[0];
+    }
+
+    public function findAllWithEmail(): array
+    {
+        $stmt = $this->pdo->query("SELECT * FROM permits WHERE email IS NOT NULL AND email != '' AND email != '0'");
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        return \array_map($this->mapRowToEntity(...), $rows);
+    }
+
+    public function findExpired(DateTimeImmutable $cutoffDate): array
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM permits WHERE bis < :cutoff AND status IN ('bezahlt', 'storniert')");
+        $stmt->execute(['cutoff' => $cutoffDate->format('Y-m-d')]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        return \array_map($this->mapRowToEntity(...), $rows);
+    }
+
+    public function findUnpaid(): array
+    {
+        $stmt = $this->pdo->query("SELECT * FROM permits WHERE status = 'offen' AND is_suspended = 0");
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        return \array_map($this->mapRowToEntity(...), $rows);
+    }
+
+    public function delete(string $code): void
+    {
+        $this->pdo->prepare('DELETE FROM permits WHERE code = :code')->execute(['code' => $code]);
+    }
+
+    public function deleteMultiple(array $codes): int
+    {
+        if ($codes === []) {
+            return 0;
+        }
+
+        $placeholders = \implode(',', \array_fill(0, \count($codes), '?'));
+        $stmt = $this->pdo->prepare("DELETE FROM `permits` WHERE code IN ($placeholders)");
+        $stmt->execute(\array_values($codes));
+
+        return $stmt->rowCount();
+    }
+
+    public function hasCollision(int $plotNumber, DateTimeImmutable $start, DateTimeImmutable $end): bool
+    {
+        $stmt = $this->pdo->prepare('SELECT 1 FROM permits WHERE parzelle = ? AND von <= ? AND bis >= ? LIMIT 1');
+        $stmt->execute([$plotNumber, $end->format('Y-m-d'), $start->format('Y-m-d')]);
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    public function isCodeUnique(string $code): bool
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT 1 FROM permits WHERE code = ?
+            UNION SELECT 1 FROM permits_archive WHERE code = ?
+            UNION SELECT 1 FROM permits_cancelled WHERE code = ? LIMIT 1
+        ');
+        $stmt->execute([$code, $code, $code]);
+
+        return !(bool) $stmt->fetchColumn();
+    }
+
+    /**
+     * Mappt einen rohen Datenbank-Datensatz auf die Domain Entität.
+     */
+    private function mapRowToEntity(array $row): Permit
+    {
         return new Permit(
             new PermitCode((string) $row['code']),
             new TemplateKey((string) $row['template_key']),
@@ -112,30 +221,5 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
             \json_decode((string) $row['agreements'], true) ?: [],
             $row['bezahlt_am'] ? new DateTimeImmutable($row['bezahlt_am']) : null,
         );
-    }
-
-    public function delete(string $code): void
-    {
-        $this->pdo->prepare('DELETE FROM permits WHERE code = :code')->execute(['code' => $code]);
-    }
-
-    public function hasCollision(int $plotNumber, DateTimeImmutable $start, DateTimeImmutable $end): bool
-    {
-        $stmt = $this->pdo->prepare('SELECT 1 FROM permits WHERE parzelle = ? AND von <= ? AND bis >= ? LIMIT 1');
-        $stmt->execute([$plotNumber, $end->format('Y-m-d'), $start->format('Y-m-d')]);
-
-        return (bool) $stmt->fetchColumn();
-    }
-
-    public function isCodeUnique(string $code): bool
-    {
-        $stmt = $this->pdo->prepare('
-            SELECT 1 FROM permits WHERE code = ?
-            UNION SELECT 1 FROM permits_archive WHERE code = ?
-            UNION SELECT 1 FROM permits_cancelled WHERE code = ? LIMIT 1
-        ');
-        $stmt->execute([$code, $code, $code]);
-
-        return !(bool) $stmt->fetchColumn();
     }
 }
