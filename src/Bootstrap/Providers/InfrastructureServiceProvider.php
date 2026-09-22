@@ -26,24 +26,9 @@ use App\Contracts\System\StorageBootstrapperInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Infrastructure\Database\PdoFactory;
-use App\Infrastructure\Logging\ErrorLogger;
-use App\Infrastructure\Mail\MailQueueService;
-use App\Infrastructure\Mail\MicrosoftGraphMailService;
-use App\Infrastructure\Mail\OAuthSmtpMailService;
-use App\Infrastructure\Mail\SmtpMailService;
-use App\Infrastructure\Maintenance\BackupService;
-use App\Infrastructure\Maintenance\StorageBootstrapper;
-use App\Infrastructure\Maintenance\UpdateMigrationService;
-use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
-use App\Infrastructure\Storage\FileLockManager;
-use App\Infrastructure\Storage\ImageStorageService;
-use App\Infrastructure\Storage\JsonHelper;
-use App\Infrastructure\System\DompdfGenerator;
-use App\Infrastructure\System\FileRouteCache;
-use App\Infrastructure\System\LocalAssetHelper;
-use App\Infrastructure\System\SystemInfoService;
 use App\Infrastructure\Utils\SystemClock;
+use App\Modules\Finance\Infrastructure\Payment\PayPalService;
 use App\Modules\Identity\Domain\LoginAttemptRepositoryInterface;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface as IdentityMagicLinkRepositoryInterface;
 use App\Modules\Identity\Domain\RoleRepositoryInterface as IdentityRoleRepositoryInterface;
@@ -62,8 +47,23 @@ use App\Modules\Permit\Infrastructure\PdoPermitRepository;
 use App\Modules\Permit\Infrastructure\PdoVerificationRepository;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
 use App\Modules\System\Domain\MailQueueRepositoryInterface;
+use App\Modules\System\Infrastructure\Logging\ErrorLogger;
+use App\Modules\System\Infrastructure\Mail\MailQueueService;
+use App\Modules\System\Infrastructure\Mail\MicrosoftGraphMailService;
+use App\Modules\System\Infrastructure\Mail\OAuthSmtpMailService;
+use App\Modules\System\Infrastructure\Mail\SmtpMailService;
+use App\Modules\System\Infrastructure\Maintenance\BackupService;
+use App\Modules\System\Infrastructure\Maintenance\StorageBootstrapper;
+use App\Modules\System\Infrastructure\Maintenance\UpdateMigrationService;
 use App\Modules\System\Infrastructure\PdoAuditLogRepository;
 use App\Modules\System\Infrastructure\PdoMailQueueRepository;
+use App\Modules\System\Infrastructure\Storage\FileLockManager;
+use App\Modules\System\Infrastructure\Storage\ImageStorageService;
+use App\Modules\System\Infrastructure\Storage\JsonHelper;
+use App\Modules\System\Infrastructure\System\DompdfGenerator;
+use App\Modules\System\Infrastructure\System\FileRouteCache;
+use App\Modules\System\Infrastructure\System\LocalAssetHelper;
+use App\Modules\System\Infrastructure\System\SystemInfoService;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface as NewVoucherRepositoryInterface;
 use App\Modules\Voucher\Infrastructure\PdoVoucherRepository;
 use PDO;
@@ -168,7 +168,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                 );
             }
 
-            // Standard Fallback: Das bisherige System
+            // Standard Fallback
             return new SmtpMailService(
                 $container->get(PDO::class),
                 $config,
@@ -187,10 +187,10 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
 
         // --- SECURITY ---
         $container->bind(AuthSessionInterface::class, fn (): object => clone $container->get(SessionManager::class));
-        $container->bind(LockManagerInterface::class, fn (): mixed => $container->get(FileLockManager::class));
         $container->bind(RateLimiterInterface::class, fn (): mixed => $container->get(RateLimiter::class));
 
         // --- SYSTEM ---
+        $container->bind(LockManagerInterface::class, fn (): mixed => $container->get(FileLockManager::class));
         $container->bind(BackupServiceInterface::class, fn (): mixed => $container->get(BackupService::class));
         $container->bind(ErrorLoggerInterface::class, fn (): mixed => $container->get(ErrorLogger::class));
         $container->bind(ImageStorageInterface::class, fn (): mixed => $container->get(ImageStorageService::class));

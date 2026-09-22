@@ -2,20 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Mail;
+namespace App\Modules\System\Infrastructure\Mail;
 
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\OAuth;
 use PHPMailer\PHPMailer\PHPMailer;
 use TheNetworg\OAuth2\Client\Provider\Azure;
 
-/**
- * Fallback für Legacy-Systeme, bei denen SMTP über XOAUTH2 Auth genutzt wird.
- * Hinweis: Microsoft deaktiviert SMTP AUTH zunehmend. Graph API wird empfohlen!
- */
 final class OAuthSmtpMailService extends AbstractMailService
 {
-    protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null): bool|string
+    protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null, array $attachments = []): bool|string
     {
         $mail = new PHPMailer(true);
 
@@ -50,6 +46,10 @@ final class OAuthSmtpMailService extends AbstractMailService
 
             if ($replyTo !== null && \filter_var($replyTo, \FILTER_VALIDATE_EMAIL)) {
                 $mail->addReplyTo($replyTo);
+            }
+
+            foreach ($attachments as $att) {
+                $mail->addStringAttachment($att['content'], $att['name'], 'base64', $att['mime'] ?? 'application/pdf');
             }
 
             $mail->isHTML(true);

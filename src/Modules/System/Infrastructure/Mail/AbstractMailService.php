@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Mail;
+namespace App\Modules\System\Infrastructure\Mail;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
@@ -17,7 +17,6 @@ use RuntimeException;
 
 /**
  * Abstrakte Basisklasse für alle E-Mail-Transports (SMTP, Graph, OAuth).
- * Kapselt das Rendering der PHTML-Templates und das revisionssichere Logging.
  */
 abstract class AbstractMailService implements MailLogInterface, MailServiceInterface
 {
@@ -28,8 +27,6 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
     ) {
     }
 
-    // --- Public API ---
-
     public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50, array $attachments = []): bool|string
     {
         if (\in_array(\trim($recipient), ['', '0'], true)) {
@@ -38,13 +35,11 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
             return true;
         }
 
-        // Lädt dank der Config-Klasse direkt den richtigen Block ('mail' oder 'mail-test')
         $mailConfig = $this->config->getMailSettings();
         $isTestMode = $this->config->isTestMode();
         $isDebugMode = $this->config->get('debug_mode', false) === true;
         $actualRecipient = $recipient;
 
-        // Im Testmodus (Sandbox) überschreiben wir den Empfänger knallhart mit dem catch_all_recipient
         if ($isTestMode) {
             $actualRecipient = $mailConfig['catch_all_recipient'] ?? 'sandbox@example.com';
             $subject = '[TEST] ' . $subject;
@@ -52,7 +47,6 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
 
         $body = $this->render($template, $data);
 
-        // --- DEBUG SPOOLER: Mails lokal speichern statt senden ---
         if ($isDebugMode) {
             $spoolDir = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/storage/debug_mails';
             if (!\is_dir($spoolDir)) {
@@ -72,13 +66,11 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
 
             @\file_put_contents($filename, $debugHeader . $body);
 
-            // PDFs ebenfalls debuggen und speichern!
             foreach ($attachments as $i => $att) {
                 $attFileName = $spoolDir . '/' . $fileNameOnly . '_attach_' . $i . '_' . $att['name'];
                 @\file_put_contents($attFileName, $att['content']);
             }
 
-            // Wir merken uns den Filename für das Admin-Dashboard!
             $data['_debug_file'] = $fileNameOnly;
             $this->logEmail($recipient, $subject, clone new TemplateKey($template), 'Erfolg (Debug-Spool)', $replyTo, $data);
 
@@ -86,7 +78,6 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         }
 
         $transportConfig = $this->getTransportConfig($mailConfig);
-        // Wir übergeben das $attachments Array an die spezifischen Transports!
         $status = $this->dispatch($actualRecipient, $subject, $body, $transportConfig, $replyTo, $attachments);
         $logStatus = $status === true && $isTestMode ? 'Erfolg (Test-Routing an ' . $actualRecipient . ')' : $status;
         $this->logEmail($recipient, $subject, clone new TemplateKey($template), $logStatus, $replyTo, $data);
@@ -157,11 +148,6 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         return 0; // Interface-Stub
     }
 
-    // --- High-Level Private/Protected ---
-
-    /**
-     * Der spezifische Versand-Mechanismus, der von den Child-Klassen (Transports) implementiert werden muss.
-     */
     abstract protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null, array $attachments = []): bool|string;
 
     protected function render(string $templatePath, array $data): string
@@ -180,8 +166,6 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
 
         return (string) \ob_get_clean();
     }
-
-    // --- Low-Level Private/Protected ---
 
     protected function getTransportConfig(array $mailConfig): array
     {

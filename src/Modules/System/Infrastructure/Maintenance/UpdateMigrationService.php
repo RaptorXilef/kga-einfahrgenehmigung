@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Maintenance;
+namespace App\Modules\System\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
@@ -14,25 +14,16 @@ use PDOException;
 use RuntimeException;
 use Throwable;
 
-/**
- * Service zur Ausführung von Datenbank-Updates über reine SQL-Dateien.
- */
 final readonly class UpdateMigrationService implements UpdateMigrationServiceInterface
 {
     public function __construct(
         private ?PDO $pdo,
         private ClockInterface $clock,
         private ConfigInterface $config,
-        private JsonHelperInterface $jsonHelper, // Bleibt für Kompatibilität mit dem ServiceProvider erhalten
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
-    /**
-     * Sucht nach neuen .sql-Skripten im Ordner und führt diese chronologisch aus.
-     * Fängt harmlose Überschneidungs-Fehler (z.B. mit dem StorageBootstrapper) sicher ab.
-     *
-     * @return array<int, string> Liste der neu ausgeführten Migrations-Versionen.
-     */
     public function runAllPending(): array
     {
         if (!$this->pdo instanceof PDO) {
@@ -51,11 +42,11 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
 
         $files = \glob($migrationsDir . \DIRECTORY_SEPARATOR . '*.sql');
 
-        if ($files === false || $files === []) {
+        if ($files === false | $files === []) {
             return $executedNow;
         }
 
-        \sort($files); // Chronologisch sortieren (z.B. 022_add_column.sql)
+        \sort($files);
 
         foreach ($files as $file) {
             $version = \basename($file, '.sql');
@@ -67,14 +58,10 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
             try {
                 $sql = \file_get_contents($file);
 
-                if ($sql === false || \trim($sql) === '') {
+                if ($sql === false | \trim($sql) === '') {
                     throw new RuntimeException("Datei {$version}.sql ist leer oder nicht lesbar.");
                 }
 
-                // --- FIX: Statements sicher trennen ---
-                // Wir trennen die SQL-Befehle am Semikolon auf.
-                // Dadurch können wir jeden Befehl einzeln ausführen und gezielt "Already exists" Fehler abfangen,
-                // die entstehen, wenn der StorageBootstrapper die Tabelle/Spalte bereits angelegt hat.
                 $statements = \array_filter(\array_map(trim(...), \explode(';', $sql)));
 
                 foreach ($statements as $statement) {
@@ -86,18 +73,10 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
                         $this->pdo->exec($statement);
                     } catch (PDOException $e) {
                         $mysqlCode = $e->errorInfo[1] ?? 0;
-
-                        // Erwartete Kollisions-Fehler ignorieren:
-                        // 1050 = Table already exists
-                        // 1051 = Unknown table (z.B. beim Drop Table)
-                        // 1060 = Duplicate column name
-                        // 1061 = Duplicate key name
-                        // 1146 = Table doesn't exist (Trifft z.B. bei RENAME TABLE auf bereits gelöschte Tabellen zu)
                         if (\in_array($mysqlCode, [1050, 1051, 1060, 1061, 1146], true)) {
-                            continue; // Harmloser Fehler bei bereits aktualisiertem Schema
+                            continue;
                         }
 
-                        // Echte, unerwartete Fehler werfen wir weiter
                         throw $e;
                     }
                 }
@@ -114,17 +93,10 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
         return $executedNow;
     }
 
-    /**
-     * Private Helper: Liest den Ist-Zustand
-     *
-     * Holt eine Liste aller historisch bereits ausgeführten Versionen aus der Datenbank oder JSON.
-     *
-     * @return array<int, string>
-     */
     private function getExecutedMigrations(): array
     {
         $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
-        if (!$cfg || !$this->pdo instanceof PDO) {
+        if (!$cfg | !$this->pdo instanceof PDO) {
             return [];
         }
 
@@ -137,17 +109,10 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
         }
     }
 
-    /**
-     * Private Helper: Schreibt den Soll-Zustand
-     *
-     * Markiert ein Migrations-Skript als "erledigt", damit es bei zukünftigen Updates ignoriert wird.
-     *
-     * @param string $version Die Version/der Name des Skripts.
-     */
     private function markAsExecuted(string $version): void
     {
         $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
-        if (!$cfg || !$this->pdo instanceof PDO) {
+        if (!$cfg | !$this->pdo instanceof PDO) {
             return;
         }
 
@@ -159,7 +124,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
     public function import(array $data): void
     {
         $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
-        if (!$cfg || !$this->pdo instanceof PDO) {
+        if (!$cfg | !$this->pdo instanceof PDO) {
             return;
         }
 

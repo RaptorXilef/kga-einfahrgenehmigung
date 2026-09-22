@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Maintenance;
+namespace App\Modules\System\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
@@ -14,11 +14,6 @@ use PDO;
 use PDOException;
 use Throwable;
 
-/**
- * Bootstrapper für die Initialisierung der Speicher-Infrastruktur.
- * Stellt sicher, dass Datenbanktabellen oder JSON-Dateien beim Start vorhanden sind,
- * und führt bei Bedarf initiale Auto-Setups aus.
- */
 final readonly class StorageBootstrapper implements StorageBootstrapperInterface
 {
     public function __construct(
@@ -29,9 +24,6 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
     ) {
     }
 
-    /**
-     * Öffentlicher Einstieg
-     */
     public function bootstrap(): void
     {
         if ($this->pdo instanceof PDO) {
@@ -72,10 +64,6 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
         @\file_put_contents($htaccessPath, $expectedContent, \LOCK_EX);
     }
 
-    /**
-     * Entfernt verwaiste Rechte-Keys aus den Gruppen, die in der aktuellen
-     * permissions.php nicht mehr existieren (Schatten-Rechte).
-     */
     private function cleanupOrphanedPermissions(): void
     {
         $roles = $this->roleRepository->loadAll();
@@ -103,7 +91,6 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
                 continue;
             }
 
-            // Neues Objekt bauen und einzeln ins Repo schieben
             $updatedRole = new Role($role->id, $role->name, \array_values($cleanedPerms));
             $this->roleRepository->save($updatedRole);
             $changed = true;
@@ -114,19 +101,12 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
         }
     }
 
-    /**
-     * Initialisiert Standard-Gruppen und einen Standard-Admin,
-     * falls das System (Datenbank oder JSON) komplett leer ist.
-     */
     private function initDefaultRolesAndUsers(): void
     {
-        // Wir fangen eventuelle SQL Fehler beim allerersten Start weich ab
         try {
             $currentRoles = $this->roleRepository->loadAll();
-            $currentUsers = []; // Für den Initial-Check reicht das
         } catch (Throwable $t) {
             $currentRoles = [];
-            $currentUsers = [];
         }
 
         if (empty($currentRoles)) {
@@ -136,7 +116,6 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
             }
         }
 
-        // Falls noch keine User da sind, aber Rollen existieren (bzw. gerade angelegt wurden)
         try {
             $userCheck = $this->userRepository->findById('usr_7c13b491');
         } catch (Throwable $t) {
@@ -151,9 +130,6 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
         }
     }
 
-    /**
-     * @return array<string, User>
-     */
     private function getDefaultUsers(): array
     {
         return [
@@ -167,9 +143,6 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
         ];
     }
 
-    /**
-     * @return array<string, Role>
-     */
     private function getDefaultRoles(): array
     {
         return [

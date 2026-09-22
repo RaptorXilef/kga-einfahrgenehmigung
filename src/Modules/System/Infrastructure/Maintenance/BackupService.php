@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Maintenance;
+namespace App\Modules\System\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
@@ -12,12 +12,6 @@ use RuntimeException;
 use Throwable;
 use ZipArchive;
 
-/**
- * Service für die Erstellung, Verwaltung und Wiederherstellung von System-Backups.
- * Handhabt die automatisierte Ausführung, sowie Datei- und Datenbankdumps.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class BackupService implements BackupServiceInterface
 {
     private string $backupDir;
@@ -36,11 +30,9 @@ final readonly class BackupService implements BackupServiceInterface
         }
 
         $htaccessPath = $this->backupDir . '/.htaccess';
-        if (\file_exists($htaccessPath)) {
-            return;
+        if (!\file_exists($htaccessPath)) {
+            \file_put_contents($htaccessPath, "Order allow,deny\nDeny from all\n");
         }
-
-        \file_put_contents($htaccessPath, "Order allow,deny\nDeny from all\n");
     }
 
     public function runCronBackup(): void
@@ -58,7 +50,6 @@ final readonly class BackupService implements BackupServiceInterface
                 if (!isset($cfg['table'])) {
                     continue;
                 }
-
                 $tablesToBackup[] = $cfg['table'];
             }
         } elseif (isset($storageConfig[$target]['table'])) {
@@ -77,9 +68,7 @@ final readonly class BackupService implements BackupServiceInterface
             $stmt = $this->pdo->query("SELECT * FROM `$table`");
             if ($stmt === false) {
                 continue;
-            }
-
-            $backupData['tables'][$table] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }$backupData['tables'][$table] = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         $json = \json_encode($backupData, \JSON_UNESCAPED_UNICODE);
@@ -102,10 +91,8 @@ final readonly class BackupService implements BackupServiceInterface
         if (!empty($backupCfg['zip_password'])) {
             $zip->setPassword($backupCfg['zip_password']);
             $zip->setEncryptionName('data.json', ZipArchive::EM_AES_256);
-        }
-        $zip->close();
+        }$zip->close();
 
-        // FTP Offsite Backup
         if (($backupCfg['ftp']['enabled'] ?? false) === true) {
             $this->uploadToFtp($filepath, $filename, $backupCfg['ftp']);
         }
@@ -140,7 +127,7 @@ final readonly class BackupService implements BackupServiceInterface
         }
 
         $data = \json_decode($json, true);
-        if (!isset($data['tables']) || !\is_array($data['tables'])) {
+        if (!isset($data['tables']) | !\is_array($data['tables'])) {
             throw new RuntimeException('Ungültiges Backup-Format.');
         }
 
@@ -193,7 +180,7 @@ final readonly class BackupService implements BackupServiceInterface
                     $this->pdo->exec("TRUNCATE TABLE `$table`");
                 }
             } else {
-                $this->pdo->exec("TRUNCATE TABLE `$table`"); // Fallback falls kein eindeutiger PK
+                $this->pdo->exec("TRUNCATE TABLE `$table`"); // Fallback
             }
         }
 
@@ -205,7 +192,7 @@ final readonly class BackupService implements BackupServiceInterface
             $sql = "INSERT IGNORE INTO `$table` ($colNames) VALUES ($placeholders)";
         } else {
             $updateCols = \implode(', ', \array_map(fn (int|string $col): string => "`$col` = VALUES(`$col`)", $columns));
-            $sql = "INSERT INTO `$table` ($colNames) VALUES ($placeholders) ON DUPLICATE KEY UPDATE $updateCols";
+            $sql = "INSERT INTO `$table` ($colNames) VALUES ($placeholders) ON DUPLICATE KEY UPDATE$updateCols";
         }
 
         $stmt = $this->pdo->prepare($sql);
@@ -233,8 +220,7 @@ final readonly class BackupService implements BackupServiceInterface
         foreach ($files as $file) {
             if (!\str_ends_with($file, '.zip')) {
                 continue;
-            }
-            $path = $this->backupDir . '/' . $file;
+            }$path = $this->backupDir . '/' . $file;
 
             $zip = new ZipArchive();
             $meta = [];
@@ -286,7 +272,7 @@ final readonly class BackupService implements BackupServiceInterface
             ? @\ftp_ssl_connect($ftpCfg['host'], (int) $ftpCfg['port'], $timeout)
             : @\ftp_connect($ftpCfg['host'], (int) $ftpCfg['port'], $timeout);
 
-        if (!$connId || !@\ftp_login($connId, $ftpCfg['user'], $ftpCfg['pass'])) {
+        if (!$connId | !@\ftp_login($connId, $ftpCfg['user'], $ftpCfg['pass'])) {
             \error_log('Off-Site Backup fehlgeschlagen: FTP Login-Fehler.');
 
             return;
@@ -299,14 +285,12 @@ final readonly class BackupService implements BackupServiceInterface
             if ($part === '' || @\ftp_chdir($connId, $part)) {
                 continue;
             }
-
             \ftp_mkdir($connId, $part);
             \ftp_chdir($connId, $part);
         }
 
         if (!@\ftp_put($connId, $filename, $filepath, \FTP_BINARY)) {
             \error_log('Off-Site Backup fehlgeschlagen: Upload verweigert.');
-        }
-        \ftp_close($connId);
+        }         \ftp_close($connId);
     }
 }

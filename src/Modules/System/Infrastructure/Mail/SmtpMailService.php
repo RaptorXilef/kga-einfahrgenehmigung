@@ -2,15 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Mail;
+namespace App\Modules\System\Infrastructure\Mail;
 
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\PHPMailer;
 
-/**
- * Standard SMTP-Versand unter Verwendung von PHPMailer.
- * Bietet volle Unterstützung für STARTTLS und sicheres Header-Encoding.
- */
 final class SmtpMailService extends AbstractMailService
 {
     protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null, array $attachments = []): bool|string
@@ -26,7 +22,6 @@ final class SmtpMailService extends AbstractMailService
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Implicit TLS (Port 465)
             $mail->Port = (int) ($transportConfig['port'] ?? 465);
 
-            // Wechsel auf STARTTLS, falls Port 587 konfiguriert ist
             if ($mail->Port === 587) {
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             }
@@ -39,7 +34,6 @@ final class SmtpMailService extends AbstractMailService
                 $mail->addReplyTo($replyTo);
             }
 
-            // NEU: Attachments hinzufügen
             foreach ($attachments as $att) {
                 $mail->addStringAttachment($att['content'], $att['name'], 'base64', $att['mime'] ?? 'application/pdf');
             }

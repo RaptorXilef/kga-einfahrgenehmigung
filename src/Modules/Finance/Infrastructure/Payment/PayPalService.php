@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Payment;
+namespace App\Modules\Finance\Infrastructure\Payment;
 
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
-use App\Infrastructure\Config\Config;
 use RuntimeException;
 
 /**
@@ -14,17 +14,12 @@ use RuntimeException;
  * Kommuniziert mit der PayPal REST API v2 zur sicheren Verifizierung von Zahlungen.
  * Gleicht den tatsächlich gezahlten Betrag mit dem erwarteten Betrag ab.
  *
- * Infrastruktur-Treiber für die PayPal REST-API (v2 Checkout Orders).
- * Wickelt die OAuth2-Bearer-Token-Generierung ab, erstellt Zahlungsaufträge (Orders) via cURL
- * und validiert Transaktionen beim Capture-Prozess durch harten Abgleich mit dem System-Soll-Betrag.
- * Kontext: Schnittstelle für bargeldlose Online-Zahlungsabwicklungen.
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class PayPalService implements PaymentProviderInterface
 {
     public function __construct(
-        private Config $config,
+        private ConfigInterface $config,
     ) {
     }
 
@@ -35,15 +30,6 @@ final readonly class PayPalService implements PaymentProviderInterface
             : $this->config->get('paypal_api_live', 'https://api-m.paypal.com');
     }
 
-    // --- Public API ---
-
-    /**
-     * Erstellt eine transaktionsbereite Order in der PayPal-Cloud für den Checkout.
-     *
-     * @param float $amount Der einzuziehende Bruttobetrag (wird auf 2 Dezimalstellen formatiert).
-     *
-     * @return string|false Die von PayPal vergebene Order-ID (z.B. 'EC-xxxx') oder False bei API-Fehlern.
-     */
     public function createOrder(float $amount): string|false
     {
         $accessToken = $this->getAccessToken();
@@ -75,24 +61,11 @@ final readonly class PayPalService implements PaymentProviderInterface
         return $data['id'] ?? false;
     }
 
-    /**
-     * Erfasst (captured) und verifiziert eine vom Kunden freigegebene PayPal-Zahlung.
-     * Prüft den Status auf 'COMPLETED' und vergleicht den real eingezogenen Betrag
-     * mit dem erwarteten Preis der Genehmigung, um Betrug/Manipulationen auszuschließen.
-     *
-     * Verifiziert eine Zahlung und prüft, ob der gezahlte Betrag korrekt ist.
-     *
-     * @param string $orderId Die zu buchende PayPal-Order-ID.
-     * @param float $expectedAmount Der im System hinterlegte Soll-Betrag der Genehmigung (z.B. 3.00 oder 10.00).
-     *
-     * @return bool True, wenn das Geld erfolgreich eingezogen wurde und der Betrag exakt stimmt.
-     */
     public function captureOrder(string $orderId, float $expectedAmount): bool
     {
         $accessToken = $this->getAccessToken();
         $baseUrl = $this->getBaseUrl();
 
-        // 1. PayPal API aufrufen, um das Geld endgültig einzuziehen ("Capture")
         $curlHandle = \curl_init("$baseUrl/v2/checkout/orders/$orderId/capture");
         \curl_setopt($curlHandle, \CURLOPT_RETURNTRANSFER, true);
         \curl_setopt($curlHandle, \CURLOPT_POST, true);
@@ -104,44 +77,26 @@ final readonly class PayPalService implements PaymentProviderInterface
         $response = \curl_exec($curlHandle);
         $httpCode = \curl_getinfo($curlHandle, \CURLINFO_HTTP_CODE);
 
-        // Prüfen, ob die API-Anfrage technisch erfolgreich war (200 OK oder 201 Created)
         if ($httpCode !== 201 && $httpCode !== 200) {
             return false;
         }
 
         $data = \json_decode((string) $response, true);
-
-        // 2. STATUS-PRÜFUNG
         $status = $data['status'] ?? '';
 
-        // 3. BETRAGS-PRÜFUNG (WICHTIG für Sicherheit!)
-        // PayPal liefert den Betrag als String im Deep-Array: purchase_units -> payments -> captures -> amount -> value
         $captureData = $data['purchase_units'][0]['payments']['captures'][0]['amount'] ?? [];
         $capturedAmount = $captureData['value'] ?? '0.00';
-        $capturedCurrency = $captureData['currency_code'] ?? ''; // Währung auslesen
+        $capturedCurrency = $captureData['currency_code'] ?? '';
 
-        // Wir formatieren deinen erwarteten Preis auf das PayPal-Format (String mit 2 Nachkommastellen)
         $formattedExpected = \number_format($expectedAmount, 2, '.', '');
 
-        // Nur wenn Status, Betrag UND Währung (EUR) exakt stimmen!
         return $status === 'COMPLETED' && $capturedAmount === $formattedExpected && $capturedCurrency === 'EUR';
     }
 
-    // --- Private Auth ---
-
-    /**
-     * Holt den temporären OAuth2 Access Token von PayPal.
-     *
-     * Fordert ein zeitlich begrenztes OAuth2-Bearer-Access-Token via Client-Credentials an.
-     * Unterscheidet anhand des Testmodus automatisch zwischen Sandbox- und Live-API-Schlüsseln.
-     *
-     * @return string Der Autorisierungs-Token für nachfolgende API-Header.
-     */
     private function getAccessToken(): string
     {
         $baseUrl = $this->getBaseUrl();
 
-        // Dynamische Auswahl der Credentials basierend auf dem Modus
         $ppCfg = $this->config->get('paypal');
         $mode = $this->config->isTestMode() ? 'sandbox' : 'live';
         $clientId = $ppCfg[$mode]['client_id'];

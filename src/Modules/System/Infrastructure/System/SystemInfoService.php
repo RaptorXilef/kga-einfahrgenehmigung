@@ -2,18 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\System;
+namespace App\Modules\System\Infrastructure\System;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\System\SystemInfoInterface;
 use Exception;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class SystemInfoService implements SystemInfoInterface
 {
     public function __construct(
