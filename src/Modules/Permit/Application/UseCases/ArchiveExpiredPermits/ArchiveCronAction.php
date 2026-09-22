@@ -2,15 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Api\System;
+namespace App\Modules\Permit\Application\UseCases\ArchiveExpiredPermits;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
-use App\Modules\Permit\Application\UseCases\ArchiveExpiredPermits\ArchiveExpiredPermitsCommand;
-use App\Modules\Permit\Application\UseCases\ArchiveExpiredPermits\ArchiveExpiredPermitsHandler;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 
 #[Route('GET', '/api/cron/archive')]
@@ -18,8 +16,8 @@ use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 final readonly class ArchiveCronAction implements ViewActionInterface
 {
     public function __construct(
-        private ArchiveExpiredPermitsHandler $archiveHandler, // CQRS
-        private PermitArchiveRepositoryInterface $archiveRepository, // Für Anonymisierung
+        private ArchiveExpiredPermitsHandler $archiveHandler,
+        private PermitArchiveRepositoryInterface $archiveRepository,
         private ConfigInterface $config,
     ) {
     }

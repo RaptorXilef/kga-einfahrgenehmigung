@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\System\Application\UseCases\Maintenance;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
@@ -14,12 +14,9 @@ use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use Throwable;
 
-/**
- * Action zur DSGVO-konformen Anonymisierung von alten Archiv-Einträgen.
- */
 #[Route('GET', '/anonymize_archive')]
 #[Route('POST', '/anonymize_archive')]
-final readonly class SystemAnonymizeArchiveAction implements ActionInterface, RequiresPermissionInterface
+final readonly class AnonymizeArchiveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,

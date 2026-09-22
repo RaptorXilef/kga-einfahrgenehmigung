@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\System\Application\UseCases\SystemInfo;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
@@ -14,15 +14,10 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\System\SystemInfoInterface;
 use App\Modules\Identity\Application\Services\AuthService;
 
-/**
- * Action zum Rendern der Changelog-Historie im Adminbereich.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 #[Route('GET', '/changelog')]
 #[Route('POST', '/changelog')]
 #[RequiresAuth]
-final readonly class SystemChangelogAction implements ViewActionInterface, RequiresPermissionInterface
+final readonly class ViewChangelogAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuthService $auth,

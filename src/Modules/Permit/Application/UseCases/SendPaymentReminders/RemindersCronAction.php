@@ -2,21 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Api\System;
+namespace App\Modules\Permit\Application\UseCases\SendPaymentReminders;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\BackupServiceInterface;
 
-#[Route('GET', '/api/cron/backup')]
-#[Route('POST', '/api/cron/backup')]
-final readonly class BackupCronAction implements ViewActionInterface
+#[Route('GET', '/api/cron/reminders')]
+#[Route('POST', '/api/cron/reminders')]
+final readonly class RemindersCronAction implements ViewActionInterface
 {
     public function __construct(
-        private BackupServiceInterface $backupService,
+        private SendPaymentRemindersHandler $reminderHandler,
         private ConfigInterface $config,
     ) {
     }
@@ -27,8 +26,10 @@ final readonly class BackupCronAction implements ViewActionInterface
             return JsonResponse::error('Unautorisiert.', 403);
         }
 
-        $this->backupService->runCronBackup();
+        // Führt den Job für alle Permits aus (da $code = null)$this->reminderHandler->handle(new SendPaymentRemindersCommand());
 
-        return JsonResponse::success(['message' => 'Automatisches Backup erstellt und alte Dateien rotiert.']);
+        return JsonResponse::success([
+            'message' => 'Zahlungserinnerungs-Prozess erfolgreich durchlaufen.',
+        ]);
     }
 }

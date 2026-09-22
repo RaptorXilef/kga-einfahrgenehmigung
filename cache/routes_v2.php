@@ -48,41 +48,6 @@
         'class' => 'App\\Application\\Actions\\Admin\\RoleUploadImageAction',
         'auth' => false,
       ),
-      '/anonymize_archive' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemAnonymizeArchiveAction',
-        'auth' => false,
-      ),
-      '/changelog' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemChangelogAction',
-        'auth' => true,
-      ),
-      '/create_backup' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemCreateBackupAction',
-        'auth' => false,
-      ),
-      '/debug_mail' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemDebugMailAction',
-        'auth' => true,
-      ),
-      '/resend_mail' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemResendMailAction',
-        'auth' => false,
-      ),
-      '/run_update_migrations' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemRunUpdateMigrationsAction',
-        'auth' => false,
-      ),
-      '/truncate_target' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemTruncateTargetAction',
-        'auth' => false,
-      ),
       '/delete_user' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\UserDeleteAction',
@@ -101,36 +66,6 @@
       '/api/qr.png' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\Shared\\QrCodeRenderAction',
-        'auth' => false,
-      ),
-      '/api/cron/archive' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\ArchiveCronAction',
-        'auth' => false,
-      ),
-      '/api/cron/backup' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\BackupCronAction',
-        'auth' => false,
-      ),
-      '/api/process_mail_queue' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\ProcessMailQueueAction',
-        'auth' => false,
-      ),
-      '/api/cron/reminders' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\RemindersCronAction',
-        'auth' => false,
-      ),
-      '/api/cron/spam_sync' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\SpamSyncCronAction',
-        'auth' => false,
-      ),
-      '/api/system_update' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\SystemUpdateAction',
         'auth' => false,
       ),
       '/admin_login' => 
@@ -223,6 +158,16 @@
         'class' => 'App\\Modules\\Finance\\Application\\UseCases\\ExportFinanceData\\ExportFinanceDataAction',
         'auth' => false,
       ),
+      '/api/cron/archive' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\ArchiveExpiredPermits\\ArchiveCronAction',
+        'auth' => false,
+      ),
+      '/api/cron/reminders' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SendPaymentReminders\\RemindersCronAction',
+        'auth' => false,
+      ),
       '/suspend_permit' => 
       array (
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\TogglePermitSuspension\\TogglePermitSuspensionAction',
@@ -232,6 +177,61 @@
       array (
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\TogglePermitSuspension\\TogglePermitSuspensionAction',
         'auth' => false,
+      ),
+      '/anonymize_archive' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\Maintenance\\AnonymizeArchiveAction',
+        'auth' => false,
+      ),
+      '/run_update_migrations' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\Maintenance\\RunUpdateMigrationsAction',
+        'auth' => false,
+      ),
+      '/api/system_update' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\Maintenance\\SystemUpdateAction',
+        'auth' => false,
+      ),
+      '/api/cron/backup' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\BackupCronAction',
+        'auth' => false,
+      ),
+      '/create_backup' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\CreateBackupAction',
+        'auth' => false,
+      ),
+      '/truncate_target' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\TruncateTargetAction',
+        'auth' => false,
+      ),
+      '/api/process_mail_queue' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageMails\\ProcessMailQueueAction',
+        'auth' => false,
+      ),
+      '/resend_mail' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageMails\\ResendMailAction',
+        'auth' => false,
+      ),
+      '/api/cron/spam_sync' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageMails\\SpamSyncCronAction',
+        'auth' => false,
+      ),
+      '/debug_mail' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageMails\\ViewDebugMailAction',
+        'auth' => true,
+      ),
+      '/changelog' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\SystemInfo\\ViewChangelogAction',
+        'auth' => true,
       ),
       '/create_voucher' => 
       array (
@@ -306,46 +306,6 @@
         'class' => 'App\\Application\\Actions\\Admin\\RoleUploadImageAction',
         'auth' => false,
       ),
-      '/anonymize_archive' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemAnonymizeArchiveAction',
-        'auth' => false,
-      ),
-      '/changelog' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemChangelogAction',
-        'auth' => true,
-      ),
-      '/clear_cache' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemClearCacheAction',
-        'auth' => false,
-      ),
-      '/create_backup' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemCreateBackupAction',
-        'auth' => false,
-      ),
-      '/resend_mail' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemResendMailAction',
-        'auth' => false,
-      ),
-      '/restore_data' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemRestoreDataAction',
-        'auth' => false,
-      ),
-      '/run_update_migrations' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemRunUpdateMigrationsAction',
-        'auth' => false,
-      ),
-      '/truncate_target' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemTruncateTargetAction',
-        'auth' => false,
-      ),
       '/change_user_role' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\UserChangeRoleAction',
@@ -414,36 +374,6 @@
       '/api/get_template_price' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\Shared\\GetTemplatePriceAction',
-        'auth' => false,
-      ),
-      '/api/cron/archive' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\ArchiveCronAction',
-        'auth' => false,
-      ),
-      '/api/cron/backup' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\BackupCronAction',
-        'auth' => false,
-      ),
-      '/api/process_mail_queue' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\ProcessMailQueueAction',
-        'auth' => false,
-      ),
-      '/api/cron/reminders' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\RemindersCronAction',
-        'auth' => false,
-      ),
-      '/api/cron/spam_sync' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\SpamSyncCronAction',
-        'auth' => false,
-      ),
-      '/api/system_update' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\SystemUpdateAction',
         'auth' => false,
       ),
       '/admin_login' => 
@@ -526,6 +456,16 @@
         'class' => 'App\\Modules\\Finance\\Application\\UseCases\\ProcessBankImport\\ProcessBankImportAction',
         'auth' => true,
       ),
+      '/api/cron/archive' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\ArchiveExpiredPermits\\ArchiveCronAction',
+        'auth' => false,
+      ),
+      '/api/cron/reminders' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SendPaymentReminders\\RemindersCronAction',
+        'auth' => false,
+      ),
       '/' => 
       array (
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SubmitPermitRequest\\SubmitPermitAction',
@@ -540,6 +480,66 @@
       array (
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\TogglePermitSuspension\\TogglePermitSuspensionAction',
         'auth' => false,
+      ),
+      '/anonymize_archive' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\Maintenance\\AnonymizeArchiveAction',
+        'auth' => false,
+      ),
+      '/clear_cache' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\Maintenance\\ClearCacheAction',
+        'auth' => false,
+      ),
+      '/run_update_migrations' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\Maintenance\\RunUpdateMigrationsAction',
+        'auth' => false,
+      ),
+      '/api/system_update' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\Maintenance\\SystemUpdateAction',
+        'auth' => false,
+      ),
+      '/api/cron/backup' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\BackupCronAction',
+        'auth' => false,
+      ),
+      '/create_backup' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\CreateBackupAction',
+        'auth' => false,
+      ),
+      '/restore_data' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\RestoreDataAction',
+        'auth' => false,
+      ),
+      '/truncate_target' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\TruncateTargetAction',
+        'auth' => false,
+      ),
+      '/api/process_mail_queue' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageMails\\ProcessMailQueueAction',
+        'auth' => false,
+      ),
+      '/resend_mail' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageMails\\ResendMailAction',
+        'auth' => false,
+      ),
+      '/api/cron/spam_sync' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageMails\\SpamSyncCronAction',
+        'auth' => false,
+      ),
+      '/changelog' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\SystemInfo\\ViewChangelogAction',
+        'auth' => true,
       ),
       '/create_voucher' => 
       array (

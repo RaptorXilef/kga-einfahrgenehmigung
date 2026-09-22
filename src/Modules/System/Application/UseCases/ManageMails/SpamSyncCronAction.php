@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Api\System;
+namespace App\Modules\System\Application\UseCases\ManageMails;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;

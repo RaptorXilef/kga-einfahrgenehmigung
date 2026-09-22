@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\System\Application\UseCases\Maintenance;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
@@ -15,7 +15,7 @@ use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/clear_cache')]
-final readonly class SystemClearCacheAction implements ActionInterface, RequiresPermissionInterface
+final readonly class ClearCacheAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
@@ -32,10 +32,7 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
 
     public function execute(ServerRequest $request): mixed
     {
-        // 1. Routen-Cache (cache/routes_v2.php) komplett löschen!
         $this->routeCache->clearAll();
-
-        // 2. Berechtigungen der aktuellen Session neu kompilieren
         $this->auth->refreshSessionPermissions($this->auth->getRole());
 
         $this->auditLogger->log('SYSTEM_CACHE_CLEAR', 'Der System-Cache und Routen-Cache wurden manuell geleert.');

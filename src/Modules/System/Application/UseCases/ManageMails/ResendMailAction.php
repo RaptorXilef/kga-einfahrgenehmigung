@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\System\Application\UseCases\ManageMails;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
-use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -15,14 +14,9 @@ use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
 
-/**
- * Action für den manuellen Neuversand von E-Mails aus den System-Logs.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 #[Route('GET', '/resend_mail')]
 #[Route('POST', '/resend_mail')]
-final readonly class SystemResendMailAction implements ActionInterface
+final readonly class ResendMailAction implements ActionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
@@ -32,13 +26,10 @@ final readonly class SystemResendMailAction implements ActionInterface
     ) {
     }
 
-    /**
-     * Trigger für den Neuversand von E-Mails basierend auf den System-Logs.
-     */
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleIdentifierRequest::fromArray($request->post, 'timestamp');
+            $dto = ResendMailRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
@@ -48,7 +39,7 @@ final readonly class SystemResendMailAction implements ActionInterface
         $logs = $this->mailLog->loadLogs();
 
         foreach ($logs as $log) {
-            if ($log->timestamp->format('Y-m-d H:i:s') !== $dto->identifier) {
+            if ($log->timestamp->format('Y-m-d H:i:s') !== $dto->timestamp) {
                 continue;
             }
 

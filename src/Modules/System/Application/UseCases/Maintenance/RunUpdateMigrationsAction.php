@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\System\Application\UseCases\Maintenance;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
@@ -14,15 +14,9 @@ use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use Throwable;
 
-/**
- * TODO DOCBLOCK
- * Action zum manuellen Auslosen der Migrationsscripte der Updates
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 #[Route('GET', '/run_update_migrations')]
 #[Route('POST', '/run_update_migrations')]
-final readonly class SystemRunUpdateMigrationsAction implements ActionInterface, RequiresPermissionInterface
+final readonly class RunUpdateMigrationsAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
@@ -57,4 +51,3 @@ final readonly class SystemRunUpdateMigrationsAction implements ActionInterface,
         }
     }
 }
-

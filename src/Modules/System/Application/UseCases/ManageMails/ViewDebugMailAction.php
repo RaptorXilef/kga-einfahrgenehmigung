@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\System\Application\UseCases\ManageMails;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
@@ -13,15 +13,9 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Response\TextResponse;
 use App\Contracts\Config\ConfigInterface;
 
-/**
- * Rendered eine lokal abgefangene (gespoolte) HTML-E-Mail im Browser.
- * Ausschließlich im Debug-Modus verfügbar.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 #[Route('GET', '/debug_mail')]
 #[RequiresAuth]
-final readonly class SystemDebugMailAction implements ViewActionInterface, RequiresPermissionInterface
+final readonly class ViewDebugMailAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private ConfigInterface $config,
@@ -41,7 +35,6 @@ final readonly class SystemDebugMailAction implements ViewActionInterface, Requi
 
         $file = $request->get['file'] ?? '';
 
-        // Striktes Path-Traversal Prevention! Erlaubt nur Datums-ID Formate.
         if ($file === '' || !\preg_match('/^[a-zA-Z0-9_]+\.html$/', $file)) {
             return new TextResponse('Ungueltiger oder fehlender Dateiname.', 400);
         }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Api\System;
+namespace App\Modules\System\Application\UseCases\Maintenance;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
@@ -37,10 +37,7 @@ final readonly class SystemUpdateAction implements ActionInterface
         }
 
         try {
-            // 1. Cache leeren (Routen & System)
             $this->routeCache->clearAll();
-
-            // 2. Datenbank-Migrationen ausführen (z.B. 018_rename...)
             $migrationsApplied = $this->updateMigrationService->runAllPending();
 
             return JsonResponse::success([
