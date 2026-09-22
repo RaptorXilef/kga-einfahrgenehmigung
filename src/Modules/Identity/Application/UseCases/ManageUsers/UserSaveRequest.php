@@ -26,6 +26,9 @@ final readonly class UserSaveRequest
         if ($username === '') {
             throw ValidationException::withMessage('Fehler: Der Benutzername darf nicht leer sein.');
         }
+        if (\str_starts_with(\strtolower($username), 'sys_')) {
+            throw ValidationException::withMessage('Fehler: Namen mit dem Präfix "sys_" sind für das System reserviert.');
+        }
         if ($pw1 === '' || $pw1 === '0') {
             throw ValidationException::withMessage('Fehler: Das Passwort darf nicht leer sein.');
         }

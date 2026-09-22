@@ -37,7 +37,7 @@ final readonly class AuditLoggerService
         // BUGFIX: Stealth Mode (Unsichtbarkeit) über Config steuerbar machen!
         // Standardmäßig auf "false" setzen, damit Superadmins im Log auftauchen.
         $stealthMode = (bool) $this->config->get('stealth_superadmins', false);
-        if ($stealthMode && \str_starts_with($userId, 'sys_')) { // TODO Schwachstelle beheben!
+        if ($stealthMode && \str_starts_with($userId, 'sys_')) {
             return;
         }
 

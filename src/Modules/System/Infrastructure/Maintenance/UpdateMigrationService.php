@@ -42,7 +42,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
 
         $files = \glob($migrationsDir . \DIRECTORY_SEPARATOR . '*.sql');
 
-        if ($files === false | $files === []) {
+        if ($files === false || $files === []) {
             return $executedNow;
         }
 
@@ -58,7 +58,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
             try {
                 $sql = \file_get_contents($file);
 
-                if ($sql === false | \trim($sql) === '') {
+                if ($sql === false || \trim($sql) === '') {
                     throw new RuntimeException("Datei {$version}.sql ist leer oder nicht lesbar.");
                 }
 
@@ -74,8 +74,6 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
                     } catch (PDOException $e) {
                         $mysqlCode = $e->errorInfo[1] ?? 0;
 
-                        // BUGFIX: 1054 = Unknown column (Wird geworfen, wenn man eine Spalte via ALTER TABLE CHANGE
-                        // umbenennen will, sie aber schon umbenannt ist).
                         if (\in_array($mysqlCode, [1050, 1051, 1054, 1060, 1061, 1146], true)) {
                             continue;
                         }
@@ -99,7 +97,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
     private function getExecutedMigrations(): array
     {
         $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
-        if (!$cfg | !$this->pdo instanceof PDO) {
+        if (!$cfg || !$this->pdo instanceof PDO) {
             return [];
         }
 
@@ -115,7 +113,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
     private function markAsExecuted(string $version): void
     {
         $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
-        if (!$cfg | !$this->pdo instanceof PDO) {
+        if (!$cfg || !$this->pdo instanceof PDO) {
             return;
         }
 
@@ -127,7 +125,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
     public function import(array $data): void
     {
         $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
-        if (!$cfg | !$this->pdo instanceof PDO) {
+        if (!$cfg || !$this->pdo instanceof PDO) {
             return;
         }
 

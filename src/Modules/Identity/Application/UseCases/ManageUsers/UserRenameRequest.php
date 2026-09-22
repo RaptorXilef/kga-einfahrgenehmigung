@@ -22,6 +22,11 @@ final readonly class UserRenameRequest
         if ($userId === '') {
             throw ValidationException::withMessage('Fehler: Kein Benutzer ausgewählt.');
         }
+
+        if (\str_starts_with(\strtolower($newName), 'sys_')) {
+            throw ValidationException::withMessage('Fehler: Namen mit dem Präfix "sys_" sind für das System reserviert.');
+        }
+
         if ($newName === '') {
             throw ValidationException::withMessage('Fehler: Der neue Login-Name darf nicht leer sein.');
         }

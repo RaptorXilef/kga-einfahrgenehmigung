@@ -82,7 +82,7 @@ final readonly class EmailValidationService
         $ctx = \stream_context_create(['http' => ['timeout' => 5]]);
         $json = @\file_get_contents($url, false, $ctx);
 
-        if ($json === false | !\json_validate($json)) {
+        if ($json === false || !\json_validate($json)) {
             return;
         }
 

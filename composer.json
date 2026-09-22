@@ -113,6 +113,7 @@
     "chk:stan:public": "phpstan analyse public --level max --memory-limit=2G",
 
     "// --- PHASE 2: TESTING ---": "Automatisierte Tests",
+    "test:wiring": "php scripts/smoke_test.php",
     "test": "pest --parallel",
     "test:full": "pest --parallel --display-deprecations",
     "test:coverage": "XDEBUG_MODE=coverage pest --coverage --coverage-html .build/reports/phpunit-html",

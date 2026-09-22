@@ -20,6 +20,14 @@ interface AuthSessionInterface
 
     public function getAdminUser(): string;
 
+    // --- NEU: History Session Methods ---
+    public function setHistoryEmail(string $email): void;
+
+    public function getHistoryEmail(): ?string;
+
+    public function clearHistoryEmail(): void;
+    // ------------------------------------
+
     public function regenerate(): void;
 
     public function rotateCsrfToken(): void;
