@@ -12,9 +12,11 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\UserRepositoryInterface;
-use App\Core\Entity\User;
+use App\Contracts\Storage\UserRepositoryInterface; // Legacy für Namensauflösung
 use App\Core\Service\AuditLoggerService;
+use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserPasswordCommand;
+use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserPasswordHandler;
+use DomainException;
 
 #[Route('POST', '/change_user_password')]
 final readonly class UserResetPasswordAction implements ActionInterface, RequiresPermissionInterface
@@ -22,7 +24,8 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
     public function __construct(
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
-        private UserRepositoryInterface $userRepository,
+        private UserRepositoryInterface $legacyUserRepository, // Für Logging Info
+        private ChangeUserPasswordHandler $changePasswordHandler, // CQRS
     ) {
     }
 
@@ -44,20 +47,21 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
             return new RedirectResponse('users');
         }
 
-        $users = $this->userRepository->loadAll();
-        if (isset($users[$dto->userId])) {
-            $u = $users[$dto->userId];
-            $users[$dto->userId] = new User($u->id, $u->username, $u->roleId, \password_hash($dto->newPassword, \PASSWORD_DEFAULT), $u->lastSeenChangelog);
-            $this->userRepository->saveAll($users);
+        try {
+            // Name für das Log aus dem alten Read-Repository laden
+            $users = $this->legacyUserRepository->loadAll();
+            $username = isset($users[$dto->userId]) ? $users[$dto->userId]->username : 'Unbekannt';
 
-            $this->auditLogger->log('USER_RESET_PASSWORD', "Kennwort für Benutzer '{$u->username}' (ID: {$u->id}) manuell zurückgesetzt.");
+            $this->changePasswordHandler->handle(new ChangeUserPasswordCommand($dto->userId, $dto->newPassword));
+
+            $this->auditLogger->log('USER_RESET_PASSWORD', "Kennwort für Benutzer '{$username}' (ID: {$dto->userId}) manuell zurückgesetzt.");
             $this->sessionManager->addFlash('success', 'Passwort wurde zurückgesetzt.');
 
             return new RedirectResponse('users');
+        } catch (DomainException $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('users');
         }
-
-        $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
-
-        return new RedirectResponse('users');
     }
 }

@@ -14,12 +14,10 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Storage\RoleRepositoryInterface;
-use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\ImageStorageInterface;
-use App\Core\Entity\User;
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\AuthService;
-use App\Core\Service\UserService;
+use App\Modules\Identity\Application\UseCases\ManageUsers\CreateUserCommand;
+use App\Modules\Identity\Application\UseCases\ManageUsers\CreateUserHandler;
 use DomainException;
 
 #[Route('POST', '/save_user')]
@@ -28,12 +26,10 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private AuthService $auth,
-        private RoleRepositoryInterface $roleRepository,
+        private RoleRepositoryInterface $roleRepository, // Legacy-Repo für Namensauflösung im Log
         private ImageStorageInterface $imageStorage,
         private SessionManager $sessionManager,
-        private UserRepositoryInterface $userRepository,
-        private UserService $userService,
+        private CreateUserHandler $createHandler, // CQRS
     ) {
     }
 
@@ -53,25 +49,16 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
         }
 
         try {
-            $this->userService->ensureUsernameIsUnique($dto->username);
-            $users = $this->userRepository->loadAll();
-
-            do {
-                $newId = $this->auth->generateId('usr_');
-            } while (isset($users[$newId]));
-
-            $users[$newId] = new User(
-                $newId,
+            // Handler liefert die ID zurück, damit wir das Bild richtig speichern können
+            $newId = $this->createHandler->handle(new CreateUserCommand(
                 $dto->username,
+                $dto->password,
                 $dto->group,
-                \password_hash($dto->password, \PASSWORD_DEFAULT),
-                'v0.0.0',
-            );
-
-            $this->userRepository->saveAll($users);
+            ));
 
             if ($dto->avatar !== null) {
-                $this->imageStorage->uploadImage('user_images', $newId, $dto->avatar);
+                // BUGFIX: War ehemals auf den falschen Order 'user_images' gemappt
+                $this->imageStorage->uploadImage('user', $newId, $dto->avatar);
             }
 
             $roles = $this->roleRepository->loadAll();

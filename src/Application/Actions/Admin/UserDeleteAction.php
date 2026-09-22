@@ -13,28 +13,25 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\UserRepositoryInterface;
-use App\Core\Service\AuditLoggerService; // <--- NEU
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
-use App\Core\Service\UserService;
+use App\Modules\Identity\Application\UseCases\ManageUsers\DeleteUserCommand;
+use App\Modules\Identity\Application\UseCases\ManageUsers\DeleteUserHandler;
 use DomainException;
 
 /**
  * Action zum Löschen eines Benutzers.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/delete_user')]
 #[Route('POST', '/delete_user')]
 final readonly class UserDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger, // <--- NEU
-        private AuthService $auth,
+        private AuditLoggerService $auditLogger,
+        private AuthService $auth, // For initiator ID
         private ConfigInterface $config,
         private SessionManager $sessionManager,
-        private UserRepositoryInterface $userRepository,
-        private UserService $userService,
+        private DeleteUserHandler $deleteHandler, // CQRS
     ) {
     }
 
@@ -57,28 +54,18 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
         }
 
         try {
-            $this->userService->ensureNoSelfExclusion($dto->identifier, $this->auth->getUserId());
-            $users = $this->userRepository->loadAll();
+            $deletedName = $this->deleteHandler->handle(new DeleteUserCommand(
+                $dto->identifier,
+                $this->auth->getUserId(),
+            ));
 
-            if (isset($users[$dto->identifier])) {
-                $name = $users[$dto->identifier]->username;
-                unset($users[$dto->identifier]);
-                $this->userRepository->saveAll($users);
-
-                $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user/' . $dto->identifier . '.webp';
-                if (\file_exists($avatarPath)) {
-                    @\unlink($avatarPath);
-                }
-
-                // LOG SCHREIBEN
-                $this->auditLogger->log('USER_DELETE', "Benutzerkonto '{$name}' (ID: {$dto->identifier}) unwiderruflich gelöscht.");
-
-                $this->sessionManager->addFlash('success', "Benutzer '$name' wurde entfernt.");
-
-                return new RedirectResponse('users');
+            $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user/' . $dto->identifier . '.webp';
+            if (\file_exists($avatarPath)) {
+                @\unlink($avatarPath);
             }
 
-            $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
+            $this->auditLogger->log('USER_DELETE', "Benutzerkonto '{$deletedName}' (ID: {$dto->identifier}) unwiderruflich gelöscht.");
+            $this->sessionManager->addFlash('success', "Benutzer '{$deletedName}' wurde entfernt.");
 
             return new RedirectResponse('users');
         } catch (DomainException $e) {

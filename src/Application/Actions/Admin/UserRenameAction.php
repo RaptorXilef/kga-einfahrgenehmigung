@@ -12,10 +12,9 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\UserRepositoryInterface;
-use App\Core\Entity\User;
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\UserService;
+use App\Modules\Identity\Application\UseCases\ManageUsers\RenameUserCommand;
+use App\Modules\Identity\Application\UseCases\ManageUsers\RenameUserHandler;
 use DomainException;
 
 #[Route('POST', '/rename_user')]
@@ -24,8 +23,7 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
     public function __construct(
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
-        private UserRepositoryInterface $userRepository,
-        private UserService $userService,
+        private RenameUserHandler $renameHandler, // CQRS
     ) {
     }
 
@@ -48,22 +46,11 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
         }
 
         try {
-            $this->userService->ensureUsernameIsUnique($dto->newUsername, $dto->userId);
-            $users = $this->userRepository->loadAll();
+            // Handler liefert den alten Namen für das Log
+            $oldName = $this->renameHandler->handle(new RenameUserCommand($dto->userId, $dto->newUsername));
 
-            if (isset($users[$dto->userId])) {
-                $u = $users[$dto->userId];
-                $oldName = $u->username;
-                $users[$dto->userId] = new User($u->id, $dto->newUsername, $u->roleId, $u->passwordHash, $u->lastSeenChangelog);
-                $this->userRepository->saveAll($users);
-
-                $this->auditLogger->log('USER_RENAME', "Benutzer-Anzeigename von '{$oldName}' in '{$dto->newUsername}' (ID: {$dto->userId}) geändert.");
-                $this->sessionManager->addFlash('success', 'Login-Name aktualisiert.');
-
-                return new RedirectResponse('users');
-            }
-
-            $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
+            $this->auditLogger->log('USER_RENAME', "Benutzer-Anzeigename von '{$oldName}' in '{$dto->newUsername}' (ID: {$dto->userId}) geändert.");
+            $this->sessionManager->addFlash('success', 'Login-Name aktualisiert.');
 
             return new RedirectResponse('users');
         } catch (DomainException $e) {

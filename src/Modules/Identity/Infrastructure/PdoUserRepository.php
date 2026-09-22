@@ -15,6 +15,19 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
     ) {
     }
 
+    public function findById(string $id): ?User
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            return null;
+        }
+
+        return $this->mapRowToEntity($row);
+    }
+
     public function findByUsername(string $username): ?User
     {
         $stmt = $this->pdo->prepare('SELECT * FROM users WHERE username = :username LIMIT 1');
@@ -25,13 +38,7 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
             return null;
         }
 
-        return new User(
-            id: (string) $row['id'],
-            username: (string) $row['username'],
-            roleId: (string) ($row['role_id'] ?? $row['group'] ?? 'guest'),
-            passwordHash: (string) ($row['pass'] ?? $row['password_hash'] ?? ''),
-            lastSeenChangelog: (string) ($row['last_seen_changelog'] ?? 'v0.0.0'),
-        );
+        return $this->mapRowToEntity($row);
     }
 
     public function save(User $user): void
@@ -49,5 +56,21 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
             'pass' => $user->getPasswordHash(),
             'changelog' => $user->getLastSeenChangelog(),
         ]);
+    }
+
+    public function delete(string $id): void
+    {
+        $this->pdo->prepare('DELETE FROM users WHERE id = :id')->execute(['id' => $id]);
+    }
+
+    private function mapRowToEntity(array $row): User
+    {
+        return new User(
+            id: (string) $row['id'],
+            username: (string) $row['username'],
+            roleId: (string) ($row['role_id'] ?? $row['group'] ?? 'guest'),
+            passwordHash: (string) ($row['pass'] ?? $row['password_hash'] ?? ''),
+            lastSeenChangelog: (string) ($row['last_seen_changelog'] ?? 'v0.0.0'),
+        );
     }
 }

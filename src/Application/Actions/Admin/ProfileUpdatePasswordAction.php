@@ -11,11 +11,10 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\UserRepositoryInterface;
-use App\Core\Entity\User;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
-use App\Core\Service\UserService;
+use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserPasswordCommand;
+use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserPasswordHandler;
 use DomainException;
 
 #[Route('POST', '/change_own_password')]
@@ -24,9 +23,8 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
     public function __construct(
         private AuthService $auth,
         private SessionManager $sessionManager,
-        private UserRepositoryInterface $userRepository,
-        private UserService $userService,
         private AuditLoggerService $auditLogger,
+        private ChangeUserPasswordHandler $changePasswordHandler, // CQRS
     ) {
     }
 
@@ -49,23 +47,13 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
         }
 
         try {
-            $this->userService->verifyOldPassword($userId, $dto->oldPassword);
-            $users = $this->userRepository->loadAll();
+            $newHash = $this->changePasswordHandler->handle(
+                new ChangeUserPasswordCommand($userId, $dto->newPassword, $dto->oldPassword),
+            );
 
-            if (isset($users[$userId])) {
-                $u = $users[$userId];
-                $newHash = \password_hash($dto->newPassword, \PASSWORD_DEFAULT);
-                $users[$userId] = new User($u->id, $u->username, $u->roleId, $newHash, $u->lastSeenChangelog);
-                $this->userRepository->saveAll($users);
-
-                $this->sessionManager->setAuthSession($userId, $u->roleId, $u->username, $newHash);
-                $this->auditLogger->log('PROFILE_PASSWORD_CHANGE', 'Eigenes Kennwort wurde geändert.');
-                $this->sessionManager->addFlash('success', 'Erfolg: Ihr Passwort wurde geändert.');
-
-                return new RedirectResponse('profile');
-            }
-
-            $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
+            $this->sessionManager->setAuthSession($userId, $this->auth->getRole(), $this->auth->getUsername(), $newHash);
+            $this->auditLogger->log('PROFILE_PASSWORD_CHANGE', 'Eigenes Kennwort wurde geändert.');
+            $this->sessionManager->addFlash('success', 'Erfolg: Ihr Passwort wurde geändert.');
 
             return new RedirectResponse('profile');
         } catch (DomainException $e) {

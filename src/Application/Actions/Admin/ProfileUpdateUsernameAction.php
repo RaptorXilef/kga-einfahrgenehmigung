@@ -11,11 +11,10 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\UserRepositoryInterface;
-use App\Core\Entity\User;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
-use App\Core\Service\UserService;
+use App\Modules\Identity\Application\UseCases\ManageUsers\RenameUserCommand;
+use App\Modules\Identity\Application\UseCases\ManageUsers\RenameUserHandler;
 use DomainException;
 
 #[Route('POST', '/change_own_username')]
@@ -25,8 +24,7 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
         private SessionManager $sessionManager,
-        private UserRepositoryInterface $userRepository,
-        private UserService $userService,
+        private RenameUserHandler $renameHandler, // CQRS
     ) {
     }
 
@@ -49,23 +47,11 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
         }
 
         try {
-            $this->userService->ensureUsernameIsUnique($dto->newUsername, $userId);
-            $users = $this->userRepository->loadAll();
+            $oldName = $this->renameHandler->handle(new RenameUserCommand($userId, $dto->newUsername));
 
-            if (isset($users[$userId])) {
-                $u = $users[$userId];
-                $oldName = $u->username;
-                $users[$userId] = new User($u->id, $dto->newUsername, $u->roleId, $u->passwordHash, $u->lastSeenChangelog);
-                $this->userRepository->saveAll($users);
-
-                $this->sessionManager->updateAdminUsername($dto->newUsername);
-                $this->auditLogger->log('PROFILE_USERNAME_CHANGE', "Eigenes Login/Anzeigename geändert (von '{$oldName}' zu '{$dto->newUsername}').");
-                $this->sessionManager->addFlash('success', 'Erfolg: Ihr Anzeigename wurde aktualisiert.');
-
-                return new RedirectResponse('profile');
-            }
-
-            $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
+            $this->sessionManager->updateAdminUsername($dto->newUsername);
+            $this->auditLogger->log('PROFILE_USERNAME_CHANGE', "Eigenes Login/Anzeigename geändert (von '{$oldName}' zu '{$dto->newUsername}').");
+            $this->sessionManager->addFlash('success', 'Erfolg: Ihr Anzeigename wurde aktualisiert.');
 
             return new RedirectResponse('profile');
         } catch (DomainException $e) {

@@ -13,11 +13,24 @@ final class User
 {
     public function __construct(
         public readonly string $id,
-        public readonly string $username,
-        public readonly string $roleId,
+        public string $username,
+        public string $roleId,
         private string $passwordHash,
         private string $lastSeenChangelog,
     ) {
+    }
+
+    public function rename(string $newUsername): void
+    {
+        if (\trim($newUsername) === '') {
+            throw new DomainException('Der Benutzername darf nicht leer sein.');
+        }
+        $this->username = \trim($newUsername);
+    }
+
+    public function changeRole(string $newRoleId): void
+    {
+        $this->roleId = \trim($newRoleId);
     }
 
     /**

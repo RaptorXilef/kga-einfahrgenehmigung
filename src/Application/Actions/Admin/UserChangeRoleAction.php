@@ -13,9 +13,11 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
-use App\Core\Entity\User;
 use App\Core\Security\Sanitizer;
 use App\Core\Service\AuditLoggerService;
+use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserRoleCommand;
+use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserRoleHandler;
+use DomainException;
 
 #[Route('POST', '/change_user_role')]
 #[RequiresAuth]
@@ -23,9 +25,10 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private RoleRepositoryInterface $roleRepository,
+        private RoleRepositoryInterface $roleRepository, // Read-Repo
+        private UserRepositoryInterface $userRepository, // Read-Repo
         private SessionManager $sessionManager,
-        private UserRepositoryInterface $userRepository,
+        private ChangeUserRoleHandler $changeRoleHandler, // CQRS
     ) {
     }
 
@@ -52,19 +55,15 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
             return new RedirectResponse('users');
         }
 
-        $users = $this->userRepository->loadAll();
-        if (isset($users[$userId])) {
-            $u = $users[$userId];
-            $oldRole = $u->roleId;
+        try {
+            $users = $this->userRepository->loadAll();
+            if (!isset($users[$userId])) {
+                throw new DomainException('Fehler: Benutzer nicht gefunden.');
+            }
+            $oldRole = $users[$userId]->roleId;
+            $username = $users[$userId]->username;
 
-            $users[$userId] = new User(
-                $u->id,
-                $u->username,
-                $roleId,
-                $u->passwordHash,
-                $u->lastSeenChangelog,
-            );
-            $this->userRepository->saveAll($users);
+            $this->changeRoleHandler->handle(new ChangeUserRoleCommand($userId, $roleId));
 
             $roles = $this->roleRepository->loadAll();
             $oldRoleName = isset($roles[$oldRole]) ? $roles[$oldRole]->name : $oldRole;
@@ -72,16 +71,17 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
 
             $this->auditLogger->log(
                 'USER_CHANGE_ROLE',
-                "Rolle von Benutzer '{$u->username}' (ID: {$u->id}) geändert: Von '{$oldRoleName}' auf '{$newRoleName}'.",
+                "Rolle von Benutzer '{$username}' (ID: {$userId}) geändert: Von '{$oldRoleName}' auf '{$newRoleName}'.",
             );
 
-            $this->sessionManager->addFlash('success', "Rolle für '{$u->username}' geändert.");
+            $this->sessionManager->addFlash('success', "Rolle für '{$username}' geändert.");
+
+            return new RedirectResponse('users');
+
+        } catch (DomainException $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('users');
         }
-
-        $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
-
-        return new RedirectResponse('users');
     }
 }
