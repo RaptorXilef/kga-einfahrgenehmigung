@@ -8,7 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Core\Event\PermitCreatedEvent;
+use App\Modules\Permit\Domain\Events\PermitCreatedEvent;
 use App\Modules\Permit\Domain\Owner;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;

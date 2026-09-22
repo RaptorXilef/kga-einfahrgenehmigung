@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Listener;
+namespace App\Modules\Permit\Application\Listeners;
 
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\System\PdfGeneratorInterface;
-use App\Core\Event\PermitCreatedEvent;
 use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrHandler;
 use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrQuery;
 use App\Modules\Permit\Application\Services\HolidayService;
+use App\Modules\Permit\Domain\Events\PermitCreatedEvent;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
 use App\Modules\Permit\Domain\PermitStatus;
 use Endroid\QrCode\Encoding\Encoding;
@@ -30,7 +30,7 @@ final readonly class SendPermitMailListener
         private ConfigInterface $config,
         private HolidayService $holidayService,
         private MailServiceInterface $mailService,
-        private PermitFinancialCalculator $financialCalculator, // Service Wrapper
+        private PermitFinancialCalculator $financialCalculator,
         private PdfGeneratorInterface $pdfGenerator,
         private TemplateRenderer $renderer,
     ) {
@@ -68,10 +68,7 @@ final readonly class SendPermitMailListener
         if (($mailConfig['send_board_notification'] ?? true) === true) {
             $userEmail = $permit->getOwnerEmail() !== '' ? $permit->getOwnerEmail() : null;
 
-            // Zieht den Empfänger direkt aus dem aktiven Mail-Block!
             $boardRecipientsRaw = $mailConfig['board_recipients'] ?? '';
-
-            // Erlaube mehrere Vorstände durch Komma-Trennung und validiere die Adressen
             $boardRecipients = \array_filter(\array_map('trim', \explode(',', (string) $boardRecipientsRaw)));
 
             $data = [

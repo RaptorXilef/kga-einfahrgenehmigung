@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
 use App\Contracts\Event\EventDispatcherInterface;
-use App\Core\Event\RoleDeletedEvent;
+use App\Modules\Identity\Domain\Events\RoleDeletedEvent;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use DomainException;
 
@@ -29,6 +29,8 @@ final readonly class DeleteRoleHandler
         }
 
         $this->repository->delete($command->roleId);
+
+        // Neues VSA-Event triggern, damit z.B. Icons gelöscht werden
         $this->eventDispatcher->dispatch(new RoleDeletedEvent($command->roleId));
 
         return $role->name;

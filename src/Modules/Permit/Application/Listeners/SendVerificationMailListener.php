@@ -2,16 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Listener;
+namespace App\Modules\Permit\Application\Listeners;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Core\Event\VerificationRequestedEvent;
+use App\Modules\Permit\Domain\Events\VerificationRequestedEvent;
 
 /**
  * Sendet die Double-Opt-In-Verifizierungsmail an den Antragsteller.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class SendVerificationMailListener
 {
@@ -23,7 +21,7 @@ final readonly class SendVerificationMailListener
 
     public function handle(VerificationRequestedEvent $event): void
     {
-        // BUGFIX: Garantiert einen sauberen Slash am Ende der URL, damit verify?token korrekt generiert wird
+        // Garantiert einen sauberen Slash am Ende der URL, damit verify?token korrekt generiert wird
         $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
 
         $this->mailService->sendTemplate(

@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Bootstrap\Providers;
 
-use App\Application\Listener\DeleteGroupImageListener;
-use App\Application\Listener\SendMagicLinkMailListener;
-use App\Application\Listener\SendPaymentReminderMailListener;
-use App\Application\Listener\SendPermitCancelledMailListener;
-use App\Application\Listener\SendPermitMailListener;
-use App\Application\Listener\SendVerificationMailListener;
 use App\Contracts\DependencyInjection\ContainerInterface;
 use App\Contracts\Event\EventDispatcherInterface;
-use App\Core\Event\GroupDeletedEvent;
-use App\Core\Event\MagicLinkRequestedEvent;
-use App\Core\Event\PaymentReminderEvent;
-use App\Core\Event\PermitCancelledEvent;
-use App\Core\Event\PermitCreatedEvent;
-use App\Core\Event\VerificationRequestedEvent;
 use App\Infrastructure\Event\EventDispatcher;
+use App\Modules\Identity\Application\Listeners\DeleteGroupImageListener;
+use App\Modules\Identity\Application\Listeners\SendMagicLinkMailListener;
+use App\Modules\Identity\Domain\Events\MagicLinkRequestedEvent;
+use App\Modules\Identity\Domain\Events\RoleDeletedEvent;
+use App\Modules\Permit\Application\Listeners\SendPaymentReminderMailListener;
+use App\Modules\Permit\Application\Listeners\SendPermitCancelledMailListener;
+use App\Modules\Permit\Application\Listeners\SendPermitMailListener;
+use App\Modules\Permit\Application\Listeners\SendVerificationMailListener;
+use App\Modules\Permit\Domain\Events\PaymentReminderEvent;
+use App\Modules\Permit\Domain\Events\PermitCancelledEvent;
+use App\Modules\Permit\Domain\Events\PermitCreatedEvent;
+use App\Modules\Permit\Domain\Events\VerificationRequestedEvent;
 
 /**
  * Zentraler Event-Verteiler-Provider. Verknüpft alle Domain-Events mit ihren Listenern.
@@ -38,18 +38,23 @@ final class EventServiceProvider
         $dispatcher->addListener(PermitCreatedEvent::class, fn ($event) => $container->get(
             SendPermitMailListener::class,
         )->handle($event));
+
         $dispatcher->addListener(VerificationRequestedEvent::class, fn ($event) => $container->get(
             SendVerificationMailListener::class,
         )->handle($event));
+
         $dispatcher->addListener(MagicLinkRequestedEvent::class, fn ($event) => $container->get(
             SendMagicLinkMailListener::class,
         )->handle($event));
-        $dispatcher->addListener(GroupDeletedEvent::class, fn ($event) => $container->get(
+
+        $dispatcher->addListener(RoleDeletedEvent::class, fn ($event) => $container->get(
             DeleteGroupImageListener::class,
         )->handle($event));
+
         $dispatcher->addListener(PaymentReminderEvent::class, fn ($event) => $container->get(
             SendPaymentReminderMailListener::class,
         )->handle($event));
+
         $dispatcher->addListener(PermitCancelledEvent::class, fn ($event) => $container->get(
             SendPermitCancelledMailListener::class,
         )->handle($event));

@@ -2,16 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Listener;
+namespace App\Modules\Identity\Application\Listeners;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Core\Event\MagicLinkRequestedEvent;
+use App\Modules\Identity\Domain\Events\MagicLinkRequestedEvent;
 
 /**
  * Sendet die E-Mail mit dem Magic-Link und dem 6-stelligen OTP-Code an den Nutzer.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class SendMagicLinkMailListener
 {
@@ -23,7 +21,7 @@ final readonly class SendMagicLinkMailListener
 
     public function handle(MagicLinkRequestedEvent $event): void
     {
-        // BUGFIX: Garantiert einen sauberen Slash am Ende der URL
+        // Garantiert einen sauberen Slash am Ende der URL
         $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
         $link = $safeBaseUrl . 'history?token=' . $event->token;
 

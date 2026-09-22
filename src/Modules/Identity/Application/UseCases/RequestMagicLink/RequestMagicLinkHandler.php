@@ -6,7 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\RequestMagicLink;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
-use App\Core\Event\MagicLinkRequestedEvent;
+use App\Modules\Identity\Domain\Events\MagicLinkRequestedEvent;
 use App\Modules\Identity\Domain\MagicLink;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;

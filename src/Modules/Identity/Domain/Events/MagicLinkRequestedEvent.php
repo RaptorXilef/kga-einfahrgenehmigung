@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Event;
+namespace App\Modules\Identity\Domain\Events;
 
 /**
  * Event: Wird geworfen, wenn ein Nutzer einen Login-Link für seine Historie anfordert.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class MagicLinkRequestedEvent
 {

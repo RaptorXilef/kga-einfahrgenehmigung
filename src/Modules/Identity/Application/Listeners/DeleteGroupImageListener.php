@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Listener;
+namespace App\Modules\Identity\Application\Listeners;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Core\Event\GroupDeletedEvent;
+use App\Modules\Identity\Domain\Events\RoleDeletedEvent;
 
 final readonly class DeleteGroupImageListener
 {
@@ -13,12 +13,12 @@ final readonly class DeleteGroupImageListener
     {
     }
 
-    public function handle(GroupDeletedEvent $event): void
+    public function handle(RoleDeletedEvent $event): void
     {
         $iconPath = \rtrim(
             (string) $this->config->get('root_path'),
             '/\\',
-        ) . '/public/assets/img/role/' . $event->groupId . '.webp';
+        ) . '/public/assets/img/role/' . $event->roleId . '.webp';
 
         if (!\file_exists($iconPath)) {
             return;

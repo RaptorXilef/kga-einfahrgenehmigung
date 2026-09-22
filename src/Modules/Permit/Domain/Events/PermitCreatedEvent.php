@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Event;
+namespace App\Modules\Permit\Domain\Events;
 
 use App\Modules\Permit\Domain\Permit;
 
@@ -12,7 +12,7 @@ use App\Modules\Permit\Domain\Permit;
 final readonly class PermitCreatedEvent
 {
     public function __construct(
-        public Permit $permit, // Nutzt jetzt die neue DDD Entity!
+        public Permit $permit,
         public string $shortCode,
     ) {
     }

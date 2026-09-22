@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Listener;
+namespace App\Modules\Permit\Application\Listeners;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Core\Event\PaymentReminderEvent;
 use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrHandler;
 use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrQuery;
+use App\Modules\Permit\Domain\Events\PaymentReminderEvent;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
 
 final readonly class SendPaymentReminderMailListener

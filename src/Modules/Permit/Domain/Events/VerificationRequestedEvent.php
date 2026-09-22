@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Event;
+namespace App\Modules\Permit\Domain\Events;
 
 /**
  * Event: Wird geworfen, wenn ein Nutzer das Antragsformular absendet und seine Mail verifizieren muss.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class VerificationRequestedEvent
 {

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Listener;
+namespace App\Modules\Permit\Application\Listeners;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Core\Event\PermitCancelledEvent;
+use App\Modules\Permit\Domain\Events\PermitCancelledEvent;
 
 final readonly class SendPermitCancelledMailListener
 {

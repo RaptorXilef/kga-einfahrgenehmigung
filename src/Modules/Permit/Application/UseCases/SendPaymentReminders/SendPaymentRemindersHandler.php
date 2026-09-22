@@ -7,7 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\SendPaymentReminders;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Core\Event\PaymentReminderEvent;
+use App\Modules\Permit\Domain\Events\PaymentReminderEvent;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
@@ -74,6 +74,7 @@ final readonly class SendPaymentRemindersHandler implements CommandHandlerInterf
 
         // Wir nutzen hier save, da PermitRepositoryInterface::save das Update regelt
         $this->repository->save($permit);
+
         $this->eventDispatcher->dispatch(new PaymentReminderEvent($permit));
 
         return true;
