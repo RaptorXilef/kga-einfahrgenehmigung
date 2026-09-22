@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Security;
+namespace App\Modules\Identity\Domain;
 
 /**
  * Array aller Permissions (Modular & Flach nach TwoKinds-Standard)

@@ -1,100 +1,65 @@
-deptrac:
+# deptrac.yaml
+# Strikte Überwachung unserer Bounded Contexts (Modular Monolith)
+parameters:
   paths:
-    - src
-  ignore_uncovered_internal_classes: true
-  cache_file: .cache/deptrac/.deptrac.cache
-
+    - ./src
   layers:
-    # --- 1. SHARED KERNEL ---
+    - name: Permit
+      collectors:
+        - type: directory
+          value: src/Modules/Permit/.*
+    - name: Finance
+      collectors:
+        - type: directory
+          value: src/Modules/Finance/.*
+    - name: Voucher
+      collectors:
+        - type: directory
+          value: src/Modules/Voucher/.*
+    - name: Identity
+      collectors:
+        - type: directory
+          value: src/Modules/Identity/.*
+    - name: System
+      collectors:
+        - type: directory
+          value: src/Modules/System/.*
     - name: SharedKernel
       collectors:
         - type: directory
           value: src/SharedKernel/.*
-
-    # --- 2. SCHICHTEN INNERHALB DER MODULE ---
-    - name: ModuleDomain
+    - name: Framework
       collectors:
-        - type: classNameRegex
-          value: ^App\\Modules\\[^\\]+\\Domain\\.*
-
-    - name: ModuleApplication
-      collectors:
-        - type: classNameRegex
-          value: ^App\\Modules\\[^\\]+\\Application\\.*
-
-    - name: ModulePresentation
-      collectors:
-        - type: classNameRegex
-          value: ^App\\Modules\\[^\\]+\\Presentation\\.*
-
-    - name: ModuleInfrastructure
-      collectors:
-        - type: classNameRegex
-          value: ^App\\Modules\\[^\\]+\\Infrastructure\\.*
-
-    # --- 3. MODUL-GRENZEN (Für KGA) ---
-    - name: PermitModule
-      collectors:
-        - type: classNameRegex
-          value: ^App\\Modules\\Permit\\.*
-
-    - name: FinanceModule
-      collectors:
-        - type: classNameRegex
-          value: ^App\\Modules\\Finance\\.*
-
-    - name: VoucherModule
-      collectors:
-        - type: classNameRegex
-          value: ^App\\Modules\\Voucher\\.*
-
-    # --- 4. EXTERN ---
-    - name: Vendor
-      collectors:
-        - type: bool
-          must:
-            - type: classNameRegex
-              value: /.*/
-          must_not:
-            - type: directory
-              value: src/.*
+        - type: directory
+          value: src/Application/.*|src/Bootstrap/.*|src/Contracts/.*|src/Infrastructure/.*
 
   ruleset:
-    # --- LAYER-REGELN (Gilt innerhalb jedes Moduls) ---
-    ModuleDomain:
+    # Die Domänen/Module dürfen den SharedKernel und das Framework (z.B. HTTP/DI) nutzen.
+    Permit:
       - SharedKernel
-      - Vendor
+      - Framework
+      - Voucher # Erlaubt für asynchrone / CQRS Preisabfragen (CalculateVoucherDiscount)
 
-    ModuleApplication:
-      - ModuleDomain
+    Finance:
       - SharedKernel
-      - Vendor
+      - Framework
+      - Permit # Erlaubt, da Finance bei Zahlungseingang das Permit-Modul triggert (MarkPermitAsPaid)
 
-    ModulePresentation:
-      - ModuleApplication
-      - ModuleDomain
+    Voucher:
       - SharedKernel
-      - Vendor
+      - Framework
 
-    ModuleInfrastructure:
-      - ModuleApplication
-      - ModuleDomain
+    Identity:
       - SharedKernel
-      - Vendor
+      - Framework
 
-    SharedKernel:
-      - Vendor
-
-    # --- MODUL-GRENZEN REGELN ---
-    # Quer-Zugriffe über Infrastruktur verboten!
-    PermitModule:
+    System:
       - SharedKernel
-      - Vendor
+      - Framework
+      # Das System-Modul (z.B. Cronjobs, Backups) aggregiert technisch alle Module
+      - Permit
+      - Finance
+      - Voucher
+      - Identity
 
-    FinanceModule:
-      - SharedKernel
-      - Vendor
-
-    VoucherModule:
-      - SharedKernel
-      - Vendor
+    SharedKernel: ~

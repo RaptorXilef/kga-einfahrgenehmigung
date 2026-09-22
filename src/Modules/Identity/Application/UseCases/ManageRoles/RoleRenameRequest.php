@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
 use App\Application\Exception\ValidationException;
-use App\Core\Security\Sanitizer;
+use App\SharedKernel\Application\Security\Sanitizer;
 
 final readonly class RoleRenameRequest
 {

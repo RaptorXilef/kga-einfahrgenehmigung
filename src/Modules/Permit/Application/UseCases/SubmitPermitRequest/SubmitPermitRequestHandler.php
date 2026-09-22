@@ -7,15 +7,15 @@ namespace App\Modules\Permit\Application\UseCases\SubmitPermitRequest;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Core\Exception\PermitCollisionException;
-use App\Core\Security\Sanitizer;
 use App\Modules\Permit\Application\DTO\PermitFormData;
 use App\Modules\Permit\Domain\DateRangeHelper;
 use App\Modules\Permit\Domain\Events\VerificationRequestedEvent;
+use App\Modules\Permit\Domain\Exceptions\PermitCollisionException;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
+use App\SharedKernel\Application\Security\Sanitizer;
 use DateTimeImmutable;
 use InvalidArgumentException;
 

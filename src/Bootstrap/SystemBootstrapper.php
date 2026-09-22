@@ -6,9 +6,9 @@ namespace App\Bootstrap;
 
 use App\Application\Exception\GlobalExceptionHandler;
 use App\Contracts\System\ErrorLoggerInterface;
-use App\Core\Security\PermissionRegistry;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Database\SchemaRegistry;
+use App\Modules\Identity\Domain\PermissionRegistry;
 
 final class SystemBootstrapper
 {
@@ -89,7 +89,7 @@ final class SystemBootstrapper
         /** @var array<string, mixed> $settings */
         $settings = [];
 
-        // System-Basisdaten vorladen
+        // System-Basisdaten vorladen (Nutzt jetzt die Identity PermissionRegistry)
         $settings['db_schema'] = SchemaRegistry::getSchemas();
         $settings['structure'] = PermissionRegistry::getStructure();
         $settings['admin_ui'] = ['permissions_desc_on_top' => true];
@@ -197,11 +197,10 @@ final class SystemBootstrapper
             $legacyUser = $devAdmins['user'];
             $legacyPass = $devAdmins['pass'] ?? '';
             $legacyLabel = $devAdmins['label'] ?? 'Systembetreuer';
-            $devAdmins = [
-                $legacyUser => [
-                    'pass' => $legacyPass,
-                    'label' => $legacyLabel,
-                ],
+            $devAdmins = [$legacyUser => [
+                'pass' => $legacyPass,
+                'label' => $legacyLabel,
+            ],
             ];
         }
 
@@ -228,7 +227,6 @@ final class SystemBootstrapper
 
         if (isset($_SESSION['csrf_token']) && $_SESSION['csrf_token'] !== '') {
             return;
-        }
-        $_SESSION['csrf_token'] = \bin2hex(\random_bytes(32));
+        }$_SESSION['csrf_token'] = \bin2hex(\random_bytes(32));
     }
 }

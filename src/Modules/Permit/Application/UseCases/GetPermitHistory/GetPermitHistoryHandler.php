@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\GetPermitHistory;
 
-use App\Core\Security\Sanitizer;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Security\Sanitizer;
 
 /**
  * @implements QueryHandlerInterface<GetPermitHistoryQuery, Permit[]>

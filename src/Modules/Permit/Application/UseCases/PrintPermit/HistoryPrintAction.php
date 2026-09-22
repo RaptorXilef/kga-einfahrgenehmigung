@@ -16,11 +16,11 @@ use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\PdfGeneratorInterface;
-use App\Core\Security\Sanitizer;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
 use App\Modules\Permit\Domain\Permit;
+use App\SharedKernel\Application\Security\Sanitizer;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
@@ -53,6 +53,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
 
         $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($code));
 
+        // Vergleicht die E-Mails via Normalisierung (+ Aliase) für höchste Zuverlässigkeit
         if ($permit instanceof Permit && Sanitizer::normalizeEmail($permit->getOwnerEmail()) === Sanitizer::normalizeEmail($emailInSession)) {
 
             $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Security;
+namespace App\SharedKernel\Application\Security;
 
 use Stringable;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;

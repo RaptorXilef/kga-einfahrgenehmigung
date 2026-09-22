@@ -11,10 +11,10 @@ use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Core\Security\Sanitizer;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use App\SharedKernel\Application\Security\Sanitizer;
 use DomainException;
 
 #[Route('POST', '/change_user_role')]
