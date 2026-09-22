@@ -20,12 +20,12 @@
       ),
       '/create_manual' => 
       array (
-        'class' => 'App\\Application\\Actions\\Admin\\PermitCreateManualAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CreateManualPermit\\PermitCreateManualAction',
         'auth' => false,
       ),
       '/mark_as_paid' => 
       array (
-        'class' => 'App\\Application\\Actions\\Admin\\PermitMarkAsPaidAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\MarkPermitAsPaid\\PermitMarkAsPaidAction',
         'auth' => false,
       ),
       '/api/qr.png' => 
@@ -253,17 +253,17 @@
       ),
       '/create_manual' => 
       array (
-        'class' => 'App\\Application\\Actions\\Admin\\PermitCreateManualAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CreateManualPermit\\PermitCreateManualAction',
         'auth' => false,
       ),
       '/mark_as_paid' => 
       array (
-        'class' => 'App\\Application\\Actions\\Admin\\PermitMarkAsPaidAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\MarkPermitAsPaid\\PermitMarkAsPaidAction',
         'auth' => false,
       ),
       '/send_reminder' => 
       array (
-        'class' => 'App\\Application\\Actions\\Admin\\PermitSendReminderAction',
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SendPaymentReminders\\PermitSendReminderAction',
         'auth' => false,
       ),
       '/api/search_permits' => 

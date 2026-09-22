@@ -2,16 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Permit\Application\UseCases\CreateManualPermit;
 
 use App\Application\Exception\ValidationException;
 use App\Modules\Permit\Application\DTO\PermitFormData;
 
-/**
- * DTO für das manuelle Anlegen einer Genehmigung im Admin-Panel.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class PermitCreateManualRequest
 {
     public function __construct(
@@ -43,7 +38,6 @@ final readonly class PermitCreateManualRequest
 
         $sanitized['manual_price'] = $preis;
 
-        // Dynamisch vom UI: Checkbox "Sofort als Bezahlt markieren" prüfen
         $isPaid = isset($post['mark_as_paid']);
         $sanitized['status'] = $isPaid ? 'bezahlt' : 'offen';
 

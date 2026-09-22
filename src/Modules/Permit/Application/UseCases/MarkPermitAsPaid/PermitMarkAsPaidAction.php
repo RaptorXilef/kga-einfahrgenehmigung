@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Permit\Application\UseCases\MarkPermitAsPaid;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
@@ -10,14 +10,9 @@ use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidCommand;
-use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidHandler;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
 
-/**
- * Action zum manuellen Markieren einer Genehmigung als 'bezahlt' (VSA CQRS).
- */
 #[Route('GET', '/mark_as_paid')]
 #[Route('POST', '/mark_as_paid')]
 final readonly class PermitMarkAsPaidAction implements ActionInterface, RequiresPermissionInterface
@@ -25,7 +20,7 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
     public function __construct(
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
-        private MarkPermitAsPaidHandler $markPaidHandler, // <-- NEU
+        private MarkPermitAsPaidHandler $markPaidHandler,
     ) {
     }
 
@@ -34,13 +29,6 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
         return 'finance.mark_paid';
     }
 
-    /**
-     * Markiert eine Genehmigung manuell als bezahlt im Storage.
-     *
-     * Nutzt PermitService::manualActivate().
-     *
-     * @return string Erfolgsmeldung oder leerer String bei Fehler.
-     */
     public function execute(ServerRequest $request): mixed
     {
         $codes = $request->post['codes'] ?? [];

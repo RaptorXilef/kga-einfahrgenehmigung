@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Permit\Application\UseCases\SendPaymentReminders;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
@@ -10,8 +10,6 @@ use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Permit\Application\UseCases\SendPaymentReminders\SendPaymentRemindersCommand;
-use App\Modules\Permit\Application\UseCases\SendPaymentReminders\SendPaymentRemindersHandler;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use Exception;
 
@@ -20,14 +18,13 @@ final readonly class PermitSendReminderAction implements ActionInterface, Requir
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private SendPaymentRemindersHandler $reminderHandler, // CQRS
+        private SendPaymentRemindersHandler $reminderHandler,
         private SessionManager $sessionManager,
     ) {
     }
 
     public function getRequiredPermission(): string
     {
-        // Wir nutzen das ohnehin für Abrechnungen nötige Recht
         return 'finance.mark_paid';
     }
 
@@ -49,7 +46,6 @@ final readonly class PermitSendReminderAction implements ActionInterface, Requir
         $successCount = 0;
         foreach ($codes as $code) {
             try {
-                // Der Handler übernimmt den Cooldown-Check selbst!
                 $this->reminderHandler->handle(new SendPaymentRemindersCommand($code, true));
                 ++$successCount;
             } catch (Exception $e) {

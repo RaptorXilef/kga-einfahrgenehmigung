@@ -2,18 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Permit\Application\UseCases\CreateManualPermit;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\DTO\PermitCreateManualRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Permit\Application\UseCases\CreateManualPermit\CreateManualPermitCommand;
-use App\Modules\Permit\Application\UseCases\CreateManualPermit\CreateManualPermitHandler;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use InvalidArgumentException;
 use Throwable;

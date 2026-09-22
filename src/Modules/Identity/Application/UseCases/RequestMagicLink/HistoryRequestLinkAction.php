@@ -36,6 +36,7 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
             return new RedirectResponse('history');
         }
 
+        // Cross-Module Check: Hat die E-Mail überhaupt Genehmigungen?
         $permits = $this->historyHandler->handle(new GetPermitHistoryQuery($dto->email));
 
         if ($permits === []) {
