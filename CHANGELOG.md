@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.77.7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.6...v0.77.7) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **core:** resolve checkout loop, sql migration errors, and audit log tracking ([28f5620](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/28f5620106b015768450b81d410aca377edfe31b))
+* **core:** resolve interface discrepancies and eliminate latex artifacts ([8f5a2f5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8f5a2f57155eb905b2beb1a9cf150586145a33a3))
+* **permit:** refactor SearchPermitsHandler to use native PDO queries ([d58e3f7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d58e3f7abb252ba1c038bbc33b93908cfcaead71))
+
 ## [0.77.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.5...v0.77.6) (2026-09-22)
 
 ### 🐛 Bug Fixes
