@@ -6,7 +6,6 @@ namespace App\Modules\Permit\Application\UseCases\SubmitPermitRequest;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
-use App\Application\DTO\PermitSubmitRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -44,7 +43,7 @@ final readonly class SubmitPermitAction implements ViewActionInterface
             $this->botProtection->verifyTimeCheck($this->sessionManager->getFormStartTime(), 3);
             $this->botProtection->verifyHoneypot((string) ($request->post['hp_contact_website'] ?? ''));
 
-            // 3. DTO Validierung (Basic Syntax Checks)
+            // 3. DTO Validierung (Slice-eigenes DTO)
             $dto = PermitSubmitRequest::fromArray($request->post);
 
             // 4. TIEFE E-MAIL-PRÜFUNG (DNS/MX & Trashmail)

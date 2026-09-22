@@ -47,8 +47,7 @@ final class ActionRegistry
 
         $rootPath = \rtrim(\is_string($this->config->get('root_path', '')) ? $this->config->get('root_path', '') : '', '/\\');
 
-        // Scannt ab sofort BEIDE Verzeichnisse (Legacy Actions & VSA Modules)
-        $this->scanDirectoryRecursively($rootPath . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Application' . \DIRECTORY_SEPARATOR . 'Actions');
+        // Scannt ab sofort NUR noch die VSA Modules (Legacy Actions wurden stranguliert)
         $this->scanDirectoryRecursively($rootPath . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules');
 
         $this->cache->save($this->routes);

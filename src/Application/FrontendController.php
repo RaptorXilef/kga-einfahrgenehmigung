@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application;
 
-use App\Application\Actions\Frontend\AdminLoginAction;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
@@ -17,6 +16,7 @@ use App\Application\Response\JsonResponse;
 use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use App\Modules\Identity\Application\UseCases\AuthenticateAdmin\AdminLoginAction;
 
 /**
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")

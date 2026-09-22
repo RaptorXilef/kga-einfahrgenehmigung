@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Permit\Application\UseCases\SubmitPermitRequest;
 
 use App\Application\Exception\ValidationException;
-use App\Core\ValueObject\LicensePlate;
-use App\Core\ValueObject\PlotNumber;
+use App\SharedKernel\Domain\ValueObject\LicensePlate;
+use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use DateTimeImmutable;
 use Exception;
 
 /**
- * DTO für das öffentliche Antragsformular.
+ * DTO für das öffentliche Antragsformular (VSA Slice).
  * Säubert alle Eingaben (XSS-Schutz) und validiert Pflichtfelder.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
@@ -89,7 +89,7 @@ final readonly class PermitSubmitRequest
             throw ValidationException::withMessage('Das eingegebene Datumsformat ist ungültig.');
         }
 
-        // Wir jagen Parzelle und Kennzeichen sofort durch die Value Objects!
+        // Wir jagen Parzelle und Kennzeichen sofort durch die Value Objects (Shared Kernel)!
         // Schlägt die Format-Prüfung (Buchstaben in der Parzelle etc.) fehl, knallt es hier.
         new PlotNumber($parzelle);
 

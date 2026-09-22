@@ -6,7 +6,6 @@ namespace App\Modules\Permit\Application\UseCases\TogglePermitSuspension;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
-use App\Application\DTO\PermitToggleSuspensionRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -32,9 +31,6 @@ final readonly class TogglePermitSuspensionAction implements ActionInterface
 
     /**
      * Setzt den Sperrstatus (Suspension) einer Genehmigung.
-     *
-     * @param ServerRequest $request
-     * @return mixed
      */
     public function execute(ServerRequest $request): mixed
     {

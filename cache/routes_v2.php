@@ -3,111 +3,6 @@
   array (
     'GET' => 
     array (
-      '/admin_print' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\PrintPermit\\AdminPrintAction',
-        'auth' => true,
-      ),
-      '/filter_dashboard' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewDashboard\\DashboardFilterAction',
-        'auth' => false,
-      ),
-      '/admin' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewDashboard\\DashboardRenderAction',
-        'auth' => true,
-      ),
-      '/create_manual' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CreateManualPermit\\PermitCreateManualAction',
-        'auth' => false,
-      ),
-      '/mark_as_paid' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\MarkPermitAsPaid\\PermitMarkAsPaidAction',
-        'auth' => false,
-      ),
-      '/api/qr.png' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\QrCode\\QrCodeRenderAction',
-        'auth' => false,
-      ),
-      '/checkout' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetVerifiedRequest\\CheckoutAction',
-        'auth' => false,
-      ),
-      '/check' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CheckPermit\\CheckPermitAction',
-        'auth' => false,
-      ),
-      '/datenschutz' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewLegal\\DatenschutzAction',
-        'auth' => false,
-      ),
-      '/history_cancel_permit' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CancelPermit\\HistoryCancelPermitAction',
-        'auth' => false,
-      ),
-      '/history_logout' => 
-      array (
-        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistoryLogoutAction',
-        'auth' => false,
-      ),
-      '/history_print' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\PrintPermit\\HistoryPrintAction',
-        'auth' => false,
-      ),
-      '/history' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetPermitHistory\\HistoryRenderAction',
-        'auth' => false,
-      ),
-      '/history_request_link' => 
-      array (
-        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\RequestMagicLink\\HistoryRequestLinkAction',
-        'auth' => false,
-      ),
-      '/history_submit_code' => 
-      array (
-        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistorySubmitCodeAction',
-        'auth' => false,
-      ),
-      '/history_verify_token' => 
-      array (
-        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistoryVerifyTokenAction',
-        'auth' => false,
-      ),
-      '/impressum' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewLegal\\ImpressumAction',
-        'auth' => false,
-      ),
-      '/permit_edit' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetVerifiedRequest\\PermitEditAction',
-        'auth' => false,
-      ),
-      '/' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SubmitPermitRequest\\PermitRenderAction',
-        'auth' => false,
-      ),
-      '/success' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\SuccessAction',
-        'auth' => false,
-      ),
-      '/verify' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\ConfirmPermitEmail\\VerificationAction',
-        'auth' => false,
-      ),
       '/bank_import_analyze' => 
       array (
         'class' => 'App\\Modules\\Finance\\Application\\UseCases\\AnalyzeBankImport\\AnalyzeBankImportAction',
@@ -158,14 +53,94 @@
         'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageUsers\\UserUploadAvatarAction',
         'auth' => false,
       ),
+      '/history_request_link' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\RequestMagicLink\\HistoryRequestLinkAction',
+        'auth' => false,
+      ),
+      '/history_logout' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistoryLogoutAction',
+        'auth' => false,
+      ),
+      '/history_submit_code' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistorySubmitCodeAction',
+        'auth' => false,
+      ),
+      '/history_verify_token' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistoryVerifyTokenAction',
+        'auth' => false,
+      ),
       '/api/cron/archive' => 
       array (
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\ArchiveExpiredPermits\\ArchiveCronAction',
         'auth' => false,
       ),
+      '/history_cancel_permit' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CancelPermit\\HistoryCancelPermitAction',
+        'auth' => false,
+      ),
+      '/check' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CheckPermit\\CheckPermitAction',
+        'auth' => false,
+      ),
+      '/verify' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\ConfirmPermitEmail\\VerificationAction',
+        'auth' => false,
+      ),
+      '/create_manual' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CreateManualPermit\\PermitCreateManualAction',
+        'auth' => false,
+      ),
+      '/success' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\SuccessAction',
+        'auth' => false,
+      ),
+      '/history' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetPermitHistory\\HistoryRenderAction',
+        'auth' => false,
+      ),
+      '/checkout' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetVerifiedRequest\\CheckoutAction',
+        'auth' => false,
+      ),
+      '/permit_edit' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetVerifiedRequest\\PermitEditAction',
+        'auth' => false,
+      ),
+      '/mark_as_paid' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\MarkPermitAsPaid\\PermitMarkAsPaidAction',
+        'auth' => false,
+      ),
+      '/admin_print' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\PrintPermit\\AdminPrintAction',
+        'auth' => true,
+      ),
+      '/history_print' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\PrintPermit\\HistoryPrintAction',
+        'auth' => false,
+      ),
       '/api/cron/reminders' => 
       array (
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SendPaymentReminders\\RemindersCronAction',
+        'auth' => false,
+      ),
+      '/' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SubmitPermitRequest\\PermitRenderAction',
         'auth' => false,
       ),
       '/suspend_permit' => 
@@ -228,10 +203,35 @@
         'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageMails\\ViewDebugMailAction',
         'auth' => true,
       ),
+      '/api/qr.png' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\QrCode\\QrCodeRenderAction',
+        'auth' => false,
+      ),
       '/changelog' => 
       array (
         'class' => 'App\\Modules\\System\\Application\\UseCases\\SystemInfo\\ViewChangelogAction',
         'auth' => true,
+      ),
+      '/filter_dashboard' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewDashboard\\DashboardFilterAction',
+        'auth' => false,
+      ),
+      '/admin' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewDashboard\\DashboardRenderAction',
+        'auth' => true,
+      ),
+      '/datenschutz' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewLegal\\DatenschutzAction',
+        'auth' => false,
+      ),
+      '/impressum' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewLegal\\ImpressumAction',
+        'auth' => false,
       ),
       '/create_voucher' => 
       array (
@@ -246,111 +246,6 @@
     ),
     'POST' => 
     array (
-      '/filter_dashboard' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewDashboard\\DashboardFilterAction',
-        'auth' => false,
-      ),
-      '/create_manual' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CreateManualPermit\\PermitCreateManualAction',
-        'auth' => false,
-      ),
-      '/mark_as_paid' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\MarkPermitAsPaid\\PermitMarkAsPaidAction',
-        'auth' => false,
-      ),
-      '/send_reminder' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SendPaymentReminders\\PermitSendReminderAction',
-        'auth' => false,
-      ),
-      '/api/search_permits' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SearchPermits\\SearchPermitsAction',
-        'auth' => true,
-      ),
-      '/api/capture' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\CapturePaymentAction',
-        'auth' => false,
-      ),
-      '/api/create_order' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\CreateOrderAction',
-        'auth' => false,
-      ),
-      '/api/finalize_wire' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\FinalizeWireAction',
-        'auth' => false,
-      ),
-      '/api/get_date_info' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetDateInfo\\GetDateInfoAction',
-        'auth' => false,
-      ),
-      '/api/get_template_price' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetTemplatePrice\\GetTemplatePriceAction',
-        'auth' => false,
-      ),
-      '/datenschutz' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewLegal\\DatenschutzAction',
-        'auth' => false,
-      ),
-      '/history_cancel_permit' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CancelPermit\\HistoryCancelPermitAction',
-        'auth' => false,
-      ),
-      '/history_logout' => 
-      array (
-        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistoryLogoutAction',
-        'auth' => false,
-      ),
-      '/history_print' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\PrintPermit\\HistoryPrintAction',
-        'auth' => false,
-      ),
-      '/history_request_link' => 
-      array (
-        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\RequestMagicLink\\HistoryRequestLinkAction',
-        'auth' => false,
-      ),
-      '/history_submit_code' => 
-      array (
-        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistorySubmitCodeAction',
-        'auth' => false,
-      ),
-      '/history_verify_token' => 
-      array (
-        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistoryVerifyTokenAction',
-        'auth' => false,
-      ),
-      '/impressum' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewLegal\\ImpressumAction',
-        'auth' => false,
-      ),
-      '/permit_edit' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetVerifiedRequest\\PermitEditAction',
-        'auth' => false,
-      ),
-      '/success' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\SuccessAction',
-        'auth' => false,
-      ),
-      '/verify' => 
-      array (
-        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\ConfirmPermitEmail\\VerificationAction',
-        'auth' => false,
-      ),
       '/bank_import_analyze' => 
       array (
         'class' => 'App\\Modules\\Finance\\Application\\UseCases\\AnalyzeBankImport\\AnalyzeBankImportAction',
@@ -456,9 +351,99 @@
         'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageUsers\\UserUploadAvatarAction',
         'auth' => false,
       ),
+      '/history_request_link' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\RequestMagicLink\\HistoryRequestLinkAction',
+        'auth' => false,
+      ),
+      '/history_logout' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistoryLogoutAction',
+        'auth' => false,
+      ),
+      '/history_submit_code' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistorySubmitCodeAction',
+        'auth' => false,
+      ),
+      '/history_verify_token' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\VerifyMagicLink\\HistoryVerifyTokenAction',
+        'auth' => false,
+      ),
       '/api/cron/archive' => 
       array (
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\ArchiveExpiredPermits\\ArchiveCronAction',
+        'auth' => false,
+      ),
+      '/history_cancel_permit' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CancelPermit\\HistoryCancelPermitAction',
+        'auth' => false,
+      ),
+      '/verify' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\ConfirmPermitEmail\\VerificationAction',
+        'auth' => false,
+      ),
+      '/create_manual' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CreateManualPermit\\PermitCreateManualAction',
+        'auth' => false,
+      ),
+      '/api/capture' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\CapturePaymentAction',
+        'auth' => false,
+      ),
+      '/api/create_order' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\CreateOrderAction',
+        'auth' => false,
+      ),
+      '/api/finalize_wire' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\FinalizeWireAction',
+        'auth' => false,
+      ),
+      '/success' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\SuccessAction',
+        'auth' => false,
+      ),
+      '/api/get_date_info' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetDateInfo\\GetDateInfoAction',
+        'auth' => false,
+      ),
+      '/api/get_template_price' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetTemplatePrice\\GetTemplatePriceAction',
+        'auth' => false,
+      ),
+      '/permit_edit' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\GetVerifiedRequest\\PermitEditAction',
+        'auth' => false,
+      ),
+      '/mark_as_paid' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\MarkPermitAsPaid\\PermitMarkAsPaidAction',
+        'auth' => false,
+      ),
+      '/history_print' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\PrintPermit\\HistoryPrintAction',
+        'auth' => false,
+      ),
+      '/api/search_permits' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SearchPermits\\SearchPermitsAction',
+        'auth' => true,
+      ),
+      '/send_reminder' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SendPaymentReminders\\PermitSendReminderAction',
         'auth' => false,
       ),
       '/api/cron/reminders' => 
@@ -540,6 +525,21 @@
       array (
         'class' => 'App\\Modules\\System\\Application\\UseCases\\SystemInfo\\ViewChangelogAction',
         'auth' => true,
+      ),
+      '/filter_dashboard' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewDashboard\\DashboardFilterAction',
+        'auth' => false,
+      ),
+      '/datenschutz' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewLegal\\DatenschutzAction',
+        'auth' => false,
+      ),
+      '/impressum' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ViewLegal\\ImpressumAction',
+        'auth' => false,
       ),
       '/create_voucher' => 
       array (

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Permit\Application\UseCases\TogglePermitSuspension;
 
 use App\Application\Exception\ValidationException;
 
@@ -21,7 +21,6 @@ final readonly class PermitToggleSuspensionRequest
     ) {
     }
 
-    // TODO DOCBLOCK
     public static function fromArray(array $post): self
     {
         $code = \trim((string) ($post['code'] ?? ''));
