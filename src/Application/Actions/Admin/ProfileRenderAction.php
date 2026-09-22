@@ -42,11 +42,11 @@ final readonly class ProfileRenderAction implements ViewActionInterface
             return new RedirectResponse('admin');
         }
 
-        $users = $this->userRepository->loadAll();
         $roles = $this->roleRepository->loadAll();
+        // FIX: Sauber via findById geladen
+        $user = $this->userRepository->findById($userId);
 
-        $user = $users[$userId] ?? null;
-        $userRoleId = $user ? $user->roleId : 'guest';
+        $userRoleId = $user !== null ? $user->roleId : 'guest';
         $role = $roles[$userRoleId] ?? null;
 
         $html = $this->renderer->render('admin/profile', [
@@ -55,7 +55,7 @@ final readonly class ProfileRenderAction implements ViewActionInterface
             'roleRepository' => $this->roleRepository,
             'imageStorage' => $this->imageStorage,
             'userId' => $userId,
-            'username' => $user ? $user->username : 'Unbekannt',
+            'username' => $user !== null ? $user->username : 'Unbekannt',
             'userRepository' => $this->userRepository,
         ]);
 

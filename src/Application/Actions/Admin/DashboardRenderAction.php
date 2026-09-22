@@ -55,7 +55,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private GetVoucherArchiveHandler $getVoucherArchiveHandler,
         private GetFinanceListHandler $financeListHandler,
         private GetDashboardStatsHandler $statsHandler,
-        private GetDashboardPermitsHandler $getDashboardPermitsHandler, // <-- NEUES CQRS READ-MODEL
+        private GetDashboardPermitsHandler $getDashboardPermitsHandler,
     ) {
     }
 
@@ -107,9 +107,10 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         // Virtuelle Accounts (Backdoor) sehen den Dialog nicht dauerhaft
         if (!\str_starts_with($userId, 'sys_')) {
-            $user = $this->userRepository->loadAll()[$userId] ?? null;
-            if ($user) {
-                $unreadReleaseNotes = $this->releaseNotesService->getUnreadNotes($user->lastSeenChangelog);
+            // FIX: Sauber via findById geladen statt das ganze Array in den RAM zu holen
+            $user = $this->userRepository->findById($userId);
+            if ($user !== null) {
+                $unreadReleaseNotes = $this->releaseNotesService->getUnreadNotes($user->getLastSeenChangelog());
             }
         }
 

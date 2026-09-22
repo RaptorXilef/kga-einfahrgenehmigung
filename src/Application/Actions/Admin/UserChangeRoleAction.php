@@ -40,8 +40,8 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
     public function execute(ServerRequest $request): mixed
     {
         $userId = Sanitizer::string($request->post['user_id'] ?? '');
-        // TODO später zu role ändern
-        $roleId = Sanitizer::string($request->post['group'] ?? ''); // Behält aus UI-Gründen den Post-Key "group"
+        // TODO später ggf. zu role ändern
+        $roleId = Sanitizer::string($request->post['group'] ?? '');
 
         if ($userId === '') {
             $this->sessionManager->addFlash('error', 'Fehler: Kein Benutzer ausgewählt.');
@@ -56,12 +56,14 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
         }
 
         try {
-            $users = $this->userRepository->loadAll();
-            if (!isset($users[$userId])) {
+            // FIX: Sauber via findById geladen
+            $user = $this->userRepository->findById($userId);
+            if ($user === null) {
                 throw new DomainException('Fehler: Benutzer nicht gefunden.');
             }
-            $oldRole = $users[$userId]->roleId;
-            $username = $users[$userId]->username;
+
+            $oldRole = $user->roleId;
+            $username = $user->username;
 
             $this->changeRoleHandler->handle(new ChangeUserRoleCommand($userId, $roleId));
 

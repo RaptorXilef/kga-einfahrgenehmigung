@@ -9,6 +9,11 @@ namespace App\Modules\Identity\Domain;
  */
 interface UserRepositoryInterface
 {
+    /**
+     * @return array<string, User> Alle Benutzer indiziert nach ID.
+     */
+    public function loadAll(): array;
+
     public function findById(string $id): ?User;
 
     public function findByUsername(string $username): ?User;
