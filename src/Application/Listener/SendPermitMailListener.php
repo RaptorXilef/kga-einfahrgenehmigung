@@ -10,9 +10,10 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\System\PdfGeneratorInterface;
 use App\Core\Event\PermitCreatedEvent;
-use App\Core\Service\BankQrGenerator;
 use App\Core\Service\HolidayService;
-use App\Core\Service\PermitService;
+use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrHandler;
+use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrQuery;
+use App\Modules\Permit\Domain\PermitFinancialCalculator;
 use App\Modules\Permit\Domain\PermitStatus;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
@@ -25,11 +26,11 @@ use Endroid\QrCode\Writer\PngWriter;
 final readonly class SendPermitMailListener
 {
     public function __construct(
-        private BankQrGenerator $bankQrGenerator,
+        private GenerateEpcQrHandler $qrHandler,
         private ConfigInterface $config,
         private HolidayService $holidayService,
         private MailServiceInterface $mailService,
-        private PermitService $permitService, // Service Wrapper
+        private PermitFinancialCalculator $financialCalculator, // Service Wrapper
         private PdfGeneratorInterface $pdfGenerator,
         private TemplateRenderer $renderer,
     ) {
@@ -113,8 +114,8 @@ final readonly class SendPermitMailListener
 
         // --- 2. ZAHLUNGSAUFFORDERUNG ---
         if ($permit->getStatus() !== PermitStatus::Bezahlt) {
-            $usage = $this->permitService->generateUsageText($permit);
-            $epcQrData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
+            $usage = $this->financialCalculator->generateUsageText($permit);
+            $epcQrData = $this->qrHandler->handle(new GenerateEpcQrQuery($permit->getPrice(), $usage));
 
             $this->mailService->sendTemplate(
                 $permit->getOwnerEmail(),
@@ -123,7 +124,7 @@ final readonly class SendPermitMailListener
                 [
                     'baseUrl' => $safeBaseUrl,
                     'betrag' => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
-                    'dueDate' => $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y'),
+                    'dueDate' => $this->financialCalculator->calculatePaymentDueDate($permit)->format('d.m.Y'),
                     'epcData' => \urlencode($epcQrData),
                     'fullIdentifier' => $permitCodeStr,
                     'iban' => $this->config->get('iban'),

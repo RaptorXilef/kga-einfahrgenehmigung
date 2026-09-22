@@ -2,7 +2,6 @@
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
-use App\Core\Service\PermitService;
 use App\Modules\Permit\Domain\PermitStatus;
 
 /**
@@ -17,7 +16,6 @@ use App\Modules\Permit\Domain\PermitStatus;
  * @var \DateTimeImmutable $now
  * @var AssetHelperInterface $asset
  * @var ConfigInterface $config
- * @var PermitService $permitService
  * @var array $settings
  * @var array<int, \App\Modules\Permit\Domain\Permit> $permits
  * @var bool $isSuccess
@@ -30,7 +28,7 @@ $layout = 'public';
 $pageTitle = 'Meine Genehmigungen - ' . ($settings['vereins_name'] ?? '');
 
 $now = new \DateTimeImmutable('today');
-\usort($permits, fn ($a, $b) => $b->erstellt <=> $a->erstellt);
+\usort($permits, fn ($a, $b) => $b->getCreatedAt() <=> $a->getCreatedAt());
 ?>
 
 <div class="c-tab-content-container o-container o-container--large u-padding-block-xl">
@@ -140,7 +138,7 @@ $now = new \DateTimeImmutable('today');
                                             <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
                                         </span>
                                         <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs">
-                                            <?php echo $permit->code; ?>
+                                            <?php echo $permit->code->value; ?>
                                         </code>
                                         <div>
                                             <span class="c-badge c-badge--outline">PARZELLE <?php echo $permit->getPlotNumber(); ?></span>
@@ -189,7 +187,7 @@ $now = new \DateTimeImmutable('today');
                                         <?php $allowCancel = (bool) $config->get('allow_user_cancellation', true);
                             if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) { ?>
                                             <form method="POST"
-                                                  id="cancelPermitForm_<?php echo $permit->code; ?>"
+                                                  id="cancelPermitForm_<?php echo $permit->code->value; ?>"
                                                   action="<?php echo $settings['base_url']; ?>history_cancel_permit"
                                                   class="u-margin-block-none js-form-cancel-permit"
                                                   data-confirm="Möchten Sie diesen Antrag wirklich zurückziehen und unwiderruflich stornieren?\n\nWICHTIG: Falls Sie den Betrag bereits überwiesen haben, wird dieser NICHT automatisch zurückerstattet.">
@@ -198,11 +196,11 @@ $now = new \DateTimeImmutable('today');
                                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                                 <input type="hidden"
                                                        name="code"
-                                                       value="<?php echo $permit->code; ?>">
+                                                       value="<?php echo $permit->code->value; ?>">
                                                 <button type="submit"
                                                         class="c-button c-button--danger-outline c-button--icon-only"
                                                         title="Antrag stornieren"
-                                                        aria-label="Antrag für Genehmigung <?php echo $permit->code; ?> stornieren">
+                                                        aria-label="Antrag für Genehmigung <?php echo $permit->code->value; ?> stornieren">
                                                     <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
                                                          class="c-icon c-button__icon"
                                                          loading="lazy"
@@ -210,18 +208,18 @@ $now = new \DateTimeImmutable('today');
                                                 </button>
                                             </form>
                                         <?php } ?>
-                                        <a href="check?code=<?php echo $permit->code; ?>"
+                                        <a href="check?code=<?php echo $permit->code->value; ?>"
                                            target="_blank"
                                            class="c-button c-button--secondary c-button--icon-only"
                                            title="Status / Prüfseite öffnen"
-                                           aria-label="Status für Genehmigung <?php echo $permit->code; ?> prüfen">
+                                           aria-label="Status für Genehmigung <?php echo $permit->code->value; ?> prüfen">
                                             <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                         </a>
-                                        <a href="history_print?code=<?php echo $permit->code; ?>"
+                                        <a href="history_print?code=<?php echo $permit->code->value; ?>"
                                            target="_blank"
                                            class="c-button c-button--secondary c-button--icon-only"
                                            title="Dokument anzeigen"
-                                           aria-label="Druckansicht für Genehmigung <?php echo $permit->code; ?> öffnen">
+                                           aria-label="Druckansicht für Genehmigung <?php echo $permit->code->value; ?> öffnen">
                                             <img src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
                                         </a>
                                     </div>
