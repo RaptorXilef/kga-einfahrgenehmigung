@@ -65,37 +65,55 @@ if ($totalPages > 1) {
         }
     }
     ?>
-    <div class="c-pagination">
-        <div class="c-pagination__info">
-            Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong>
-        </div>
-        <div class="c-pagination__controls">
-            <?php if ($page > 1) { ?>
-                <a href="<?php echo $baseUrlStr . ($page - 1); ?>" class="c-button c-button--secondary c-button--icon-only">&larr;</a>
-            <?php } else { ?>
-                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
-                        disabled>&larr;</button>
-            <?php } ?>
+<div class="c-pagination">
+    <div class="c-pagination__info">
+        Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von
+        <strong><?php echo $totalCount; ?></strong>
+    </div>
+    <div class="c-pagination__controls">
+        <?php if ($page > 1) { ?>
+        <a
+            href="<?php echo $baseUrlStr . ($page - 1); ?>"
+            class="c-button c-button--secondary c-button--icon-only"
+        >&larr;</a>
+        <?php } else { ?>
+        <button
+            class="c-button c-button--secondary c-button--icon-only u-opacity-50"
+            disabled
+        >&larr;</button>
+        <?php } ?>
 
-            <?php foreach ($pagesToShow as $pageNum) {
+        <?php foreach ($pagesToShow as $pageNum) {
                 if ($pageNum === '...') { ?>
-                    <span class="u-color-muted u-padding-inline-s">&hellip;</span>
-                <?php } elseif ($pageNum === $page) { ?>
-                    <span class="c-button c-button--primary" aria-current="page"><?php echo $pageNum; ?></span>
-                <?php } else { ?>
-                    <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
-                <?php }
+        <span class="u-color-muted u-padding-inline-s">&hellip;</span>
+        <?php } elseif ($pageNum === $page) { ?>
+        <span
+            class="c-button c-button--primary"
+            aria-current="page"
+        ><?php echo $pageNum; ?></span>
+        <?php } else { ?>
+        <a
+            href="<?php echo $baseUrlStr . $pageNum; ?>"
+            class="c-button c-button--secondary"
+        ><?php echo $pageNum; ?></a>
+        <?php }
                 } ?>
 
-            <?php if ($page < $totalPages) { ?>
-                <a href="<?php echo $baseUrlStr . ($page + 1); ?>" class="c-button c-button--secondary c-button--icon-only">&rarr;</a>
-            <?php } else { ?>
-                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
-                        disabled>&rarr;</button>
-            <?php } ?>
-        </div>
+        <?php if ($page < $totalPages) { ?>
+        <a
+            href="<?php echo $baseUrlStr . ($page + 1); ?>"
+            class="c-button c-button--secondary c-button--icon-only"
+        >&rarr;</a>
+        <?php } else { ?>
+        <button
+            class="c-button c-button--secondary c-button--icon-only u-opacity-50"
+            disabled
+        >&rarr;</button>
+        <?php } ?>
     </div>
+</div>
 <?php } elseif ($totalCount > 0) { ?>
-    <div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-block-start u-bg-light">Gesamt:
-        <strong><?php echo $totalCount; ?></strong> Einträge</div>
+<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-block-start u-bg-light">Gesamt:
+    <strong><?php echo $totalCount; ?></strong> Einträge
+</div>
 <?php } ?>

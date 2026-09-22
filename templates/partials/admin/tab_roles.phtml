@@ -36,267 +36,372 @@ if ($auth->hasPermission('system.roles.manage')) {
                 $hasChildren = !empty($node['children']);
                 $permissionLabel = \htmlspecialchars((string) ($node['label'] ?? $id));
                 ?>
-                <div class="c-tree-node"
-                     style="--depth: <?php echo $depth; ?>;"
-                     data-key="<?php echo $key ?? $id; ?>">
-                    <div class="c-tree-item <?php echo $depth === 0 ? 'c-tree-item--root' : ''; ?> <?php echo !$key ? 'c-tree-item--category' : ''; ?>">
-                        <div class="c-tree-item__label-wrapper u-flex u-flex-column">
-                            <span class="c-tree-item__label <?php echo $depth === 0 ? 'c-tree-item__label--root' : ''; ?>">
-                                <?php if (isset($node['icon']) && $asset !== null) { ?>
-                                    <img src="<?php echo $asset->url('assets/img/icons/' . $node['icon']); ?>" class="c-icon c-icon--inline u-margin-inline-end-xs" loading="lazy" alt="">
-                                <?php } ?>
-                                <?php echo $permissionLabel; ?>
-                            </span>
-                            <?php if ($key) { ?>
-                                <span class="c-tree-item__sublabel"><?php echo \htmlspecialchars((string) $key); ?></span>
-                            <?php } else { ?>
-                                <span class="c-tree-item__sublabel c-tree-item__sublabel--category">
-                                    Kategorie
-                                </span>
-                            <?php } ?>
-                        </div>
-                        <div class="p-controls">
-                            <?php if ($key) { ?>
-                                <label class="c-switch">
-                                    <input type="checkbox"
-                                           name="perms[]"
-                                           value="<?php echo \htmlspecialchars((string) $key); ?>"
-                                           data-perm-check="true"
-                                           class="c-switch__input"
-                                           aria-label="Berechtigung: <?php echo $permissionLabel; ?>"
-                                           <?php echo $isAllowed ? 'checked' : ''; ?>>
-                                    <span class="c-switch__label" aria-hidden="true" data-on="ALLOW" data-off="NONE"></span>
-                                </label>
-                            <?php } ?>
-                        </div>
-                    </div>
-                    <?php if ($hasChildren) {
+<div
+    class="c-tree-node"
+    style="--depth: <?php echo $depth; ?>;"
+    data-key="<?php echo $key ?? $id; ?>"
+>
+    <div
+        class="c-tree-item <?php echo $depth === 0 ? 'c-tree-item--root' : ''; ?> <?php echo !$key ? 'c-tree-item--category' : ''; ?>">
+        <div class="c-tree-item__label-wrapper u-flex u-flex-column">
+            <span class="c-tree-item__label <?php echo $depth === 0 ? 'c-tree-item__label--root' : ''; ?>">
+                <?php if (isset($node['icon']) && $asset !== null) { ?>
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/' . $node['icon']); ?>"
+                    class="c-icon c-icon--inline u-margin-inline-end-xs"
+                    loading="lazy"
+                    alt=""
+                >
+                <?php } ?>
+                <?php echo $permissionLabel; ?>
+            </span>
+            <?php if ($key) { ?>
+            <span class="c-tree-item__sublabel"><?php echo \htmlspecialchars((string) $key); ?></span>
+            <?php } else { ?>
+            <span class="c-tree-item__sublabel c-tree-item__sublabel--category">
+                Kategorie
+            </span>
+            <?php } ?>
+        </div>
+        <div class="p-controls">
+            <?php if ($key) { ?>
+            <label class="c-switch">
+                <input
+                    type="checkbox"
+                    name="perms[]"
+                    value="<?php echo \htmlspecialchars((string) $key); ?>"
+                    data-perm-check="true"
+                    class="c-switch__input"
+                    aria-label="Berechtigung: <?php echo $permissionLabel; ?>"
+                    <?php echo $isAllowed ? 'checked' : ''; ?>
+                >
+                <span
+                    class="c-switch__label"
+                    aria-hidden="true"
+                    data-on="ALLOW"
+                    data-off="NONE"
+                ></span>
+            </label>
+            <?php } ?>
+        </div>
+    </div>
+    <?php if ($hasChildren) {
                         \renderPermissionNode($node['children'], $rolePerms, $depth + 1, $asset);
                     } ?>
-                </div>
-                <?php
+</div>
+<?php
             }
         }
     } ?>
 
-    <div id="roles-tab-wrapper"
-         class="u-flex u-flex-column u-gap-l">
-        <section class="c-card c-card--primary">
-            <header class="c-card__header">
-                <h3 class="u-margin-block-none">
-                    <img src="<?php echo $asset->url('assets/img/icons/package.webp'); ?>"
-                         class="c-icon c-button__icon"
-                         loading="lazy"
-                         alt=""> Neue Rolle erstellen
-                </h3>
-            </header>
-            <div class="c-card__body u-padding-around-l">
-                <form method="POST"
-                      id="createRoleForm"
-                      action="save_role"
-                      class="o-grid o-grid--auto-fit u-gap-m u-align-end">
-                    <input type="hidden"
-                           name="csrf_token"
-                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                    <div class="c-form-group u-margin-block-none u-flex-grow-1">
-                        <label class="c-form-label"
-                               for="group_name">Anzeigename</label>
-                        <input type="text"
-                               id="group_name"
-                               name="group_name"
-                               class="c-form-input"
-                               required
-                               placeholder="z.B. Vorstand"
-                               autocomplete="off">
-                    </div>
-                    <div class="c-form-group u-margin-block-none u-flex-grow-1">
-                        <label class="c-form-label"
-                               for="inherit_group">Rechte kopieren von...</label>
-                        <select id="inherit_group"
-                                name="inherit_group"
-                                class="c-form-select"
-                                autocomplete="off">
-                            <option value="">(Keine Vorlage)</option>
-                            <?php foreach ($roles as $id => $r) { ?>
-                                <option value="<?php echo $id; ?>">Kopie von: <?php echo \htmlspecialchars($r->name); ?></option>
-                            <?php } ?>
-                        </select>
-                    </div>
-                    <button type="submit"
-                            class="c-button c-button--primary c-button--submit">Erstellen</button>
-                </form>
-            </div>
-        </section>
+<div
+    id="roles-tab-wrapper"
+    class="u-flex u-flex-column u-gap-l"
+>
+    <section class="c-card c-card--primary">
+        <header class="c-card__header">
+            <h3 class="u-margin-block-none">
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/package.webp'); ?>"
+                    class="c-icon c-button__icon"
+                    loading="lazy"
+                    alt=""
+                > Neue Rolle erstellen
+            </h3>
+        </header>
+        <div class="c-card__body u-padding-around-l">
+            <form
+                method="POST"
+                id="createRoleForm"
+                action="save_role"
+                class="o-grid o-grid--auto-fit u-gap-m u-align-end"
+            >
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                >
+                <div class="c-form-group u-margin-block-none u-flex-grow-1">
+                    <label
+                        class="c-form-label"
+                        for="group_name"
+                    >Anzeigename</label>
+                    <input
+                        type="text"
+                        id="group_name"
+                        name="group_name"
+                        class="c-form-input"
+                        required
+                        placeholder="z.B. Vorstand"
+                        autocomplete="off"
+                    >
+                </div>
+                <div class="c-form-group u-margin-block-none u-flex-grow-1">
+                    <label
+                        class="c-form-label"
+                        for="inherit_group"
+                    >Rechte kopieren von...</label>
+                    <select
+                        id="inherit_group"
+                        name="inherit_group"
+                        class="c-form-select"
+                        autocomplete="off"
+                    >
+                        <option value="">(Keine Vorlage)</option>
+                        <?php foreach ($roles as $id => $r) { ?>
+                        <option value="<?php echo $id; ?>">Kopie von: <?php echo \htmlspecialchars($r->name); ?>
+                        </option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <button
+                    type="submit"
+                    class="c-button c-button--primary c-button--submit"
+                >Erstellen</button>
+            </form>
+        </div>
+    </section>
 
-        <div class="u-flex u-flex-column u-gap-m">
-            <?php foreach ($roles as $roleId => $rData) {
+    <div class="u-flex u-flex-column u-gap-m">
+        <?php foreach ($roles as $roleId => $rData) {
                 $roleImage = $imageStorage->getImageUrl('role', $roleId, 'shield.webp');
                 ?>
-                <div class="c-category-card is-closed"
-                     id="card-<?php echo $roleId; ?>">
-                    <header class="c-category-card__header u-flex u-justify-between u-align-center">
-                        <div class="u-flex u-align-center u-gap-m js-toggle-parent u-cursor-pointer u-flex-grow-1"
-                             aria-controls="card-body-<?php echo $roleId; ?>">
-                            <img src="<?php echo $roleImage; ?>"
-                                 class="c-avatar c-avatar--sm c-avatar--role"
-                                 loading="lazy"
-                                 alt="">
-                            <div>
-                                <strong class="u-text-lg"><?php echo \htmlspecialchars($rData->name); ?></strong>
-                                <div class="u-text-xs u-color-muted u-font-mono u-opacity-75">System-ID: <?php echo \htmlspecialchars((string) $roleId, \ENT_QUOTES, 'UTF-8'); ?></div>
-                            </div>
-                        </div>
-                        <?php if ($roleId !== 'admin') { ?>
-                            <form method="POST"
-                                  action="delete_role"
-                                  data-confirm="Rolle löschen?"
-                                  class="u-margin-block-none">
-                                <input type="hidden"
-                                       name="csrf_token"
-                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                <input type="hidden"
-                                       name="group_id"
-                                       value="<?php echo $roleId; ?>">
-                                <button type="submit"
-                                        class="c-button c-button--danger c-button--icon-only"
-                                        title="Rolle löschen"
-                                        aria-label="Rolle <?php echo \htmlspecialchars($rData->name); ?> löschen">
-                                    <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
-                                         class="c-icon c-button__icon"
-                                         loading="lazy"
-                                         alt="">
-                                </button>
-                            </form>
-                        <?php } ?>
-                    </header>
-
-                    <div class="c-category-card__body"
-                         id="card-body-<?php echo $roleId; ?>">
-
-                        <!-- Avatar / Icon Dropzone analog zu Benutzerverwaltung -->
-                        <form method="POST"
-                              id="uploadRoleImageForm_<?php echo $roleId; ?>"
-                              action="upload_role_image"
-                              enctype="multipart/form-data"
-                              class="u-text-center c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit c-box c-box--dashed u-padding-around-s u-border-radius-m u-margin-block-end-l">
-                            <label class="c-form-label u-justify-center">Rollen-Icon / Bild</label>
-                            <div class="u-position-relative u-display-inline-block">
-                                <img src="<?php echo $roleImage; ?>"
-                                     class="c-avatar c-avatar--lg c-avatar--role u-margin-block-end-s js-preview-img"
-                                     loading="lazy"
-                                     alt="">
-                                <div class="c-dropzone__overlay u-margin-block-end-s u-border-radius-m">Foto ablegen
-                                </div>
-                            </div>
-                            <input type="hidden"
-                                   name="csrf_token"
-                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <input type="hidden"
-                                   name="group_id"
-                                   value="<?php echo $roleId; ?>">
-                            <label for="file-role-<?php echo \md5($roleId); ?>" class="u-visually-hidden">Bild auswählen</label>
-                            <input type="file"
-                                   name="avatar"
-                                   class="u-hidden"
-                                   id="file-role-<?php echo \md5($roleId); ?>"
-                                   accept="image/*">
-                            <button type="button"
-                                    class="c-button c-button--secondary c-button--small u-inline-size-100 js-trigger-click"
-                                    data-target="#file-role-<?php echo \md5($roleId); ?>">Bild ändern</button>
-                        </form>
-
-                        <div class="u-margin-block-end-l">
-                            <form method="POST"
-                                  id="renameRoleForm_<?php echo $roleId; ?>"
-                                  action="rename_role"
-                                  class="u-flex u-gap-s u-align-end">
-                                <input type="hidden"
-                                       name="csrf_token"
-                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                <input type="hidden"
-                                       name="group_id"
-                                       value="<?php echo $roleId; ?>">
-                                <div class="c-form-group u-flex-grow-1">
-                                    <label class="c-form-label"
-                                           for="new_group_name_<?php echo $roleId; ?>">Anzeigename ändern</label>
-                                    <input type="text"
-                                           id="new_group_name_<?php echo $roleId; ?>"
-                                           name="new_group_name"
-                                           class="c-form-input"
-                                           value="<?php echo \htmlspecialchars($rData->name); ?>"
-                                           autocomplete="off">
-                                </div>
-                                <button type="submit"
-                                        class="c-button c-button--primary">Speichern</button>
-                            </form>
-                        </div>
-
-                        <div class="u-border-block-start u-margin-block-end-l"></div>
-
-                        <form method="POST"
-                              id="saveRoleForm_<?php echo $roleId; ?>"
-                              action="save_role"
-                              class="js-permission-form">
-                            <input type="hidden"
-                                   name="csrf_token"
-                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <input type="hidden"
-                                   name="group_id"
-                                   value="<?php echo $roleId; ?>">
-                            <input type="hidden"
-                                   name="group_name"
-                                   value="<?php echo \htmlspecialchars($rData->name, \ENT_QUOTES, 'UTF-8'); ?>">
-
-                            <?php if ($auth->hasPermission('*')) { ?>
-                                <div
-                                     class="c-box c-box--danger-soft u-margin-block-end-l u-padding-around-m u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
-                                    <div class="u-flex u-align-center u-gap-m">
-                                        <span class="u-text-2xl">
-                                            <img src="<?php echo $asset->url('assets/img/icons/crown.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
-                                        </span>
-                                        <div>
-                                            <strong class="u-color-danger">Vollständiger System-Zugriff</strong>
-                                            <small class="u-color-danger u-display-block u-opacity-75">Aktiviert alle
-                                                Rechte (Gott-Modus). Der Baum unten wird ignoriert.</small>
-                                        </div>
-                                    </div>
-                                    <label class="c-switch c-switch--danger">
-                                        <input type="checkbox"
-                                               name="perms[]"
-                                               value="*"
-                                               data-master-toggle="true"
-                                               class="c-switch__input"
-                                               aria-label="Vollständigen System-Zugriff für diese Rolle aktivieren"
-                                               <?php echo \in_array('*', $rData->permissions, true) ? 'checked' : ''; ?>>
-                                        <span class="c-switch__label" aria-hidden="true" data-on="MASTER" data-off="OFF"></span>
-                                    </label>
-                                </div>
-                            <?php } ?>
-
-                            <div class="u-margin-block-end-m u-flex u-justify-between u-align-center u-flex-wrap">
-                                <h4 class="u-margin-block-none">Berechtigungs-Struktur</h4>
-                                <div class="u-color-muted u-text-xs">Abhängigkeiten werden automatisch gesetzt. Wenn ein
-                                    übergeordneter Punkt aktiviert wird, werden alle Unterpunkte mit eingeschlossen.
-                                </div>
-                            </div>
-
-                            <div class="c-tree-wrapper <?php echo \in_array('*', $rData->permissions, true) ? 'is-master-active' : ''; ?>">
-                                <?php \renderPermissionNode($structure, $rData->permissions, 0, $asset); ?>
-                            </div>
-
-                            <div class="u-margin-block-start-xl">
-                                <button type="submit"
-                                        class="c-button c-button--primary c-button--large u-inline-size-100 u-font-bold">
-                                    <img src="<?php echo $asset->url('assets/img/icons/shield.webp'); ?>"
-                                         class="c-icon c-button__icon"
-                                         loading="lazy"
-                                         alt=""> RECHTE FÜR <?php echo \strtoupper($rData->name); ?> SPEICHERN
-                                </button>
-                            </div>
-                        </form>
+        <div
+            class="c-category-card is-closed"
+            id="card-<?php echo $roleId; ?>"
+        >
+            <header class="c-category-card__header u-flex u-justify-between u-align-center">
+                <div
+                    class="u-flex u-align-center u-gap-m js-toggle-parent u-cursor-pointer u-flex-grow-1"
+                    aria-controls="card-body-<?php echo $roleId; ?>"
+                >
+                    <img
+                        src="<?php echo $roleImage; ?>"
+                        class="c-avatar c-avatar--sm c-avatar--role"
+                        loading="lazy"
+                        alt=""
+                    >
+                    <div>
+                        <strong class="u-text-lg"><?php echo \htmlspecialchars($rData->name); ?></strong>
+                        <div class="u-text-xs u-color-muted u-font-mono u-opacity-75">System-ID:
+                            <?php echo \htmlspecialchars((string) $roleId, \ENT_QUOTES, 'UTF-8'); ?></div>
                     </div>
                 </div>
-            <?php } ?>
+                <?php if ($roleId !== 'admin') { ?>
+                <form
+                    method="POST"
+                    action="delete_role"
+                    data-confirm="Rolle löschen?"
+                    class="u-margin-block-none"
+                >
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                    >
+                    <input
+                        type="hidden"
+                        name="group_id"
+                        value="<?php echo $roleId; ?>"
+                    >
+                    <button
+                        type="submit"
+                        class="c-button c-button--danger c-button--icon-only"
+                        title="Rolle löschen"
+                        aria-label="Rolle <?php echo \htmlspecialchars($rData->name); ?> löschen"
+                    >
+                        <img
+                            src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
+                            class="c-icon c-button__icon"
+                            loading="lazy"
+                            alt=""
+                        >
+                    </button>
+                </form>
+                <?php } ?>
+            </header>
+
+            <div
+                class="c-category-card__body"
+                id="card-body-<?php echo $roleId; ?>"
+            >
+
+                <!-- Avatar / Icon Dropzone analog zu Benutzerverwaltung -->
+                <form
+                    method="POST"
+                    id="uploadRoleImageForm_<?php echo $roleId; ?>"
+                    action="upload_role_image"
+                    enctype="multipart/form-data"
+                    class="u-text-center c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit c-box c-box--dashed u-padding-around-s u-border-radius-m u-margin-block-end-l"
+                >
+                    <label class="c-form-label u-justify-center">Rollen-Icon / Bild</label>
+                    <div class="u-position-relative u-display-inline-block">
+                        <img
+                            src="<?php echo $roleImage; ?>"
+                            class="c-avatar c-avatar--lg c-avatar--role u-margin-block-end-s js-preview-img"
+                            loading="lazy"
+                            alt=""
+                        >
+                        <div class="c-dropzone__overlay u-margin-block-end-s u-border-radius-m">Foto ablegen
+                        </div>
+                    </div>
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                    >
+                    <input
+                        type="hidden"
+                        name="group_id"
+                        value="<?php echo $roleId; ?>"
+                    >
+                    <label
+                        for="file-role-<?php echo \md5($roleId); ?>"
+                        class="u-visually-hidden"
+                    >Bild auswählen</label>
+                    <input
+                        type="file"
+                        name="avatar"
+                        class="u-hidden"
+                        id="file-role-<?php echo \md5($roleId); ?>"
+                        accept="image/*"
+                    >
+                    <button
+                        type="button"
+                        class="c-button c-button--secondary c-button--small u-inline-size-100 js-trigger-click"
+                        data-target="#file-role-<?php echo \md5($roleId); ?>"
+                    >Bild ändern</button>
+                </form>
+
+                <div class="u-margin-block-end-l">
+                    <form
+                        method="POST"
+                        id="renameRoleForm_<?php echo $roleId; ?>"
+                        action="rename_role"
+                        class="u-flex u-gap-s u-align-end"
+                    >
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                        >
+                        <input
+                            type="hidden"
+                            name="group_id"
+                            value="<?php echo $roleId; ?>"
+                        >
+                        <div class="c-form-group u-flex-grow-1">
+                            <label
+                                class="c-form-label"
+                                for="new_group_name_<?php echo $roleId; ?>"
+                            >Anzeigename ändern</label>
+                            <input
+                                type="text"
+                                id="new_group_name_<?php echo $roleId; ?>"
+                                name="new_group_name"
+                                class="c-form-input"
+                                value="<?php echo \htmlspecialchars($rData->name); ?>"
+                                autocomplete="off"
+                            >
+                        </div>
+                        <button
+                            type="submit"
+                            class="c-button c-button--primary"
+                        >Speichern</button>
+                    </form>
+                </div>
+
+                <div class="u-border-block-start u-margin-block-end-l"></div>
+
+                <form
+                    method="POST"
+                    id="saveRoleForm_<?php echo $roleId; ?>"
+                    action="save_role"
+                    class="js-permission-form"
+                >
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                    >
+                    <input
+                        type="hidden"
+                        name="group_id"
+                        value="<?php echo $roleId; ?>"
+                    >
+                    <input
+                        type="hidden"
+                        name="group_name"
+                        value="<?php echo \htmlspecialchars($rData->name, \ENT_QUOTES, 'UTF-8'); ?>"
+                    >
+
+                    <?php if ($auth->hasPermission('*')) { ?>
+                    <div
+                        class="c-box c-box--danger-soft u-margin-block-end-l u-padding-around-m u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
+                        <div class="u-flex u-align-center u-gap-m">
+                            <span class="u-text-2xl">
+                                <img
+                                    src="<?php echo $asset->url('assets/img/icons/crown.webp'); ?>"
+                                    class="c-icon c-button__icon"
+                                    loading="lazy"
+                                    alt=""
+                                >
+                            </span>
+                            <div>
+                                <strong class="u-color-danger">Vollständiger System-Zugriff</strong>
+                                <small class="u-color-danger u-display-block u-opacity-75">Aktiviert alle
+                                    Rechte (Gott-Modus). Der Baum unten wird ignoriert.</small>
+                            </div>
+                        </div>
+                        <label class="c-switch c-switch--danger">
+                            <input
+                                type="checkbox"
+                                name="perms[]"
+                                value="*"
+                                data-master-toggle="true"
+                                class="c-switch__input"
+                                aria-label="Vollständigen System-Zugriff für diese Rolle aktivieren"
+                                <?php echo \in_array('*', $rData->permissions, true) ? 'checked' : ''; ?>
+                            >
+                            <span
+                                class="c-switch__label"
+                                aria-hidden="true"
+                                data-on="MASTER"
+                                data-off="OFF"
+                            ></span>
+                        </label>
+                    </div>
+                    <?php } ?>
+
+                    <div class="u-margin-block-end-m u-flex u-justify-between u-align-center u-flex-wrap">
+                        <h4 class="u-margin-block-none">Berechtigungs-Struktur</h4>
+                        <div class="u-color-muted u-text-xs">Abhängigkeiten werden automatisch gesetzt. Wenn ein
+                            übergeordneter Punkt aktiviert wird, werden alle Unterpunkte mit eingeschlossen.
+                        </div>
+                    </div>
+
+                    <div
+                        class="c-tree-wrapper <?php echo \in_array('*', $rData->permissions, true) ? 'is-master-active' : ''; ?>">
+                        <?php \renderPermissionNode($structure, $rData->permissions, 0, $asset); ?>
+                    </div>
+
+                    <div class="u-margin-block-start-xl">
+                        <button
+                            type="submit"
+                            class="c-button c-button--primary c-button--large u-inline-size-100 u-font-bold"
+                        >
+                            <img
+                                src="<?php echo $asset->url('assets/img/icons/shield.webp'); ?>"
+                                class="c-icon c-button__icon"
+                                loading="lazy"
+                                alt=""
+                            > RECHTE FÜR <?php echo \strtoupper($rData->name); ?> SPEICHERN
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
+        <?php } ?>
     </div>
+</div>
 <?php } ?>

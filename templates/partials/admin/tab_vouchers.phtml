@@ -19,238 +19,293 @@ use App\Modules\Voucher\Application\UseCases\GetVoucherList\VoucherListDto;
  */
 ?>
 <?php if ($auth->hasPermission('vouchers.view')) { ?>
-    <div class="c-tab-content-container">
-        <div class="o-grid o-grid--sidebar u-align-start">
+<div class="c-tab-content-container">
+    <div class="o-grid o-grid--sidebar u-align-start">
 
-            <!-- LINKER BLOCK: OFFENE GUTSCHEINE -->
-            <section class="c-card c-card--primary">
-                <header class="c-card__header">
-                    <h3 class="u-margin-block-none">
-                        <img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
-                             class="c-icon"
-                             loading="lazy"
-                             alt=""> Offene Gutscheincodes
-                    </h3>
-                    <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
-                        Noch nicht eingelöste Wertcodes für das System.</p>
-                </header>
-                <div class="c-card__body u-padding-block-none u-padding-inline-none c-voucher-scroll-area">
-                    <table class="c-table u-inline-size-100">
-                        <thead>
-                            <tr>
-                                <th class="c-table__header-cell">Code / QR</th>
-                                <th class="c-table__header-cell">Details & Konditionen</th>
-                                <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Aktion</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
+        <!-- LINKER BLOCK: OFFENE GUTSCHEINE -->
+        <section class="c-card c-card--primary">
+            <header class="c-card__header">
+                <h3 class="u-margin-block-none">
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
+                        class="c-icon"
+                        loading="lazy"
+                        alt=""
+                    > Offene Gutscheincodes
+                </h3>
+                <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
+                    Noch nicht eingelöste Wertcodes für das System.</p>
+            </header>
+            <div class="c-card__body u-padding-block-none u-padding-inline-none c-voucher-scroll-area">
+                <table class="c-table u-inline-size-100">
+                    <thead>
+                        <tr>
+                            <th class="c-table__header-cell">Code / QR</th>
+                            <th class="c-table__header-cell">Details & Konditionen</th>
+                            <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Aktion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
                             $activeVouchers = \array_filter($vouchers ?? [], fn (VoucherListDto $v) => !$v->isInvalid);
 
     if (empty($activeVouchers)) {
         ?>
-                                <tr>
-                                    <td colspan="3"
-                                        class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
-                                        Aktuell keine unbenutzten Gutscheincodes vorhanden.
-                                    </td>
-                                </tr>
-                            <?php } else { ?>
-                                <?php foreach ($vouchers as $v) {
+                        <tr>
+                            <td
+                                colspan="3"
+                                class="c-table__data-cell u-text-center u-padding-around-l u-color-muted"
+                            >
+                                Aktuell keine unbenutzten Gutscheincodes vorhanden.
+                            </td>
+                        </tr>
+                        <?php } else { ?>
+                        <?php foreach ($vouchers as $v) {
                                     $url = \rtrim((string) $config->getBaseUrl(), '/') . '/index?voucher=' . $v->code;
                                     ?>
-                                    <tr class="u-hover-fade <?php echo $v->rowClass; ?>">
-                                        <td class="c-table__data-cell">
-                                            <div class="u-text-center">
-                                                <button type="button"
-                                                        class="c-button c-button--secondary c-button--small js-show-qr"
-                                                        title="QR-Code anzeigen"
-                                                        aria-label="QR-Code für <?php echo $v->code; ?> anzeigen"
-                                                        data-code="<?php echo \htmlspecialchars($v->code); ?>"
-                                                        data-url="<?php echo \htmlspecialchars($url); ?>">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
-                                                         class="c-icon c-button__icon"
-                                                         loading="lazy"
-                                                         alt=""> QR
-                                                </button>
-                                                <code class="u-display-block u-margin-block-start-s u-text-xs u-font-bold">
+                        <tr class="u-hover-fade <?php echo $v->rowClass; ?>">
+                            <td class="c-table__data-cell">
+                                <div class="u-text-center">
+                                    <button
+                                        type="button"
+                                        class="c-button c-button--secondary c-button--small js-show-qr"
+                                        title="QR-Code anzeigen"
+                                        aria-label="QR-Code für <?php echo $v->code; ?> anzeigen"
+                                        data-code="<?php echo \htmlspecialchars($v->code); ?>"
+                                        data-url="<?php echo \htmlspecialchars($url); ?>"
+                                    >
+                                        <img
+                                            src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
+                                            class="c-icon c-button__icon"
+                                            loading="lazy"
+                                            alt=""
+                                        > QR
+                                    </button>
+                                    <code class="u-display-block u-margin-block-start-s u-text-xs u-font-bold">
                                             <?php echo $v->code; ?>
                                         </code>
-                                            </div>
-                                        </td>
-                                        <td class="c-table__data-cell">
-                                            <strong class="u-display-block u-text-md u-color-dark">
-                                                <?php echo $v->reason; // HTML is safe/prepared in DTO
+                                </div>
+                            </td>
+                            <td class="c-table__data-cell">
+                                <strong class="u-display-block u-text-md u-color-dark">
+                                    <?php echo $v->reason; // HTML is safe/prepared in DTO
                                     ?>
-                                            </strong>
-                                            <div class="u-margin-block-start-xs u-flex u-gap-s u-flex-wrap">
-                                                <span class="c-badge <?php echo $v->discountBadgeClass; ?>">
-                                            <?php echo $v->discountText; ?>
-                                        </span>
-                                                <span class="c-badge c-badge--outline">
-                                            <?php if ($v->usageBadgeIcon) { ?>
-                                                <img src="<?php echo $asset->url('assets/img/icons/' . $v->usageBadgeIcon); ?>" class="c-icon" loading="lazy" alt="">&nbsp;
-                                            <?php } ?>
-                                            <?php echo $v->usageBadgeText; ?>
-                                        </span>
-                                                <span class="c-badge c-badge--outline"><?php echo $v->dateModeText; ?></span>
-                                            </div>
+                                </strong>
+                                <div class="u-margin-block-start-xs u-flex u-gap-s u-flex-wrap">
+                                    <span class="c-badge <?php echo $v->discountBadgeClass; ?>">
+                                        <?php echo $v->discountText; ?>
+                                    </span>
+                                    <span class="c-badge c-badge--outline">
+                                        <?php if ($v->usageBadgeIcon) { ?>
+                                        <img
+                                            src="<?php echo $asset->url('assets/img/icons/' . $v->usageBadgeIcon); ?>"
+                                            class="c-icon"
+                                            loading="lazy"
+                                            alt=""
+                                        >&nbsp;
+                                        <?php } ?>
+                                        <?php echo $v->usageBadgeText; ?>
+                                    </span>
+                                    <span class="c-badge c-badge--outline"><?php echo $v->dateModeText; ?></span>
+                                </div>
 
-                                            <div class="u-margin-block-start-s u-text-sm u-color-muted">
-                                                <?php if ($v->prefilledName) { ?>
-                                                    Vorbefüllt für: <strong class="u-color-dark"><?php echo \htmlspecialchars($v->prefilledName); ?></strong>
-                                                    (Parz: <?php echo $v->prefilledPlot ?: '?'; ?>)<br>
-                                                <?php } ?>
-                                                <?php if ($v->expiresText) {
+                                <div class="u-margin-block-start-s u-text-sm u-color-muted">
+                                    <?php if ($v->prefilledName) { ?>
+                                    Vorbefüllt für: <strong
+                                        class="u-color-dark"><?php echo \htmlspecialchars($v->prefilledName); ?></strong>
+                                    (Parz: <?php echo $v->prefilledPlot ?: '?'; ?>)<br>
+                                    <?php } ?>
+                                    <?php if ($v->expiresText) {
                                                     echo $v->expiresText;
                                                 } ?>
-                                            </div>
+                                </div>
 
-                                            <div class="u-margin-block-start-s">
-                                                <button type="button"
-                                                        class="u-text-link js-copy-link u-text-xs u-font-semibold u-cursor-pointer u-flex u-align-center u-gap-xs u-display-inline-block u-border-none"
-                                                        style="background: transparent; padding: 0; font-family: inherit;"
-                                                        data-url="<?php echo $url; ?>">
-                                                    Link kopieren
-                                                    <img src="<?php echo $asset->url('assets/img/icons/copy.webp'); ?>"
-                                                         class="c-icon"
-                                                         loading="lazy"
-                                                         alt="">
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
-                                            <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
-                                                <?php if ($auth->hasPermission('vouchers.suspend')) { ?>
-                                                    <form method="POST"
-                                                          action="<?php echo $settings['base_url'] . $v->toggleActionUrl; ?>"
-                                                          class="u-margin-block-none js-form-toggle-voucher">
-                                                        <input type="hidden"
-                                                               name="csrf_token"
-                                                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                                        <input type="hidden"
-                                                               name="code"
-                                                               value="<?php echo $v->code; ?>">
-                                                        <input type="hidden"
-                                                               name="action"
-                                                               value="<?php echo $v->toggleActionUrl; ?>">
+                                <div class="u-margin-block-start-s">
+                                    <button
+                                        type="button"
+                                        class="u-text-link js-copy-link u-text-xs u-font-semibold u-cursor-pointer u-flex u-align-center u-gap-xs u-display-inline-block u-border-none"
+                                        style="background: transparent; padding: 0; font-family: inherit;"
+                                        data-url="<?php echo $url; ?>"
+                                    >
+                                        Link kopieren
+                                        <img
+                                            src="<?php echo $asset->url('assets/img/icons/copy.webp'); ?>"
+                                            class="c-icon"
+                                            loading="lazy"
+                                            alt=""
+                                        >
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
+                                <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
+                                    <?php if ($auth->hasPermission('vouchers.suspend')) { ?>
+                                    <form
+                                        method="POST"
+                                        action="<?php echo $settings['base_url'] . $v->toggleActionUrl; ?>"
+                                        class="u-margin-block-none js-form-toggle-voucher"
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                        >
+                                        <input
+                                            type="hidden"
+                                            name="code"
+                                            value="<?php echo $v->code; ?>"
+                                        >
+                                        <input
+                                            type="hidden"
+                                            name="action"
+                                            value="<?php echo $v->toggleActionUrl; ?>"
+                                        >
 
-                                                        <button type="submit"
-                                                                class="c-button <?php echo $v->isDeactivated ? 'c-button--success' : 'c-button--danger'; ?> c-button--small c-button--icon-only"
-                                                                title="<?php echo $v->toggleTitle; ?>"
-                                                                aria-label="Gutschein <?php echo $v->code; ?> <?php echo $v->toggleTitle; ?>">
-                                                            <img src="<?php echo $asset->url('assets/img/icons/' . $v->toggleIcon); ?>"
-                                                                 class="c-icon c-button__icon"
-                                                                 loading="lazy"
-                                                                 alt="">
-                                                        </button>
-                                                    </form>
-                                                <?php } ?>
+                                        <button
+                                            type="submit"
+                                            class="c-button <?php echo $v->isDeactivated ? 'c-button--success' : 'c-button--danger'; ?> c-button--small c-button--icon-only"
+                                            title="<?php echo $v->toggleTitle; ?>"
+                                            aria-label="Gutschein <?php echo $v->code; ?> <?php echo $v->toggleTitle; ?>"
+                                        >
+                                            <img
+                                                src="<?php echo $asset->url('assets/img/icons/' . $v->toggleIcon); ?>"
+                                                class="c-icon c-button__icon"
+                                                loading="lazy"
+                                                alt=""
+                                            >
+                                        </button>
+                                    </form>
+                                    <?php } ?>
 
-                                                <?php if ($auth->hasPermission('vouchers.delete')) { ?>
-                                                    <form method="POST"
-                                                          action="<?php echo $settings['base_url']; ?>delete_voucher"
-                                                          class="u-margin-block-none js-form-delete-voucher"
-                                                          data-confirm="Soll dieser Gutscheincode unwiderruflich gelöscht werden?">
-                                                        <input type="hidden"
-                                                               name="csrf_token"
-                                                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                                        <input type="hidden"
-                                                               name="code"
-                                                               value="<?php echo $v->code; ?>">
-                                                        <button type="submit"
-                                                                class="c-button c-button--danger-outline c-button--small c-button--icon-only"
-                                                                title="Löschen"
-                                                                aria-label="Gutschein <?php echo $v->code; ?> löschen">
-                                                            <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
-                                                                 class="c-icon c-button__icon"
-                                                                 loading="lazy"
-                                                                 alt="">
-                                                        </button>
-                                                    </form>
-                                                <?php } ?>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php } ?>
-                            <?php } ?>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- RECHTER BLOCK: ARCHIV -->
-            <section class="c-card c-card--dark">
-                <header class="c-card__header">
-                    <h3 class="u-margin-block-none">
-                        <img src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
-                             class="c-icon"
-                             loading="lazy"
-                             alt=""> Archiv
-                    </h3>
-                    <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
-                        Bereits vollständig eingelöste Codes.</p>
-                </header>
-                <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto c-voucher-scroll-area">
-                    <table class="c-table c-table--summary u-inline-size-100">
-                        <thead>
-                            <tr>
-                                <th class="c-table__header-cell u-text-start u-padding-inline-m">Datum</th>
-                                <th class="c-table__header-cell u-text-start">Nutzer</th>
-                                <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Code</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php $archive = $voucherArchive ?? [];
-    if (empty($archive)) { ?>
-                                <tr>
-                                    <td colspan="3"
-                                        class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">Noch
-                                        keine Einlösungen dokumentiert.</td>
-                                </tr>
-                            <?php } else { ?>
-                                <?php foreach ($archive as $arc) { ?>
-                                    <tr class="u-hover-fade">
-                                        <td class="c-table__data-cell u-text-nowrap u-padding-inline-m">
-                                            <small class="u-font-bold u-color-muted"><?php echo \date('d.m.y', \strtotime($arc['redeemed_at'])); ?></small>
-                                        </td>
-                                        <td class="c-table__data-cell">
-                                            <div class="u-line-height-tight">
-                                                <span class="u-font-semibold"><?php echo \htmlspecialchars($arc['user_name']); ?></span><br>
-                                                <small class="u-color-muted">Parzelle <?php echo $arc['user_plot']; ?></small>
-                                            </div>
-                                        </td>
-                                        <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
-                                            <code class="c-license-plate"><?php echo $arc['code']; ?></code>
-                                        </td>
-                                    </tr>
-                                <?php } ?>
-                            <?php } ?>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-        </div>
-    </div>
-
-    <!-- Das Modal liegt nun AUSSERHALB des c-tab-content-container, um globales Styling/Positioning beizubehalten -->
-    <dialog id="qrModal"
-            class="c-modal js-qr-modal"
-            aria-labelledby="qrModalTitle"
-            aria-modal="true">
-        <div class="c-modal__dialog">
-            <h4 id="qrModalTitle"
-                class="c-modal__title u-margin-block-end-s">QR-Code scannen</h4>
-            <code id="qrModalCode"
-                  class="c-license-plate u-margin-block-end-m c-voucher-qr-code js-qr-modal-code"></code>
-            <div class="c-box u-margin-block-none u-flex u-align-center u-justify-center c-voucher-qr-box js-qr-box">
-                <!-- Dynamisches Image wird durch VoucherManager hier eingefügt -->
-                <div id="qrModalLoader"
-                     class="u-color-muted js-qr-modal-loader">Wird generiert...</div>
+                                    <?php if ($auth->hasPermission('vouchers.delete')) { ?>
+                                    <form
+                                        method="POST"
+                                        action="<?php echo $settings['base_url']; ?>delete_voucher"
+                                        class="u-margin-block-none js-form-delete-voucher"
+                                        data-confirm="Soll dieser Gutscheincode unwiderruflich gelöscht werden?"
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                        >
+                                        <input
+                                            type="hidden"
+                                            name="code"
+                                            value="<?php echo $v->code; ?>"
+                                        >
+                                        <button
+                                            type="submit"
+                                            class="c-button c-button--danger-outline c-button--small c-button--icon-only"
+                                            title="Löschen"
+                                            aria-label="Gutschein <?php echo $v->code; ?> löschen"
+                                        >
+                                            <img
+                                                src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
+                                                class="c-icon c-button__icon"
+                                                loading="lazy"
+                                                alt=""
+                                            >
+                                        </button>
+                                    </form>
+                                    <?php } ?>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php } ?>
+                        <?php } ?>
+                    </tbody>
+                </table>
             </div>
-            <button type="button"
-                    class="c-button c-button--primary u-inline-size-100 u-margin-block-start-m js-close-modal">Schließen</button>
+        </section>
+
+        <!-- RECHTER BLOCK: ARCHIV -->
+        <section class="c-card c-card--dark">
+            <header class="c-card__header">
+                <h3 class="u-margin-block-none">
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
+                        class="c-icon"
+                        loading="lazy"
+                        alt=""
+                    > Archiv
+                </h3>
+                <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
+                    Bereits vollständig eingelöste Codes.</p>
+            </header>
+            <div
+                class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto c-voucher-scroll-area">
+                <table class="c-table c-table--summary u-inline-size-100">
+                    <thead>
+                        <tr>
+                            <th class="c-table__header-cell u-text-start u-padding-inline-m">Datum</th>
+                            <th class="c-table__header-cell u-text-start">Nutzer</th>
+                            <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Code</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $archive = $voucherArchive ?? [];
+    if (empty($archive)) { ?>
+                        <tr>
+                            <td
+                                colspan="3"
+                                class="c-table__data-cell u-text-center u-padding-around-l u-color-muted"
+                            >Noch
+                                keine Einlösungen dokumentiert.</td>
+                        </tr>
+                        <?php } else { ?>
+                        <?php foreach ($archive as $arc) { ?>
+                        <tr class="u-hover-fade">
+                            <td class="c-table__data-cell u-text-nowrap u-padding-inline-m">
+                                <small
+                                    class="u-font-bold u-color-muted"><?php echo \date('d.m.y', \strtotime($arc['redeemed_at'])); ?></small>
+                            </td>
+                            <td class="c-table__data-cell">
+                                <div class="u-line-height-tight">
+                                    <span
+                                        class="u-font-semibold"><?php echo \htmlspecialchars($arc['user_name']); ?></span><br>
+                                    <small class="u-color-muted">Parzelle <?php echo $arc['user_plot']; ?></small>
+                                </div>
+                            </td>
+                            <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
+                                <code class="c-license-plate"><?php echo $arc['code']; ?></code>
+                            </td>
+                        </tr>
+                        <?php } ?>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<!-- Das Modal liegt nun AUSSERHALB des c-tab-content-container, um globales Styling/Positioning beizubehalten -->
+<dialog
+    id="qrModal"
+    class="c-modal js-qr-modal"
+    aria-labelledby="qrModalTitle"
+    aria-modal="true"
+>
+    <div class="c-modal__dialog">
+        <h4
+            id="qrModalTitle"
+            class="c-modal__title u-margin-block-end-s"
+        >QR-Code scannen</h4>
+        <code id="qrModalCode"
+                  class="c-license-plate u-margin-block-end-m c-voucher-qr-code js-qr-modal-code"></code>
+        <div class="c-box u-margin-block-none u-flex u-align-center u-justify-center c-voucher-qr-box js-qr-box">
+            <!-- Dynamisches Image wird durch VoucherManager hier eingefügt -->
+            <div
+                id="qrModalLoader"
+                class="u-color-muted js-qr-modal-loader"
+            >Wird generiert...</div>
         </div>
-    </dialog>
+        <button
+            type="button"
+            class="c-button c-button--primary u-inline-size-100 u-margin-block-start-m js-close-modal"
+        >Schließen</button>
+    </div>
+</dialog>
 <?php } ?>

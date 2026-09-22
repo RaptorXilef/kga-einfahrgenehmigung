@@ -23,38 +23,49 @@ $pageTitle = 'Versionshistorie - ' . ($settings['vereins_name'] ?? '');
 
 <!-- DOMPurify (Sicherheit) + Marked.js (Markdown Parser) -->
 <!-- https://cdnjs.com/libraries/dompurify -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.15/purify.min.js"
-        integrity="sha512-jeyPlk6E7VcWU2QTRw5UAe4iKLrWOJkyLc4GkOAOey1tOeTyxfTzrCY7p84VSer8/lRON5p236RGVeTErze9fA=="
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer"
-        nonce="<?php echo $cspNonce; ?>">
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.15/purify.min.js"
+    integrity="sha512-jeyPlk6E7VcWU2QTRw5UAe4iKLrWOJkyLc4GkOAOey1tOeTyxfTzrCY7p84VSer8/lRON5p236RGVeTErze9fA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+    nonce="<?php echo $cspNonce; ?>"
+>
 </script>
 <?php /* <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/10.0.0/marked.min.js"></script> */ ?>
 <!-- https://cdnjs.com/libraries/marked/15.0.12 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.12/marked.min.js"
-        integrity="sha512-rCQgmUulW6f6QegOvTntKKb5IAoxTpGVCdWqYjkXEpzAns6XUFs8NKVqWe+KQpctp/EoRSFSuykVputqknLYMg=="
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer"
-        nonce="<?php echo $cspNonce; ?>">
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.12/marked.min.js"
+    integrity="sha512-rCQgmUulW6f6QegOvTntKKb5IAoxTpGVCdWqYjkXEpzAns6XUFs8NKVqWe+KQpctp/EoRSFSuykVputqknLYMg=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+    nonce="<?php echo $cspNonce; ?>"
+>
 </script>
 
 <div class="c-tab-content-container o-container o-container--large u-padding-y-xl js-changelog-renderer">
     <div class="c-card c-card--primary">
         <header class="c-card__header u-flex u-justify-between u-align-center u-flex-wrap u-gap-s">
             <h2 class="u-margin-none u-flex u-align-center u-gap-s">
-                <img src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
-                     class="c-icon c-icon--md"
-                     loading="lazy"
-                     alt="">
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
+                    class="c-icon c-icon--md"
+                    loading="lazy"
+                    alt=""
+                >
                 Versionshistorie
             </h2>
-            <a href="javascript:history.back()" class="c-button c-button--secondary">← Zurück</a>
+            <a
+                href="javascript:history.back()"
+                class="c-button c-button--secondary"
+            >← Zurück</a>
         </header>
 
         <div class="c-card__body">
             <!-- Hier landet das fertige HTML -->
-            <div id="content-area"
-                 class="s-markdown js-content-area">
+            <div
+                id="content-area"
+                class="s-markdown js-content-area"
+            >
                 <div class="u-text-center u-color-muted">
                     Lade Versionshistorie...
                 </div>
@@ -63,8 +74,10 @@ $pageTitle = 'Versionshistorie - ' . ($settings['vereins_name'] ?? '');
     </div>
 
     <!-- Das rohe Markdown wird hier übergeben -->
-    <script type="text/markdown"
-            id="raw-markdown"
-            nonce="<?php echo $cspNonce; ?>"
-            class="u-hidden js-raw-markdown"><?php echo \htmlspecialchars($markdownContent); ?></script>
+    <script
+        type="text/markdown"
+        id="raw-markdown"
+        nonce="<?php echo $cspNonce; ?>"
+        class="u-hidden js-raw-markdown"
+    ><?php echo \htmlspecialchars($markdownContent); ?></script>
 </div>

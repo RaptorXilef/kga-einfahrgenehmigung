@@ -50,563 +50,730 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
 <div class="c-tab-content-container">
     <?php if (!$hasAnyTemplate) { ?>
-        <div class="c-card c-card--danger u-text-center">
-            <div class="c-card__body c-card__body--xl">
-                <div class="u-text-4xl u-margin-block-end-m">
-                    <img src="<?php echo $asset->url('assets/img/icons/denied.webp'); // prohibited?>"
-                         class="c-icon c-button__icon"
-                         loading="lazy"
-                         alt="">
-                </div>
-                <h3 class="u-margin-block-none">Keine Berechtigung</h3>
-                <p class="u-color-muted o-container--small u-margin-inline-auto u-margin-block-start-s">
-                    Sie verfügen über keine Berechtigungen für die verfügbaren Genehmigungs-Vorlagen.
-                    Bitte wenden Sie sich an den System-Administrator.
-                </p>
+    <div class="c-card c-card--danger u-text-center">
+        <div class="c-card__body c-card__body--xl">
+            <div class="u-text-4xl u-margin-block-end-m">
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/denied.webp'); // prohibited?>"
+                    class="c-icon c-button__icon"
+                    loading="lazy"
+                    alt=""
+                >
             </div>
+            <h3 class="u-margin-block-none">Keine Berechtigung</h3>
+            <p class="u-color-muted o-container--small u-margin-inline-auto u-margin-block-start-s">
+                Sie verfügen über keine Berechtigungen für die verfügbaren Genehmigungs-Vorlagen.
+                Bitte wenden Sie sich an den System-Administrator.
+            </p>
         </div>
+    </div>
     <?php } else { ?>
 
-        <!-- SAUBERE TRENNUNG IN ZWEI KARTEN -->
-        <div class="o-grid o-grid--auto-fit-lg u-align-start">
+    <!-- SAUBERE TRENNUNG IN ZWEI KARTEN -->
+    <div class="o-grid o-grid--auto-fit-lg u-align-start">
 
-            <!-- ========================================== -->
-            <!-- KARTE 1: MANUELLE GENEHMIGUNG AUSSTELLEN   -->
-            <!-- ========================================== -->
-            <?php if ($auth->hasPermission('permits.create')) { ?>
-                <section class="c-card c-card--success u-margin-block-none">
-                    <header class="c-card__header u-bg-light">
-                        <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
-                            <img src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
-                                 class="c-icon"
-                                 loading="lazy"
-                                 alt=""> Genehmigung ausstellen
-                        </h3>
-                        <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
-                            Direkter Systemeintrag (ohne Online-Zahlung).</p>
-                    </header>
-                    <div class="c-card__body">
+        <!-- ========================================== -->
+        <!-- KARTE 1: MANUELLE GENEHMIGUNG AUSSTELLEN   -->
+        <!-- ========================================== -->
+        <?php if ($auth->hasPermission('permits.create')) { ?>
+        <section class="c-card c-card--success u-margin-block-none">
+            <header class="c-card__header u-bg-light">
+                <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
+                        class="c-icon"
+                        loading="lazy"
+                        alt=""
+                    > Genehmigung ausstellen
+                </h3>
+                <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
+                    Direkter Systemeintrag (ohne Online-Zahlung).</p>
+            </header>
+            <div class="c-card__body">
 
-                        <form id="permitForm"
-                              class="js-permit-form"
-                              method="POST"
-                              action="<?php echo $settings['base_url']; ?>create_manual">
-                            <input type="hidden"
-                                   name="csrf_token"
-                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <!-- Dummy für API (verhindert undefined JS Fehler) -->
-                            <input type="hidden"
-                                   name="voucher"
-                                   class="js-pf-voucher-input"
-                                   value="">
+                <form
+                    id="permitForm"
+                    class="js-permit-form"
+                    method="POST"
+                    action="<?php echo $settings['base_url']; ?>create_manual"
+                >
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                    >
+                    <!-- Dummy für API (verhindert undefined JS Fehler) -->
+                    <input
+                        type="hidden"
+                        name="voucher"
+                        class="js-pf-voucher-input"
+                        value=""
+                    >
 
-                            <div class="o-grid o-grid--2-cols u-margin-block-end-m">
-                                <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           for="template_key">Gültig für Vorlage *</label>
-                                    <select name="template_key"
-                                            id="template_key"
-                                            class="c-form-select js-pf-template"
-                                            autocomplete="off">
-                                        <?php foreach ($allowedTemplates as $key => $tpl) { ?>
-                                            <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
-                                        <?php } ?>
-                                    </select>
-                                </div>
-                                <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           for="typ">Fahrzeugtyp *</label>
-                                    <select name="typ"
-                                            id="typ"
-                                            class="c-form-select js-pf-typ"
-                                            autocomplete="off">
-                                        <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
+                    <div class="o-grid o-grid--2-cols u-margin-block-end-m">
+                        <div class="c-form-group">
+                            <label
+                                class="c-form-label"
+                                for="template_key"
+                            >Gültig für Vorlage *</label>
+                            <select
+                                name="template_key"
+                                id="template_key"
+                                class="c-form-select js-pf-template"
+                                autocomplete="off"
+                            >
+                                <?php foreach ($allowedTemplates as $key => $tpl) { ?>
+                                <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?>
+                                </option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                        <div class="c-form-group">
+                            <label
+                                class="c-form-label"
+                                for="typ"
+                            >Fahrzeugtyp *</label>
+                            <select
+                                name="typ"
+                                id="typ"
+                                class="c-form-select js-pf-typ"
+                                autocomplete="off"
+                            >
+                                <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
                                             if (!($vData['active'] ?? true)) {
                                                 continue;
                                             } ?>
-                                            <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($vData['label']); ?></option>
-                                        <?php } ?>
-                                    </select>
+                                <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($vData['label']); ?>
+                                </option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="o-grid o-grid--2-cols u-margin-block-end-m">
+                        <div class="c-form-group">
+                            <label
+                                class="c-form-label"
+                                for="datum_von"
+                            >Gültig von *</label>
+                            <input
+                                type="date"
+                                name="datum_von"
+                                id="datum_von"
+                                class="c-form-input js-pf-von"
+                                required
+                                value="<?php echo \date('Y-m-d'); ?>"
+                                autocomplete="off"
+                            >
+                        </div>
+                        <div class="c-form-group">
+                            <label
+                                class="c-form-label"
+                                for="datum_bis"
+                            >Gültig bis *</label>
+                            <input
+                                type="date"
+                                name="datum_bis"
+                                id="datum_bis"
+                                class="c-form-input js-pf-bis"
+                                required
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="o-grid o-grid--2-1 u-margin-block-end-m">
+                        <div class="c-form-group">
+                            <label
+                                class="c-form-label"
+                                for="owner_name"
+                            >Pächter Name *</label>
+                            <input
+                                type="text"
+                                id="owner_name"
+                                name="name"
+                                class="c-form-input"
+                                required
+                                placeholder="Vorname Nachname"
+                                autocomplete="off"
+                            >
+                        </div>
+                        <div class="c-form-group">
+                            <label
+                                class="c-form-label"
+                                for="parzelle"
+                            >Parzelle *</label>
+                            <input
+                                type="text"
+                                name="parzelle"
+                                id="parzelle"
+                                class="c-form-input js-pf-parzelle"
+                                required
+                                placeholder="0001"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="c-form-group u-margin-block-end-m">
+                        <label
+                            class="c-form-label js-pf-label-kennzeichen"
+                            id="label_kennzeichen"
+                            for="kennzeichen"
+                        >Amtl. Kennzeichen *</label>
+                        <input
+                            type="text"
+                            name="kennzeichen"
+                            id="kennzeichen"
+                            class="c-form-input js-pf-kennzeichen"
+                            required
+                            placeholder="B-XX 123"
+                            autocomplete="off"
+                        >
+                    </div>
+
+                    <div
+                        class="c-form-group u-margin-block-end-m js-pf-firma-wrapper"
+                        id="firma_wrapper"
+                        hidden
+                    >
+                        <label
+                            class="c-form-label"
+                            for="firma"
+                        >Firma / Lieferant (Optional)</label>
+                        <input
+                            type="text"
+                            id="firma"
+                            name="firma"
+                            class="c-form-input js-pf-firma"
+                            placeholder="Firmenname"
+                            autocomplete="off"
+                        >
+                    </div>
+
+                    <div class="o-grid o-grid--2-cols u-margin-block-end-m">
+                        <div class="c-form-group">
+                            <label
+                                class="c-form-label"
+                                for="email"
+                            >E-Mail (Optional)</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                class="c-form-input"
+                                placeholder="mail@example.com"
+                                autocomplete="off"
+                            >
+                            <small class="u-color-muted u-margin-block-start-xs u-display-block">
+                                Wird für PDF-Versand benötigt.</small>
+                        </div>
+                        <div class="c-form-group">
+                            <label
+                                class="c-form-label u-flex u-justify-between u-align-center"
+                                for="zweck_select"
+                            >
+                                <span>Einfahrts-Grund *</span>
+                                <!-- A11Y FIX: Natives Button-Element statt <span> für korrekte Tastaturnavigation -->
+                                <button
+                                    type="button"
+                                    class="u-text-link u-cursor-pointer js-pf-toggle-zweck"
+                                    id="toggle_zweck_btn"
+                                    style="background: transparent; border: none; font: inherit; padding: 0;"
+                                >
+                                    <img
+                                        src="<?php echo $asset->url('assets/img/icons/edit.webp'); ?>"
+                                        class="c-icon"
+                                        loading="lazy"
+                                        alt=""
+                                    > Manuell
+                                </button>
+                            </label>
+                            <select
+                                name="zweck"
+                                id="zweck_select"
+                                class="c-form-select js-pf-zweck-select"
+                                autocomplete="off"
+                            >
+                                <?php foreach ($standardPurposes as $val => $label) { ?>
+                                <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($label); ?></option>
+                                <?php } ?>
+                            </select>
+
+                            <!-- Manuelles Feld (inkl. Auto-Complete Historie) -->
+                            <input
+                                type="text"
+                                name="_unused_zweck"
+                                id="zweck_manual"
+                                class="c-form-input js-pf-zweck-manual"
+                                hidden
+                                placeholder="Eigener Grund..."
+                                list="custom_purposes_list"
+                                aria-label="Eigener Grund"
+                                autocomplete="off"
+                            >
+                            <datalist id="custom_purposes_list">
+                                <?php foreach ($customPurposes as $cp) { ?>
+                                <option value="<?php echo \htmlspecialchars($cp); ?>"></option>
+                                <?php } ?>
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <!-- Preis-Override & Submit -->
+                    <div class="c-box c-box--dashed u-margin-block-start-l">
+                        <div class="c-form-group u-margin-block-end-m">
+                            <label
+                                class="c-form-label u-flex u-justify-between u-align-center"
+                                for="preis_override"
+                            >
+                                <span>Sonderpreis (€)</span>
+                                <span
+                                    id="price-display"
+                                    class="c-badge c-badge--primary u-font-mono u-text-sm js-pf-price-display"
+                                >0,00 €</span>
+                            </label>
+                            <input
+                                type="number"
+                                id="preis_override"
+                                step="0.01"
+                                name="preis"
+                                class="c-form-input"
+                                placeholder="Leer lassen für Standard"
+                                autocomplete="off"
+                            >
+                            <small class="u-color-muted u-margin-block-start-xs u-display-block">
+                                Nur ausfüllen für Preis-Abweichungen.</small>
+                        </div>
+
+                        <div class="c-box u-margin-block-end-m u-padding-around-s">
+                            <label class="c-checkbox">
+                                <input
+                                    type="checkbox"
+                                    name="mark_as_paid"
+                                    value="1"
+                                    checked
+                                    class="c-checkbox__input"
+                                >
+                                <span class="c-checkbox__label">
+                                    <strong class="u-text-sm u-color-main u-display-block">
+                                        Sofort als "Bezahlt" markieren</strong>
+                                    <small class="u-color-muted u-margin-block-start-xs u-display-block">
+                                        Häkchen entfernen, falls z.B. noch überwiesen wird.</small>
+                                </span>
+                            </label>
+                        </div>
+
+                        <div
+                            class="u-flex u-justify-between u-align-center u-border-block-start u-padding-block-start-m">
+                            <div>
+                                <label
+                                    class="c-checkbox"
+                                    title="Soll dem Pächter eine PDF zugestellt werden?"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="send_email"
+                                        value="1"
+                                        checked
+                                        class="c-checkbox__input"
+                                    >
+                                    <span
+                                        class="c-checkbox__label u-font-bold u-text-sm u-color-main"
+                                        style="margin-block-start: 2px;"
+                                    >PDF via E-Mail senden</span>
+                                </label>
+                                <div class="u-color-muted u-text-xs u-margin-block-start-s">* Pflichtfelder
+                                </div>
+                            </div>
+                            <button
+                                type="submit"
+                                class="c-button c-button--success"
+                            >Ausstellen</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+        <?php } ?>
+
+        <!-- ========================================== -->
+        <!-- KARTE 2: GUTSCHEIN GENERIEREN              -->
+        <!-- ========================================== -->
+        <?php if ($auth->hasPermission('vouchers.create')) { ?>
+        <section class="c-card c-card--voucher u-margin-block-none u-flex-grow-1">
+            <header class="c-card__header u-bg-light">
+                <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
+                        class="c-icon"
+                        loading="lazy"
+                        alt=""
+                    > Gutscheincode generieren
+                </h3>
+                <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
+                    Erstellt Rabattcodes für das öffentliche Portal.</p>
+            </header>
+            <div class="c-card__body">
+                <!-- Die Klasse js-permit-form wird hier ebenfalls genutzt für die Synchronisierung -->
+                <form
+                    id="voucherCreateForm"
+                    method="POST"
+                    class="js-permit-form"
+                    action="<?php echo $settings['base_url']; ?>create_voucher"
+                >
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                    >
+
+                    <div class="c-form-group u-margin-block-end-m">
+                        <label
+                            class="c-form-label"
+                            for="v_template_key"
+                        >Gültig für Vorlage *</label>
+                        <select
+                            name="template_key"
+                            id="v_template_key"
+                            class="c-form-select js-pf-template"
+                            autocomplete="off"
+                        >
+                            <?php foreach ($allowedTemplates as $key => $tpl) { ?>
+                            <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+
+                    <div class="o-grid o-grid--2-cols u-margin-block-end-m">
+                        <div class="c-form-group">
+                            <label
+                                class="c-form-label"
+                                for="v_type"
+                            >Rabatt-Art *</label>
+                            <select
+                                name="voucher_discount_type"
+                                id="v_type"
+                                class="c-form-select js-pf-voucher-type"
+                                autocomplete="off"
+                            >
+                                <option value="free">100% Kostenlos</option>
+                                <option value="percent">Prozentual (%)</option>
+                                <option value="fixed">Festbetrag (€)</option>
+                            </select>
+                        </div>
+                        <div
+                            class="c-form-group js-pf-voucher-value-wrap"
+                            id="v_val_wrap"
+                            hidden
+                        >
+                            <label
+                                class="c-form-label"
+                                for="v_val"
+                            >Wert (Zahl) *</label>
+                            <input
+                                type="number"
+                                id="v_val"
+                                step="0.01"
+                                name="voucher_discount_value"
+                                class="c-form-input"
+                                value="0.00"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="c-form-group u-margin-block-end-m">
+                        <label
+                            class="c-form-label"
+                            for="v_reason"
+                        >Interne Notiz / Grund * (Doppelklick öffnet
+                            Schnellauswahl)</label>
+                        <input
+                            type="text"
+                            id="v_reason"
+                            name="reason"
+                            list="reason_presets"
+                            class="c-form-input"
+                            required
+                            placeholder="z.B. Ersatz oder Sommerfest"
+                            autocomplete="off"
+                        >
+                        <datalist id="reason_presets">
+                            <?php foreach ($reasons as $r) {
+                                        echo "<option value='" . \htmlspecialchars($r) . "'>";
+                                    } ?>
+                        </datalist>
+                    </div>
+
+                    <div class="o-grid o-grid--2-cols u-margin-block-end-m">
+                        <div class="c-form-group">
+                            <label
+                                class="c-form-label"
+                                for="v_custom_code"
+                            >Eigener Code (Optional)</label>
+                            <input
+                                type="text"
+                                id="v_custom_code"
+                                name="voucher_custom_code"
+                                class="c-form-input u-text-uppercase"
+                                placeholder="Z.B. EXTRA26"
+                                autocomplete="off"
+                            >
+                        </div>
+                        <div class="c-form-group">
+                            <label
+                                class="c-form-label"
+                                for="v_expires_at"
+                            >Ablaufdatum (Optional)</label>
+                            <input
+                                type="datetime-local"
+                                id="v_expires_at"
+                                name="voucher_expires_at"
+                                class="c-form-input"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Einklappbare Vorbefüllung (Prefill) -->
+                    <details class="c-box c-box--subtle u-margin-block-end-m">
+                        <summary class="u-cursor-pointer u-font-semibold u-color-primary">
+                            <img
+                                src="<?php echo $asset->url('assets/img/icons/plus.webp'); ?>"
+                                class="c-icon c-button__icon"
+                                loading="lazy"
+                                alt=""
+                            > Vorgaben für Pächter (Vorbefüllung)
+                        </summary>
+                        <div class="u-margin-block-start-m u-border-block-start u-padding-block-start-m">
+                            <p class="u-color-muted u-text-sm u-margin-block-start-none u-margin-block-end-m">
+                                Daten, die hier eingetragen werden, sind für den Pächter bei der Einlösung fest
+                                vorgegeben und können von ihm nicht mehr geändert werden.</p>
+
+                            <div class="c-form-group u-margin-block-end-m">
+                                <label class="c-form-label">Zeitraum-Vorgabe *</label>
+                                <div class="u-flex u-gap-m u-margin-block-start-xs">
+                                    <label class="c-checkbox">
+                                        <input
+                                            type="radio"
+                                            name="voucher_date_mode"
+                                            value="fixed"
+                                            checked
+                                            class="c-checkbox__input"
+                                        >
+                                        <span class="c-checkbox__label"><strong>Fest</strong> (Erzwingt exakte
+                                            Daten)</span>
+                                    </label>
+                                    <label class="c-checkbox">
+                                        <input
+                                            type="radio"
+                                            name="voucher_date_mode"
+                                            value="flexible"
+                                            class="c-checkbox__input"
+                                        >
+                                        <span class="c-checkbox__label"><strong>Offen</strong> (Pächter wählt
+                                            selbst)</span>
+                                    </label>
                                 </div>
                             </div>
 
                             <div class="o-grid o-grid--2-cols u-margin-block-end-m">
                                 <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           for="datum_von">Gültig von *</label>
-                                    <input type="date"
-                                           name="datum_von"
-                                           id="datum_von"
-                                           class="c-form-input js-pf-von"
-                                           required
-                                           value="<?php echo \date('Y-m-d'); ?>"
-                                           autocomplete="off">
+                                    <label
+                                        class="c-form-label"
+                                        for="v_datum_von"
+                                    >Gültig von</label>
+                                    <input
+                                        type="date"
+                                        id="v_datum_von"
+                                        name="datum_von"
+                                        class="c-form-input js-pf-von"
+                                        autocomplete="off"
+                                    >
                                 </div>
                                 <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           for="datum_bis">Gültig bis *</label>
-                                    <input type="date"
-                                           name="datum_bis"
-                                           id="datum_bis"
-                                           class="c-form-input js-pf-bis"
-                                           required
-                                           autocomplete="off">
+                                    <label
+                                        class="c-form-label"
+                                        for="v_datum_bis"
+                                    >Gültig bis</label>
+                                    <input
+                                        type="date"
+                                        id="v_datum_bis"
+                                        name="datum_bis"
+                                        class="c-form-input js-pf-bis"
+                                        autocomplete="off"
+                                    >
                                 </div>
                             </div>
 
                             <div class="o-grid o-grid--2-1 u-margin-block-end-m">
                                 <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           for="owner_name">Pächter Name *</label>
-                                    <input type="text"
-                                           id="owner_name"
-                                           name="name"
-                                           class="c-form-input"
-                                           required
-                                           placeholder="Vorname Nachname"
-                                           autocomplete="off">
+                                    <label
+                                        class="c-form-label"
+                                        for="v_name"
+                                    >Pächter Name</label>
+                                    <input
+                                        type="text"
+                                        id="v_name"
+                                        name="name"
+                                        class="c-form-input"
+                                        placeholder="Vorname Nachname"
+                                        autocomplete="off"
+                                    >
                                 </div>
                                 <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           for="parzelle">Parzelle *</label>
-                                    <input type="text"
-                                           name="parzelle"
-                                           id="parzelle"
-                                           class="c-form-input js-pf-parzelle"
-                                           required
-                                           placeholder="0001"
-                                           autocomplete="off">
+                                    <label
+                                        class="c-form-label"
+                                        for="v_parzelle"
+                                    >Parzelle</label>
+                                    <input
+                                        type="text"
+                                        id="v_parzelle"
+                                        name="parzelle"
+                                        class="c-form-input js-pf-parzelle"
+                                        placeholder="0001"
+                                        autocomplete="off"
+                                    >
                                 </div>
                             </div>
 
                             <div class="c-form-group u-margin-block-end-m">
-                                <label class="c-form-label js-pf-label-kennzeichen"
-                                       id="label_kennzeichen"
-                                       for="kennzeichen">Amtl. Kennzeichen *</label>
-                                <input type="text"
-                                       name="kennzeichen"
-                                       id="kennzeichen"
-                                       class="c-form-input js-pf-kennzeichen"
-                                       required
-                                       placeholder="B-XX 123"
-                                       autocomplete="off">
-                            </div>
-
-                            <div class="c-form-group u-margin-block-end-m js-pf-firma-wrapper"
-                                 id="firma_wrapper"
-                                 hidden>
-                                <label class="c-form-label"
-                                       for="firma">Firma / Lieferant (Optional)</label>
-                                <input type="text"
-                                       id="firma"
-                                       name="firma"
-                                       class="c-form-input js-pf-firma"
-                                       placeholder="Firmenname"
-                                       autocomplete="off">
+                                <label
+                                    class="c-form-label"
+                                    for="v_kennzeichen"
+                                >Amtl. Kennzeichen</label>
+                                <input
+                                    type="text"
+                                    id="v_kennzeichen"
+                                    name="kennzeichen"
+                                    class="c-form-input js-pf-kennzeichen"
+                                    placeholder="B-XX 123"
+                                    autocomplete="off"
+                                >
                             </div>
 
                             <div class="o-grid o-grid--2-cols u-margin-block-end-m">
                                 <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           for="email">E-Mail (Optional)</label>
-                                    <input type="email"
-                                           id="email"
-                                           name="email"
-                                           class="c-form-input"
-                                           placeholder="mail@example.com"
-                                           autocomplete="off">
-                                    <small class="u-color-muted u-margin-block-start-xs u-display-block">
-                                        Wird für PDF-Versand benötigt.</small>
-                                </div>
-                                <div class="c-form-group">
-                                    <label class="c-form-label u-flex u-justify-between u-align-center"
-                                           for="zweck_select">
-                                        <span>Einfahrts-Grund *</span>
-                                        <!-- A11Y FIX: Natives Button-Element statt <span> für korrekte Tastaturnavigation -->
-                                        <button type="button"
-                                                class="u-text-link u-cursor-pointer js-pf-toggle-zweck"
-                                                id="toggle_zweck_btn"
-                                                style="background: transparent; border: none; font: inherit; padding: 0;">
-                                            <img src="<?php echo $asset->url('assets/img/icons/edit.webp'); ?>"
-                                                 class="c-icon"
-                                                 loading="lazy"
-                                                 alt=""> Manuell
-                                        </button>
-                                    </label>
-                                    <select name="zweck"
-                                            id="zweck_select"
-                                            class="c-form-select js-pf-zweck-select"
-                                            autocomplete="off">
-                                        <?php foreach ($standardPurposes as $val => $label) { ?>
-                                            <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($label); ?></option>
-                                        <?php } ?>
-                                    </select>
-
-                                    <!-- Manuelles Feld (inkl. Auto-Complete Historie) -->
-                                    <input type="text"
-                                           name="_unused_zweck"
-                                           id="zweck_manual"
-                                           class="c-form-input js-pf-zweck-manual"
-                                           hidden
-                                           placeholder="Eigener Grund..."
-                                           list="custom_purposes_list"
-                                           aria-label="Eigener Grund"
-                                           autocomplete="off">
-                                    <datalist id="custom_purposes_list">
-                                        <?php foreach ($customPurposes as $cp) { ?>
-                                            <option value="<?php echo \htmlspecialchars($cp); ?>"></option>
-                                        <?php } ?>
-                                    </datalist>
-                                </div>
-                            </div>
-
-                            <!-- Preis-Override & Submit -->
-                            <div class="c-box c-box--dashed u-margin-block-start-l">
-                                <div class="c-form-group u-margin-block-end-m">
-                                    <label class="c-form-label u-flex u-justify-between u-align-center"
-                                           for="preis_override">
-                                        <span>Sonderpreis (€)</span>
-                                        <span id="price-display" class="c-badge c-badge--primary u-font-mono u-text-sm js-pf-price-display">0,00 €</span>
-                                    </label>
-                                    <input type="number"
-                                           id="preis_override"
-                                           step="0.01"
-                                           name="preis"
-                                           class="c-form-input"
-                                           placeholder="Leer lassen für Standard"
-                                           autocomplete="off">
-                                    <small class="u-color-muted u-margin-block-start-xs u-display-block">
-                                        Nur ausfüllen für Preis-Abweichungen.</small>
-                                </div>
-
-                                <div class="c-box u-margin-block-end-m u-padding-around-s">
-                                    <label class="c-checkbox">
-                                        <input type="checkbox"
-                                               name="mark_as_paid"
-                                               value="1"
-                                               checked
-                                               class="c-checkbox__input">
-                                        <span class="c-checkbox__label">
-                                            <strong class="u-text-sm u-color-main u-display-block">
-                                                Sofort als "Bezahlt" markieren</strong>
-                                            <small class="u-color-muted u-margin-block-start-xs u-display-block">
-                                                Häkchen entfernen, falls z.B. noch überwiesen wird.</small>
-                                        </span>
-                                    </label>
-                                </div>
-
-                                <div
-                                     class="u-flex u-justify-between u-align-center u-border-block-start u-padding-block-start-m">
-                                    <div>
-                                        <label class="c-checkbox"
-                                               title="Soll dem Pächter eine PDF zugestellt werden?">
-                                            <input type="checkbox"
-                                                   name="send_email"
-                                                   value="1"
-                                                   checked
-                                                   class="c-checkbox__input">
-                                            <span class="c-checkbox__label u-font-bold u-text-sm u-color-main"
-                                                  style="margin-block-start: 2px;">PDF via E-Mail senden</span>
-                                        </label>
-                                        <div class="u-color-muted u-text-xs u-margin-block-start-s">* Pflichtfelder
-                                        </div>
-                                    </div>
-                                    <button type="submit"
-                                            class="c-button c-button--success">Ausstellen</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </section>
-            <?php } ?>
-
-            <!-- ========================================== -->
-            <!-- KARTE 2: GUTSCHEIN GENERIEREN              -->
-            <!-- ========================================== -->
-            <?php if ($auth->hasPermission('vouchers.create')) { ?>
-                <section class="c-card c-card--voucher u-margin-block-none u-flex-grow-1">
-                    <header class="c-card__header u-bg-light">
-                        <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
-                            <img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
-                                 class="c-icon"
-                                 loading="lazy"
-                                 alt=""> Gutscheincode generieren
-                        </h3>
-                        <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
-                            Erstellt Rabattcodes für das öffentliche Portal.</p>
-                    </header>
-                    <div class="c-card__body">
-                        <!-- Die Klasse js-permit-form wird hier ebenfalls genutzt für die Synchronisierung -->
-                        <form id="voucherCreateForm"
-                              method="POST"
-                              class="js-permit-form"
-                              action="<?php echo $settings['base_url']; ?>create_voucher">
-                            <input type="hidden"
-                                   name="csrf_token"
-                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-
-                            <div class="c-form-group u-margin-block-end-m">
-                                <label class="c-form-label"
-                                       for="v_template_key">Gültig für Vorlage *</label>
-                                <select name="template_key"
-                                        id="v_template_key"
-                                        class="c-form-select js-pf-template"
-                                        autocomplete="off">
-                                    <?php foreach ($allowedTemplates as $key => $tpl) { ?>
-                                        <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
-                                    <?php } ?>
-                                </select>
-                            </div>
-
-                            <div class="o-grid o-grid--2-cols u-margin-block-end-m">
-                                <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           for="v_type">Rabatt-Art *</label>
-                                    <select name="voucher_discount_type"
-                                            id="v_type"
-                                            class="c-form-select js-pf-voucher-type"
-                                            autocomplete="off">
-                                        <option value="free">100% Kostenlos</option>
-                                        <option value="percent">Prozentual (%)</option>
-                                        <option value="fixed">Festbetrag (€)</option>
-                                    </select>
-                                </div>
-                                <div class="c-form-group js-pf-voucher-value-wrap"
-                                     id="v_val_wrap"
-                                     hidden>
-                                    <label class="c-form-label"
-                                           for="v_val">Wert (Zahl) *</label>
-                                    <input type="number"
-                                           id="v_val"
-                                           step="0.01"
-                                           name="voucher_discount_value"
-                                           class="c-form-input"
-                                           value="0.00"
-                                           autocomplete="off">
-                                </div>
-                            </div>
-
-                            <div class="c-form-group u-margin-block-end-m">
-                                <label class="c-form-label"
-                                       for="v_reason">Interne Notiz / Grund * (Doppelklick öffnet
-                                    Schnellauswahl)</label>
-                                <input type="text"
-                                       id="v_reason"
-                                       name="reason"
-                                       list="reason_presets"
-                                       class="c-form-input"
-                                       required
-                                       placeholder="z.B. Ersatz oder Sommerfest"
-                                       autocomplete="off">
-                                <datalist id="reason_presets">
-                                    <?php foreach ($reasons as $r) {
-                                        echo "<option value='" . \htmlspecialchars($r) . "'>";
-                                    } ?>
-                                </datalist>
-                            </div>
-
-                            <div class="o-grid o-grid--2-cols u-margin-block-end-m">
-                                <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           for="v_custom_code">Eigener Code (Optional)</label>
-                                    <input type="text"
-                                           id="v_custom_code"
-                                           name="voucher_custom_code"
-                                           class="c-form-input u-text-uppercase"
-                                           placeholder="Z.B. EXTRA26"
-                                           autocomplete="off">
-                                </div>
-                                <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           for="v_expires_at">Ablaufdatum (Optional)</label>
-                                    <input type="datetime-local"
-                                           id="v_expires_at"
-                                           name="voucher_expires_at"
-                                           class="c-form-input"
-                                           autocomplete="off">
-                                </div>
-                            </div>
-
-                            <!-- Einklappbare Vorbefüllung (Prefill) -->
-                            <details class="c-box c-box--subtle u-margin-block-end-m">
-                                <summary class="u-cursor-pointer u-font-semibold u-color-primary">
-                                    <img src="<?php echo $asset->url('assets/img/icons/plus.webp'); ?>"
-                                         class="c-icon c-button__icon"
-                                         loading="lazy"
-                                         alt=""> Vorgaben für Pächter (Vorbefüllung)
-                                </summary>
-                                <div class="u-margin-block-start-m u-border-block-start u-padding-block-start-m">
-                                    <p class="u-color-muted u-text-sm u-margin-block-start-none u-margin-block-end-m">
-                                        Daten, die hier eingetragen werden, sind für den Pächter bei der Einlösung fest
-                                        vorgegeben und können von ihm nicht mehr geändert werden.</p>
-
-                                    <div class="c-form-group u-margin-block-end-m">
-                                        <label class="c-form-label">Zeitraum-Vorgabe *</label>
-                                        <div class="u-flex u-gap-m u-margin-block-start-xs">
-                                            <label class="c-checkbox">
-                                                <input type="radio"
-                                                       name="voucher_date_mode"
-                                                       value="fixed"
-                                                       checked
-                                                       class="c-checkbox__input">
-                                                <span class="c-checkbox__label"><strong>Fest</strong> (Erzwingt exakte Daten)</span>
-                                            </label>
-                                            <label class="c-checkbox">
-                                                <input type="radio"
-                                                       name="voucher_date_mode"
-                                                       value="flexible"
-                                                       class="c-checkbox__input">
-                                                <span class="c-checkbox__label"><strong>Offen</strong> (Pächter wählt selbst)</span>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div class="o-grid o-grid--2-cols u-margin-block-end-m">
-                                        <div class="c-form-group">
-                                            <label class="c-form-label"
-                                                   for="v_datum_von">Gültig von</label>
-                                            <input type="date"
-                                                   id="v_datum_von"
-                                                   name="datum_von"
-                                                   class="c-form-input js-pf-von"
-                                                   autocomplete="off">
-                                        </div>
-                                        <div class="c-form-group">
-                                            <label class="c-form-label"
-                                                   for="v_datum_bis">Gültig bis</label>
-                                            <input type="date"
-                                                   id="v_datum_bis"
-                                                   name="datum_bis"
-                                                   class="c-form-input js-pf-bis"
-                                                   autocomplete="off">
-                                        </div>
-                                    </div>
-
-                                    <div class="o-grid o-grid--2-1 u-margin-block-end-m">
-                                        <div class="c-form-group">
-                                            <label class="c-form-label"
-                                                   for="v_name">Pächter Name</label>
-                                            <input type="text"
-                                                   id="v_name"
-                                                   name="name"
-                                                   class="c-form-input"
-                                                   placeholder="Vorname Nachname"
-                                                   autocomplete="off">
-                                        </div>
-                                        <div class="c-form-group">
-                                            <label class="c-form-label"
-                                                   for="v_parzelle">Parzelle</label>
-                                            <input type="text"
-                                                   id="v_parzelle"
-                                                   name="parzelle"
-                                                   class="c-form-input js-pf-parzelle"
-                                                   placeholder="0001"
-                                                   autocomplete="off">
-                                        </div>
-                                    </div>
-
-                                    <div class="c-form-group u-margin-block-end-m">
-                                        <label class="c-form-label"
-                                               for="v_kennzeichen">Amtl. Kennzeichen</label>
-                                        <input type="text"
-                                               id="v_kennzeichen"
-                                               name="kennzeichen"
-                                               class="c-form-input js-pf-kennzeichen"
-                                               placeholder="B-XX 123"
-                                               autocomplete="off">
-                                    </div>
-
-                                    <div class="o-grid o-grid--2-cols u-margin-block-end-m">
-                                        <div class="c-form-group">
-                                            <label class="c-form-label"
-                                                   for="v_typ">Fahrzeugtyp</label>
-                                            <select id="v_typ"
-                                                    name="typ"
-                                                    class="c-form-select js-pf-typ"
-                                                    autocomplete="off">
-                                                <option value="">-- Nicht vorgeben --</option>
-                                                <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
+                                    <label
+                                        class="c-form-label"
+                                        for="v_typ"
+                                    >Fahrzeugtyp</label>
+                                    <select
+                                        id="v_typ"
+                                        name="typ"
+                                        class="c-form-select js-pf-typ"
+                                        autocomplete="off"
+                                    >
+                                        <option value="">-- Nicht vorgeben --</option>
+                                        <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
                                                     if (!($vData['active'] ?? true)) {
                                                         continue;
                                                     } ?>
-                                                    <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($vData['label']); ?></option>
-                                                <?php } ?>
-                                            </select>
-                                        </div>
-                                        <div class="c-form-group">
-                                            <label class="c-form-label"
-                                                   for="v_zweck">Einfahrts-Grund</label>
-                                            <select id="v_zweck"
-                                                    name="zweck"
-                                                    class="c-form-select"
-                                                    autocomplete="off">
-                                                <option value="">-- Nicht vorgeben --</option>
-                                                <?php foreach ($standardPurposes as $val => $label) { ?>
-                                                    <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($label); ?></option>
-                                                <?php } ?>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="c-form-group js-pf-firma-wrapper"
-                                         id="v_firma_wrapper"
-                                         hidden>
-                                        <label class="c-form-label"
-                                               for="v_firma">Firma / Lieferant</label>
-                                        <input type="text"
-                                               id="v_firma"
-                                               name="firma"
-                                               class="c-form-input js-pf-firma"
-                                               placeholder="Firmenname"
-                                               autocomplete="off">
-                                    </div>
+                                        <option value="<?php echo $val; ?>">
+                                            <?php echo \htmlspecialchars($vData['label']); ?></option>
+                                        <?php } ?>
+                                    </select>
                                 </div>
-                            </details>
-
-                            <!-- Abschluss Container -->
-                            <div class="c-box c-box--dashed">
-                                <div class="c-form-group u-margin-block-end-s">
-                                    <label class="c-checkbox">
-                                        <input type="checkbox"
-                                               name="voucher_multi_use"
-                                               id="v_multi"
-                                               class="c-checkbox__input js-pf-voucher-multi">
-                                        <span class="c-checkbox__label u-font-bold u-text-sm u-color-main"
-                                              style="margin-block-start: 2px;">Mehrfach einlösbar?</span>
-                                    </label>
-                                </div>
-                                <div class="c-form-group js-pf-voucher-max-wrap"
-                                     hidden
-                                     id="v_max_wrap">
-                                    <label class="c-form-label u-color-muted"
-                                           for="v_max_uses">Maximale Nutzungen *</label>
-                                    <input type="number"
-                                           id="v_max_uses"
-                                           name="voucher_max_uses"
-                                           class="c-form-input c-form-input--short"
-                                           value="10"
-                                           min="1"
-                                           autocomplete="off">
-                                </div>
-
-                                <div
-                                     class="u-flex u-justify-between u-align-center u-border-block-start u-padding-block-start-m u-margin-block-start-m">
-                                    <div class="u-color-muted u-text-xs">* Pflichtfelder</div>
-                                    <button type="submit"
-                                            class="c-button c-button--primary">
-                                        <img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
-                                             class="c-icon c-button__icon u-filter-invert"
-                                             loading="lazy"
-                                             alt=""> Code Generieren
-                                    </button>
+                                <div class="c-form-group">
+                                    <label
+                                        class="c-form-label"
+                                        for="v_zweck"
+                                    >Einfahrts-Grund</label>
+                                    <select
+                                        id="v_zweck"
+                                        name="zweck"
+                                        class="c-form-select"
+                                        autocomplete="off"
+                                    >
+                                        <option value="">-- Nicht vorgeben --</option>
+                                        <?php foreach ($standardPurposes as $val => $label) { ?>
+                                        <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($label); ?>
+                                        </option>
+                                        <?php } ?>
+                                    </select>
                                 </div>
                             </div>
-                        </form>
-                    </div>
-                </section>
-            <?php } ?>
 
-        </div>
+                            <div
+                                class="c-form-group js-pf-firma-wrapper"
+                                id="v_firma_wrapper"
+                                hidden
+                            >
+                                <label
+                                    class="c-form-label"
+                                    for="v_firma"
+                                >Firma / Lieferant</label>
+                                <input
+                                    type="text"
+                                    id="v_firma"
+                                    name="firma"
+                                    class="c-form-input js-pf-firma"
+                                    placeholder="Firmenname"
+                                    autocomplete="off"
+                                >
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Abschluss Container -->
+                    <div class="c-box c-box--dashed">
+                        <div class="c-form-group u-margin-block-end-s">
+                            <label class="c-checkbox">
+                                <input
+                                    type="checkbox"
+                                    name="voucher_multi_use"
+                                    id="v_multi"
+                                    class="c-checkbox__input js-pf-voucher-multi"
+                                >
+                                <span
+                                    class="c-checkbox__label u-font-bold u-text-sm u-color-main"
+                                    style="margin-block-start: 2px;"
+                                >Mehrfach einlösbar?</span>
+                            </label>
+                        </div>
+                        <div
+                            class="c-form-group js-pf-voucher-max-wrap"
+                            hidden
+                            id="v_max_wrap"
+                        >
+                            <label
+                                class="c-form-label u-color-muted"
+                                for="v_max_uses"
+                            >Maximale Nutzungen *</label>
+                            <input
+                                type="number"
+                                id="v_max_uses"
+                                name="voucher_max_uses"
+                                class="c-form-input c-form-input--short"
+                                value="10"
+                                min="1"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <div
+                            class="u-flex u-justify-between u-align-center u-border-block-start u-padding-block-start-m u-margin-block-start-m">
+                            <div class="u-color-muted u-text-xs">* Pflichtfelder</div>
+                            <button
+                                type="submit"
+                                class="c-button c-button--primary"
+                            >
+                                <img
+                                    src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
+                                    class="c-icon c-button__icon u-filter-invert"
+                                    loading="lazy"
+                                    alt=""
+                                > Code Generieren
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+        <?php } ?>
+
+    </div>
     <?php } ?>
 </div>
 

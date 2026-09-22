@@ -43,24 +43,42 @@ $currentPage = $path === '' ? 'admin' : $path;
             <div class="c-header-nav__brand">
                 <div class="c-user-pill">
                     <span class="u-font-bold u-text-sm u-flex u-align-center u-gap-s">
-                        <img src="<?php echo $userImgUrl; ?>" class="c-avatar c-avatar--xs" alt="User Avatar">
-                        <a href="profile" class="c-user-pill__link" title="Zum Profil">
+                        <img
+                            src="<?php echo $userImgUrl; ?>"
+                            class="c-avatar c-avatar--xs"
+                            alt="User Avatar"
+                        >
+                        <a
+                            href="profile"
+                            class="c-user-pill__link"
+                            title="Zum Profil"
+                        >
                             <?php echo \htmlspecialchars($auth->getUsername()); ?>
                         </a>
                     </span>
                     <div class="c-group-badge">
-                        <img src="<?php echo $asset->url('assets/img/icons/shield.webp'); ?>"
-                             class="c-icon"
-                             loading="lazy"
-                             alt="Role Icon">
+                        <img
+                            src="<?php echo $asset->url('assets/img/icons/shield.webp'); ?>"
+                            class="c-icon"
+                            loading="lazy"
+                            alt="Role Icon"
+                        >
                         <span class="c-group-badge__label"><?php echo \htmlspecialchars($roleName); ?></span>
                     </div>
                 </div>
 
                 <?php if ($auth->hasPermission('system.manage')) { ?>
-                    <a href="users" class="c-tabs__btn <?php echo $currentPage === 'users' ? 'is-active' : ''; ?>">
-                        <img src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Benutzer-Verwaltung
-                    </a>
+                <a
+                    href="users"
+                    class="c-tabs__btn <?php echo $currentPage === 'users' ? 'is-active' : ''; ?>"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    > Benutzer-Verwaltung
+                </a>
                 <?php } ?>
             </div>
 
@@ -68,42 +86,58 @@ $currentPage = $path === '' ? 'admin' : $path;
 
                 <!-- Der "Was ist neu" Button (Nur sichtbar wenn wir auf der Dashboard Action sind und Notes existieren) -->
                 <?php if (!empty($allReleaseNotes)) { ?>
-                    <button type="button"
-                            class="c-button c-button--secondary c-button--small js-show-all-release-notes">
-                        <img src="<?php echo $asset->url('assets/img/icons/rocket.webp'); ?>"
-                             class="c-icon c-button__icon"
-                             loading="lazy"
-                             alt=""> Was ist neu?
-                    </button>
+                <button
+                    type="button"
+                    class="c-button c-button--secondary c-button--small js-show-all-release-notes"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/rocket.webp'); ?>"
+                        class="c-icon c-button__icon"
+                        loading="lazy"
+                        alt=""
+                    > Was ist neu?
+                </button>
                 <?php } ?>
 
                 <!-- Theme Toggle Switch -->
-                <button type="button"
-                        class="c-theme-toggle js-theme-toggle"
-                        title="Design wechseln">
-                    <img src="<?php echo $asset->url('assets/img/icons/sun.webp'); ?>"
-                         class="c-icon c-theme-toggle__icon js-theme-icon"
-                         loading="lazy"
-                         alt="">
+                <button
+                    type="button"
+                    class="c-theme-toggle js-theme-toggle"
+                    title="Design wechseln"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/sun.webp'); ?>"
+                        class="c-icon c-theme-toggle__icon js-theme-icon"
+                        loading="lazy"
+                        alt=""
+                    >
                     <span class="js-theme-text">Light</span>
                 </button>
 
-                <div class="c-session-pill"
-                     title="Automatische Abmeldung bei Inaktivität">
-                    <img src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>"
-                         class="c-icon c-button__icon"
-                         loading="lazy"
-                         alt="">
+                <div
+                    class="c-session-pill"
+                    title="Automatische Abmeldung bei Inaktivität"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>"
+                        class="c-icon c-button__icon"
+                        loading="lazy"
+                        alt=""
+                    >
                     <span class="js-session-timer">20:00</span>
                 </div>
 
                 <!-- Logout -->
-                <button type="button"
-                        class="c-button c-button--small c-button--danger-outline js-session-logout">
-                    <img src="<?php echo $asset->url('assets/img/icons/error.webp'); ?>"
-                         class="c-icon c-button__icon"
-                         loading="lazy"
-                         alt=""> Abmelden
+                <button
+                    type="button"
+                    class="c-button c-button--small c-button--danger-outline js-session-logout"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/error.webp'); ?>"
+                        class="c-icon c-button__icon"
+                        loading="lazy"
+                        alt=""
+                    > Abmelden
                 </button>
             </div>
         </div>
@@ -111,26 +145,53 @@ $currentPage = $path === '' ? 'admin' : $path;
         <!-- ZEILE 2: Haupt-Navigation der App -->
         <div class="c-header-nav__bottom">
             <?php if ($auth->hasPermission('admin.access')) { ?>
-                <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'is-active' : ''; ?>">
-                    <img src="<?php echo $asset->url('assets/img/icons/stats.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Dashboard
-                </a>
+            <a
+                href="admin"
+                class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'is-active' : ''; ?>"
+            >
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/stats.webp'); ?>"
+                    class="c-icon c-tabs__icon"
+                    loading="lazy"
+                    alt=""
+                > Dashboard
+            </a>
             <?php } ?>
 
-            <a href="check" class="c-tabs__btn u-margin-inline-start-auto" target="_blank">
-                <img src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>" class="c-icon c-tabs__icon" loading="lazy" alt=""> Check
+            <a
+                href="check"
+                class="c-tabs__btn u-margin-inline-start-auto"
+                target="_blank"
+            >
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>"
+                    class="c-icon c-tabs__icon"
+                    loading="lazy"
+                    alt=""
+                > Check
             </a>
         </div>
     </div>
 </nav>
 
-<dialog id="session-warning-modal"
-        class="c-modal js-session-warning-modal"
-        aria-labelledby="session-warning-title"
-        aria-modal="true">
+<dialog
+    id="session-warning-modal"
+    class="c-modal js-session-warning-modal"
+    aria-labelledby="session-warning-title"
+    aria-modal="true"
+>
     <div class="c-modal__dialog">
-        <h3 id="session-warning-title" class="c-modal__title">
+        <h3
+            id="session-warning-title"
+            class="c-modal__title"
+        >
             <span class="u-text-xl">
-                <img src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>"
+                    class="c-icon c-button__icon"
+                    loading="lazy"
+                    alt=""
+                >
             </span> Inaktivität erkannt
         </h3>
         <p class="u-color-muted u-margin-block-start-s">Aus Sicherheitsgründen werden Sie in <br>
@@ -142,15 +203,21 @@ $currentPage = $path === '' ? 'admin' : $path;
             <button class="c-button c-button--success u-inline-size-100 js-session-stay">Bleiben</button>
 
             <!-- Button 2: Abmelden (Sicheres Formular) -->
-            <form method="POST"
-                  id="sessionLogoutForm"
-                  action="admin_logout"
-                  class="u-margin-block-none u-inline-size-100">
-                <input type="hidden"
-                       name="csrf_token"
-                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                <button type="submit"
-                        class="c-button c-button--danger u-inline-size-100 js-session-logout">Abmelden</button>
+            <form
+                method="POST"
+                id="sessionLogoutForm"
+                action="admin_logout"
+                class="u-margin-block-none u-inline-size-100"
+            >
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                >
+                <button
+                    type="submit"
+                    class="c-button c-button--danger u-inline-size-100 js-session-logout"
+                >Abmelden</button>
             </form>
         </div>
     </div>

@@ -24,10 +24,12 @@ $pageTitle = 'E-Mail bestätigen - ' . ($settings['vereins_name'] ?? ''); ?>
 <div class="c-tab-content-container o-container o-container--small u-padding-block-xl">
     <div class="c-card c-card--primary u-margin-inline-auto">
         <header class="c-card__header u-text-center">
-            <img src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
-                 class="c-icon c-icon--md"
-                 loading="lazy"
-                 alt="">
+            <img
+                src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
+                class="c-icon c-icon--md"
+                loading="lazy"
+                alt=""
+            >
             <h2 class="u-margin-block-none u-margin-block-start-s">E-Mail bestätigen</h2>
             <p class="u-text-muted u-margin-block-start-s">
                 Geben Sie den 6-stelligen Bestätigungscode aus Ihrer E-Mail ein, um den Antrag abzuschließen.</p>
@@ -36,36 +38,49 @@ $pageTitle = 'E-Mail bestätigen - ' . ($settings['vereins_name'] ?? ''); ?>
         <div class="c-card__body">
             <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
-            <form method="POST"
-                  id="verifyCodeForm"
-                  action="verify"
-                  class="c-form u-text-center">
-                <input type="hidden"
-                       name="csrf_token"
-                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+            <form
+                method="POST"
+                id="verifyCodeForm"
+                action="verify"
+                class="c-form u-text-center"
+            >
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                >
 
                 <div class="c-form-group">
-                    <label for="verification_code_input" class="u-visually-hidden">6-stelliger Bestätigungscode</label>
-                    <input type="text"
-                           id="verification_code_input"
-                           name="verification_code"
-                           aria-label="6-stelliger Bestätigungscode"
-                           class="c-form-input c-form-input--code u-text-center"
-                           placeholder="______"
-                           required
-                           autofocus
-                           maxlength="6"
-                           autocomplete="one-time-code">
+                    <label
+                        for="verification_code_input"
+                        class="u-visually-hidden"
+                    >6-stelliger Bestätigungscode</label>
+                    <input
+                        type="text"
+                        id="verification_code_input"
+                        name="verification_code"
+                        aria-label="6-stelliger Bestätigungscode"
+                        class="c-form-input c-form-input--code u-text-center"
+                        placeholder="______"
+                        required
+                        autofocus
+                        maxlength="6"
+                        autocomplete="one-time-code"
+                    >
                 </div>
 
-                <button type="submit"
-                        name="submit_code"
-                        class="c-button c-button--primary c-button--submit u-inline-size-100 u-margin-block-start-m">
+                <button
+                    type="submit"
+                    name="submit_code"
+                    class="c-button c-button--primary c-button--submit u-inline-size-100 u-margin-block-start-m"
+                >
                     Jetzt bestätigen
-                    <img src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
-                         class="c-icon c-button__icon"
-                         loading="lazy"
-                         alt="">
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
+                        class="c-icon c-button__icon"
+                        loading="lazy"
+                        alt=""
+                    >
                 </button>
             </form>
         </div>

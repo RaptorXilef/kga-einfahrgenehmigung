@@ -14,11 +14,15 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
     <title>Systemfehler - <?php echo $vereinsName; ?></title>
-    <link rel="stylesheet"
-          href="<?php echo $baseUrl; ?>assets/css/main.min.css">
+    <link
+        rel="stylesheet"
+        href="<?php echo $baseUrl; ?>assets/css/main.min.css"
+    >
 </head>
 
 <body class="l-public-body u-justify-center u-bg-light u-padding-block-l">
@@ -28,13 +32,16 @@
         <p class="u-color-main u-text-lg"><?php echo $errorMessage; ?></p>
 
         <?php if ($debugInfo !== '') { ?>
-            <div class="c-system-error__debug u-text-start u-margin-block-start-l">
-                <?php echo $debugInfo; ?>
-            </div>
-            <?php echo $requestState; ?>
+        <div class="c-system-error__debug u-text-start u-margin-block-start-l">
+            <?php echo $debugInfo; ?>
+        </div>
+        <?php echo $requestState; ?>
         <?php } ?>
 
-        <a href="<?php echo $baseUrl; ?>" class="c-button c-button--primary u-margin-block-start-l">Zur Startseite</a>
+        <a
+            href="<?php echo $baseUrl; ?>"
+            class="c-button c-button--primary u-margin-block-start-l"
+        >Zur Startseite</a>
     </div>
 </body>
 

@@ -26,10 +26,12 @@ $pageTitle = 'Genehmigung prüfen';
     <div class="c-card c-card--primary u-margin-inline-auto">
         <header class="c-card__header u-text-center">
             <h2 class="u-margin-block-none">
-                <img src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>"
-                     class="c-icon c-icon--md"
-                     loading="lazy"
-                     alt=""> Manuelle Prüfung
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>"
+                    class="c-icon c-icon--md"
+                    loading="lazy"
+                    alt=""
+                > Manuelle Prüfung
             </h2>
             <p class="u-text-muted u-margin-block-start-s">Geben Sie den vollständigen SmartCode ein.</p>
         </header>
@@ -37,24 +39,33 @@ $pageTitle = 'Genehmigung prüfen';
 
             <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
-            <form action="check"
-                  id="checkPermitForm"
-                  method="GET"
-                  class="c-form">
+            <form
+                action="check"
+                id="checkPermitForm"
+                method="GET"
+                class="c-form"
+            >
                 <div class="c-form-group u-margin-block-end-l">
-                    <label for="codeInput" class="u-visually-hidden">SmartCode Eingabe</label>
-                    <input type="text"
-                           id="codeInput"
-                           name="code"
-                           aria-label="SmartCode eingeben"
-                           class="c-form-input c-form-input--code u-text-center"
-                           placeholder="z.B. 6Y5C"
-                           required
-                           autofocus
-                           autocomplete="off">
+                    <label
+                        for="codeInput"
+                        class="u-visually-hidden"
+                    >SmartCode Eingabe</label>
+                    <input
+                        type="text"
+                        id="codeInput"
+                        name="code"
+                        aria-label="SmartCode eingeben"
+                        class="c-form-input c-form-input--code u-text-center"
+                        placeholder="z.B. 6Y5C"
+                        required
+                        autofocus
+                        autocomplete="off"
+                    >
                 </div>
-                <button type="submit"
-                        class="c-button c-button--primary c-button--submit u-inline-size-100">Code jetzt prüfen</button>
+                <button
+                    type="submit"
+                    class="c-button c-button--primary c-button--submit u-inline-size-100"
+                >Code jetzt prüfen</button>
             </form>
         </div>
     </div>

@@ -24,20 +24,21 @@ $pageTitle = ($legal['title'] ?? 'Datenschutz') . ' - ' . ($settings['vereins_na
 
         <div class="c-box c-box--accent u-margin-block-end-l">
             <p class="u-margin-block-none"><strong>Verantwortliche Stelle:</strong><br>
-                <?php echo \htmlspecialchars($legal['verantwortlich']['name']); ?>, <?php echo \htmlspecialchars($legal['verantwortlich']['adresse']); ?><br>
+                <?php echo \htmlspecialchars($legal['verantwortlich']['name']); ?>,
+                <?php echo \htmlspecialchars($legal['verantwortlich']['adresse']); ?><br>
                 E-Mail: <?php echo \htmlspecialchars($legal['verantwortlich']['email']); ?></p>
         </div>
 
         <div class="u-flex u-flex-column u-gap-l">
             <?php foreach ($legal['sections'] as $section) { ?>
-                <div class="c-document__section">
-                    <h3 class="c-document__subtitle u-margin-block-end-xs">
-                        <?php echo \htmlspecialchars($section['title']); ?>
-                    </h3>
-                    <p class="c-document__text">
-                        <?php echo \htmlspecialchars($section['text']); ?>
-                    </p>
-                </div>
+            <div class="c-document__section">
+                <h3 class="c-document__subtitle u-margin-block-end-xs">
+                    <?php echo \htmlspecialchars($section['title']); ?>
+                </h3>
+                <p class="c-document__text">
+                    <?php echo \htmlspecialchars($section['text']); ?>
+                </p>
+            </div>
             <?php } ?>
         </div>
 
@@ -47,7 +48,8 @@ $pageTitle = ($legal['title'] ?? 'Datenschutz') . ' - ' . ($settings['vereins_na
         <p class="c-document__text">
             Im Falle datenschutzrechtlicher Verstöße steht Ihnen ein Beschwerderecht bei der
             zuständigen Aufsichtsbehörde zu. Für Berlin ist dies:<br>
-            <strong><?php echo \htmlspecialchars($legal['aufsichtsbehoerde']['name']); ?></strong>, <?php echo \htmlspecialchars($legal['aufsichtsbehoerde']['adresse']); ?>
+            <strong><?php echo \htmlspecialchars($legal['aufsichtsbehoerde']['name']); ?></strong>,
+            <?php echo \htmlspecialchars($legal['aufsichtsbehoerde']['adresse']); ?>
         </p>
     </div>
 </div>

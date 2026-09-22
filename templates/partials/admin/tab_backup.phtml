@@ -41,230 +41,311 @@ $targets = [
 if ($auth->hasPermission('system.backup.manage')) {
     $ftpEnabled = $config->get('backup_settings')['ftp']['enabled'] ?? false;
     ?>
-    <div class="c-tab-content-container">
+<div class="c-tab-content-container">
 
-        <div class="u-margin-bottom-l">
-            <header class="u-margin-bottom-m u-flex u-align-center u-justify-between u-flex-wrap u-gap-m">
-                <div class="u-flex u-align-center u-gap-s">
-                    <span class="u-text-xl">
-                        <img src="<?php echo $asset->url('assets/img/icons/package.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
-                    </span>
-                    <div>
-                        <h3 class="u-margin-none">Manuelle Sicherung & Resets</h3>
-                        <p class="u-color-muted u-text-sm u-margin-none">Datenbank-Tabellen komprimiert sichern.</p>
-                    </div>
+    <div class="u-margin-bottom-l">
+        <header class="u-margin-bottom-m u-flex u-align-center u-justify-between u-flex-wrap u-gap-m">
+            <div class="u-flex u-align-center u-gap-s">
+                <span class="u-text-xl">
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/package.webp'); ?>"
+                        class="c-icon c-button__icon"
+                        loading="lazy"
+                        alt=""
+                    >
+                </span>
+                <div>
+                    <h3 class="u-margin-none">Manuelle Sicherung & Resets</h3>
+                    <p class="u-color-muted u-text-sm u-margin-none">Datenbank-Tabellen komprimiert sichern.</p>
                 </div>
-                <?php if ($ftpEnabled) { ?>
-                    <span class="c-badge c-badge--success"
-                          title="Backups werden zusätzlich auf einen externen Server gespiegelt.">
-                        <img src="<?php echo $asset->url('assets/img/icons/cloud.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt=""> FTP Offsite-Backup aktiv
-                    </span>
-                <?php } else { ?>
-                    <span class="c-badge c-badge--outline">
-                        <img src="<?php echo $asset->url('assets/img/icons/save.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt=""> Nur lokale Backups
-                    </span>
-                <?php } ?>
-            </header>
+            </div>
+            <?php if ($ftpEnabled) { ?>
+            <span
+                class="c-badge c-badge--success"
+                title="Backups werden zusätzlich auf einen externen Server gespiegelt."
+            >
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/cloud.webp'); ?>"
+                    class="c-icon c-button__icon"
+                    loading="lazy"
+                    alt=""
+                > FTP Offsite-Backup aktiv
+            </span>
+            <?php } else { ?>
+            <span class="c-badge c-badge--outline">
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/save.webp'); ?>"
+                    class="c-icon c-button__icon"
+                    loading="lazy"
+                    alt=""
+                > Nur lokale Backups
+            </span>
+            <?php } ?>
+        </header>
 
-            <div class="o-grid o-grid--auto-fit-lg">
-                <div class="c-card c-card--success u-flex-column u-margin-none">
-                    <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
-                        <h4 class="u-margin-none u-text-lg">
-                            <img src="<?php echo $asset->url('assets/img/icons/import.webp'); ?>"
-                                 class="c-icon c-button__icon"
-                                 loading="lazy"
-                                 alt=""> Backup anfertigen</h4>
-                    </div>
-                    <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
-                        <form method="POST"
-                              id="createBackupForm"
-                              action="<?php echo $settings['base_url']; ?>create_backup"
-                              class="u-margin-top-auto u-flex u-flex-column u-gap-s">
-                            <input type="hidden"
-                                   name="csrf_token"
-                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <label for="backupTargetSelect" class="u-visually-hidden">Zielauswahl</label>
-                            <select id="backupTargetSelect"
-                                    name="target"
-                                    class="c-form-select"
-                                    required>
-                                <?php foreach ($targets as $key => $data) { ?>
-                                    <option value="<?php echo $key; ?>"><?php echo $data['emoji'] . ' ' . $data['label']; ?></option>
-                                <?php } ?>
-                            </select>
-                            <button type="submit"
-                                    class="c-button c-button--success u-inline-size-100">ZIP-Archiv erstellen</button>
-                        </form>
-                    </div>
+        <div class="o-grid o-grid--auto-fit-lg">
+            <div class="c-card c-card--success u-flex-column u-margin-none">
+                <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
+                    <h4 class="u-margin-none u-text-lg">
+                        <img
+                            src="<?php echo $asset->url('assets/img/icons/import.webp'); ?>"
+                            class="c-icon c-button__icon"
+                            loading="lazy"
+                            alt=""
+                        > Backup anfertigen
+                    </h4>
                 </div>
+                <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
+                    <form
+                        method="POST"
+                        id="createBackupForm"
+                        action="<?php echo $settings['base_url']; ?>create_backup"
+                        class="u-margin-top-auto u-flex u-flex-column u-gap-s"
+                    >
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                        >
+                        <label
+                            for="backupTargetSelect"
+                            class="u-visually-hidden"
+                        >Zielauswahl</label>
+                        <select
+                            id="backupTargetSelect"
+                            name="target"
+                            class="c-form-select"
+                            required
+                        >
+                            <?php foreach ($targets as $key => $data) { ?>
+                            <option value="<?php echo $key; ?>"><?php echo $data['emoji'] . ' ' . $data['label']; ?>
+                            </option>
+                            <?php } ?>
+                        </select>
+                        <button
+                            type="submit"
+                            class="c-button c-button--success u-inline-size-100"
+                        >ZIP-Archiv erstellen</button>
+                    </form>
+                </div>
+            </div>
 
-                <div class="c-card c-card--danger u-flex-column u-margin-none">
-                    <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
-                        <h4 class="u-margin-none u-text-lg">
-                            <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
-                                 class="c-icon c-button__icon"
-                                 loading="lazy"
-                                 alt=""> Tabelle leeren (Truncate)
-                        </h4>
-                    </div>
-                    <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
-                        <form method="POST"
-                              id="truncateTargetForm"
-                              action="<?php echo $settings['base_url']; ?>truncate_target"
-                              data-confirm="WARNUNG: Die gewählten Daten werden unwiderruflich GELÖSCHT! Fortfahren?"
-                              class="u-margin-top-auto u-flex u-flex-column u-gap-s">
-                            <input type="hidden"
-                                   name="csrf_token"
-                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <label for="truncateTargetSelect" class="u-visually-hidden">Zieltabelle auswählen</label>
-                            <select id="truncateTargetSelect"
-                                    name="target"
-                                    class="c-form-select"
-                                    required>
-                                <option value="">Tabelle auswählen...</option>
-                                <?php foreach ($targets as $key => $data) {
+            <div class="c-card c-card--danger u-flex-column u-margin-none">
+                <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
+                    <h4 class="u-margin-none u-text-lg">
+                        <img
+                            src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
+                            class="c-icon c-button__icon"
+                            loading="lazy"
+                            alt=""
+                        > Tabelle leeren (Truncate)
+                    </h4>
+                </div>
+                <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
+                    <form
+                        method="POST"
+                        id="truncateTargetForm"
+                        action="<?php echo $settings['base_url']; ?>truncate_target"
+                        data-confirm="WARNUNG: Die gewählten Daten werden unwiderruflich GELÖSCHT! Fortfahren?"
+                        class="u-margin-top-auto u-flex u-flex-column u-gap-s"
+                    >
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                        >
+                        <label
+                            for="truncateTargetSelect"
+                            class="u-visually-hidden"
+                        >Zieltabelle auswählen</label>
+                        <select
+                            id="truncateTargetSelect"
+                            name="target"
+                            class="c-form-select"
+                            required
+                        >
+                            <option value="">Tabelle auswählen...</option>
+                            <?php foreach ($targets as $key => $data) {
                                     if ($key === 'all') {
                                         continue;
                                     } ?>
-                                    <option value="<?php echo $key; ?>"><?php echo $data['emoji'] . ' ' . $data['label']; ?></option>
-                                <?php } ?>
-                            </select>
-                            <button type="submit"
-                                    class="c-button c-button--danger u-inline-size-100">Endgültig Leeren</button>
-                        </form>
-                    </div>
+                            <option value="<?php echo $key; ?>"><?php echo $data['emoji'] . ' ' . $data['label']; ?>
+                            </option>
+                            <?php } ?>
+                        </select>
+                        <button
+                            type="submit"
+                            class="c-button c-button--danger u-inline-size-100"
+                        >Endgültig Leeren</button>
+                    </form>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="u-margin-top-xl">
-            <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
-                <span class="u-text-xl">
-                    <img src="<?php echo $asset->url('assets/img/icons/save.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
+    <div class="u-margin-top-xl">
+        <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
+            <span class="u-text-xl">
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/save.webp'); ?>"
+                    class="c-icon c-button__icon"
+                    loading="lazy"
+                    alt=""
+                >
+            </span>
+            <div>
+                <h3 class="u-margin-none">Verfügbare Backups zur Wiederherstellung</h3>
+                <p class="u-color-muted u-text-sm u-margin-none">Überschreiben oder ergänzen Sie Live-Tabellen mit
+                    Inhalten aus diesen Snapshots.</p>
+            </div>
+        </header>
+
+        <?php if (empty($backups)) { ?>
+        <div class="c-card c-card--primary">
+            <div class="c-card__body u-padding-around-l u-text-center u-color-muted">
+                <span class="u-text-2xl u-display-block u-margin-bottom-s">
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/package.webp'); ?>"
+                        class="c-icon c-button__icon"
+                        loading="lazy"
+                        alt=""
+                    >
                 </span>
-                <div>
-                    <h3 class="u-margin-none">Verfügbare Backups zur Wiederherstellung</h3>
-                    <p class="u-color-muted u-text-sm u-margin-none">Überschreiben oder ergänzen Sie Live-Tabellen mit
-                        Inhalten aus diesen Snapshots.</p>
-                </div>
-            </header>
-
-            <?php if (empty($backups)) { ?>
-                <div class="c-card c-card--primary">
-                    <div class="c-card__body u-padding-around-l u-text-center u-color-muted">
-                        <span class="u-text-2xl u-display-block u-margin-bottom-s">
-                            <img src="<?php echo $asset->url('assets/img/icons/package.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
-                        </span>
-                        Es sind noch keine ZIP-Archive vorhanden.
-                    </div>
-                </div>
-            <?php } else { ?>
-                <div class="o-grid o-grid--auto-fit-lg">
-                    <?php foreach ($backups as $index => $b) {
+                Es sind noch keine ZIP-Archive vorhanden.
+            </div>
+        </div>
+        <?php } else { ?>
+        <div class="o-grid o-grid--auto-fit-lg">
+            <?php foreach ($backups as $index => $b) {
                         $formattedDate = \date('d.m.Y — H:i:s', $b['date']);
                         $sizeMb = \round($b['size'] / 1024 / 1024, 2);
 
                         // Icon passend zum Backup Ziel laden
                         $targetIcon = $b['target'] === 'all' ? 'package.webp' : ($targets[$b['target']]['icon'] ?? 'document.webp');
                         ?>
-                        <div class="c-card c-card--primary u-flex-column u-margin-none">
-                            <div class="c-card__header u-flex u-justify-between u-align-center u-padding-around-m u-bg-light">
-                                <div>
-                                    <h4 class="u-margin-none u-text-lg"><?php echo $formattedDate; ?></h4>
-                                    <span class="u-color-muted u-text-sm"><?php echo \htmlspecialchars($b['filename']); ?> (<?php echo $sizeMb; ?> MB)</span>
-                                </div>
-                                <span class="c-badge c-badge--primary u-flex u-align-center">
-                                    <img src="<?php echo $asset->url('assets/img/icons/' . $targetIcon); ?>" class="c-icon c-icon--inline u-margin-inline-end-xs" alt="">
-                                    <?php echo $b['target'] === 'all' ? 'Voll-Backup' : 'Tabelle: ' . \htmlspecialchars($b['target']); ?>
-                                </span>
-                            </div>
-                            <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1 u-padding-around-m">
-
-                                <div class="u-flex u-flex-wrap u-gap-xs u-margin-bottom-m">
-                                    <?php foreach ($b['tables'] as $tbl) { ?>
-                                        <span class="c-badge c-badge--outline u-text-xs"><?php echo \htmlspecialchars($tbl); ?></span>
-                                    <?php } ?>
-                                </div>
-
-                                <form method="POST"
-                                      id="restoreForm_<?php echo $index; ?>"
-                                      action="<?php echo $settings['base_url']; ?>restore_data"
-                                      class="u-flex u-flex-column u-gap-s u-margin-top-auto">
-                                    <input type="hidden"
-                                           name="csrf_token"
-                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="filename"
-                                           value="<?php echo \htmlspecialchars($b['filename']); ?>">
-
-                                    <div class="c-box c-box--subtle u-margin-bottom-m">
-                                        <p class="u-margin-none u-margin-bottom-s u-font-bold u-text-sm">
-                                            Wiederherstellungs-Modus:</p>
-
-                                        <label class="c-checkbox u-margin-block-end-s">
-                                            <input type="radio"
-                                                   name="mode"
-                                                   value="1"
-                                                   checked
-                                                   class="c-checkbox__input">
-                                            <span class="c-checkbox__label">
-                                                <strong class="u-text-sm u-color-main u-display-block">
-                                                    1. Migrieren (Empfohlen)</strong>
-                                                <span class="u-text-xs u-color-muted u-display-block u-margin-block-start-xs">
-                                                    Aktualisiert Geändertes & füllt Lücken. Vorhandenes bleibt.</span>
-                                            </span>
-                                        </label>
-
-                                        <label class="c-checkbox u-margin-block-end-s">
-                                            <input type="radio"
-                                                   name="mode"
-                                                   value="2"
-                                                   class="c-checkbox__input">
-                                            <span class="c-checkbox__label">
-                                                <strong class="u-text-sm u-color-danger u-display-block">
-                                                    2. Exakte Kopie (Gefährlich)</strong>
-                                                <span class="u-text-xs u-color-muted u-display-block u-margin-block-start-xs">
-                                                    Löscht alle neueren Daten, die im Backup nicht existieren!</span>
-                                            </span>
-                                        </label>
-
-                                        <label class="c-checkbox">
-                                            <input type="radio"
-                                                   name="mode"
-                                                   value="3"
-                                                   class="c-checkbox__input">
-                                            <span class="c-checkbox__label">
-                                                <strong class="u-text-sm u-color-main u-display-block">
-                                                    3. Nur fehlende ergänzen</strong>
-                                                <span class="u-text-xs u-color-muted u-display-block u-margin-block-start-xs">
-                                                    Fügt nur hinzu, was komplett fehlt.</span>
-                                            </span>
-                                        </label>
-                                    </div>
-
-                                    <div class="u-flex u-gap-s">
-                                        <label for="restoreSelect_<?php echo $index; ?>" class="u-visually-hidden">Tabelle für Wiederherstellung</label>
-                                        <select id="restoreSelect_<?php echo $index; ?>"
-                                                name="target"
-                                                class="c-form-select u-flex-grow-1"
-                                                required>
-                                            <option value="all">Alle enthaltenen Tabellen</option>
-                                            <?php foreach ($b['tables'] as $tbl) { ?>
-                                                <option value="<?php echo \htmlspecialchars($tbl); ?>">Nur Tabelle: <?php echo \htmlspecialchars($tbl); ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <button type="submit"
-                                                class="c-button c-button--danger"
-                                                data-confirm-click="Wiederherstellung im gewählten Modus starten? Ein Sicherheits-Backup des aktuellen Zustands wird automatisch angefertigt.">
-                                            Restore
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    <?php } ?>
+            <div class="c-card c-card--primary u-flex-column u-margin-none">
+                <div class="c-card__header u-flex u-justify-between u-align-center u-padding-around-m u-bg-light">
+                    <div>
+                        <h4 class="u-margin-none u-text-lg"><?php echo $formattedDate; ?></h4>
+                        <span class="u-color-muted u-text-sm"><?php echo \htmlspecialchars($b['filename']); ?>
+                            (<?php echo $sizeMb; ?> MB)</span>
+                    </div>
+                    <span class="c-badge c-badge--primary u-flex u-align-center">
+                        <img
+                            src="<?php echo $asset->url('assets/img/icons/' . $targetIcon); ?>"
+                            class="c-icon c-icon--inline u-margin-inline-end-xs"
+                            alt=""
+                        >
+                        <?php echo $b['target'] === 'all' ? 'Voll-Backup' : 'Tabelle: ' . \htmlspecialchars($b['target']); ?>
+                    </span>
                 </div>
+                <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1 u-padding-around-m">
+
+                    <div class="u-flex u-flex-wrap u-gap-xs u-margin-bottom-m">
+                        <?php foreach ($b['tables'] as $tbl) { ?>
+                        <span class="c-badge c-badge--outline u-text-xs"><?php echo \htmlspecialchars($tbl); ?></span>
+                        <?php } ?>
+                    </div>
+
+                    <form
+                        method="POST"
+                        id="restoreForm_<?php echo $index; ?>"
+                        action="<?php echo $settings['base_url']; ?>restore_data"
+                        class="u-flex u-flex-column u-gap-s u-margin-top-auto"
+                    >
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                        >
+                        <input
+                            type="hidden"
+                            name="filename"
+                            value="<?php echo \htmlspecialchars($b['filename']); ?>"
+                        >
+
+                        <div class="c-box c-box--subtle u-margin-bottom-m">
+                            <p class="u-margin-none u-margin-bottom-s u-font-bold u-text-sm">
+                                Wiederherstellungs-Modus:</p>
+
+                            <label class="c-checkbox u-margin-block-end-s">
+                                <input
+                                    type="radio"
+                                    name="mode"
+                                    value="1"
+                                    checked
+                                    class="c-checkbox__input"
+                                >
+                                <span class="c-checkbox__label">
+                                    <strong class="u-text-sm u-color-main u-display-block">
+                                        1. Migrieren (Empfohlen)</strong>
+                                    <span class="u-text-xs u-color-muted u-display-block u-margin-block-start-xs">
+                                        Aktualisiert Geändertes & füllt Lücken. Vorhandenes bleibt.</span>
+                                </span>
+                            </label>
+
+                            <label class="c-checkbox u-margin-block-end-s">
+                                <input
+                                    type="radio"
+                                    name="mode"
+                                    value="2"
+                                    class="c-checkbox__input"
+                                >
+                                <span class="c-checkbox__label">
+                                    <strong class="u-text-sm u-color-danger u-display-block">
+                                        2. Exakte Kopie (Gefährlich)</strong>
+                                    <span class="u-text-xs u-color-muted u-display-block u-margin-block-start-xs">
+                                        Löscht alle neueren Daten, die im Backup nicht existieren!</span>
+                                </span>
+                            </label>
+
+                            <label class="c-checkbox">
+                                <input
+                                    type="radio"
+                                    name="mode"
+                                    value="3"
+                                    class="c-checkbox__input"
+                                >
+                                <span class="c-checkbox__label">
+                                    <strong class="u-text-sm u-color-main u-display-block">
+                                        3. Nur fehlende ergänzen</strong>
+                                    <span class="u-text-xs u-color-muted u-display-block u-margin-block-start-xs">
+                                        Fügt nur hinzu, was komplett fehlt.</span>
+                                </span>
+                            </label>
+                        </div>
+
+                        <div class="u-flex u-gap-s">
+                            <label
+                                for="restoreSelect_<?php echo $index; ?>"
+                                class="u-visually-hidden"
+                            >Tabelle für Wiederherstellung</label>
+                            <select
+                                id="restoreSelect_<?php echo $index; ?>"
+                                name="target"
+                                class="c-form-select u-flex-grow-1"
+                                required
+                            >
+                                <option value="all">Alle enthaltenen Tabellen</option>
+                                <?php foreach ($b['tables'] as $tbl) { ?>
+                                <option value="<?php echo \htmlspecialchars($tbl); ?>">Nur Tabelle:
+                                    <?php echo \htmlspecialchars($tbl); ?></option>
+                                <?php } ?>
+                            </select>
+                            <button
+                                type="submit"
+                                class="c-button c-button--danger"
+                                data-confirm-click="Wiederherstellung im gewählten Modus starten? Ein Sicherheits-Backup des aktuellen Zustands wird automatisch angefertigt."
+                            >
+                                Restore
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <?php } ?>
         </div>
+        <?php } ?>
     </div>
+</div>
 <?php } ?>

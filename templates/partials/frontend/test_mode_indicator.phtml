@@ -14,30 +14,34 @@ use App\Infrastructure\Config\Config;
  */
 ?>
 <?php if ($config->isTestMode()) { ?>
-    <div class="c-test-indicator">
-        <div class="o-container o-container--large c-test-indicator__content">
+<div class="c-test-indicator">
+    <div class="o-container o-container--large c-test-indicator__content">
 
-            <div class="c-test-indicator__badge">
-                <img src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>"
-                     class="c-icon"
-                     loading="lazy"
-                     alt=""> Test-System
-            </div>
-
-            <div class="c-test-indicator__text">
-                PayPal Sandbox aktiv &bull; Test-E-Mail:
-                <code class="c-test-indicator__code"><?php echo \htmlspecialchars($config->getMailSettings()['catch_all_recipient'] ?? 'test@example.com'); ?></code>
-            </div>
-
-            <?php if ($config->get('debug_mode', false) === true) { ?>
-                <div class="c-test-indicator__admin-badge">
-                    <img src="<?php echo $asset->url('assets/img/icons/tools.webp'); ?>"
-                         class="c-icon c-button__icon"
-                         loading="lazy"
-                         alt=""> Debug-Modus aktiv
-                </div>
-            <?php } ?>
-
+        <div class="c-test-indicator__badge">
+            <img
+                src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>"
+                class="c-icon"
+                loading="lazy"
+                alt=""
+            > Test-System
         </div>
+
+        <div class="c-test-indicator__text">
+            PayPal Sandbox aktiv &bull; Test-E-Mail:
+            <code class="c-test-indicator__code"><?php echo \htmlspecialchars($config->getMailSettings()['catch_all_recipient'] ?? 'test@example.com'); ?></code>
+        </div>
+
+        <?php if ($config->get('debug_mode', false) === true) { ?>
+        <div class="c-test-indicator__admin-badge">
+            <img
+                src="<?php echo $asset->url('assets/img/icons/tools.webp'); ?>"
+                class="c-icon c-button__icon"
+                loading="lazy"
+                alt=""
+            > Debug-Modus aktiv
+        </div>
+        <?php } ?>
+
     </div>
+</div>
 <?php } ?>

@@ -28,89 +28,97 @@ include $appRoot . '/templates/partials/admin/pagination.phtml';
 $paginationHtml = \ob_get_clean();
 ?>
 <?php if ($auth->hasPermission('permits.view')) { ?>
-    <div class="c-tab-content-container">
-        <section class="c-card c-card--danger">
-            <header class="c-card__header u-flex u-justify-between u-align-center">
-                <div>
-                    <h3 class="u-margin-block-none">
-                        <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
-                             class="c-icon"
-                             loading="lazy"
-                             alt=""> Stornierte Anträge
-                    </h3>
-                    <p class="u-color-muted u-text-sm u-margin-block-none">
-                        Übersicht aller durch Pächter zurückgezogenen Anträge (DSGVO-konform anonymisiert).</p>
-                </div>
-                <!-- FIX: Der Badge ist wieder da! -->
-                <span class="c-badge c-badge--danger">STORNIERT: <?php echo $totalCancelled; ?></span>
-            </header>
-
-            <?php echo $paginationHtml; ?>
-
-            <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
-                <table class="c-table js-sort-table u-inline-size-100">
-                    <thead>
-                        <tr>
-                            <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung</th>
-                            <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
-                            <th class="c-table__header-cell js-sort-header u-text-center">Zeitraum</th>
-                            <th class="c-table__header-cell js-sort-header u-text-end">Preis</th>
-                            <th class="c-table__header-cell js-sort-header u-text-end u-padding-inline-end-m">
-                                Stornierungsdatum</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (empty($cancelledPermitsDto)) { ?>
-                            <tr>
-                                <td colspan="5"
-                                    class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
-                                    Keine stornierten Genehmigungen vorhanden.
-                                </td>
-                            </tr>
-                        <?php } else { ?>
-                            <?php foreach ($cancelledPermitsDto as $permit) { ?>
-                                <tr class="u-hover-fade <?php echo $permit->rowClass; ?>">
-                                    <td class="c-table__data-cell">
-                                        <div class="u-flex u-flex-column">
-                                            <span class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->ownerName); ?></span>
-                                            <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs"><?php echo $permit->code; ?></code>
-                                        </div>
-                                    </td>
-                                    <td class="c-table__data-cell u-text-center">
-                                        <div>
-                                            <img src="<?php echo $asset->url($permit->vehicleIcon); ?>"
-                                                 class="c-icon c-icon--md u-grayscale u-opacity-50"
-                                                 loading="lazy"
-                                                 alt="">
-                                        </div>
-                                        <div class="u-margin-block-start-xs">
-                                            <span class="c-license-plate u-opacity-50"><?php echo \htmlspecialchars($permit->licensePlate); ?></span>
-                                        </div>
-                                    </td>
-                                    <td class="c-table__data-cell u-text-center u-text-nowrap">
-                                        <div class="u-flex u-flex-column u-gap-xs">
-                                            <small class="u-color-muted">
-                                                <?php echo $permit->validFromDate; ?> -<br>
-                                                <?php echo $permit->validUntilDate; ?>
-                                            </small>
-                                        </div>
-                                    </td>
-                                    <td class="c-table__data-cell u-text-end u-text-nowrap">
-                                        <strong class="u-color-dark"><?php echo $permit->priceFormatted; ?></strong>
-                                    </td>
-                                    <td class="c-table__data-cell u-text-end u-text-nowrap u-padding-inline-end-m">
-                                        <strong class="u-color-danger"><?php echo $permit->createdAtDate; ?></strong><br>
-                                        <small class="u-color-muted"><?php echo $permit->createdAtTime; ?></small>
-                                    </td>
-                                </tr>
-                            <?php } ?>
-                        <?php } ?>
-                    </tbody>
-                </table>
+<div class="c-tab-content-container">
+    <section class="c-card c-card--danger">
+        <header class="c-card__header u-flex u-justify-between u-align-center">
+            <div>
+                <h3 class="u-margin-block-none">
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
+                        class="c-icon"
+                        loading="lazy"
+                        alt=""
+                    > Stornierte Anträge
+                </h3>
+                <p class="u-color-muted u-text-sm u-margin-block-none">
+                    Übersicht aller durch Pächter zurückgezogenen Anträge (DSGVO-konform anonymisiert).</p>
             </div>
+            <!-- FIX: Der Badge ist wieder da! -->
+            <span class="c-badge c-badge--danger">STORNIERT: <?php echo $totalCancelled; ?></span>
+        </header>
 
-            <?php echo $paginationHtml; ?>
+        <?php echo $paginationHtml; ?>
 
-        </section>
-    </div>
+        <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
+            <table class="c-table js-sort-table u-inline-size-100">
+                <thead>
+                    <tr>
+                        <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung</th>
+                        <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
+                        <th class="c-table__header-cell js-sort-header u-text-center">Zeitraum</th>
+                        <th class="c-table__header-cell js-sort-header u-text-end">Preis</th>
+                        <th class="c-table__header-cell js-sort-header u-text-end u-padding-inline-end-m">
+                            Stornierungsdatum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($cancelledPermitsDto)) { ?>
+                    <tr>
+                        <td
+                            colspan="5"
+                            class="c-table__data-cell u-text-center u-padding-around-l u-color-muted"
+                        >
+                            Keine stornierten Genehmigungen vorhanden.
+                        </td>
+                    </tr>
+                    <?php } else { ?>
+                    <?php foreach ($cancelledPermitsDto as $permit) { ?>
+                    <tr class="u-hover-fade <?php echo $permit->rowClass; ?>">
+                        <td class="c-table__data-cell">
+                            <div class="u-flex u-flex-column">
+                                <span
+                                    class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->ownerName); ?></span>
+                                <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs"><?php echo $permit->code; ?></code>
+                            </div>
+                        </td>
+                        <td class="c-table__data-cell u-text-center">
+                            <div>
+                                <img
+                                    src="<?php echo $asset->url($permit->vehicleIcon); ?>"
+                                    class="c-icon c-icon--md u-grayscale u-opacity-50"
+                                    loading="lazy"
+                                    alt=""
+                                >
+                            </div>
+                            <div class="u-margin-block-start-xs">
+                                <span
+                                    class="c-license-plate u-opacity-50"><?php echo \htmlspecialchars($permit->licensePlate); ?></span>
+                            </div>
+                        </td>
+                        <td class="c-table__data-cell u-text-center u-text-nowrap">
+                            <div class="u-flex u-flex-column u-gap-xs">
+                                <small class="u-color-muted">
+                                    <?php echo $permit->validFromDate; ?> -<br>
+                                    <?php echo $permit->validUntilDate; ?>
+                                </small>
+                            </div>
+                        </td>
+                        <td class="c-table__data-cell u-text-end u-text-nowrap">
+                            <strong class="u-color-dark"><?php echo $permit->priceFormatted; ?></strong>
+                        </td>
+                        <td class="c-table__data-cell u-text-end u-text-nowrap u-padding-inline-end-m">
+                            <strong class="u-color-danger"><?php echo $permit->createdAtDate; ?></strong><br>
+                            <small class="u-color-muted"><?php echo $permit->createdAtTime; ?></small>
+                        </td>
+                    </tr>
+                    <?php } ?>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+
+        <?php echo $paginationHtml; ?>
+
+    </section>
+</div>
 <?php } ?>

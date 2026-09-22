@@ -32,52 +32,72 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'user.webp');
         <header class="u-flex u-justify-between u-align-end u-margin-block-end-l">
             <div>
                 <h1 class="u-margin-none u-text-start">
-                    <img src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>"
-                         class="c-icon c-icon--md"
-                         loading="lazy"
-                         alt="">
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>"
+                        class="c-icon c-icon--md"
+                        loading="lazy"
+                        alt=""
+                    >
                     Mein Profil
                 </h1>
                 <p class="u-color-muted">Verwalten Sie Ihre persönlichen Einstellungen und Sicherheit.</p>
             </div>
-            <a href="admin" class="c-button c-button--secondary">← Zum Dashboard</a>
+            <a
+                href="admin"
+                class="c-button c-button--secondary"
+            >← Zum Dashboard</a>
         </header>
 
         <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
         <div class="o-grid o-grid--auto-fit-lg u-gap-l u-align-start">
             <aside class="u-flex-grow-1">
-                <form method="POST"
-                      id="profileAvatarForm"
-                      action="<?php echo $settings['base_url']; ?>change_own_avatar"
-                      enctype="multipart/form-data"
-                      class="c-card c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-around-l">
-                    <input type="hidden"
-                           name="csrf_token"
-                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                <form
+                    method="POST"
+                    id="profileAvatarForm"
+                    action="<?php echo $settings['base_url']; ?>change_own_avatar"
+                    enctype="multipart/form-data"
+                    class="c-card c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-around-l"
+                >
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                    >
 
                     <div
-                         class="c-avatar-dropzone c-avatar-dropzone--large u-margin-inline-auto u-margin-block-end-m u-position-relative">
-                        <img src="<?php echo $userImage; ?>"
-                             class="c-avatar c-avatar--xl js-preview-img"
-                             loading="lazy"
-                             alt="">
+                        class="c-avatar-dropzone c-avatar-dropzone--large u-margin-inline-auto u-margin-block-end-m u-position-relative">
+                        <img
+                            src="<?php echo $userImage; ?>"
+                            class="c-avatar c-avatar--xl js-preview-img"
+                            loading="lazy"
+                            alt=""
+                        >
                         <div class="c-dropzone__overlay u-border-radius-circle">Foto ablegen</div>
                     </div>
 
-                    <label for="avatar-input" class="u-visually-hidden">Avatar auswählen</label>
-                    <input type="file"
-                           name="avatar"
-                           id="avatar-input"
-                           class="u-hidden"
-                           accept="image/*">
-                    <button type="button"
-                            class="c-button c-button--primary u-inline-size-100 js-trigger-click"
-                            data-target="#avatar-input">
-                        <img src="<?php echo $asset->url('assets/img/icons/camera.webp'); ?>"
-                             class="c-icon c-button__icon"
-                             loading="lazy"
-                             alt=""> Bild ändern
+                    <label
+                        for="avatar-input"
+                        class="u-visually-hidden"
+                    >Avatar auswählen</label>
+                    <input
+                        type="file"
+                        name="avatar"
+                        id="avatar-input"
+                        class="u-hidden"
+                        accept="image/*"
+                    >
+                    <button
+                        type="button"
+                        class="c-button c-button--primary u-inline-size-100 js-trigger-click"
+                        data-target="#avatar-input"
+                    >
+                        <img
+                            src="<?php echo $asset->url('assets/img/icons/camera.webp'); ?>"
+                            class="c-icon c-button__icon"
+                            loading="lazy"
+                            alt=""
+                        > Bild ändern
                     </button>
 
                     <div class="u-border-block-start u-margin-block-start-l u-padding-block-start-m">
@@ -100,27 +120,37 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'user.webp');
                         <h3 class="u-margin-none">Anmeldedaten</h3>
                     </header>
                     <div class="c-card__body">
-                        <form method="POST"
-                              id="profileUsernameForm"
-                              action="<?php echo $settings['base_url']; ?>change_own_username"
-                              class="o-grid o-grid--auto-right u-gap-m">
-                            <input type="hidden"
-                                   name="csrf_token"
-                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                        <form
+                            method="POST"
+                            id="profileUsernameForm"
+                            action="<?php echo $settings['base_url']; ?>change_own_username"
+                            class="o-grid o-grid--auto-right u-gap-m"
+                        >
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                            >
                             <div class="c-form-group">
-                                <label class="c-form-label"
-                                       for="profile_username">Anzeigename / Login</label>
-                                <input type="text"
-                                       id="profile_username"
-                                       name="new_username"
-                                       class="c-form-input"
-                                       value="<?php echo \htmlspecialchars($username); ?>"
-                                       required
-                                       autocomplete="username">
+                                <label
+                                    class="c-form-label"
+                                    for="profile_username"
+                                >Anzeigename / Login</label>
+                                <input
+                                    type="text"
+                                    id="profile_username"
+                                    name="new_username"
+                                    class="c-form-input"
+                                    value="<?php echo \htmlspecialchars($username); ?>"
+                                    required
+                                    autocomplete="username"
+                                >
                             </div>
                             <div class="u-flex u-align-end">
-                                <button type="submit"
-                                        class="c-button c-button--primary c-button--submit">Speichern</button>
+                                <button
+                                    type="submit"
+                                    class="c-button c-button--primary c-button--submit"
+                                >Speichern</button>
                             </div>
                         </form>
                     </div>
@@ -131,55 +161,73 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'user.webp');
                         <h3 class="u-margin-none">Sicherheit & Passwort</h3>
                     </header>
                     <div class="c-card__body">
-                        <form method="POST"
-                              id="profilePasswordForm"
-                              action="<?php echo $settings['base_url']; ?>change_own_password"
-                              class="u-flex u-flex-column u-gap-m">
-                            <input type="hidden"
-                                   name="csrf_token"
-                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                        <form
+                            method="POST"
+                            id="profilePasswordForm"
+                            action="<?php echo $settings['base_url']; ?>change_own_password"
+                            class="u-flex u-flex-column u-gap-m"
+                        >
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                            >
                             <div class="c-form-group">
-                                <label class="c-form-label"
-                                       for="old_password">Aktuelles Passwort</label>
-                                <input type="password"
-                                       id="old_password"
-                                       name="old_password"
-                                       class="c-form-input"
-                                       required
-                                       placeholder="••••••••"
-                                       autocomplete="current-password">
+                                <label
+                                    class="c-form-label"
+                                    for="old_password"
+                                >Aktuelles Passwort</label>
+                                <input
+                                    type="password"
+                                    id="old_password"
+                                    name="old_password"
+                                    class="c-form-input"
+                                    required
+                                    placeholder="••••••••"
+                                    autocomplete="current-password"
+                                >
                             </div>
 
                             <div class="u-border-block-start u-inline-size-100 u-margin-block-none"></div>
 
                             <div class="o-grid o-grid--2-cols u-gap-m">
                                 <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           for="new_password">Neues Passwort</label>
-                                    <input type="password"
-                                           id="new_password"
-                                           name="new_password"
-                                           class="c-form-input"
-                                           required
-                                           minlength="8"
-                                           placeholder="Mind. 8 Zeichen"
-                                           autocomplete="new-password">
+                                    <label
+                                        class="c-form-label"
+                                        for="new_password"
+                                    >Neues Passwort</label>
+                                    <input
+                                        type="password"
+                                        id="new_password"
+                                        name="new_password"
+                                        class="c-form-input"
+                                        required
+                                        minlength="8"
+                                        placeholder="Mind. 8 Zeichen"
+                                        autocomplete="new-password"
+                                    >
                                 </div>
                                 <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           for="confirm_password">Wiederholen</label>
-                                    <input type="password"
-                                           id="confirm_password"
-                                           name="confirm_password"
-                                           class="c-form-input"
-                                           required
-                                           minlength="8"
-                                           placeholder="Bestätigen"
-                                           autocomplete="new-password">
+                                    <label
+                                        class="c-form-label"
+                                        for="confirm_password"
+                                    >Wiederholen</label>
+                                    <input
+                                        type="password"
+                                        id="confirm_password"
+                                        name="confirm_password"
+                                        class="c-form-input"
+                                        required
+                                        minlength="8"
+                                        placeholder="Bestätigen"
+                                        autocomplete="new-password"
+                                    >
                                 </div>
                             </div>
-                            <button type="submit"
-                                    class="c-button c-button--danger u-margin-block-start-s c-button--submit">
+                            <button
+                                type="submit"
+                                class="c-button c-button--danger u-margin-block-start-s c-button--submit"
+                            >
                                 Passwort sicher aktualisieren
                             </button>
                         </form>

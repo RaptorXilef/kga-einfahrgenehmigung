@@ -42,386 +42,483 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
     <div class="u-inline-size-100">
         <!-- 1. NAVIGATION (TABS) -->
         <div class="c-tabs">
-            <div class="c-tabs__nav u-margin-block-end-l"
-                 role="tablist"
-                 aria-label="Dashboard Ansichten">
+            <div
+                class="c-tabs__nav u-margin-block-end-l"
+                role="tablist"
+                aria-label="Dashboard Ansichten"
+            >
                 <?php if ($auth->hasPermission('permits.view')) { ?>
-                    <button class="c-tabs__btn <?php echo $isActive('tab-active'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-active'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-active'); ?>"
-                            aria-controls="tab-active"
-                            id="btn-tab-active"
-                            data-tab-target="tab-active">
-                        <img src="<?php echo $asset->url('assets/img/icons/active.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt="">
-                        Aktiv
-                        <span class="c-badge c-badge--primary c-badge--small u-margin-inline-start-xs"><?php echo $totalActive ?? 0; ?></span>
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-active'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-active'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-active'); ?>"
+                    aria-controls="tab-active"
+                    id="btn-tab-active"
+                    data-tab-target="tab-active"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/active.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    >
+                    Aktiv
+                    <span
+                        class="c-badge c-badge--primary c-badge--small u-margin-inline-start-xs"><?php echo $totalActive ?? 0; ?></span>
+                </button>
 
-                    <button class="c-tabs__btn <?php echo $isActive('tab-future'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-future'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-future'); ?>"
-                            aria-controls="tab-future"
-                            id="btn-tab-future"
-                            data-tab-target="tab-future">
-                        <img src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt="">
-                        Zukünftig
-                        <span class="c-badge c-badge--primary c-badge--small u-margin-inline-start-xs"><?php echo $totalFuture ?? 0; ?></span>
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-future'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-future'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-future'); ?>"
+                    aria-controls="tab-future"
+                    id="btn-tab-future"
+                    data-tab-target="tab-future"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    >
+                    Zukünftig
+                    <span
+                        class="c-badge c-badge--primary c-badge--small u-margin-inline-start-xs"><?php echo $totalFuture ?? 0; ?></span>
+                </button>
 
-                    <button class="c-tabs__btn <?php echo $isActive('tab-expired'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-expired'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-expired'); ?>"
-                            aria-controls="tab-expired"
-                            id="btn-tab-expired"
-                            data-tab-target="tab-expired">
-                        <img src="<?php echo $asset->url('assets/img/icons/expired.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt="">
-                        Abgelaufen
-                        <span class="c-badge c-badge--outline c-badge--small u-margin-inline-start-xs"><?php echo $totalExpired ?? 0; ?></span>
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-expired'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-expired'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-expired'); ?>"
+                    aria-controls="tab-expired"
+                    id="btn-tab-expired"
+                    data-tab-target="tab-expired"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/expired.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    >
+                    Abgelaufen
+                    <span
+                        class="c-badge c-badge--outline c-badge--small u-margin-inline-start-xs"><?php echo $totalExpired ?? 0; ?></span>
+                </button>
 
-                    <button class="c-tabs__btn <?php echo $isActive('tab-cancelled'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-cancelled'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-cancelled'); ?>"
-                            aria-controls="tab-cancelled"
-                            id="btn-tab-cancelled"
-                            data-tab-target="tab-cancelled">
-                        <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt="">
-                        Storniert
-                        <span class="c-badge c-badge--danger c-badge--small u-margin-inline-start-xs"><?php echo $totalCancelled ?? 0; ?></span>
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-cancelled'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-cancelled'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-cancelled'); ?>"
+                    aria-controls="tab-cancelled"
+                    id="btn-tab-cancelled"
+                    data-tab-target="tab-cancelled"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    >
+                    Storniert
+                    <span
+                        class="c-badge c-badge--danger c-badge--small u-margin-inline-start-xs"><?php echo $totalCancelled ?? 0; ?></span>
+                </button>
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('stats.ranking')) { ?>
-                    <button class="c-tabs__btn <?php echo $isActive('tab-ranking'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-ranking'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-ranking'); ?>"
-                            aria-controls="tab-ranking"
-                            id="btn-tab-ranking"
-                            data-tab-target="tab-ranking">
-                        <img src="<?php echo $asset->url('assets/img/icons/ranking.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt=""> Ranking
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-ranking'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-ranking'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-ranking'); ?>"
+                    aria-controls="tab-ranking"
+                    id="btn-tab-ranking"
+                    data-tab-target="tab-ranking"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/ranking.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    > Ranking
+                </button>
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('finance.view')) { ?>
-                    <button class="c-tabs__btn <?php echo $isActive('tab-finance'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-finance'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-finance'); ?>"
-                            aria-controls="tab-finance"
-                            id="btn-tab-finance"
-                            data-tab-target="tab-finance">
-                        <img src="<?php echo $asset->url('assets/img/icons/finance.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt=""> Finanzen
-                        <?php if (($totalUnpaid ?? 0) > 0) { ?>
-                            <span class="c-badge c-badge--danger c-badge--small u-margin-inline-start-xs"><?php echo $totalUnpaid; ?></span>
-                        <?php } ?>
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-finance'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-finance'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-finance'); ?>"
+                    aria-controls="tab-finance"
+                    id="btn-tab-finance"
+                    data-tab-target="tab-finance"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/finance.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    > Finanzen
+                    <?php if (($totalUnpaid ?? 0) > 0) { ?>
+                    <span
+                        class="c-badge c-badge--danger c-badge--small u-margin-inline-start-xs"><?php echo $totalUnpaid; ?></span>
+                    <?php } ?>
+                </button>
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('stats.view')) { ?>
-                    <button class="c-tabs__btn <?php echo $isActive('tab-stats'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-stats'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-stats'); ?>"
-                            aria-controls="tab-stats"
-                            id="btn-tab-stats"
-                            data-tab-target="tab-stats">
-                        <img src="<?php echo $asset->url('assets/img/icons/stats.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt=""> Statistiken
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-stats'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-stats'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-stats'); ?>"
+                    aria-controls="tab-stats"
+                    id="btn-tab-stats"
+                    data-tab-target="tab-stats"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/stats.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    > Statistiken
+                </button>
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('finance.bank_import')) { ?>
-                    <button class="c-tabs__btn <?php echo $isActive('tab-bank-import'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-bank-import'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-bank-import'); ?>"
-                            aria-controls="tab-bank-import"
-                            id="btn-tab-bank-import"
-                            data-tab-target="tab-bank-import">
-                        <img src="<?php echo $asset->url('assets/img/icons/bank.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt=""> Bank-Abgleich
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-bank-import'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-bank-import'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-bank-import'); ?>"
+                    aria-controls="tab-bank-import"
+                    id="btn-tab-bank-import"
+                    data-tab-target="tab-bank-import"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/bank.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    > Bank-Abgleich
+                </button>
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('finance.export')) { ?>
-                    <button class="c-tabs__btn <?php echo $isActive('tab-export'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-export'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-export'); ?>"
-                            aria-controls="tab-export"
-                            id="btn-tab-export"
-                            data-tab-target="tab-export">
-                        <img src="<?php echo $asset->url('assets/img/icons/export.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt=""> Daten & Export
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-export'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-export'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-export'); ?>"
+                    aria-controls="tab-export"
+                    id="btn-tab-export"
+                    data-tab-target="tab-export"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/export.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    > Daten & Export
+                </button>
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('permits.create') || $auth->hasPermission('vouchers.create')) { ?>
-                    <button class="c-tabs__btn <?php echo $isActive('tab-tools'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-tools'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-tools'); ?>"
-                            aria-controls="tab-tools"
-                            id="btn-tab-tools"
-                            data-tab-target="tab-tools">
-                        <img src="<?php echo $asset->url('assets/img/icons/create.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt=""> Ausstellung
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-tools'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-tools'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-tools'); ?>"
+                    aria-controls="tab-tools"
+                    id="btn-tab-tools"
+                    data-tab-target="tab-tools"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/create.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    > Ausstellung
+                </button>
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('vouchers.view')) { ?>
-                    <button class="c-tabs__btn <?php echo $isActive('tab-vouchers'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-vouchers'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-vouchers'); ?>"
-                            aria-controls="tab-vouchers"
-                            id="btn-tab-vouchers"
-                            data-tab-target="tab-vouchers">
-                        <img src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt=""> Gutscheincodes
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-vouchers'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-vouchers'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-vouchers'); ?>"
+                    aria-controls="tab-vouchers"
+                    id="btn-tab-vouchers"
+                    data-tab-target="tab-vouchers"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    > Gutscheincodes
+                </button>
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('system.logs.view')) { ?>
-                    <button class="c-tabs__btn <?php echo $isActive('tab-logs'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-logs'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-logs'); ?>"
-                            aria-controls="tab-logs"
-                            id="btn-tab-logs"
-                            data-tab-target="tab-logs">
-                        <img src="<?php echo $asset->url('assets/img/icons/logs.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt=""> Mail Log
-                    </button>
-                    <button class="c-tabs__btn <?php echo $isActive('tab-audit-log'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-audit-log'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-audit-log'); ?>"
-                            aria-controls="tab-audit-log"
-                            id="btn-tab-audit-log"
-                            data-tab-target="tab-audit-log">
-                        <img src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt=""> Audit-Log
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-logs'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-logs'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-logs'); ?>"
+                    aria-controls="tab-logs"
+                    id="btn-tab-logs"
+                    data-tab-target="tab-logs"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/logs.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    > Mail Log
+                </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-audit-log'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-audit-log'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-audit-log'); ?>"
+                    aria-controls="tab-audit-log"
+                    id="btn-tab-audit-log"
+                    data-tab-target="tab-audit-log"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    > Audit-Log
+                </button>
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('system.update.execute')) { ?>
-                    <button class="c-tabs__btn <?php echo $isActive('tab-system'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-system'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-system'); ?>"
-                            aria-controls="tab-system"
-                            id="btn-tab-system"
-                            data-tab-target="tab-system">
-                        <img src="<?php echo $asset->url('assets/img/icons/maintenance.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt=""> System
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-system'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-system'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-system'); ?>"
+                    aria-controls="tab-system"
+                    id="btn-tab-system"
+                    data-tab-target="tab-system"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/maintenance.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    > System
+                </button>
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('system.backup.manage')) { ?>
-                    <button class="c-tabs__btn <?php echo $isActive('tab-backup'); ?>"
-                            role="tab"
-                            aria-selected="<?php echo $ariaSelected('tab-backup'); ?>"
-                            tabindex="<?php echo $tabIndex('tab-backup'); ?>"
-                            aria-controls="tab-backup"
-                            id="btn-tab-backup"
-                            data-tab-target="tab-backup">
-                        <img src="<?php echo $asset->url('assets/img/icons/inbox.webp'); ?>"
-                             class="c-icon c-tabs__icon"
-                             loading="lazy"
-                             alt=""> Backups
-                    </button>
+                <button
+                    class="c-tabs__btn <?php echo $isActive('tab-backup'); ?>"
+                    role="tab"
+                    aria-selected="<?php echo $ariaSelected('tab-backup'); ?>"
+                    tabindex="<?php echo $tabIndex('tab-backup'); ?>"
+                    aria-controls="tab-backup"
+                    id="btn-tab-backup"
+                    data-tab-target="tab-backup"
+                >
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/inbox.webp'); ?>"
+                        class="c-icon c-tabs__icon"
+                        loading="lazy"
+                        alt=""
+                    > Backups
+                </button>
                 <?php } ?>
             </div>
 
             <!-- 2. WERKZEUGE (FILTER) -->
             <?php if ($auth->hasPermission('permits.view')) { ?>
-                <?php include $appRoot . '/templates/partials/admin/control_bar.phtml'; ?>
+            <?php include $appRoot . '/templates/partials/admin/control_bar.phtml'; ?>
             <?php } ?>
 
             <!-- 4. ALERTS / INFOBOXEN -->
             <?php if ($auth->hasPermission('permits.view')) { ?>
-                <div class="u-margin-inline-auto u-margin-block-end-m">
-                    <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
-                </div>
+            <div class="u-margin-inline-auto u-margin-block-end-m">
+                <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
+            </div>
             <?php } ?>
 
             <!-- 5. CONTENT (TAB PANELS) -->
             <?php if ($auth->hasPermission('permits.view')) { ?>
-                <div id="tab-active"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-active"
-                     class="c-tabs__content <?php echo $isActive('tab-active'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-active'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_active.phtml'; ?>
-                </div>
-                <div id="tab-future"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-future"
-                     class="c-tabs__content <?php echo $isActive('tab-future'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-future'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_future.phtml'; ?>
-                </div>
-                <div id="tab-expired"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-expired"
-                     class="c-tabs__content <?php echo $isActive('tab-expired'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-expired'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_expired.phtml'; ?>
-                </div>
-                <div id="tab-cancelled"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-cancelled"
-                     class="c-tabs__content <?php echo $isActive('tab-cancelled'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-cancelled'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_cancelled.phtml'; ?>
-                </div>
+            <div
+                id="tab-active"
+                role="tabpanel"
+                aria-labelledby="btn-tab-active"
+                class="c-tabs__content <?php echo $isActive('tab-active'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-active'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_active.phtml'; ?>
+            </div>
+            <div
+                id="tab-future"
+                role="tabpanel"
+                aria-labelledby="btn-tab-future"
+                class="c-tabs__content <?php echo $isActive('tab-future'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-future'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_future.phtml'; ?>
+            </div>
+            <div
+                id="tab-expired"
+                role="tabpanel"
+                aria-labelledby="btn-tab-expired"
+                class="c-tabs__content <?php echo $isActive('tab-expired'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-expired'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_expired.phtml'; ?>
+            </div>
+            <div
+                id="tab-cancelled"
+                role="tabpanel"
+                aria-labelledby="btn-tab-cancelled"
+                class="c-tabs__content <?php echo $isActive('tab-cancelled'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-cancelled'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_cancelled.phtml'; ?>
+            </div>
             <?php } ?>
 
             <?php if ($auth->hasPermission('stats.ranking')) { ?>
-                <div id="tab-ranking"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-ranking"
-                     class="c-tabs__content <?php echo $isActive('tab-ranking'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-ranking'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_ranking.phtml'; ?>
-                </div>
+            <div
+                id="tab-ranking"
+                role="tabpanel"
+                aria-labelledby="btn-tab-ranking"
+                class="c-tabs__content <?php echo $isActive('tab-ranking'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-ranking'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_ranking.phtml'; ?>
+            </div>
             <?php } ?>
 
             <?php if ($auth->hasPermission('finance.view')) { ?>
-                <div id="tab-finance"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-finance"
-                     class="c-tabs__content <?php echo $isActive('tab-finance'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-finance'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_finance.phtml'; ?>
-                </div>
+            <div
+                id="tab-finance"
+                role="tabpanel"
+                aria-labelledby="btn-tab-finance"
+                class="c-tabs__content <?php echo $isActive('tab-finance'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-finance'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_finance.phtml'; ?>
+            </div>
             <?php } ?>
 
             <?php if ($auth->hasPermission('stats.view')) { ?>
-                <div id="tab-stats"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-stats"
-                     class="js-dashboard-stats c-tabs__content <?php echo $isActive('tab-stats'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-stats'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_stats.phtml'; ?>
-                </div>
+            <div
+                id="tab-stats"
+                role="tabpanel"
+                aria-labelledby="btn-tab-stats"
+                class="js-dashboard-stats c-tabs__content <?php echo $isActive('tab-stats'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-stats'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_stats.phtml'; ?>
+            </div>
             <?php } ?>
 
             <?php if ($auth->hasPermission('finance.bank_import')) { ?>
-                <div id="tab-bank-import"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-bank-import"
-                     class="js-bank-import c-tabs__content <?php echo $isActive('tab-bank-import'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-bank-import'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_bank_import.phtml'; ?>
-                </div>
+            <div
+                id="tab-bank-import"
+                role="tabpanel"
+                aria-labelledby="btn-tab-bank-import"
+                class="js-bank-import c-tabs__content <?php echo $isActive('tab-bank-import'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-bank-import'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_bank_import.phtml'; ?>
+            </div>
             <?php } ?>
 
             <?php if ($auth->hasPermission('finance.export')) { ?>
-                <div id="tab-export"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-export"
-                     class="c-tabs__content <?php echo $isActive('tab-export'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-export'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_export.phtml'; ?>
-                </div>
+            <div
+                id="tab-export"
+                role="tabpanel"
+                aria-labelledby="btn-tab-export"
+                class="c-tabs__content <?php echo $isActive('tab-export'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-export'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_export.phtml'; ?>
+            </div>
             <?php } ?>
 
             <?php if ($auth->hasPermission('permits.create') || $auth->hasPermission('vouchers.create')) { ?>
-                <div id="tab-tools"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-tools"
-                     class="c-tabs__content <?php echo $isActive('tab-tools'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-tools'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_generator_tools.phtml'; ?>
-                </div>
+            <div
+                id="tab-tools"
+                role="tabpanel"
+                aria-labelledby="btn-tab-tools"
+                class="c-tabs__content <?php echo $isActive('tab-tools'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-tools'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_generator_tools.phtml'; ?>
+            </div>
             <?php } ?>
 
             <?php if ($auth->hasPermission('vouchers.view')) { ?>
-                <div id="tab-vouchers"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-vouchers"
-                     class="js-voucher-manager c-tabs__content <?php echo $isActive('tab-vouchers'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-vouchers'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_vouchers.phtml'; ?>
-                </div>
+            <div
+                id="tab-vouchers"
+                role="tabpanel"
+                aria-labelledby="btn-tab-vouchers"
+                class="js-voucher-manager c-tabs__content <?php echo $isActive('tab-vouchers'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-vouchers'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_vouchers.phtml'; ?>
+            </div>
             <?php } ?>
 
             <?php if ($auth->hasPermission('system.logs.view')) { ?>
-                <div id="tab-logs"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-logs"
-                     class="c-tabs__content <?php echo $isActive('tab-logs'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-logs'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_logs.phtml'; ?>
-                </div>
-                <div id="tab-audit-log"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-audit-log"
-                     class="c-tabs__content <?php echo $isActive('tab-audit-log'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-audit-log'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_audit_log.phtml'; ?>
-                </div>
+            <div
+                id="tab-logs"
+                role="tabpanel"
+                aria-labelledby="btn-tab-logs"
+                class="c-tabs__content <?php echo $isActive('tab-logs'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-logs'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_logs.phtml'; ?>
+            </div>
+            <div
+                id="tab-audit-log"
+                role="tabpanel"
+                aria-labelledby="btn-tab-audit-log"
+                class="c-tabs__content <?php echo $isActive('tab-audit-log'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-audit-log'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_audit_log.phtml'; ?>
+            </div>
             <?php } ?>
 
             <?php if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('system.update.execute')) { ?>
-                <div id="tab-system"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-system"
-                     class="js-system-tools c-tabs__content <?php echo $isActive('tab-system'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-system'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_system.phtml'; ?>
-                </div>
+            <div
+                id="tab-system"
+                role="tabpanel"
+                aria-labelledby="btn-tab-system"
+                class="js-system-tools c-tabs__content <?php echo $isActive('tab-system'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-system'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_system.phtml'; ?>
+            </div>
             <?php } ?>
 
             <?php if ($auth->hasPermission('system.backup.manage')) { ?>
-                <div id="tab-backup"
-                     role="tabpanel"
-                     aria-labelledby="btn-tab-backup"
-                     class="c-tabs__content <?php echo $isActive('tab-backup'); ?>"
-                     aria-hidden="<?php echo $ariaHidden('tab-backup'); ?>">
-                    <?php include $appRoot . '/templates/partials/admin/tab_backup.phtml'; ?>
-                </div>
+            <div
+                id="tab-backup"
+                role="tabpanel"
+                aria-labelledby="btn-tab-backup"
+                class="c-tabs__content <?php echo $isActive('tab-backup'); ?>"
+                aria-hidden="<?php echo $ariaHidden('tab-backup'); ?>"
+            >
+                <?php include $appRoot . '/templates/partials/admin/tab_backup.phtml'; ?>
+            </div>
             <?php } ?>
         </div>
     </div>
@@ -429,64 +526,87 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
 
 <!-- RELEASE NOTES MODAL BASE -->
 <?php if (!empty($allReleaseNotes)) { ?>
-    <!-- https://cdnjs.com/libraries/dompurify -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.15/purify.min.js"
-            integrity="sha512-jeyPlk6E7VcWU2QTRw5UAe4iKLrWOJkyLc4GkOAOey1tOeTyxfTzrCY7p84VSer8/lRON5p236RGVeTErze9fA=="
-            crossorigin="anonymous"
-            referrerpolicy="no-referrer"
-            nonce="<?php echo $cspNonce; ?>"></script>
-    <!-- https://cdnjs.com/libraries/marked/15.0.12 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.12/marked.min.js"
-            integrity="sha512-rCQgmUulW6f6QegOvTntKKb5IAoxTpGVCdWqYjkXEpzAns6XUFs8NKVqWe+KQpctp/EoRSFSuykVputqknLYMg=="
-            crossorigin="anonymous"
-            referrerpolicy="no-referrer"
-            nonce="<?php echo $cspNonce; ?>"></script>
+<!-- https://cdnjs.com/libraries/dompurify -->
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.15/purify.min.js"
+    integrity="sha512-jeyPlk6E7VcWU2QTRw5UAe4iKLrWOJkyLc4GkOAOey1tOeTyxfTzrCY7p84VSer8/lRON5p236RGVeTErze9fA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+    nonce="<?php echo $cspNonce; ?>"
+></script>
+<!-- https://cdnjs.com/libraries/marked/15.0.12 -->
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.12/marked.min.js"
+    integrity="sha512-rCQgmUulW6f6QegOvTntKKb5IAoxTpGVCdWqYjkXEpzAns6XUFs8NKVqWe+KQpctp/EoRSFSuykVputqknLYMg=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+    nonce="<?php echo $cspNonce; ?>"
+></script>
 
-    <dialog id="release-notes-modal"
-            class="js-release-notes-modal c-modal"
-            aria-labelledby="release-notes-title"
-            aria-modal="true">
-        <div class="c-modal__dialog c-modal__dialog--large c-card c-card--primary u-padding-none u-flex-column">
-            <header class="c-card__header u-flex u-justify-between u-align-center">
-                <h3 id="release-notes-title"
-                    class="u-margin-none u-flex u-align-center u-gap-s js-release-notes-title">
-                    <img src="<?php echo $asset->url('assets/img/icons/rocket.webp'); ?>"
-                         class="c-icon c-button__icon"
-                         loading="lazy"
-                         alt=""> Neu seit Ihrem letzten Login
-                </h3>
-                <div class="u-flex u-align-center u-gap-s">
-                    <span class="c-badge c-badge--success js-release-notes-badge" hidden>Updates verfügbar</span>
-                    <button type="button"
-                            class="c-button c-button--danger c-button--icon-only js-close-release-notes"
-                            title="Schließen & Gelesen">&times;</button>
-                </div>
-            </header>
-            <div class="c-card__body u-padding-block-l u-text-start u-overflow-y-auto u-flex-grow-1">
-                <div id="release-notes-content"
-                     class="js-release-notes-content s-markdown"></div>
+<dialog
+    id="release-notes-modal"
+    class="js-release-notes-modal c-modal"
+    aria-labelledby="release-notes-title"
+    aria-modal="true"
+>
+    <div class="c-modal__dialog c-modal__dialog--large c-card c-card--primary u-padding-none u-flex-column">
+        <header class="c-card__header u-flex u-justify-between u-align-center">
+            <h3
+                id="release-notes-title"
+                class="u-margin-none u-flex u-align-center u-gap-s js-release-notes-title"
+            >
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/rocket.webp'); ?>"
+                    class="c-icon c-button__icon"
+                    loading="lazy"
+                    alt=""
+                > Neu seit Ihrem letzten Login
+            </h3>
+            <div class="u-flex u-align-center u-gap-s">
+                <span
+                    class="c-badge c-badge--success js-release-notes-badge"
+                    hidden
+                >Updates verfügbar</span>
+                <button
+                    type="button"
+                    class="c-button c-button--danger c-button--icon-only js-close-release-notes"
+                    title="Schließen & Gelesen"
+                >&times;</button>
             </div>
-            <footer class="c-card__footer u-text-center">
-                <button type="button"
-                        class="c-button c-button--primary js-close-release-notes u-inline-size-100 o-container o-container--small">
-                    ✓ Alles klar, verstanden!
-                </button>
-            </footer>
+        </header>
+        <div class="c-card__body u-padding-block-l u-text-start u-overflow-y-auto u-flex-grow-1">
+            <div
+                id="release-notes-content"
+                class="js-release-notes-content s-markdown"
+            ></div>
         </div>
-    </dialog>
+        <footer class="c-card__footer u-text-center">
+            <button
+                type="button"
+                class="c-button c-button--primary js-close-release-notes u-inline-size-100 o-container o-container--small"
+            >
+                ✓ Alles klar, verstanden!
+            </button>
+        </footer>
+    </div>
+</dialog>
 
-    <script type="application/json"
-            id="release-notes-unread-data"
-            class="js-release-notes-unread-data"
-            nonce="<?php echo $cspNonce; ?>">
-    <?php echo \json_encode($unreadReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+<script
+    type="application/json"
+    id="release-notes-unread-data"
+    class="js-release-notes-unread-data"
+    nonce="<?php echo $cspNonce; ?>"
+>
+<?php echo \json_encode($unreadReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
-    </script>
-    <script type="application/json"
-            id="release-notes-all-data"
-            class="js-release-notes-all-data"
-            nonce="<?php echo $cspNonce; ?>">
-    <?php echo \json_encode($allReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+</script>
+<script
+    type="application/json"
+    id="release-notes-all-data"
+    class="js-release-notes-all-data"
+    nonce="<?php echo $cspNonce; ?>"
+>
+<?php echo \json_encode($allReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
-    </script>
+</script>
 <?php } ?>

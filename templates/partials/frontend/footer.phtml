@@ -53,32 +53,45 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
             &copy; <?php echo $yearDisplay; ?> <?php echo \htmlspecialchars($softwareName); ?>
 
             <?php if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('admin.access')) { ?>
-                <a href="<?php echo \htmlspecialchars($baseUrl); ?>changelog"
-                   class="c-footer__version c-footer__version--admin"
-                   title="Versionshistorie / Changelog ansehen">
-                    <?php echo \htmlspecialchars($version); ?>
-                </a>
+            <a
+                href="<?php echo \htmlspecialchars($baseUrl); ?>changelog"
+                class="c-footer__version c-footer__version--admin"
+                title="Versionshistorie / Changelog ansehen"
+            >
+                <?php echo \htmlspecialchars($version); ?>
+            </a>
             <?php } else { ?>
-                <span class="c-footer__version">
-                    <?php echo \htmlspecialchars($version); ?>
-                </span>
+            <span class="c-footer__version">
+                <?php echo \htmlspecialchars($version); ?>
+            </span>
             <?php } ?>
         </div>
 
         <?php
         // Bug-Report-Link nur für eingeloggte Admins mit Dashboard-Rechten sichtbar machen
         if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('admin.access')) { ?>
-            <div class="u-margin-block-start-xs">
-                <a href="<?php echo \htmlspecialchars($issuesUrl); ?>" target="_blank" rel="noopener noreferrer" class="u-text-link u-text-xs">
-                    Fehler melden / Bug Report
-                </a>
-            </div>
+        <div class="u-margin-block-start-xs">
+            <a
+                href="<?php echo \htmlspecialchars($issuesUrl); ?>"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="u-text-link u-text-xs"
+            >
+                Fehler melden / Bug Report
+            </a>
+        </div>
         <?php } ?>
 
         <div class="c-footer__links">
-            <a href="<?php echo \htmlspecialchars($impressumUrl); ?>" class="u-text-link">Impressum</a>
+            <a
+                href="<?php echo \htmlspecialchars($impressumUrl); ?>"
+                class="u-text-link"
+            >Impressum</a>
             <span class="u-color-muted">&bull;</span>
-            <a href="<?php echo \htmlspecialchars($datenschutzUrl); ?>" class="u-text-link">Datenschutzerklärung</a>
+            <a
+                href="<?php echo \htmlspecialchars($datenschutzUrl); ?>"
+                class="u-text-link"
+            >Datenschutzerklärung</a>
         </div>
 
         <?php
@@ -88,9 +101,9 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
             $timeMs = \round((\microtime(true) - $requestTime) * 1000, 2);
             $memoryMb = \round(\memory_get_peak_usage() / 1024 / 1024, 2);
             ?>
-            <div class="u-text-center u-margin-block-start-m u-color-muted u-text-xs u-font-mono u-opacity-50">
-                ⏱️ <?php echo $timeMs; ?> ms &nbsp;|&nbsp; 💾 <?php echo $memoryMb; ?> MB RAM
-            </div>
+        <div class="u-text-center u-margin-block-start-m u-color-muted u-text-xs u-font-mono u-opacity-50">
+            ⏱️ <?php echo $timeMs; ?> ms &nbsp;|&nbsp; 💾 <?php echo $memoryMb; ?> MB RAM
+        </div>
         <?php } ?>
     </div>
 </footer>

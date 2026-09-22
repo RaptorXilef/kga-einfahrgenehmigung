@@ -35,68 +35,85 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
 
         <header class="c-card__header u-text-center">
             <?php if ($logoFile) { ?>
-                <img src="<?php echo $settings['base_url'] . $logoFile; ?>"
-                     loading="lazy"
-                     alt="Logo"
-                     class="c-logo">
+            <img
+                src="<?php echo $settings['base_url'] . $logoFile; ?>"
+                loading="lazy"
+                alt="Logo"
+                class="c-logo"
+            >
             <?php } ?>
-            <p class="u-color-muted u-text-sm u-margin-block-none"><?php echo \htmlspecialchars($settings['vereins_name']); ?></p>
+            <p class="u-color-muted u-text-sm u-margin-block-none">
+                <?php echo \htmlspecialchars($settings['vereins_name']); ?></p>
         </header>
 
         <div class="c-card__body u-text-center">
             <?php if ($details && $details->isFound) { ?>
-                <div class="<?php echo $details->statusColorClass; ?>">
-                    <?php if ($details->statusHeadline === 'AKTUELL RUHEZEIT') { ?>
-                        <div class="c-badge c-badge--success u-margin-block-end-m u-font-bold u-text-sm">GENEHMIGUNG
-                            GÜLTIG</div>
-                        <span class="u-text-4xl u-display-block u-margin-block-end-s">
-                            <img src="<?php echo $asset->url('assets/img/icons/' . $details->statusIcon); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
-                        </span>
-                        <h2 class="u-color-warning u-margin-block-start-none u-margin-block-end-m">AKTUELL
-                            RUHEZEIT<br>Keine Einfahrt erlaubt!</h2>
-                    <?php } else { ?>
-                        <img src="<?php echo $asset->url('assets/img/icons/' . $details->statusIcon); ?>"
-                             class="c-icon c-icon--xl"
-                             loading="lazy"
-                             alt="">
-                        <h2 class="<?php echo $details->statusColorClass; ?> u-margin-block-start-m"><?php echo $details->statusHeadline; ?></h2>
-                    <?php } ?>
+            <div class="<?php echo $details->statusColorClass; ?>">
+                <?php if ($details->statusHeadline === 'AKTUELL RUHEZEIT') { ?>
+                <div class="c-badge c-badge--success u-margin-block-end-m u-font-bold u-text-sm">GENEHMIGUNG
+                    GÜLTIG</div>
+                <span class="u-text-4xl u-display-block u-margin-block-end-s">
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/' . $details->statusIcon); ?>"
+                        class="c-icon c-button__icon"
+                        loading="lazy"
+                        alt=""
+                    >
+                </span>
+                <h2 class="u-color-warning u-margin-block-start-none u-margin-block-end-m">AKTUELL
+                    RUHEZEIT<br>Keine Einfahrt erlaubt!</h2>
+                <?php } else { ?>
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/' . $details->statusIcon); ?>"
+                    class="c-icon c-icon--xl"
+                    loading="lazy"
+                    alt=""
+                >
+                <h2 class="<?php echo $details->statusColorClass; ?> u-margin-block-start-m">
+                    <?php echo $details->statusHeadline; ?></h2>
+                <?php } ?>
 
-                    <?php echo $details->statusSubTextHtml; ?>
+                <?php echo $details->statusSubTextHtml; ?>
 
-                    <?php if ($details->statusHeadline === 'GENEHMIGUNG GÜLTIG' || $details->statusHeadline === 'AKTUELL RUHEZEIT') { ?>
-                        <!-- Details laden wir jetzt auch direkt aus dem DTO anstatt include partial -->
-                        <div class="u-margin-block-start-l">
-                            <div class="c-box c-box--highlight u-text-start u-margin-block-end-m">
-                                <p class="u-margin-none">Gültig bis einschließlich:</p>
-                                <strong class="u-text-lg"><?php echo $details->validityPeriod; ?></strong>
-                            </div>
-                            <div class="c-box c-box--subtle u-text-start u-text-sm">
-                                <p class="u-font-bold u-margin-none u-margin-block-end-xs">Erlaubte Einfahrtszeiten:</p>
-                                <?php echo $details->openingHoursHtml; ?>
-                            </div>
-                            <?php echo $details->holidayNoticeHtml; ?>
-                        </div>
-                    <?php } ?>
+                <?php if ($details->statusHeadline === 'GENEHMIGUNG GÜLTIG' || $details->statusHeadline === 'AKTUELL RUHEZEIT') { ?>
+                <!-- Details laden wir jetzt auch direkt aus dem DTO anstatt include partial -->
+                <div class="u-margin-block-start-l">
+                    <div class="c-box c-box--highlight u-text-start u-margin-block-end-m">
+                        <p class="u-margin-none">Gültig bis einschließlich:</p>
+                        <strong class="u-text-lg"><?php echo $details->validityPeriod; ?></strong>
+                    </div>
+                    <div class="c-box c-box--subtle u-text-start u-text-sm">
+                        <p class="u-font-bold u-margin-none u-margin-block-end-xs">Erlaubte Einfahrtszeiten:</p>
+                        <?php echo $details->openingHoursHtml; ?>
+                    </div>
+                    <?php echo $details->holidayNoticeHtml; ?>
                 </div>
+                <?php } ?>
+            </div>
             <?php } else { ?>
-                <div class="u-color-muted">
-                    <img src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>"
-                         class="c-icon c-icon--xl"
-                         loading="lazy"
-                         alt="">
-                    <h2 class="u-margin-block-start-m">UNGÜLTIG</h2>
-                    <p>Zahlung offen, Zeitraum abgelaufen oder noch nicht erreicht.</p>
-                </div>
+            <div class="u-color-muted">
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>"
+                    class="c-icon c-icon--xl"
+                    loading="lazy"
+                    alt=""
+                >
+                <h2 class="u-margin-block-start-m">UNGÜLTIG</h2>
+                <p>Zahlung offen, Zeitraum abgelaufen oder noch nicht erreicht.</p>
+            </div>
             <?php } ?>
         </div>
 
         <?php if ($details && $details->isFound) { ?>
-            <footer class="c-card__footer u-text-center">
-                <p class="u-color-muted u-margin-block-end-s">SmartCode: <strong class="u-color-dark"><?php echo $details->code; ?></strong>
-                </p>
-                <a href="admin?code=<?php echo $details->code; ?>" class="u-text-link u-text-sm">Login für Details</a>
-            </footer>
+        <footer class="c-card__footer u-text-center">
+            <p class="u-color-muted u-margin-block-end-s">SmartCode: <strong
+                    class="u-color-dark"><?php echo $details->code; ?></strong>
+            </p>
+            <a
+                href="admin?code=<?php echo $details->code; ?>"
+                class="u-text-link u-text-sm"
+            >Login für Details</a>
+        </footer>
         <?php } ?>
     </div>
 </main>

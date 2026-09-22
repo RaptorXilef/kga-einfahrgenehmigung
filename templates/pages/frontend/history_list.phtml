@@ -36,26 +36,38 @@ $now = new \DateTimeImmutable('today');
     <header class="u-flex u-justify-between u-align-center u-margin-block-end-l u-flex-wrap u-gap-m">
         <div>
             <h2 class="u-margin-block-none u-flex u-align-center u-gap-s">
-                <img src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
-                     class="c-icon c-icon--md"
-                     loading="lazy"
-                     alt=""> Meine Genehmigungen
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
+                    class="c-icon c-icon--md"
+                    loading="lazy"
+                    alt=""
+                > Meine Genehmigungen
             </h2>
             <p class="u-color-muted u-margin-block-start-xs u-margin-block-end-none u-text-sm">Angemeldet als: <strong
-                        class="u-color-main"><?php echo \htmlspecialchars($email); ?></strong></p>
+                    class="u-color-main"
+                ><?php echo \htmlspecialchars($email); ?></strong></p>
         </div>
 
         <div class="u-flex u-align-center u-gap-m">
-            <div class="c-session-pill"
-                 title="Automatische Abmeldung bei Inaktivität">
-                <img src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>"
-                     class="c-icon c-button__icon"
-                     loading="lazy"
-                     alt=""> <span id="ui-session-timer" class="js-session-timer">20:00</span>
+            <div
+                class="c-session-pill"
+                title="Automatische Abmeldung bei Inaktivität"
+            >
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>"
+                    class="c-icon c-button__icon"
+                    loading="lazy"
+                    alt=""
+                > <span
+                    id="ui-session-timer"
+                    class="js-session-timer"
+                >20:00</span>
             </div>
-            <button type="button"
-                    id="btn-session-logout"
-                    class="c-button c-button--danger-outline u-text-sm js-session-logout">
+            <button
+                type="button"
+                id="btn-session-logout"
+                class="c-button c-button--danger-outline u-text-sm js-session-logout"
+            >
                 Abmelden ✕
             </button>
         </div>
@@ -77,18 +89,25 @@ $now = new \DateTimeImmutable('today');
                 </thead>
                 <tbody>
                     <?php if (empty($permits)) { ?>
-                        <tr>
-                            <td colspan="5"
-                                class="c-table__data-cell u-text-center u-padding-around-l u-color-muted">
-                                <span class="u-text-2xl u-opacity-50">
-                                    <img src="<?php echo $asset->url('assets/img/icons/empty-page.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
-                                </span><br>
-                                <p class="u-margin-block-start-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum
-                                    gefunden.</p>
-                            </td>
-                        </tr>
+                    <tr>
+                        <td
+                            colspan="5"
+                            class="c-table__data-cell u-text-center u-padding-around-l u-color-muted"
+                        >
+                            <span class="u-text-2xl u-opacity-50">
+                                <img
+                                    src="<?php echo $asset->url('assets/img/icons/empty-page.webp'); ?>"
+                                    class="c-icon c-button__icon"
+                                    loading="lazy"
+                                    alt=""
+                                >
+                            </span><br>
+                            <p class="u-margin-block-start-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum
+                                gefunden.</p>
+                        </td>
+                    </tr>
                     <?php } else { ?>
-                        <?php foreach ($permits as $permit) {
+                    <?php foreach ($permits as $permit) {
                             // 1. Zeit-Berechnungen
                             $isExpired = $permit->getValidUntil() < $now;
                             $isFuture = $permit->getValidFrom() > $now;
@@ -130,102 +149,146 @@ $now = new \DateTimeImmutable('today');
                             $iconPath = $vCfg['icon'] ?? 'assets/img/icons/warning.webp';
                             $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                             ?>
-                            <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
-                                <td class="c-table__data-cell"
-                                    data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>">
-                                    <div class="u-flex u-flex-column">
-                                        <span class="u-font-semibold u-color-main u-text-sm">
-                                            <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
-                                        </span>
-                                        <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs">
+                    <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
+                        <td
+                            class="c-table__data-cell"
+                            data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
+                        >
+                            <div class="u-flex u-flex-column">
+                                <span class="u-font-semibold u-color-main u-text-sm">
+                                    <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
+                                </span>
+                                <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs">
                                             <?php echo $permit->code->value; ?>
                                         </code>
-                                        <div>
-                                            <span class="c-badge c-badge--outline">PARZELLE <?php echo $permit->getPlotNumber(); ?></span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="c-table__data-cell u-text-center"
-                                    data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>">
-                                    <div>
-                                        <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                             class="c-icon c-table__icon <?php echo $isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
-                                             title="<?php echo $vLabel; ?>"
-                                             loading="lazy"
-                                             alt="">
-                                    </div>
-                                    <div class="u-margin-block-start-xs">
-                                        <span class="c-license-plate">
-                                            <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
-                                        </span>
-                                    </div>
-                                </td>
-                                <td class="c-table__data-cell u-text-center"
-                                    data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>">
-                                    <div>
-                                        <strong class="u-color-main u-text-sm"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
-                                        <small class="u-color-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
-                                        <div class="u-margin-block-start-xs">
-                                            <?php if ($isExpired) { ?>
-                                                <span class="c-badge c-badge--outline">
-                                                    <?php echo $countdownText; ?>
-                                                </span>
-                                            <?php } else { ?>
-                                                <span class="c-badge <?php echo ($remaining <= 1 && !$isFuture) ? 'c-badge--danger' : 'c-badge--primary'; ?>">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt=""> <?php echo $countdownText; ?>
-                                                </span>
-                                            <?php } ?>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="c-table__data-cell u-text-center"
-                                    data-sort-val="<?php echo $isPaid ? '1' : '0'; ?>">
-                                    <span class="c-badge <?php echo $statusClass; ?>"><?php echo $statusText; ?></span>
-                                </td>
-                                <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
-                                    <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
-                                        <?php $allowCancel = (bool) $config->get('allow_user_cancellation', true);
+                                <div>
+                                    <span class="c-badge c-badge--outline">PARZELLE
+                                        <?php echo $permit->getPlotNumber(); ?></span>
+                                </div>
+                            </div>
+                        </td>
+                        <td
+                            class="c-table__data-cell u-text-center"
+                            data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>"
+                        >
+                            <div>
+                                <img
+                                    src="<?php echo $settings['base_url'] . $iconPath; ?>"
+                                    class="c-icon c-table__icon <?php echo $isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
+                                    title="<?php echo $vLabel; ?>"
+                                    loading="lazy"
+                                    alt=""
+                                >
+                            </div>
+                            <div class="u-margin-block-start-xs">
+                                <span class="c-license-plate">
+                                    <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
+                                </span>
+                            </div>
+                        </td>
+                        <td
+                            class="c-table__data-cell u-text-center"
+                            data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>"
+                        >
+                            <div>
+                                <strong
+                                    class="u-color-main u-text-sm"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
+                                <small class="u-color-muted">bis
+                                    <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
+                                <div class="u-margin-block-start-xs">
+                                    <?php if ($isExpired) { ?>
+                                    <span class="c-badge c-badge--outline">
+                                        <?php echo $countdownText; ?>
+                                    </span>
+                                    <?php } else { ?>
+                                    <span
+                                        class="c-badge <?php echo ($remaining <= 1 && !$isFuture) ? 'c-badge--danger' : 'c-badge--primary'; ?>"
+                                    >
+                                        <img
+                                            src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>"
+                                            class="c-icon c-button__icon"
+                                            loading="lazy"
+                                            alt=""
+                                        > <?php echo $countdownText; ?>
+                                    </span>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                        </td>
+                        <td
+                            class="c-table__data-cell u-text-center"
+                            data-sort-val="<?php echo $isPaid ? '1' : '0'; ?>"
+                        >
+                            <span class="c-badge <?php echo $statusClass; ?>"><?php echo $statusText; ?></span>
+                        </td>
+                        <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
+                            <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
+                                <?php $allowCancel = (bool) $config->get('allow_user_cancellation', true);
                             if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) { ?>
-                                            <form method="POST"
-                                                  id="cancelPermitForm_<?php echo $permit->code->value; ?>"
-                                                  action="<?php echo $settings['base_url']; ?>history_cancel_permit"
-                                                  class="u-margin-block-none js-form-cancel-permit"
-                                                  data-confirm="Möchten Sie diesen Antrag wirklich zurückziehen und unwiderruflich stornieren?\n\nWICHTIG: Falls Sie den Betrag bereits überwiesen haben, wird dieser NICHT automatisch zurückerstattet.">
-                                                <input type="hidden"
-                                                       name="csrf_token"
-                                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                                <input type="hidden"
-                                                       name="code"
-                                                       value="<?php echo $permit->code->value; ?>">
-                                                <button type="submit"
-                                                        class="c-button c-button--danger-outline c-button--icon-only"
-                                                        title="Antrag stornieren"
-                                                        aria-label="Antrag für Genehmigung <?php echo $permit->code->value; ?> stornieren">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
-                                                         class="c-icon c-button__icon"
-                                                         loading="lazy"
-                                                         alt="">
-                                                </button>
-                                            </form>
-                                        <?php } ?>
-                                        <a href="check?code=<?php echo $permit->code->value; ?>"
-                                           target="_blank"
-                                           class="c-button c-button--secondary c-button--icon-only"
-                                           title="Status / Prüfseite öffnen"
-                                           aria-label="Status für Genehmigung <?php echo $permit->code->value; ?> prüfen">
-                                            <img src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
-                                        </a>
-                                        <a href="history_print?code=<?php echo $permit->code->value; ?>"
-                                           target="_blank"
-                                           class="c-button c-button--secondary c-button--icon-only"
-                                           title="Dokument anzeigen"
-                                           aria-label="Druckansicht für Genehmigung <?php echo $permit->code->value; ?> öffnen">
-                                            <img src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt="">
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php } ?>
+                                <form
+                                    method="POST"
+                                    id="cancelPermitForm_<?php echo $permit->code->value; ?>"
+                                    action="<?php echo $settings['base_url']; ?>history_cancel_permit"
+                                    class="u-margin-block-none js-form-cancel-permit"
+                                    data-confirm="Möchten Sie diesen Antrag wirklich zurückziehen und unwiderruflich stornieren?\n\nWICHTIG: Falls Sie den Betrag bereits überwiesen haben, wird dieser NICHT automatisch zurückerstattet."
+                                >
+                                    <input
+                                        type="hidden"
+                                        name="csrf_token"
+                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                    >
+                                    <input
+                                        type="hidden"
+                                        name="code"
+                                        value="<?php echo $permit->code->value; ?>"
+                                    >
+                                    <button
+                                        type="submit"
+                                        class="c-button c-button--danger-outline c-button--icon-only"
+                                        title="Antrag stornieren"
+                                        aria-label="Antrag für Genehmigung <?php echo $permit->code->value; ?> stornieren"
+                                    >
+                                        <img
+                                            src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
+                                            class="c-icon c-button__icon"
+                                            loading="lazy"
+                                            alt=""
+                                        >
+                                    </button>
+                                </form>
+                                <?php } ?>
+                                <a
+                                    href="check?code=<?php echo $permit->code->value; ?>"
+                                    target="_blank"
+                                    class="c-button c-button--secondary c-button--icon-only"
+                                    title="Status / Prüfseite öffnen"
+                                    aria-label="Status für Genehmigung <?php echo $permit->code->value; ?> prüfen"
+                                >
+                                    <img
+                                        src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
+                                        class="c-icon c-button__icon"
+                                        loading="lazy"
+                                        alt=""
+                                    >
+                                </a>
+                                <a
+                                    href="history_print?code=<?php echo $permit->code->value; ?>"
+                                    target="_blank"
+                                    class="c-button c-button--secondary c-button--icon-only"
+                                    title="Dokument anzeigen"
+                                    aria-label="Druckansicht für Genehmigung <?php echo $permit->code->value; ?> öffnen"
+                                >
+                                    <img
+                                        src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>"
+                                        class="c-icon c-button__icon"
+                                        loading="lazy"
+                                        alt=""
+                                    >
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php } ?>
                     <?php } ?>
                 </tbody>
             </table>
@@ -234,17 +297,29 @@ $now = new \DateTimeImmutable('today');
         <div class="c-card__footer u-text-center">
             <?php $lastYear = (int) \date('Y') - 1;
 if ($currentArchiveYear !== $lastYear) { ?>
-                <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--secondary">
-                    <img src="<?php echo $asset->url('assets/img/icons/inbox.webp'); ?>" class="c-icon c-button__icon" loading="lazy" alt=""> Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen
-                </a>
+            <a
+                href="?load_archive=<?php echo $lastYear; ?>"
+                class="c-button c-button--secondary"
+            >
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/inbox.webp'); ?>"
+                    class="c-icon c-button__icon"
+                    loading="lazy"
+                    alt=""
+                > Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen
+            </a>
             <?php } else { ?>
-                <p class="u-text-xs u-color-muted u-margin-block-none">Archiv des Vorjahres (<?php echo $lastYear; ?>) ist geladen.</p>
+            <p class="u-text-xs u-color-muted u-margin-block-none">Archiv des Vorjahres (<?php echo $lastYear; ?>) ist
+                geladen.</p>
             <?php } ?>
         </div>
     </section>
 
     <footer class="u-margin-block-start-l u-text-center">
-        <a href="index" class="c-button c-button--primary c-button--submit">
+        <a
+            href="index"
+            class="c-button c-button--primary c-button--submit"
+        >
             Neuen Antrag stellen
         </a>
     </footer>

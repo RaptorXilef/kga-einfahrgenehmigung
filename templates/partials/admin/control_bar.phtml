@@ -25,95 +25,139 @@ $currentQ = $sessionFilters['q'] ?? '';
 $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 ?>
 <?php if ($auth->hasPermission('permits.view')) { ?>
-    <div class="c-control-bar-wrapper">
-        <section class="c-control-bar">
-            <!-- Native ID für Formular-Targets, js-Klasse für den JS-Controller -->
-            <form method="POST"
-                  id="dashboardFilterForm"
-                  action="<?php echo $settings['base_url']; ?>filter_dashboard"
-                  class="js-dashboard-filter-form u-flex u-align-center u-gap-s u-flex-wrap u-inline-size-100 u-justify-center u-margin-none">
-                <input type="hidden"
-                       name="csrf_token"
-                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                <input type="hidden"
-                       name="page"
-                       value="1">
+<div class="c-control-bar-wrapper">
+    <section class="c-control-bar">
+        <!-- Native ID für Formular-Targets, js-Klasse für den JS-Controller -->
+        <form
+            method="POST"
+            id="dashboardFilterForm"
+            action="<?php echo $settings['base_url']; ?>filter_dashboard"
+            class="js-dashboard-filter-form u-flex u-align-center u-gap-s u-flex-wrap u-inline-size-100 u-justify-center u-margin-none"
+        >
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+            >
+            <input
+                type="hidden"
+                name="page"
+                value="1"
+            >
 
-                <label for="filter_start"
-                       class="c-control-bar__label">
-                    <img src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
-                         class="c-icon"
-                         loading="lazy"
-                         alt="">
-                    ZEITRAUM:
-                </label>
-                <!-- Native ID für das <label>, js-Klasse für JS-EventListener -->
-                <input type="date"
-                       id="filter_start"
-                       name="start"
-                       value="<?php echo \htmlspecialchars($currentStart); ?>"
-                       class="c-control-bar__input js-filter-start"
-                       autocomplete="off">
+            <label
+                for="filter_start"
+                class="c-control-bar__label"
+            >
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
+                    class="c-icon"
+                    loading="lazy"
+                    alt=""
+                >
+                ZEITRAUM:
+            </label>
+            <!-- Native ID für das <label>, js-Klasse für JS-EventListener -->
+            <input
+                type="date"
+                id="filter_start"
+                name="start"
+                value="<?php echo \htmlspecialchars($currentStart); ?>"
+                class="c-control-bar__input js-filter-start"
+                autocomplete="off"
+            >
 
-                <label for="filter_end"
-                       class="c-control-bar__label">BIS</label>
-                <input type="date"
-                       id="filter_end"
-                       name="end"
-                       value="<?php echo \htmlspecialchars($currentEnd); ?>"
-                       class="c-control-bar__input js-filter-end"
-                       autocomplete="off">
+            <label
+                for="filter_end"
+                class="c-control-bar__label"
+            >BIS</label>
+            <input
+                type="date"
+                id="filter_end"
+                name="end"
+                value="<?php echo \htmlspecialchars($currentEnd); ?>"
+                class="c-control-bar__input js-filter-end"
+                autocomplete="off"
+            >
 
-                <label for="filter_type"
-                       class="c-control-bar__label u-margin-inline-start-xs">TYP:</label>
-                <select name="type"
-                        id="filter_type"
-                        class="c-control-bar__input js-auto-submit-select u-cursor-pointer"
-                        autocomplete="off">
-                    <option value="all"
-                            <?php echo $currentType === 'all' ? 'selected' : ''; ?>>Alle Genehmigungen</option>
-                    <option value="standard"
-                            <?php echo $currentType === 'standard' ? 'selected' : ''; ?>>Nur Standard</option>
-                    <option value="permanent"
-                            <?php echo $currentType === 'permanent' ? 'selected' : ''; ?>>Nur Dauerkarten</option>
-                </select>
+            <label
+                for="filter_type"
+                class="c-control-bar__label u-margin-inline-start-xs"
+            >TYP:</label>
+            <select
+                name="type"
+                id="filter_type"
+                class="c-control-bar__input js-auto-submit-select u-cursor-pointer"
+                autocomplete="off"
+            >
+                <option
+                    value="all"
+                    <?php echo $currentType === 'all' ? 'selected' : ''; ?>
+                >Alle Genehmigungen</option>
+                <option
+                    value="standard"
+                    <?php echo $currentType === 'standard' ? 'selected' : ''; ?>
+                >Nur Standard</option>
+                <option
+                    value="permanent"
+                    <?php echo $currentType === 'permanent' ? 'selected' : ''; ?>
+                >Nur Dauerkarten</option>
+            </select>
 
-                <label for="filter_limit"
-                       class="c-control-bar__label u-margin-inline-start-xs">PRO SEITE:</label>
-                <select name="limit"
-                        id="filter_limit"
-                        class="c-control-bar__input js-auto-submit-select u-cursor-pointer"
-                        autocomplete="off">
-                    <?php foreach ($allowedLimits ?? [10, 25, 50, 100] as $l) { ?>
-                        <option value="<?php echo $l; ?>"
-                                <?php echo $currentLimit == $l ? 'selected' : ''; ?>><?php echo $l; ?></option>
-                    <?php } ?>
-                </select>
-
-                <div class="c-control-bar__search">
-                    <span class="c-control-bar__search-icon">
-                        <img src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>" class="c-icon" loading="lazy" alt="">
-                    </span>
-                    <!-- Native ID entfernt da im JS refaktoriert, label wird via aria-label gelöst -->
-                    <!-- name="q" und value aus PHP für Server-Side Search -->
-                    <input type="text"
-                           name="q"
-                           aria-label="Schnellsuche"
-                           autocomplete="off"
-                           value="<?php echo \htmlspecialchars($currentQ); ?>"
-                           placeholder="Schnellsuche..."
-                           title="Suchen Sie nach Namen, KFZ oder SmartCode"
-                           class="c-form-input js-admin-search">
-                </div>
-
-                <?php if (!empty($sessionFilters)) { ?>
-                    <a href="?reset_filters=1" class="c-button c-button--secondary c-button--small u-text-xs">✕ Filter aufheben</a>
+            <label
+                for="filter_limit"
+                class="c-control-bar__label u-margin-inline-start-xs"
+            >PRO SEITE:</label>
+            <select
+                name="limit"
+                id="filter_limit"
+                class="c-control-bar__input js-auto-submit-select u-cursor-pointer"
+                autocomplete="off"
+            >
+                <?php foreach ($allowedLimits ?? [10, 25, 50, 100] as $l) { ?>
+                <option
+                    value="<?php echo $l; ?>"
+                    <?php echo $currentLimit == $l ? 'selected' : ''; ?>
+                ><?php echo $l; ?></option>
                 <?php } ?>
-                <!-- Versteckter Button, damit Formular via Enter absendbar ist -->
-                <button type="submit"
-                        class="u-visually-hidden"
-                        aria-label="Filter anwenden"></button>
-            </form>
-        </section>
-    </div>
+            </select>
+
+            <div class="c-control-bar__search">
+                <span class="c-control-bar__search-icon">
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>"
+                        class="c-icon"
+                        loading="lazy"
+                        alt=""
+                    >
+                </span>
+                <!-- Native ID entfernt da im JS refaktoriert, label wird via aria-label gelöst -->
+                <!-- name="q" und value aus PHP für Server-Side Search -->
+                <input
+                    type="text"
+                    name="q"
+                    aria-label="Schnellsuche"
+                    autocomplete="off"
+                    value="<?php echo \htmlspecialchars($currentQ); ?>"
+                    placeholder="Schnellsuche..."
+                    title="Suchen Sie nach Namen, KFZ oder SmartCode"
+                    class="c-form-input js-admin-search"
+                >
+            </div>
+
+            <?php if (!empty($sessionFilters)) { ?>
+            <a
+                href="?reset_filters=1"
+                class="c-button c-button--secondary c-button--small u-text-xs"
+            >✕ Filter aufheben</a>
+            <?php } ?>
+            <!-- Versteckter Button, damit Formular via Enter absendbar ist -->
+            <button
+                type="submit"
+                class="u-visually-hidden"
+                aria-label="Filter anwenden"
+            ></button>
+        </form>
+    </section>
+</div>
 <?php } ?>

@@ -23,52 +23,55 @@ $yearlyStats = $statsDto->yearlyStats;
 ?>
 
 <?php if ($auth->hasPermission('stats.view')) { ?>
-    <div class="c-tab-content-container">
+<div class="c-tab-content-container">
 
-        <div class="u-flex u-align-center u-gap-s u-margin-block-end-m">
-            <div class="c-date-indicator">
-                <img src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
-                     class="c-icon c-icon--inline"
-                     loading="lazy"
-                     alt="">
-                <div>
-                    <span class="c-date-indicator__label">Berichtszeitraum</span>
-                    <strong class="c-date-indicator__value">
-                        <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> - <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
-                    </strong>
+    <div class="u-flex u-align-center u-gap-s u-margin-block-end-m">
+        <div class="c-date-indicator">
+            <img
+                src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
+                class="c-icon c-icon--inline"
+                loading="lazy"
+                alt=""
+            >
+            <div>
+                <span class="c-date-indicator__label">Berichtszeitraum</span>
+                <strong class="c-date-indicator__value">
+                    <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> -
+                    <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
+                </strong>
+            </div>
+        </div>
+    </div>
+
+    <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
+    <div class="o-grid o-grid--auto-fit u-gap-m u-margin-block-end-l">
+        <div class="c-card c-card--success u-margin-block-none">
+            <div class="c-stat-card c-card__body u-padding-around-m">
+                <span class="c-stat-card__label">BEREITS BEZAHLT</span>
+                <div class="c-stat-card__value c-stat-card__value--success">
+                    <?php echo \number_format($periodStats['revenue_paid'] ?? 0, 2, ',', '.'); ?> €
                 </div>
             </div>
         </div>
 
-        <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
-            <div class="o-grid o-grid--auto-fit u-gap-m u-margin-block-end-l">
-                <div class="c-card c-card--success u-margin-block-none">
-                    <div class="c-stat-card c-card__body u-padding-around-m">
-                        <span class="c-stat-card__label">BEREITS BEZAHLT</span>
-                        <div class="c-stat-card__value c-stat-card__value--success">
-                            <?php echo \number_format($periodStats['revenue_paid'] ?? 0, 2, ',', '.'); ?> €
-                        </div>
-                    </div>
+        <div class="c-card c-card--warning u-margin-block-none">
+            <div class="c-stat-card c-card__body u-padding-around-m">
+                <span class="c-stat-card__label">NOCH OFFEN</span>
+                <div class="c-stat-card__value c-stat-card__value--warning">
+                    <?php echo \number_format($periodStats['revenue_unpaid'] ?? 0, 2, ',', '.'); ?> €
+                </div>
+            </div>
+        </div>
+
+        <div class="c-card c-card--primary u-margin-block-none">
+            <div class="c-stat-card c-card__body u-padding-around-m">
+                <span class="c-stat-card__label">GENEHMIGUNGEN</span>
+                <div class="c-stat-card__value c-stat-card__value--primary">
+                    <?php echo $periodStats['count'] ?? 0; ?>
                 </div>
 
-                <div class="c-card c-card--warning u-margin-block-none">
-                    <div class="c-stat-card c-card__body u-padding-around-m">
-                        <span class="c-stat-card__label">NOCH OFFEN</span>
-                        <div class="c-stat-card__value c-stat-card__value--warning">
-                            <?php echo \number_format($periodStats['revenue_unpaid'] ?? 0, 2, ',', '.'); ?> €
-                        </div>
-                    </div>
-                </div>
-
-                <div class="c-card c-card--primary u-margin-block-none">
-                    <div class="c-stat-card c-card__body u-padding-around-m">
-                        <span class="c-stat-card__label">GENEHMIGUNGEN</span>
-                        <div class="c-stat-card__value c-stat-card__value--primary">
-                            <?php echo $periodStats['count'] ?? 0; ?>
-                        </div>
-
-                        <div class="c-stat-card__footer">
-                            <?php
+                <div class="c-stat-card__footer">
+                    <?php
                             $vConfig = $settings['vehicle_types'] ?? [];
             $typeItems = [];
             foreach (($periodStats['types'] ?? []) as $typeKey => $count) {
@@ -84,103 +87,128 @@ $yearlyStats = $statsDto->yearlyStats;
                     $icon = $vConfig[$typeKey]['icon'] ?? '';
                 } // Nur anzeigen wenn vorhanden
                 ?>
-                                <div class="c-badge c-badge--success u-font-bold u-text-xs">
-                                    <img src="<?php echo $settings['base_url'] . $icon; ?>"
-                                         loading="lazy"
-                                         class="c-icon c-icon--inline u-margin-inline-end-xs"
-                                         alt=""> <?php echo $count; ?>
-                                    <small class="u-font-semibold u-margin-inline-start-xs"><?php echo $label; ?></small>
-                                </div>
-                            <?php } ?>
-                        </div>
+                    <div class="c-badge c-badge--success u-font-bold u-text-xs">
+                        <img
+                            src="<?php echo $settings['base_url'] . $icon; ?>"
+                            loading="lazy"
+                            class="c-icon c-icon--inline u-margin-inline-end-xs"
+                            alt=""
+                        > <?php echo $count; ?>
+                        <small class="u-font-semibold u-margin-inline-start-xs"><?php echo $label; ?></small>
                     </div>
-                </div>
-
-                <div class="c-card c-card--dark u-margin-block-none">
-                    <div class="c-stat-card c-card__body u-padding-around-m">
-                        <span class="c-stat-card__label">GESAMTUMSATZ (SOLL)</span>
-                        <div class="c-stat-card__value c-stat-card__value--primary">
-                            <?php echo \number_format(($periodStats['revenue_paid'] ?? 0) + ($periodStats['revenue_unpaid'] ?? 0), 2, ',', '.'); ?> €
-                        </div>
-                    </div>
+                    <?php } ?>
                 </div>
             </div>
-        <?php } ?>
+        </div>
 
-        <?php if ($auth->hasPermission('stats.charts') && $auth->hasPermission('privacy.finance.view')) { ?>
-            <!-- JSON Daten Container für das DashboardStats.js Modul -->
-            <script type="application/json"
-                    id="chart-data"
-                    class="js-chart-data"
-                    nonce="<?php echo $cspNonce; ?>">
-            <?php echo \json_encode($statsDto->chartDataPayload, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+        <div class="c-card c-card--dark u-margin-block-none">
+            <div class="c-stat-card c-card__body u-padding-around-m">
+                <span class="c-stat-card__label">GESAMTUMSATZ (SOLL)</span>
+                <div class="c-stat-card__value c-stat-card__value--primary">
+                    <?php echo \number_format(($periodStats['revenue_paid'] ?? 0) + ($periodStats['revenue_unpaid'] ?? 0), 2, ',', '.'); ?>
+                    €
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php } ?>
 
-            </script>
+    <?php if ($auth->hasPermission('stats.charts') && $auth->hasPermission('privacy.finance.view')) { ?>
+    <!-- JSON Daten Container für das DashboardStats.js Modul -->
+    <script
+        type="application/json"
+        id="chart-data"
+        class="js-chart-data"
+        nonce="<?php echo $cspNonce; ?>"
+    >
+    <?php echo \json_encode($statsDto->chartDataPayload, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
-            <section class="c-card c-card--primary u-margin-block-end-l">
-                <details class="c-accordion u-margin-block-none">
-                    <summary class="c-accordion__summary u-font-bold u-border-none">
-                        <span class="c-accordion__title">
-                            <img src="<?php echo $asset->url('assets/img/icons/stats.webp'); ?>" class="c-icon" loading="lazy" alt=""> Wachstums-Trend & Jahresvergleich
-                        </span>
-                    </summary>
-                    <div class="c-accordion__body c-box c-box--subtle u-margin-block-none">
-                        <div class="u-flex u-gap-xs u-margin-block-end-m u-justify-end">
-                            <div class="c-box u-padding-inline-s u-padding-block-xs u-display-inline-flex">
-                                <button type="button"
-                                        id="chartToggleMonth"
-                                        class="c-button c-button--primary c-button--small js-chart-toggle-month">Monatlich</button>
-                                <button type="button"
-                                        id="chartToggleYear"
-                                        class="c-button c-button--secondary c-button--small js-chart-toggle-year">Jährlich</button>
-                            </div>
-                        </div>
-                        <canvas id="yearlyStatsChart"
-                                class="c-stat-chart u-inline-size-100 js-yearly-stats-chart"></canvas>
+    </script>
+
+    <section class="c-card c-card--primary u-margin-block-end-l">
+        <details class="c-accordion u-margin-block-none">
+            <summary class="c-accordion__summary u-font-bold u-border-none">
+                <span class="c-accordion__title">
+                    <img
+                        src="<?php echo $asset->url('assets/img/icons/stats.webp'); ?>"
+                        class="c-icon"
+                        loading="lazy"
+                        alt=""
+                    > Wachstums-Trend & Jahresvergleich
+                </span>
+            </summary>
+            <div class="c-accordion__body c-box c-box--subtle u-margin-block-none">
+                <div class="u-flex u-gap-xs u-margin-block-end-m u-justify-end">
+                    <div class="c-box u-padding-inline-s u-padding-block-xs u-display-inline-flex">
+                        <button
+                            type="button"
+                            id="chartToggleMonth"
+                            class="c-button c-button--primary c-button--small js-chart-toggle-month"
+                        >Monatlich</button>
+                        <button
+                            type="button"
+                            id="chartToggleYear"
+                            class="c-button c-button--secondary c-button--small js-chart-toggle-year"
+                        >Jährlich</button>
                     </div>
-                </details>
-            </section>
-        <?php } ?>
+                </div>
+                <canvas
+                    id="yearlyStatsChart"
+                    class="c-stat-chart u-inline-size-100 js-yearly-stats-chart"
+                ></canvas>
+            </div>
+        </details>
+    </section>
+    <?php } ?>
 
-        <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
-            <h3 class="u-margin-block-end-m u-flex u-align-center u-gap-s">
-                <img src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
-                     class="c-icon c-icon--md"
-                     loading="lazy"
-                     alt=""> Historische Jahresabschlüsse
-            </h3>
+    <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
+    <h3 class="u-margin-block-end-m u-flex u-align-center u-gap-s">
+        <img
+            src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
+            class="c-icon c-icon--md"
+            loading="lazy"
+            alt=""
+        > Historische Jahresabschlüsse
+    </h3>
 
-            <?php foreach ($yearlyStats as $year => $data) { ?>
-                <details class="c-accordion">
-                    <summary class="c-accordion__summary">
-                        <span class="c-accordion__title">
-                            <img src="<?php echo $asset->url('assets/img/icons/calendar.webp'); ?>" class="c-icon" loading="lazy" alt=""> Geschäftsjahr <strong><?php echo $year; ?></strong>
-                        </span>
-                        <div class="c-accordion__meta">
-                            <span class="u-color-success u-font-bold">+ <?php echo \number_format($data['paid'], 0, ',', '.'); ?> €</span>
-                            <span class="c-badge c-badge--outline u-font-extrabold"><?php echo $data['count']; ?> Anträge</span>
-                        </div>
-                    </summary>
-                    <div class="c-accordion__body o-grid o-grid--auto-fit-sm u-gap-m">
-                        <div class="c-card c-card--success u-margin-block-none">
-                            <div class="c-stat-card c-card__body u-padding-around-s">
-                                <span class="c-stat-card__label">BEREITS BEZAHLT</span>
-                                <div class="u-font-bold u-color-success u-text-lg"><?php echo \number_format($data['paid'], 2, ',', '.'); ?> €</div>
-                            </div>
-                        </div>
-                        <div class="c-card c-card--danger u-margin-block-none">
-                            <div class="c-stat-card c-card__body u-padding-around-s">
-                                <span class="c-stat-card__label">Noch offen</span>
-                                <div class="u-font-bold u-color-danger u-text-lg"><?php echo \number_format($data['unpaid'], 2, ',', '.'); ?> €</div>
-                            </div>
-                        </div>
-                        <div class="c-card c-card--primary u-margin-block-none">
-                            <div class="c-stat-card c-card__body u-padding-around-s">
-                                <span class="c-stat-card__label">GENEHMIGUNGEN</span>
-                                <div class="u-font-bold u-text-lg u-margin-block-end-xs"><?php echo $data['count']; ?></div>
-                                <div
-                                     class="u-text-xs u-color-muted u-flex u-justify-center u-gap-s u-flex-wrap u-align-center">
-                                    <?php
+    <?php foreach ($yearlyStats as $year => $data) { ?>
+    <details class="c-accordion">
+        <summary class="c-accordion__summary">
+            <span class="c-accordion__title">
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/calendar.webp'); ?>"
+                    class="c-icon"
+                    loading="lazy"
+                    alt=""
+                > Geschäftsjahr <strong><?php echo $year; ?></strong>
+            </span>
+            <div class="c-accordion__meta">
+                <span class="u-color-success u-font-bold">+ <?php echo \number_format($data['paid'], 0, ',', '.'); ?>
+                    €</span>
+                <span class="c-badge c-badge--outline u-font-extrabold"><?php echo $data['count']; ?> Anträge</span>
+            </div>
+        </summary>
+        <div class="c-accordion__body o-grid o-grid--auto-fit-sm u-gap-m">
+            <div class="c-card c-card--success u-margin-block-none">
+                <div class="c-stat-card c-card__body u-padding-around-s">
+                    <span class="c-stat-card__label">BEREITS BEZAHLT</span>
+                    <div class="u-font-bold u-color-success u-text-lg">
+                        <?php echo \number_format($data['paid'], 2, ',', '.'); ?> €</div>
+                </div>
+            </div>
+            <div class="c-card c-card--danger u-margin-block-none">
+                <div class="c-stat-card c-card__body u-padding-around-s">
+                    <span class="c-stat-card__label">Noch offen</span>
+                    <div class="u-font-bold u-color-danger u-text-lg">
+                        <?php echo \number_format($data['unpaid'], 2, ',', '.'); ?> €</div>
+                </div>
+            </div>
+            <div class="c-card c-card--primary u-margin-block-none">
+                <div class="c-stat-card c-card__body u-padding-around-s">
+                    <span class="c-stat-card__label">GENEHMIGUNGEN</span>
+                    <div class="u-font-bold u-text-lg u-margin-block-end-xs"><?php echo $data['count']; ?></div>
+                    <div class="u-text-xs u-color-muted u-flex u-justify-center u-gap-s u-flex-wrap u-align-center">
+                        <?php
                         $vConfig = $settings['vehicle_types'] ?? [];
                 $typeItems = [];
                 foreach ($data['types'] as $tKey => $count) {
@@ -201,22 +229,23 @@ $yearlyStats = $statsDto->yearlyStats;
                 // Wir verbinden die Schnipsel mit einem Trennstrich
                 echo \implode(' <span class="u-opacity-50">|</span> ', $typeItems);
                 ?>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="c-card c-card--dark u-margin-block-none">
-                            <div class="c-stat-card c-card__body u-padding-around-s">
-                                <span class="c-stat-card__label">Jahres-Umsatz (Soll)</span>
-                                <div class="u-font-bold u-text-lg"><?php echo \number_format($data['paid'] + $data['unpaid'], 2, ',', '.'); ?> €</div>
-                            </div>
-                        </div>
                     </div>
-                </details>
-            <?php } ?>
+                </div>
+            </div>
+            <div class="c-card c-card--dark u-margin-block-none">
+                <div class="c-stat-card c-card__body u-padding-around-s">
+                    <span class="c-stat-card__label">Jahres-Umsatz (Soll)</span>
+                    <div class="u-font-bold u-text-lg">
+                        <?php echo \number_format($data['paid'] + $data['unpaid'], 2, ',', '.'); ?> €</div>
+                </div>
+            </div>
+        </div>
+    </details>
+    <?php } ?>
 
-            <!-- Button zum Nachladen von alten Jahren! -->
-            <div class="u-text-center u-margin-block-start-l">
-                <?php
+    <!-- Button zum Nachladen von alten Jahren! -->
+    <div class="u-text-center u-margin-block-start-l">
+        <?php
                 $queryParams = $_GET;
             // Verhindere, dass Paginierungen beim Laden von Archiven mitgenommen werden
             unset($queryParams['page'], $queryParams['audit_page']);
@@ -224,23 +253,30 @@ $yearlyStats = $statsDto->yearlyStats;
             $queryParams['focus'] = 'tab-stats'; // Zwingt den Tab nach dem Laden wieder auf Statistiken
             $loadUrl = '?' . \http_build_query($queryParams);
             ?>
-                <a href="<?php echo $loadUrl; ?>" class="c-button c-button--secondary">
-                    <img src="<?php echo $asset->url('assets/img/icons/inbox.webp'); ?>"
-                         class="c-icon c-button__icon"
-                         loading="lazy"
-                         alt="">
-                    &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
-                </a>
-            </div>
-        <?php } ?>
+        <a
+            href="<?php echo $loadUrl; ?>"
+            class="c-button c-button--secondary"
+        >
+            <img
+                src="<?php echo $asset->url('assets/img/icons/inbox.webp'); ?>"
+                class="c-icon c-button__icon"
+                loading="lazy"
+                alt=""
+            >
+            &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
+        </a>
     </div>
+    <?php } ?>
+</div>
 
-    <!-- https://cdnjs.com/libraries/Chart.js -->
-    <?php /* <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script> */ ?>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"
-            integrity="sha512-WoViKhKD4qI2WruSZqv9+kvM4WfFhUMQCLN4QlDTt5aU56fLQy2gYoxWIqlEnXqJy/+Ac5q/hk1oWfqnMDhwMA=="
-            crossorigin="anonymous"
-            referrerpolicy="no-referrer"
-            nonce="<?php echo $cspNonce; ?>">
-    </script>
+<!-- https://cdnjs.com/libraries/Chart.js -->
+<?php /* <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script> */ ?>
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"
+    integrity="sha512-WoViKhKD4qI2WruSZqv9+kvM4WfFhUMQCLN4QlDTt5aU56fLQy2gYoxWIqlEnXqJy/+Ac5q/hk1oWfqnMDhwMA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+    nonce="<?php echo $cspNonce; ?>"
+>
+</script>
 <?php } ?>
