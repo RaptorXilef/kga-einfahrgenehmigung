@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\ConfirmPermitEmail;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Core\Entity\VerificationRequest;
 use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitCommand;
 use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitHandler;
 use App\Modules\Permit\Domain\PermitStatus;
+use App\Modules\Permit\Domain\VerificationRepositoryInterface;
+use App\Modules\Permit\Domain\VerificationRequest;
 use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountHandler;
 use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountQuery;
 use App\Modules\Voucher\Application\UseCases\RedeemVoucher\RedeemVoucherCommand;

@@ -11,8 +11,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Storage\StorageInterface;
-use App\Core\Entity\Permit;
 use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\Permit\Domain\Permit;
 
 /**
  * Guard für das Sperren/Entsperren von Genehmigungen.

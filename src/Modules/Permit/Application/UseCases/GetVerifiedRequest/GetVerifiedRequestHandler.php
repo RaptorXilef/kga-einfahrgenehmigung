@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\GetVerifiedRequest;
 
-use App\Contracts\Storage\VerificationRepositoryInterface;
+use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 
 final readonly class GetVerifiedRequestHandler
 {

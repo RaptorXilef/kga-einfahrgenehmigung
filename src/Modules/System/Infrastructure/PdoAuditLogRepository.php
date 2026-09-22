@@ -54,12 +54,12 @@ final readonly class PdoAuditLogRepository implements AuditLogRepositoryInterfac
         $offset = ($page - 1) * $limit;
 
         // Total Count holen
-        $stmtCount = $this->pdo->prepare("SELECT COUNT(*) FROM `{$table}` $where");
+        $stmtCount = $this->pdo->prepare("SELECT COUNT(*) FROM `{$table}` {$where}");
         $stmtCount->execute($params);
         $total = (int) $stmtCount->fetchColumn();
 
-        // Items holen
-        $sql = "SELECT * FROM `{$table}` $where ORDER BY created_at DESC LIMIT $limit OFFSET$offset";
+        // FIX: Sichere Kapselung der int-Variablen, um "OFFSET0" Syntax-Fehler zu vermeiden
+        $sql = "SELECT * FROM `{$table}` {$where} ORDER BY created_at DESC LIMIT {$limit} OFFSET {$offset}";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
 

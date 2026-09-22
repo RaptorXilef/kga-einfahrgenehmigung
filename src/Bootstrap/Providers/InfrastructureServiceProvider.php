@@ -17,10 +17,8 @@ use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
-use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
-use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
@@ -45,9 +43,7 @@ use App\Infrastructure\Storage\FileLockManager;
 use App\Infrastructure\Storage\ImageStorageService;
 use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\MySqlCancelledPermitRepository;
-use App\Infrastructure\Storage\MySqlMailQueueRepository;
 use App\Infrastructure\Storage\MySqlPermitArchiveRepository;
-use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\System\DompdfGenerator;
 use App\Infrastructure\System\FileRouteCache;
@@ -63,9 +59,13 @@ use App\Modules\Identity\Infrastructure\PdoMagicLinkRepository;
 use App\Modules\Identity\Infrastructure\PdoRoleRepository;
 use App\Modules\Identity\Infrastructure\PdoUserRepository as IdentityPdoUserRepository;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
+use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Infrastructure\PdoPermitRepository;
+use App\Modules\Permit\Infrastructure\PdoVerificationRepository;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
+use App\Modules\System\Domain\MailQueueRepositoryInterface;
 use App\Modules\System\Infrastructure\PdoAuditLogRepository;
+use App\Modules\System\Infrastructure\PdoMailQueueRepository;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface as NewVoucherRepositoryInterface;
 use App\Modules\Voucher\Infrastructure\PdoVoucherRepository;
 use PDO;
@@ -101,23 +101,13 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         // Mapping des System-Clocks für testbare Zeitstempel
         $container->bind(ClockInterface::class, fn (): mixed => $container->get(SystemClock::class));
 
-        // --- LEGACY REPOSITORIES ---
+        // --- LEGACY REPOSITORIES (Archiv/Cancelled) ---
         $container->bind(CancelledPermitRepositoryInterface::class, fn (): MySqlCancelledPermitRepository => new MySqlCancelledPermitRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
         ));
-        $container->bind(MailQueueRepositoryInterface::class, fn (): MySqlMailQueueRepository => new MySqlMailQueueRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-            $container->get(JsonHelperInterface::class),
-        ));
         $container->bind(PermitArchiveRepositoryInterface::class, fn (): MySqlPermitArchiveRepository => new MySqlPermitArchiveRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-            $container->get(JsonHelperInterface::class),
-        ));
-        $container->bind(VerificationRepositoryInterface::class, fn (): MySqlVerificationRepository => new MySqlVerificationRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
@@ -128,10 +118,20 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
         ));
+        $container->bind(MailQueueRepositoryInterface::class, fn (): PdoMailQueueRepository => new PdoMailQueueRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
+        ));
 
         // --- PERMIT DDD REPOSITORY BINDINGS ---
         $container->bind(PermitRepositoryInterface::class, fn (): PdoPermitRepository => new PdoPermitRepository(
             $container->get(PDO::class),
+        ));
+        $container->bind(VerificationRepositoryInterface::class, fn (): PdoVerificationRepository => new PdoVerificationRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
         ));
 
         // --- VOUCHER DDD REPOSITORY BINDINGS ---

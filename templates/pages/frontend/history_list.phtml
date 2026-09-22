@@ -2,8 +2,8 @@
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
-use App\Core\Entity\PermitStatus;
 use App\Core\Service\PermitService;
+use App\Modules\Permit\Domain\PermitStatus;
 
 /**
  * Page: Tenant History
@@ -19,7 +19,7 @@ use App\Core\Service\PermitService;
  * @var ConfigInterface $config
  * @var PermitService $permitService
  * @var array $settings
- * @var array<int, \App\Core\Entity\Permit> $permits
+ * @var array<int, \App\Modules\Permit\Domain\Permit> $permits
  * @var bool $isSuccess
  * @var int $currentArchiveYear
  * @var string $appRoot

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Infrastructure\Mail;
 
 use App\Contracts\Mail\MailServiceInterface;
-use App\Contracts\Storage\MailQueueRepositoryInterface;
-use App\Core\Entity\MailJob;
+use App\Modules\System\Domain\MailJob;
+use App\Modules\System\Domain\MailQueueRepositoryInterface;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 use Exception;

@@ -6,9 +6,7 @@ namespace App\Modules\Permit\Application\UseCases\SubmitPermitRequest;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
-use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Core\Entity\VerificationRequest;
 use App\Core\Event\VerificationRequestedEvent;
 use App\Core\Exception\PermitCollisionException;
 use App\Core\Security\Sanitizer;
@@ -16,6 +14,8 @@ use App\Core\Utils\DateRangeHelper;
 use App\Modules\Permit\Application\DTO\PermitFormData;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
+use App\Modules\Permit\Domain\VerificationRepositoryInterface;
+use App\Modules\Permit\Domain\VerificationRequest;
 use DateTimeImmutable;
 use InvalidArgumentException;
 

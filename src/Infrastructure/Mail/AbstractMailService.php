@@ -8,7 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\System\JsonHelperInterface;
-use App\Core\Entity\MailLogEntry;
+use App\Modules\System\Domain\MailLogEntry;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 use Exception;

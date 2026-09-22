@@ -9,11 +9,11 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\System\PdfGeneratorInterface;
-use App\Core\Entity\PermitStatus;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Service\BankQrGenerator;
 use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
+use App\Modules\Permit\Domain\PermitStatus;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
@@ -29,7 +29,7 @@ final readonly class SendPermitMailListener
         private ConfigInterface $config,
         private HolidayService $holidayService,
         private MailServiceInterface $mailService,
-        private PermitService $permitService,
+        private PermitService $permitService, // Service Wrapper
         private PdfGeneratorInterface $pdfGenerator,
         private TemplateRenderer $renderer,
     ) {
