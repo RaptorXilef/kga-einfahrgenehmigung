@@ -5,20 +5,19 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
-use App\Core\Entity\User;
 use App\Modules\Identity\Domain\Role;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\Modules\Identity\Domain\User;
+use App\Modules\Identity\Domain\UserRepositoryInterface;
 use PDO;
 use PDOException;
+use Throwable;
 
 /**
  * Bootstrapper für die Initialisierung der Speicher-Infrastruktur.
  * Stellt sicher, dass Datenbanktabellen oder JSON-Dateien beim Start vorhanden sind,
  * und führt bei Bedarf initiale Auto-Setups aus.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class StorageBootstrapper implements StorageBootstrapperInterface
 {
@@ -104,20 +103,15 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
                 continue;
             }
 
-            $roles[$id] = new Role(
-                $role->id,
-                $role->name,
-                \array_values($cleanedPerms),
-            );
+            // Neues Objekt bauen und einzeln ins Repo schieben
+            $updatedRole = new Role($role->id, $role->name, \array_values($cleanedPerms));
+            $this->roleRepository->save($updatedRole);
             $changed = true;
         }
 
-        if (!$changed) {
-            return;
+        if ($changed) {
+            \error_log('Bootstrap: Veraltete Berechtigungen (Orphaned Permissions) wurden erfolgreich bereinigt.');
         }
-
-        \error_log('Bootstrap: Veraltete Berechtigungen (Orphaned Permissions) wurden erfolgreich bereinigt.');
-        $this->roleRepository->saveAll($roles);
     }
 
     /**
@@ -126,20 +120,35 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
      */
     private function initDefaultRolesAndUsers(): void
     {
-        $currentUsers = $this->userRepository->loadAll();
-        $currentRoles = $this->roleRepository->loadAll();
+        // Wir fangen eventuelle SQL Fehler beim allerersten Start weich ab
+        try {
+            $currentRoles = $this->roleRepository->loadAll();
+            $currentUsers = []; // Für den Initial-Check reicht das
+        } catch (Throwable $t) {
+            $currentRoles = [];
+            $currentUsers = [];
+        }
 
-        if ($currentRoles === []) {
+        if (empty($currentRoles)) {
             \error_log('Bootstrap: Initialisiere Standard-Rollen.');
-            $this->roleRepository->saveAll($this->getDefaultRoles());
+            foreach ($this->getDefaultRoles() as $role) {
+                $this->roleRepository->save($role);
+            }
         }
 
-        if ($currentUsers !== []) {
-            return;
+        // Falls noch keine User da sind, aber Rollen existieren (bzw. gerade angelegt wurden)
+        try {
+            $userCheck = $this->userRepository->findById('usr_7c13b491');
+        } catch (Throwable $t) {
+            $userCheck = null;
         }
 
-        \error_log('Bootstrap: Initialisiere Standard-Admin.');
-        $this->userRepository->saveAll($this->getDefaultUsers());
+        if ($userCheck === null) {
+            \error_log('Bootstrap: Initialisiere Standard-Admin.');
+            foreach ($this->getDefaultUsers() as $user) {
+                $this->userRepository->save($user);
+            }
+        }
     }
 
     /**

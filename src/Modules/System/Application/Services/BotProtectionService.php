@@ -9,8 +9,6 @@ use InvalidArgumentException;
 
 /**
  * Service zur Abwehr von automatisierten Formular-Einsendungen (Bots).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class BotProtectionService
 {

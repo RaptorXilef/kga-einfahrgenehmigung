@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\System\Application\Services;
+namespace App\Modules\System\Application\Services;
 
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Storage\AuditLogRepositoryInterface;

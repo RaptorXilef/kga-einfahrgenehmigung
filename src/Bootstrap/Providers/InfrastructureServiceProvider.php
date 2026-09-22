@@ -23,10 +23,12 @@ use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
+use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\System\PdfGeneratorInterface;
+use App\Contracts\System\RouteCacheInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
@@ -52,6 +54,8 @@ use App\Infrastructure\Storage\MySqlPermitArchiveRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\System\DompdfGenerator;
+use App\Infrastructure\System\FileRouteCache;
+use App\Infrastructure\System\LocalAssetHelper;
 use App\Infrastructure\System\SystemInfoService;
 use App\Infrastructure\Utils\SystemClock;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface as IdentityMagicLinkRepositoryInterface;
@@ -85,7 +89,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
     public function register(ContainerInterface $container): void
     {
         // --- CORE SYSTEM & DATABASE ---
-
         $container->bind(PDO::class, fn (): ?PDO => PdoFactory::create(
             $container->get(ConfigInterface::class),
         ));
@@ -129,7 +132,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         ));
 
         // --- DDD REPOSITORY BINDINGS ---
-
         $container->bind(PermitRepositoryInterface::class, fn (): PdoPermitRepository => new PdoPermitRepository(
             $container->get(PDO::class),
         ));
@@ -155,6 +157,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind('mail.transport', function () use ($container) {
             $config = $container->get(ConfigInterface::class);
             $default = $config->get('mail', [])['default'] ?? 'smtp';
+
             if ($default === 'graph') {
                 return new MicrosoftGraphMailService(
                     $container->get(PDO::class),
@@ -205,11 +208,12 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(PdfGeneratorInterface::class, fn (): DompdfGenerator => new DompdfGenerator());
 
         // Route Cache Binding für die ActionRegistry
-        $container->bind(RouteCacheInterface::class, fn () use ($container): FileRouteCache => new FileRouteCache(
-            $container->get(ConfigInterface::class);
-            ));
-        $container->bind(AssetHelperInterface::class, fn () use ($container): LocalAssetHelper => new LocalAssetHelper(
-            $container->get(ConfigInterface::class);
-            ));
+        // FIX: Arrow Functions fangen den Scope automatisch ($container) ein. "use" ist hier ein Syntax Error in PHP 7.4+
+        $container->bind(RouteCacheInterface::class, fn (): FileRouteCache => new FileRouteCache(
+            $container->get(ConfigInterface::class),
+        ));
+        $container->bind(AssetHelperInterface::class, fn (): LocalAssetHelper => new LocalAssetHelper(
+            $container->get(ConfigInterface::class),
+        ));
     }
 }
