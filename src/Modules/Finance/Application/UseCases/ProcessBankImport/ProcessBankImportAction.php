@@ -2,29 +2,26 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Finance\Application\UseCases\ProcessBankImport;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\DTO\BankImportProcessRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
-use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportCommand;
-use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportHandler;
 use Throwable;
 
 #[Route('POST', '/bank_import_process')]
 #[RequiresAuth]
-final readonly class BankImportProcessAction implements ActionInterface, RequiresPermissionInterface
+final readonly class ProcessBankImportAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private SessionManager $sessionManager,
         private ConfigInterface $config,
-        private ProcessBankImportHandler $processHandler, // CQRS
+        private ProcessBankImportHandler $processHandler,
     ) {
     }
 
@@ -92,12 +89,10 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 $this->sessionManager->addFlash('error', $result->message);
             }
 
-            // Bei Fehler auch dorthin zurückspringen, wo der User gestartet ist
             return new RedirectResponse('admin?focus=tab-finance');
         } catch (Throwable $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            // Zwingendes Return hinzugefügt, um Interface-Vorgaben zu erfüllen!
             return new RedirectResponse('admin?focus=tab-finance');
         }
     }

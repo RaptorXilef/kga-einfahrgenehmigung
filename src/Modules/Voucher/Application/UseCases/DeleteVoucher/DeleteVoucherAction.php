@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Voucher\Application\UseCases\DeleteVoucher;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
@@ -13,15 +13,13 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\System\Application\Services\AuditLoggerService;
-use App\Modules\Voucher\Application\UseCases\DeleteVoucher\DeleteVoucherCommand;
-use App\Modules\Voucher\Application\UseCases\DeleteVoucher\DeleteVoucherHandler;
 
 /**
- * Action zum unwiderruflichen Löschen eines Gutscheins.
+ * Action zum unwiderruflichen Löschen eines Gutscheins (VSA).
  */
 #[Route('GET', '/delete_voucher')]
 #[Route('POST', '/delete_voucher')]
-final readonly class VoucherDeleteAction implements ActionInterface, RequiresPermissionInterface
+final readonly class DeleteVoucherAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Finance\Application\UseCases\ProcessBankImport;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
@@ -35,7 +35,6 @@ final readonly class DismissTransferAction implements ActionInterface, RequiresP
             $this->sessionManager->removeCollectiveTransfer($id);
         }
 
-        // Zurück ins Finanz-Tab
         return new RedirectResponse('admin?focus=tab-finance');
     }
 }

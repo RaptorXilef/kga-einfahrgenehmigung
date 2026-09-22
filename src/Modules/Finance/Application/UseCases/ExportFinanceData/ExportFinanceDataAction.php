@@ -2,28 +2,25 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Finance\Application\UseCases\ExportFinanceData;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ViewActionInterface;
-use App\Application\DTO\ExportRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
 use App\Application\Response\FileDownloadResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Finance\Application\UseCases\ExportFinanceData\ExportFinanceDataHandler;
-use App\Modules\Finance\Application\UseCases\ExportFinanceData\ExportFinanceDataQuery;
 use App\Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('GET', '/dashboard_export')]
 #[Route('POST', '/dashboard_export')]
-final readonly class DashboardExportAction implements ViewActionInterface, RequiresPermissionInterface
+final readonly class ExportFinanceDataAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
-        private ExportFinanceDataHandler $exportHandler, // CQRS
+        private ExportFinanceDataHandler $exportHandler,
     ) {
     }
 

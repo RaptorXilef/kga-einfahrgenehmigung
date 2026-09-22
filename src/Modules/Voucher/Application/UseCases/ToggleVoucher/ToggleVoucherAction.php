@@ -2,26 +2,23 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Voucher\Application\UseCases\ToggleVoucher;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\DTO\VoucherToggleRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\System\Application\Services\AuditLoggerService;
-use App\Modules\Voucher\Application\UseCases\ToggleVoucher\ToggleVoucherCommand;
-use App\Modules\Voucher\Application\UseCases\ToggleVoucher\ToggleVoucherHandler;
 use DomainException;
 
 #[Route('POST', '/activate_voucher')]
 #[Route('POST', '/deactivate_voucher')]
 #[RequiresAuth]
-final readonly class VoucherToggleAction implements ActionInterface, RequiresPermissionInterface
+final readonly class ToggleVoucherAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
@@ -35,11 +32,6 @@ final readonly class VoucherToggleAction implements ActionInterface, RequiresPer
         return 'vouchers.suspend';
     }
 
-    /**
-     * Setzt den Sperrstatus einer bestehenden Genehmigung.
-     *
-     * @return string Statusänderungs-Meldung.
-     */
     public function execute(ServerRequest $request): mixed
     {
         try {
@@ -56,7 +48,6 @@ final readonly class VoucherToggleAction implements ActionInterface, RequiresPer
 
             $actionStr = $dto->targetStatus === 'aktiv' ? 'reaktiviert' : 'deaktiviert (gesperrt)';
 
-            // LOG SCHREIBEN
             $this->auditLogger->log('VOUCHER_TOGGLE', "Gutscheincode '{$dto->code}' wurde {$actionStr}.");
             $this->sessionManager->addFlash('success', "Gutschein wurde {$actionStr}.");
 

@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Voucher\Application\UseCases\ToggleVoucher;
 
 use App\Application\Exception\ValidationException;
 
 /**
  * DTO für das Aktivieren/Deaktivieren eines Gutscheins.
- * Übersetzt die Action-Direktive direkt in den Ziel-Status.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -20,7 +19,6 @@ final readonly class VoucherToggleRequest
     ) {
     }
 
-    // TODO DOCBLOCK
     public static function fromArray(array $post): self
     {
         $code = \trim((string) ($post['code'] ?? ''));

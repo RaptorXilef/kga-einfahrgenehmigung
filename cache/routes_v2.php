@@ -13,16 +13,6 @@
         'class' => 'App\\Application\\Actions\\Admin\\AdminPrintAction',
         'auth' => true,
       ),
-      '/bank_import_analyze' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\BankImportAnalyzeAction',
-        'auth' => false,
-      ),
-      '/dashboard_export' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\DashboardExportAction',
-        'auth' => false,
-      ),
       '/filter_dashboard' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\DashboardFilterAction',
@@ -106,16 +96,6 @@
       '/upload_avatar' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\UserUploadAvatarAction',
-        'auth' => false,
-      ),
-      '/create_voucher' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\VoucherCreateAction',
-        'auth' => false,
-      ),
-      '/delete_voucher' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\VoucherDeleteAction',
         'auth' => false,
       ),
       '/api/qr.png' => 
@@ -233,6 +213,16 @@
         'class' => 'App\\Application\\Actions\\Frontend\\VerificationAction',
         'auth' => false,
       ),
+      '/bank_import_analyze' => 
+      array (
+        'class' => 'App\\Modules\\Finance\\Application\\UseCases\\AnalyzeBankImport\\AnalyzeBankImportAction',
+        'auth' => false,
+      ),
+      '/dashboard_export' => 
+      array (
+        'class' => 'App\\Modules\\Finance\\Application\\UseCases\\ExportFinanceData\\ExportFinanceDataAction',
+        'auth' => false,
+      ),
       '/suspend_permit' => 
       array (
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\TogglePermitSuspension\\TogglePermitSuspensionAction',
@@ -243,6 +233,16 @@
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\TogglePermitSuspension\\TogglePermitSuspensionAction',
         'auth' => false,
       ),
+      '/create_voucher' => 
+      array (
+        'class' => 'App\\Modules\\Voucher\\Application\\UseCases\\CreateVoucher\\CreateVoucherAction',
+        'auth' => false,
+      ),
+      '/delete_voucher' => 
+      array (
+        'class' => 'App\\Modules\\Voucher\\Application\\UseCases\\DeleteVoucher\\DeleteVoucherAction',
+        'auth' => false,
+      ),
     ),
     'POST' => 
     array (
@@ -251,29 +251,9 @@
         'class' => 'App\\Application\\Actions\\Admin\\AdminLogoutAction',
         'auth' => false,
       ),
-      '/bank_import_analyze' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\BankImportAnalyzeAction',
-        'auth' => false,
-      ),
-      '/bank_import_process' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\BankImportProcessAction',
-        'auth' => true,
-      ),
-      '/dashboard_export' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\DashboardExportAction',
-        'auth' => false,
-      ),
       '/filter_dashboard' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\DashboardFilterAction',
-        'auth' => false,
-      ),
-      '/dismiss_transfer' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\DismissTransferAction',
         'auth' => false,
       ),
       '/create_manual' => 
@@ -395,26 +375,6 @@
       array (
         'class' => 'App\\Application\\Actions\\Admin\\UserUploadAvatarAction',
         'auth' => false,
-      ),
-      '/create_voucher' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\VoucherCreateAction',
-        'auth' => false,
-      ),
-      '/delete_voucher' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\VoucherDeleteAction',
-        'auth' => false,
-      ),
-      '/activate_voucher' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\VoucherToggleAction',
-        'auth' => true,
-      ),
-      '/deactivate_voucher' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\VoucherToggleAction',
-        'auth' => true,
       ),
       '/api/mark_changelog_read' => 
       array (
@@ -546,6 +506,26 @@
         'class' => 'App\\Application\\Actions\\Frontend\\VerificationAction',
         'auth' => false,
       ),
+      '/bank_import_analyze' => 
+      array (
+        'class' => 'App\\Modules\\Finance\\Application\\UseCases\\AnalyzeBankImport\\AnalyzeBankImportAction',
+        'auth' => false,
+      ),
+      '/dashboard_export' => 
+      array (
+        'class' => 'App\\Modules\\Finance\\Application\\UseCases\\ExportFinanceData\\ExportFinanceDataAction',
+        'auth' => false,
+      ),
+      '/dismiss_transfer' => 
+      array (
+        'class' => 'App\\Modules\\Finance\\Application\\UseCases\\ProcessBankImport\\DismissTransferAction',
+        'auth' => false,
+      ),
+      '/bank_import_process' => 
+      array (
+        'class' => 'App\\Modules\\Finance\\Application\\UseCases\\ProcessBankImport\\ProcessBankImportAction',
+        'auth' => true,
+      ),
       '/' => 
       array (
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SubmitPermitRequest\\SubmitPermitAction',
@@ -560,6 +540,26 @@
       array (
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\TogglePermitSuspension\\TogglePermitSuspensionAction',
         'auth' => false,
+      ),
+      '/create_voucher' => 
+      array (
+        'class' => 'App\\Modules\\Voucher\\Application\\UseCases\\CreateVoucher\\CreateVoucherAction',
+        'auth' => false,
+      ),
+      '/delete_voucher' => 
+      array (
+        'class' => 'App\\Modules\\Voucher\\Application\\UseCases\\DeleteVoucher\\DeleteVoucherAction',
+        'auth' => false,
+      ),
+      '/activate_voucher' => 
+      array (
+        'class' => 'App\\Modules\\Voucher\\Application\\UseCases\\ToggleVoucher\\ToggleVoucherAction',
+        'auth' => true,
+      ),
+      '/deactivate_voucher' => 
+      array (
+        'class' => 'App\\Modules\\Voucher\\Application\\UseCases\\ToggleVoucher\\ToggleVoucherAction',
+        'auth' => true,
       ),
     ),
   ),

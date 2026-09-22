@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Voucher\Application\UseCases\CreateVoucher;
 
 use App\Application\Exception\ValidationException;
-use App\Core\ValueObject\LicensePlate;
-use App\Core\ValueObject\PlotNumber;
+use App\SharedKernel\Domain\ValueObject\LicensePlate;
+use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use InvalidArgumentException;
 
 /**
@@ -30,10 +30,8 @@ final readonly class VoucherCreateRequest
     ) {
     }
 
-    // TODO DOCBLOCK
     public static function fromArray(array $post, int $maxPlot = 9999): self
     {
-        // Fix: Fallback von 'std.7' auf korrekten Key 'std_7' korrigiert
         $templateKey = (string) ($post['template_key'] ?? 'std_7');
         $reason = \trim((string) ($post['reason'] ?? 'Gutschein'));
         $type = (string) ($post['voucher_discount_type'] ?? 'free');
@@ -51,7 +49,6 @@ final readonly class VoucherCreateRequest
         $parzelleRaw = \trim(\strip_tags((string) ($post['parzelle'] ?? '')));
         $kennzeichenRaw = \trim(\strip_tags((string) ($post['kennzeichen'] ?? '')));
 
-        // FIX: Parzelle prüfen und zusätzlich gegen die Config-Grenze (max_plot_number) abgleichen
         if ($parzelleRaw !== '') {
             $plot = new PlotNumber($parzelleRaw);
             if ($plot->value > $maxPlot) {

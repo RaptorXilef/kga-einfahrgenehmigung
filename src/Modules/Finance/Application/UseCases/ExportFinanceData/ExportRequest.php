@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Finance\Application\UseCases\ExportFinanceData;
 
 use App\Application\Http\ServerRequest;
 
@@ -17,7 +17,6 @@ final readonly class ExportRequest
 
     public static function fromRequest(ServerRequest $request, array $sessionFilters = []): self
     {
-        // Dynamisch auslesen, egal ob <form method="POST"> oder <a href="?export="> genutzt wird
         $input = $request->getMethod() === 'POST' ? $request->post : $request->get;
 
         $start = (string) ($input['start'] ?? 'all');
@@ -31,7 +30,6 @@ final readonly class ExportRequest
             $end = $sessionFilters['end'] ?? \date('Y-12-31');
         }
 
-        // Unterstützt den Key "format" oder "export"
         $format = (string) ($input['format'] ?? $input['export'] ?? 'csv');
 
         return new self($format, $start, $end);
