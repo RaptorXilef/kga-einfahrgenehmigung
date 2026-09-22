@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.77.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.2...v0.77.3) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **controllers:** resolve namespace and syntax errors after mass refactoring ([ff622d9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ff622d9f295eb2a15174dd0fc5f602fe6e60669f))
+* **identity:** resolve DI container crashes and complete auth service migration ([fcd1960](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fcd19604f8098b234cce4525b4cf0f6dc078c9e2))
+* **identity:** restore loadAll method and optimize user hydration in actions ([8c010b2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8c010b2680c555dcb1913a4088c4054f48237062))
+* **system:** resolve provider syntax errors and migrate system services ([5d76ef7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5d76ef72ecd74631878725c2a54d31668b21dd9a))
+
+### ⚙️ Refactoring
+
+* **identity:** migrate Role management to VSA and cleanup Provider ([e92ecc2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e92ecc29b37310092181361185792fe1d5843d96))
+* **identity:** migrate user management to VSA slices ([e098077](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e098077f19868e011033d8937bc0e37fb78af173))
+
 ## [0.77.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.1...v0.77.2) (2026-09-21)
 
 ### 🐛 Bug Fixes
