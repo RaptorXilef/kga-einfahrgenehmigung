@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.77.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.3...v0.77.4) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **arch:** Re-introduce missing Permit repositories and start VSA Action migration ([688f521](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/688f521f9d58538e827035eb9694662ec91f1ef1))
+* **db:** Fix syntax error in pagination offset and clean up remaining core entities ([909f684](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/909f6845a3177b05781b9fe49d33c2c8026306b8))
+* **db:** Fix syntax error in pagination offset and clean up remaining core entities ([bad1c69](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bad1c6911e38f51416b4c75641929035165ad5b3))
+
+### ⚙️ Refactoring
+
+* **domain:** Migrate AuditLog and LoginAttempt to specific Bounded Contexts ([7773780](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/777378011a38ea09bb0619db56f5481ab211d46f))
+
 ## [0.77.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.2...v0.77.3) (2026-09-22)
 
 ### 🐛 Bug Fixes
