@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;

@@ -3,11 +3,6 @@
   array (
     'GET' => 
     array (
-      '/admin_logout' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\AdminLogoutAction',
-        'auth' => false,
-      ),
       '/admin_print' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\AdminPrintAction',
@@ -33,44 +28,9 @@
         'class' => 'App\\Application\\Actions\\Admin\\PermitMarkAsPaidAction',
         'auth' => false,
       ),
-      '/profile' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\ProfileRenderAction',
-        'auth' => true,
-      ),
-      '/change_own_avatar' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\ProfileUploadAvatarAction',
-        'auth' => false,
-      ),
-      '/upload_role_image' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\RoleUploadImageAction',
-        'auth' => false,
-      ),
-      '/delete_user' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\UserDeleteAction',
-        'auth' => false,
-      ),
-      '/users' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\UserManagementRenderAction',
-        'auth' => true,
-      ),
-      '/upload_avatar' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\UserUploadAvatarAction',
-        'auth' => false,
-      ),
       '/api/qr.png' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\Shared\\QrCodeRenderAction',
-        'auth' => false,
-      ),
-      '/admin_login' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Frontend\\AdminLoginAction',
         'auth' => false,
       ),
       '/checkout' => 
@@ -156,6 +116,46 @@
       '/dashboard_export' => 
       array (
         'class' => 'App\\Modules\\Finance\\Application\\UseCases\\ExportFinanceData\\ExportFinanceDataAction',
+        'auth' => false,
+      ),
+      '/admin_login' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\AuthenticateAdmin\\AdminLoginAction',
+        'auth' => false,
+      ),
+      '/admin_logout' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\AuthenticateAdmin\\AdminLogoutAction',
+        'auth' => false,
+      ),
+      '/profile' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageProfile\\ProfileRenderAction',
+        'auth' => true,
+      ),
+      '/change_own_avatar' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageProfile\\ProfileUploadAvatarAction',
+        'auth' => false,
+      ),
+      '/upload_role_image' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageRoles\\RoleUploadImageAction',
+        'auth' => false,
+      ),
+      '/delete_user' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageUsers\\UserDeleteAction',
+        'auth' => false,
+      ),
+      '/users' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageUsers\\UserManagementRenderAction',
+        'auth' => true,
+      ),
+      '/upload_avatar' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageUsers\\UserUploadAvatarAction',
         'auth' => false,
       ),
       '/api/cron/archive' => 
@@ -246,11 +246,6 @@
     ),
     'POST' => 
     array (
-      '/admin_logout' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\AdminLogoutAction',
-        'auth' => false,
-      ),
       '/filter_dashboard' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\DashboardFilterAction',
@@ -270,76 +265,6 @@
       array (
         'class' => 'App\\Application\\Actions\\Admin\\PermitSendReminderAction',
         'auth' => false,
-      ),
-      '/change_own_password' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\ProfileUpdatePasswordAction',
-        'auth' => false,
-      ),
-      '/change_own_username' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\ProfileUpdateUsernameAction',
-        'auth' => false,
-      ),
-      '/change_own_avatar' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\ProfileUploadAvatarAction',
-        'auth' => false,
-      ),
-      '/delete_role' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\RoleDeleteAction',
-        'auth' => true,
-      ),
-      '/rename_role' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\RoleRenameAction',
-        'auth' => false,
-      ),
-      '/save_role' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\RoleSaveAction',
-        'auth' => true,
-      ),
-      '/upload_role_image' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\RoleUploadImageAction',
-        'auth' => false,
-      ),
-      '/change_user_role' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\UserChangeRoleAction',
-        'auth' => true,
-      ),
-      '/delete_user' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\UserDeleteAction',
-        'auth' => false,
-      ),
-      '/rename_user' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\UserRenameAction',
-        'auth' => false,
-      ),
-      '/change_user_password' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\UserResetPasswordAction',
-        'auth' => false,
-      ),
-      '/save_user' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\UserSaveAction',
-        'auth' => true,
-      ),
-      '/upload_avatar' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\UserUploadAvatarAction',
-        'auth' => false,
-      ),
-      '/api/mark_changelog_read' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\Admin\\MarkChangelogReadAction',
-        'auth' => true,
       ),
       '/api/search_permits' => 
       array (
@@ -361,11 +286,6 @@
         'class' => 'App\\Application\\Actions\\Api\\Frontend\\FinalizeWireAction',
         'auth' => false,
       ),
-      '/api/ping' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\Shared\\ExtendSessionAction',
-        'auth' => false,
-      ),
       '/api/get_date_info' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\Shared\\GetDateInfoAction',
@@ -374,11 +294,6 @@
       '/api/get_template_price' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\Shared\\GetTemplatePriceAction',
-        'auth' => false,
-      ),
-      '/admin_login' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Frontend\\AdminLoginAction',
         'auth' => false,
       ),
       '/datenschutz' => 
@@ -455,6 +370,91 @@
       array (
         'class' => 'App\\Modules\\Finance\\Application\\UseCases\\ProcessBankImport\\ProcessBankImportAction',
         'auth' => true,
+      ),
+      '/admin_login' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\AuthenticateAdmin\\AdminLoginAction',
+        'auth' => false,
+      ),
+      '/admin_logout' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\AuthenticateAdmin\\AdminLogoutAction',
+        'auth' => false,
+      ),
+      '/api/ping' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\AuthenticateAdmin\\ExtendSessionAction',
+        'auth' => false,
+      ),
+      '/change_own_password' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageProfile\\ProfileUpdatePasswordAction',
+        'auth' => false,
+      ),
+      '/change_own_username' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageProfile\\ProfileUpdateUsernameAction',
+        'auth' => false,
+      ),
+      '/change_own_avatar' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageProfile\\ProfileUploadAvatarAction',
+        'auth' => false,
+      ),
+      '/delete_role' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageRoles\\RoleDeleteAction',
+        'auth' => true,
+      ),
+      '/rename_role' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageRoles\\RoleRenameAction',
+        'auth' => false,
+      ),
+      '/save_role' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageRoles\\RoleSaveAction',
+        'auth' => true,
+      ),
+      '/upload_role_image' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageRoles\\RoleUploadImageAction',
+        'auth' => false,
+      ),
+      '/api/mark_changelog_read' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageUsers\\MarkChangelogReadAction',
+        'auth' => true,
+      ),
+      '/change_user_role' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageUsers\\UserChangeRoleAction',
+        'auth' => true,
+      ),
+      '/delete_user' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageUsers\\UserDeleteAction',
+        'auth' => false,
+      ),
+      '/rename_user' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageUsers\\UserRenameAction',
+        'auth' => false,
+      ),
+      '/change_user_password' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageUsers\\UserResetPasswordAction',
+        'auth' => false,
+      ),
+      '/save_user' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageUsers\\UserSaveAction',
+        'auth' => true,
+      ),
+      '/upload_avatar' => 
+      array (
+        'class' => 'App\\Modules\\Identity\\Application\\UseCases\\ManageUsers\\UserUploadAvatarAction',
+        'auth' => false,
       ),
       '/api/cron/archive' => 
       array (

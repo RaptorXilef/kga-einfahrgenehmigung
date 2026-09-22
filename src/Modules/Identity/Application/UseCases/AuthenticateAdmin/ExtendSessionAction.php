@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Api\Shared;
+namespace App\Modules\Identity\Application\UseCases\AuthenticateAdmin;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;

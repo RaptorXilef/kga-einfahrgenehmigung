@@ -2,30 +2,29 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
-use App\Application\Response\RedirectResponse;
-use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 
-#[Route('GET', '/profile')]
+#[Route('GET', '/users')]
 #[RequiresAuth]
-final readonly class ProfileRenderAction implements ViewActionInterface
+final readonly class UserManagementRenderAction implements ViewActionInterface
 {
     public function __construct(
         private AuthService $auth,
+        private ConfigInterface $config,
         private RoleRepositoryInterface $roleRepository,
         private ImageStorageInterface $imageStorage,
-        private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
     ) {
@@ -33,30 +32,15 @@ final readonly class ProfileRenderAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        $userId = $this->auth->getUserId();
-
-        // Virtuelle System-Konten (Backdoor, Superadmin) dürfen kein Profil bearbeiten!
-        if (\str_starts_with($userId, 'sys_')) {
-            $this->sessionManager->addFlash('info', 'System-Accounts können nicht über das Frontend bearbeitet werden.');
-
-            return new RedirectResponse('admin');
-        }
-
-        $roles = $this->roleRepository->loadAll();
-        // FIX: Sauber via findById geladen
-        $user = $this->userRepository->findById($userId);
-
-        $userRoleId = $user !== null ? $user->roleId : 'guest';
-        $role = $roles[$userRoleId] ?? null;
-
-        $html = $this->renderer->render('admin/profile', [
+        $html = $this->renderer->render('admin/users', [
             'auth' => $this->auth,
-            'role' => $role ? $role->name : $userRoleId,
             'roleRepository' => $this->roleRepository,
+            'roles' => $this->roleRepository->loadAll(),
             'imageStorage' => $this->imageStorage,
-            'userId' => $userId,
-            'username' => $user !== null ? $user->username : 'Unbekannt',
+            'permissions' => $this->config->get('permissions', []),
+            'structure' => $this->config->get('structure', []),
             'userRepository' => $this->userRepository,
+            'users' => $this->userRepository->loadAll(),
         ]);
 
         return new HtmlResponse($html);

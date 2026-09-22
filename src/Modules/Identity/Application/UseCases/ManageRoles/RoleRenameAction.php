@@ -2,18 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\DTO\RoleRenameRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Identity\Application\UseCases\ManageRoles\RenameRoleCommand;
-use App\Modules\Identity\Application\UseCases\ManageRoles\RenameRoleHandler;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
 
@@ -23,7 +20,7 @@ final readonly class RoleRenameAction implements ActionInterface, RequiresPermis
     public function __construct(
         private SessionManager $sessionManager,
         private AuditLoggerService $auditLogger,
-        private RenameRoleHandler $renameHandler, // CQRS
+        private RenameRoleHandler $renameHandler,
     ) {
     }
 

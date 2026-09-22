@@ -2,20 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\DTO\RoleSaveRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\Identity\Application\UseCases\ManageRoles\SaveRoleCommand;
-use App\Modules\Identity\Application\UseCases\ManageRoles\SaveRoleHandler;
 use App\Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/save_role')]
@@ -26,13 +23,13 @@ final readonly class RoleSaveAction implements ActionInterface, RequiresPermissi
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
         private SessionManager $sessionManager,
-        private SaveRoleHandler $saveRoleHandler, // CQRS
+        private SaveRoleHandler $saveRoleHandler,
     ) {
     }
 
     public function getRequiredPermission(): string
     {
-        return 'system.roles.manage'; // Wir lassen den Key aus Kompatibilität vorerst so
+        return 'system.roles.manage';
     }
 
     public function execute(ServerRequest $request): mixed

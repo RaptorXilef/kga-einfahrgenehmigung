@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
@@ -14,24 +14,19 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\Identity\Application\UseCases\ManageUsers\DeleteUserCommand;
-use App\Modules\Identity\Application\UseCases\ManageUsers\DeleteUserHandler;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
 
-/**
- * Action zum Löschen eines Benutzers.
- */
 #[Route('GET', '/delete_user')]
 #[Route('POST', '/delete_user')]
 final readonly class UserDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private AuthService $auth, // For initiator ID
+        private AuthService $auth,
         private ConfigInterface $config,
         private SessionManager $sessionManager,
-        private DeleteUserHandler $deleteHandler, // CQRS
+        private DeleteUserHandler $deleteHandler,
     ) {
     }
 
@@ -40,9 +35,6 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
         return 'system.users.manage';
     }
 
-    /**
-     * Löscht einen Benutzer aus dem System. Verhindert den Selbstausschluss des aktiven Admins.
-     */
     public function execute(ServerRequest $request): mixed
     {
         try {

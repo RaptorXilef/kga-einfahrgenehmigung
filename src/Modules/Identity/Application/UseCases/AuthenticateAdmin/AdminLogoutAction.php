@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Identity\Application\UseCases\AuthenticateAdmin;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
@@ -11,11 +11,6 @@ use App\Application\Response\RedirectResponse;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\System\Application\Services\AuditLoggerService;
 
-/**
- * Action für den sicheren Logout von Administratoren.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 #[Route('GET', '/admin_logout')]
 #[Route('POST', '/admin_logout')]
 final readonly class AdminLogoutAction implements ActionInterface

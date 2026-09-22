@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
@@ -12,8 +12,6 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Security\Sanitizer;
-use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserRoleCommand;
-use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserRoleHandler;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
@@ -25,10 +23,10 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private RoleRepositoryInterface $roleRepository, // Read-Repo
-        private UserRepositoryInterface $userRepository, // Read-Repo
+        private RoleRepositoryInterface $roleRepository,
+        private UserRepositoryInterface $userRepository,
         private SessionManager $sessionManager,
-        private ChangeUserRoleHandler $changeRoleHandler, // CQRS
+        private ChangeUserRoleHandler $changeRoleHandler,
     ) {
     }
 
@@ -40,7 +38,6 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
     public function execute(ServerRequest $request): mixed
     {
         $userId = Sanitizer::string($request->post['user_id'] ?? '');
-        // TODO später ggf. zu role ändern
         $roleId = Sanitizer::string($request->post['group'] ?? '');
 
         if ($userId === '') {
@@ -56,7 +53,6 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
         }
 
         try {
-            // FIX: Sauber via findById geladen
             $user = $this->userRepository->findById($userId);
             if ($user === null) {
                 throw new DomainException('Fehler: Benutzer nicht gefunden.');
@@ -79,7 +75,6 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
             $this->sessionManager->addFlash('success', "Rolle für '{$username}' geändert.");
 
             return new RedirectResponse('users');
-
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 

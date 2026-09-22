@@ -2,20 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\DTO\UserSaveRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\System\ImageStorageInterface;
-use App\Modules\Identity\Application\UseCases\ManageUsers\CreateUserCommand;
-use App\Modules\Identity\Application\UseCases\ManageUsers\CreateUserHandler;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
@@ -49,7 +46,6 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
         }
 
         try {
-            // Handler liefert die ID zurück, damit wir das Bild richtig speichern können
             $newId = $this->createHandler->handle(new CreateUserCommand(
                 $dto->username,
                 $dto->password,
@@ -57,7 +53,6 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
             ));
 
             if ($dto->avatar !== null) {
-                // BUGFIX: War ehemals auf den falschen Order 'user_images' gemappt
                 $this->imageStorage->uploadImage('user', $newId, $dto->avatar);
             }
 

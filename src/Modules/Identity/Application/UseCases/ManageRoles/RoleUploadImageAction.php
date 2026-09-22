@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
@@ -31,15 +31,9 @@ final readonly class RoleUploadImageAction implements ActionInterface, RequiresP
         return 'system.roles.manage';
     }
 
-    /**
-     * Verarbeitet den Upload eines Bildes für Gruppen-Icons.
-     *
-     * @return string UI-Meldungstext.
-     */
     public function execute(ServerRequest $request): mixed
     {
         try {
-            // Aus Kompatibilität zum HTML lesen wir weiterhin 'group_id'
             $dto = SimpleUploadImageRequest::fromRequest($request->post, 'group_id', $request->files);
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());

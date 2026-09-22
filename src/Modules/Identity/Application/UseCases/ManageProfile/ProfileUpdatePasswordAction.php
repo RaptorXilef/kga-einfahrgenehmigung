@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Identity\Application\UseCases\ManageProfile;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
-use App\Application\DTO\ProfileUpdatePasswordRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -24,7 +23,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
         private AuthService $auth,
         private SessionManager $sessionManager,
         private AuditLoggerService $auditLogger,
-        private ChangeUserPasswordHandler $changePasswordHandler, // CQRS
+        private ChangeUserPasswordHandler $changePasswordHandler,
     ) {
     }
 
@@ -34,7 +33,6 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
 
         if (\str_starts_with($userId, 'sys_')) {
             $this->sessionManager->addFlash('error', 'System-Accounts können nicht bearbeitet werden.');
-
             return new RedirectResponse('admin');
         }
 
@@ -42,7 +40,6 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
             $dto = ProfileUpdatePasswordRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
-
             return new RedirectResponse('profile');
         }
 
@@ -58,7 +55,6 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
             return new RedirectResponse('profile');
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
-
             return new RedirectResponse('profile');
         }
     }

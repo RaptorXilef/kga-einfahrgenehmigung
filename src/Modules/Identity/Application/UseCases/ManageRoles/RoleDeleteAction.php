@@ -2,43 +2,40 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\DTO\UserRenameRequest;
+use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Identity\Application\UseCases\ManageUsers\RenameUserCommand;
-use App\Modules\Identity\Application\UseCases\ManageUsers\RenameUserHandler;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
 
-#[Route('POST', '/rename_user')]
-final readonly class UserRenameAction implements ActionInterface, RequiresPermissionInterface
+#[Route('POST', '/delete_role')]
+#[RequiresAuth]
+final readonly class RoleDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
-        private RenameUserHandler $renameHandler, // CQRS
+        private DeleteRoleHandler $deleteHandler,
     ) {
     }
 
     public function getRequiredPermission(): string
     {
-        return 'system.users.manage';
+        return 'system.roles.manage';
     }
 
-    /**
-     * Benennt den Login-Namen eines existierenden Benutzers um.
-     */
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = UserRenameRequest::fromArray($request->post);
+            $dto = SimpleIdentifierRequest::fromArray($request->post, 'group_id');
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
@@ -46,11 +43,10 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
         }
 
         try {
-            // Handler liefert den alten Namen für das Log
-            $oldName = $this->renameHandler->handle(new RenameUserCommand($dto->userId, $dto->newUsername));
+            $roleName = $this->deleteHandler->handle(new DeleteRoleCommand($dto->identifier));
 
-            $this->auditLogger->log('USER_RENAME', "Benutzer-Anzeigename von '{$oldName}' in '{$dto->newUsername}' (ID: {$dto->userId}) geändert.");
-            $this->sessionManager->addFlash('success', 'Login-Name aktualisiert.');
+            $this->auditLogger->log('ROLE_DELETE', "Rechte-Rolle '{$roleName}' (ID: {$dto->identifier}) wurde gelöscht.");
+            $this->sessionManager->addFlash('success', 'Rolle gelöscht. (Zugeordnete Benutzer fallen auf Standard-Rechte zurück).');
 
             return new RedirectResponse('users');
         } catch (DomainException $e) {

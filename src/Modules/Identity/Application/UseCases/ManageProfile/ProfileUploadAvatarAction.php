@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Identity\Application\UseCases\ManageProfile;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
-use App\Application\DTO\ProfileUploadAvatarRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
