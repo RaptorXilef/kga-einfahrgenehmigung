@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.77.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.4...v0.77.5) (2026-09-22)
+
+### ⚙️ Refactoring
+
+* **identity:** Migrate all Identity Actions and DTOs into Vertical Slices ([70a0d24](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/70a0d2472362df47bfecc7b93e8b54526a481091))
+* **vsa:** Migrate all remaining Actions and DTOs to Vertical Slices (Grand Finale Part 2) ([5bf2bf4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5bf2bf4189d348d313fdd45a34d8f7fe2bd44b82))
+* **vsa:** Migrate remaining Application Actions into Vertical Slices ([9c0a1b5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9c0a1b5c1058d83d7906ecde814a7d137597118f))
+* **vsa:** Migrate System and Cron actions into Bounded Contexts ([4266591](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/426659180df5fb5aa5562ead77d94ea9ee3f8775))
+* **vsa:** Migrate Voucher and Finance actions and DTOs ([3a9a14b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3a9a14bde007ea46912b2ba0fddcfa6b5b3b0ed9))
+
+### 💎 Styling
+
+* reformat HTML/PHTML attributes to modern wrapping ([f6d198d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f6d198dec96363309e4fb269dd87a8106b711cc8))
+
+### 🧹 Chore / Maintenance
+
+* add formatting commit to .git-blame-ignore-revs ([7cb7874](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7cb787476e019a468d51ec16c212c4a8634a42c0))
+
 ## [0.77.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.3...v0.77.4) (2026-09-22)
 
 ### 🐛 Bug Fixes
