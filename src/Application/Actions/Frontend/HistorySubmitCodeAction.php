@@ -13,8 +13,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\Permit\Application\UseCases\CancelPermit\CancelPermitCommand;
 use App\Modules\Permit\Application\UseCases\CancelPermit\CancelPermitHandler;
+use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
-use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('GET', '/history_cancel_permit')]
 #[Route('POST', '/history_cancel_permit')]

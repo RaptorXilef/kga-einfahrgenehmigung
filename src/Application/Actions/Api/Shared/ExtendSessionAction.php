@@ -9,7 +9,7 @@ use App\Application\Contracts\ActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Application\Session\SessionManager;
-use Modules\System\Application\Services\AuditLoggerService;
+use App\Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/api/ping')]
 final readonly class ExtendSessionAction implements ActionInterface

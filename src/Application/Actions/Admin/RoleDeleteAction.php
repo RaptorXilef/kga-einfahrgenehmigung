@@ -15,8 +15,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\Identity\Application\UseCases\ManageRoles\DeleteRoleCommand;
 use App\Modules\Identity\Application\UseCases\ManageRoles\DeleteRoleHandler;
+use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
-use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/delete_role')]
 #[RequiresAuth]

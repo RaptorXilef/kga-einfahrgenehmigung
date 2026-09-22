@@ -14,7 +14,7 @@ use App\Application\Response\FileDownloadResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\Finance\Application\UseCases\ExportFinanceData\ExportFinanceDataHandler;
 use App\Modules\Finance\Application\UseCases\ExportFinanceData\ExportFinanceDataQuery;
-use Modules\System\Application\Services\AuditLoggerService;
+use App\Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('GET', '/dashboard_export')]
 #[Route('POST', '/dashboard_export')]

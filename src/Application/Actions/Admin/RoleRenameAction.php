@@ -14,8 +14,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\Identity\Application\UseCases\ManageRoles\RenameRoleCommand;
 use App\Modules\Identity\Application\UseCases\ManageRoles\RenameRoleHandler;
+use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
-use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/rename_role')]
 final readonly class RoleRenameAction implements ActionInterface, RequiresPermissionInterface

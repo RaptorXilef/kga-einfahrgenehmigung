@@ -7,7 +7,7 @@ namespace App\Modules\Identity\Application\UseCases\AuthenticateAdmin;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
-use App\Core\Service\AuthService;
+use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DomainException;

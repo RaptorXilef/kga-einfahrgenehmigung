@@ -11,8 +11,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\System\RouteCacheInterface;
-use App\Core\Service\AuthService;
-use Modules\System\Application\Services\AuditLoggerService;
+use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/clear_cache')]
 final readonly class SystemClearCacheAction implements ActionInterface, RequiresPermissionInterface

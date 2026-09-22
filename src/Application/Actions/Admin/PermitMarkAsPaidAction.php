@@ -12,8 +12,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidCommand;
 use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidHandler;
+use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
-use Modules\System\Application\Services\AuditLoggerService;
 
 /**
  * Action zum manuellen Markieren einer Genehmigung als 'bezahlt' (VSA CQRS).

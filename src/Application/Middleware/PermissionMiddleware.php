@@ -7,7 +7,7 @@ namespace App\Application\Middleware;
 use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
-use App\Core\Service\AuthService;
+use App\Modules\Identity\Application\Services\AuthService;
 
 /**
  * TODO DOCBLOCK

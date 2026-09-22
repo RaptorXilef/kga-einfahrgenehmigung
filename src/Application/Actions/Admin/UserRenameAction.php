@@ -14,8 +14,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\Identity\Application\UseCases\ManageUsers\RenameUserCommand;
 use App\Modules\Identity\Application\UseCases\ManageUsers\RenameUserHandler;
+use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
-use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/rename_user')]
 final readonly class UserRenameAction implements ActionInterface, RequiresPermissionInterface

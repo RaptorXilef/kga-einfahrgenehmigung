@@ -12,8 +12,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\Permit\Application\UseCases\SendPaymentReminders\SendPaymentRemindersCommand;
 use App\Modules\Permit\Application\UseCases\SendPaymentReminders\SendPaymentRemindersHandler;
+use App\Modules\System\Application\Services\AuditLoggerService;
 use Exception;
-use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/send_reminder')]
 final readonly class PermitSendReminderAction implements ActionInterface, RequiresPermissionInterface

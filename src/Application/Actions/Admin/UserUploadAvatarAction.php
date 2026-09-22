@@ -13,7 +13,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\System\ImageStorageInterface;
-use Modules\System\Application\Services\AuditLoggerService;
+use App\Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('GET', '/upload_avatar')]
 #[Route('POST', '/upload_avatar')]

@@ -18,11 +18,11 @@ use App\Contracts\System\PdfGeneratorInterface;
 use App\Core\Service\HolidayService;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
+use App\Modules\System\Application\Services\AuditLoggerService;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
-use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('GET', '/admin_print')]
 #[RequiresAuth]

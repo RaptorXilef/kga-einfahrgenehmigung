@@ -13,8 +13,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\Permit\Application\UseCases\TogglePermitSuspension\TogglePermitSuspensionCommand;
 use App\Modules\Permit\Application\UseCases\TogglePermitSuspension\TogglePermitSuspensionHandler;
+use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
-use Modules\System\Application\Services\AuditLoggerService;
 
 /**
  * Action zum Sperren oder Entsperren einer aktiven Genehmigung (VSA CQRS).

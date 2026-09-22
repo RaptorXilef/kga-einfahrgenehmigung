@@ -12,10 +12,10 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
-use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\ImageStorageInterface;
-use App\Core\Service\AuthService;
+use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\Modules\Identity\Domain\UserRepositoryInterface;
 
 #[Route('GET', '/profile')]
 #[RequiresAuth]

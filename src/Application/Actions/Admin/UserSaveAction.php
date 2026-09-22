@@ -17,8 +17,8 @@ use App\Contracts\System\ImageStorageInterface;
 use App\Modules\Identity\Application\UseCases\ManageUsers\CreateUserCommand;
 use App\Modules\Identity\Application\UseCases\ManageUsers\CreateUserHandler;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
-use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/save_user')]
 #[RequiresAuth]

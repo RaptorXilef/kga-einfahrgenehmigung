@@ -13,10 +13,10 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Core\Service\AuthService;
+use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Application\UseCases\ManageRoles\SaveRoleCommand;
 use App\Modules\Identity\Application\UseCases\ManageRoles\SaveRoleHandler;
-use Modules\System\Application\Services\AuditLoggerService;
+use App\Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/save_role')]
 #[RequiresAuth]

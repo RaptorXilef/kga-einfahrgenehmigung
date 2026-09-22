@@ -12,7 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
-use App\Core\Service\AuthService;
+use App\Modules\Identity\Application\Services\AuthService;
 
 /**
  * Guard für das Sperren/Entsperren von Genehmigungen.

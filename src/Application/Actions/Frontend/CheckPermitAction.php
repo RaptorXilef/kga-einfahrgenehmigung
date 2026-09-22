@@ -13,7 +13,7 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Core\Service\AuthService;
+use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Permit\Application\UseCases\CheckPermit\GetPermitCheckDetailsHandler;
 use App\Modules\Permit\Application\UseCases\CheckPermit\GetPermitCheckDetailsQuery;
 

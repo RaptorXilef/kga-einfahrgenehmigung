@@ -2,36 +2,30 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Service;
+namespace App\Modules\Identity\Application\Services;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
-use App\Contracts\Storage\UserRepositoryInterface;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\Modules\Identity\Domain\UserRepositoryInterface;
 use RuntimeException;
 
 /**
  * Service für Sitzungsverwaltung und Berechtigungsprüfung von Administratoren.
- *
  * (Login-Logik wurde ins Identity-Modul via CQRS ausgelagert)
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class AuthService
 {
     public function __construct(
         private ConfigInterface $config,
         private RoleRepositoryInterface $roleRepository,
-        private RateLimiterInterface $rateLimiter, // TODO Kann später auch entfernt werden
+        private RateLimiterInterface $rateLimiter,
         private AuthSessionInterface $sessionManager,
         private UserRepositoryInterface $userRepository,
     ) {
     }
 
-    /**
-     * Zerstört die aktuelle Session vollständig (Logout).
-     */
     public function logout(): void
     {
         $this->sessionManager->destroy();
@@ -54,7 +48,7 @@ final readonly class AuthService
     public function hasPermission(string $permission): bool
     {
         $uid = $this->sessionManager->getUserId();
-        if (\str_starts_with($uid, 'sys_')) { // TODO Schwachstelle beheben!
+        if (\str_starts_with($uid, 'sys_')) {
             return true;
         }
 
@@ -105,20 +99,21 @@ final readonly class AuthService
             return;
         }
 
-        $users = $this->userRepository->loadAll();
-        if (!isset($users[$userId])) {
+        // Nutzt jetzt die pfeilschnelle, neue DDD-Methode findById()
+        $user = $this->userRepository->findById($userId);
+        if ($user === null) {
             $this->logout();
 
             throw new RuntimeException('Session abgelaufen oder Benutzer gelöscht.');
         }
 
         $sessionHash = $this->sessionManager->getAuthHash();
-        if ($sessionHash === null || !\hash_equals($sessionHash, $users[$userId]->passwordHash)) {
+        if ($sessionHash === null || !\hash_equals($sessionHash, $user->getPasswordHash())) {
             $this->logout();
 
             throw new RuntimeException('Sicherheits-Token ungültig (Passwort wurde eventuell geändert).');
         }
 
-        $this->refreshSessionPermissions($users[$userId]->roleId);
+        $this->refreshSessionPermissions($user->roleId);
     }
 }

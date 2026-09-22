@@ -14,8 +14,8 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Modules\Identity\Application\UseCases\VerifyMagicLink\VerifyMagicLinkCommand;
 use App\Modules\Identity\Application\UseCases\VerifyMagicLink\VerifyMagicLinkHandler;
+use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
-use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('GET', '/history_verify_token')]
 #[Route('POST', '/history_verify_token')]

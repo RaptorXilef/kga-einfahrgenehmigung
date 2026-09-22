@@ -12,8 +12,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\System\ImageStorageInterface;
-use App\Core\Service\AuthService;
-use Modules\System\Application\Services\AuditLoggerService;
+use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('GET', '/change_own_avatar')]
 #[Route('POST', '/change_own_avatar')]
