@@ -57,13 +57,4 @@ final readonly class SystemRunUpdateMigrationsAction implements ActionInterface,
         }
     }
 }
-E', "Backup '{$filename}' (Ziel: {$target}) im Modus {$mode} erfolgreich wiederhergestellt.");
-            $this->sessionManager->addFlash('success', "Wiederherstellung erfolgreich! Ein Sicherheits-Backup des vorherigen Zustands ({$safetyBackup}) wurde vorsichtshalber erstellt.");
-        } catch (Throwable $e) {
-            $this->auditLogger->log('SYSTEM_RESTORE_ERROR', "Fehler bei Wiederherstellung von '{$filename}': " . $e->getMessage());
-            $this->sessionManager->addFlash('error', 'Fehler bei der Wiederherstellung: ' . $e->getMessage());
-        }
 
-        return new RedirectResponse('admin?focus=tab-backup');
-    }
-}

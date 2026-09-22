@@ -44,21 +44,3 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
         return new RedirectResponse('admin');
     }
 }
-           return new RedirectResponse('profile');
-        }
-
-        try {
-            $oldName = $this->renameHandler->handle(new RenameUserCommand($userId, $dto->newUsername));
-
-            $this->sessionManager->updateAdminUsername($dto->newUsername);
-            $this->auditLogger->log('PROFILE_USERNAME_CHANGE', "Eigenes Login/Anzeigename geändert (von '{$oldName}' zu '{$dto->newUsername}').");
-            $this->sessionManager->addFlash('success', 'Erfolg: Ihr Anzeigename wurde aktualisiert.');
-
-            return new RedirectResponse('profile');
-        } catch (DomainException $e) {
-            $this->sessionManager->addFlash('error', $e->getMessage());
-
-            return new RedirectResponse('profile');
-        }
-    }
-}

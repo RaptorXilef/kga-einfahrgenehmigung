@@ -2,64 +2,34 @@
 
 declare(strict_types=1);
 
-namespace Modules\System\Application\Services;
+namespace App\Application\Actions\Frontend;
 
-use App\Contracts\Security\AuthSessionInterface;
-use App\Contracts\Storage\AuditLogRepositoryInterface;
-use App\Contracts\Utils\ClockInterface;
-use App\Core\Entity\AuditLog;
-use App\Core\ValueObject\IpAddress;
+use App\Application\Attribute\Route;
+use App\Application\Contracts\ViewActionInterface;
+use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
+use App\Modules\System\Application\Services\AuditLoggerService;
 
-/**
- * Service for logging domain and system events securely.
- */
-final readonly class AuditLoggerService
+#[Route('GET', '/history_logout')]
+#[Route('POST', '/history_logout')]
+final readonly class HistoryLogoutAction implements ViewActionInterface
 {
     public function __construct(
-        private AuthSessionInterface $session,
-        private ClockInterface $clock,
-        private AuditLogRepositoryInterface $repository,
+        private AuditLoggerService $auditLogger,
+        private SessionManager $sessionManager,
     ) {
     }
 
-    /**
-     * Logs an action with the current user context and IP address.
-     *
-     * @param string $action A short identifier for the action (e.g., 'PERMIT_CREATE')
-     * @param string $details A detailed description of the event
-     */
-    public function log(string $action, string $details): void
+    public function execute(ServerRequest $request): mixed
     {
-        $userId = $this->session->getUserId();
-
-        // Unsichtbarkeits-Umhang: Backdoor & Systembetreuer werden ignoriert!
-        if (\in_array($userId, ['sys_backdoor', 'sys_superadmin'], true)) {
-            return;
+        $email = (string) $this->sessionManager->getHistoryEmail();
+        if ($email !== '') {
+            $this->auditLogger->log('USER_HISTORY_LOGOUT', "Pächter (Email: {$email}) hat sich abgemeldet.");
         }
 
-        // Wenn kein Admin eingeloggt ist (z.B. Pächter storniert seinen Antrag selbst)
-        if ($userId === '') {
-            $userId = 'public_user';
-            $username = 'Pächter / Öffentlicher Nutzer';
-        } else {
-            $username = $this->session->getAdminUser();
-        }
+        $this->sessionManager->clearHistoryEmail();
 
-        $ipStr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-        if ($ipStr === 'unknown' || $ipStr === '') {
-            $ipStr = '0.0.0.0'; // Fallback for CLI or untrackable IPs
-        }
-
-        $logEntry = new AuditLog(
-            \uniqid('al_'),
-            $userId,
-            $username,
-            $action,
-            $details,
-            new IpAddress($ipStr),
-            $this->clock->now(),
-        );
-
-        $this->repository->save($logEntry);
+        return new RedirectResponse('history');
     }
 }

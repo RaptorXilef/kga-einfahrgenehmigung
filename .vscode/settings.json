@@ -2,7 +2,7 @@
     // =========================================================================
     // EDITOR & FORMATTING CORE
     // =========================================================================
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": false,
     "editor.codeActionsOnSave": {
         "source.fixAll": "explicit",
         "source.organizeImports": "explicit"
@@ -39,7 +39,7 @@
         "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
         "editor.wordWrap": "off",
         "editor.renderWhitespace": "boundary",
-        "editor.formatOnSave": true
+        "editor.formatOnSave": false
     },
     "intelephense.format.enable": false, // CLI-Tools (PHP-CS-Fixer) haben Vorrang!
     "php.suggest.basic": false,
@@ -48,7 +48,7 @@
     // --- BIOME (JS, JSON, CSS/SCSS) ---
     "[javascript]": {
         "editor.defaultFormatter": "biomejs.biome",
-        "editor.formatOnSave": true,
+        "editor.formatOnSave": false,
         // WICHTIG: Mode auf "file" setzen, nicht "modifications"
         "editor.formatOnSaveMode": "file",
         "editor.codeActionsOnSave": {

@@ -6,53 +6,50 @@ namespace App\Application\Actions\Frontend;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
-use App\Application\DTO\HistoryCancelPermitRequest;
+use App\Application\DTO\HistorySubmitCodeRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Permit\Application\UseCases\CancelPermit\CancelPermitCommand;
-use App\Modules\Permit\Application\UseCases\CancelPermit\CancelPermitHandler;
+use App\Modules\Identity\Application\UseCases\VerifyMagicLink\VerifyMagicLinkCommand;
+use App\Modules\Identity\Application\UseCases\VerifyMagicLink\VerifyMagicLinkHandler;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
 
-#[Route('GET', '/history_cancel_permit')]
-#[Route('POST', '/history_cancel_permit')]
-final readonly class HistoryCancelPermitAction implements ViewActionInterface
+#[Route('GET', '/history_submit_code')]
+#[Route('POST', '/history_submit_code')]
+final readonly class HistorySubmitCodeAction implements ViewActionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private CancelPermitHandler $cancelHandler, // CQRS
         private SessionManager $sessionManager,
+        private VerifyMagicLinkHandler $verifyHandler,
     ) {
     }
 
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = HistoryCancelPermitRequest::fromArray($request->post);
+            $dto = HistorySubmitCodeRequest::fromRequest($request);
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('history');
-        }
-
-        $email = (string) $this->sessionManager->getHistoryEmail();
-        if ($email === '') {
-            return new RedirectResponse('history');
+            return new RedirectResponse('history?sent=1');
         }
 
         try {
-            $this->cancelHandler->handle(new CancelPermitCommand($dto->code, $email));
+            $command = new VerifyMagicLinkCommand($dto->loginCode, $dto->ip);
+            $this->verifyHandler->handle($command);
 
-            $this->auditLogger->log('USER_PERMIT_CANCEL', "Pächter (Email: {$email}) hat die Genehmigung '{$dto->code}' selbstständig storniert.");
-            $this->sessionManager->addFlash('success', 'Genehmigung wurde erfolgreich storniert.');
+            $verifiedEmail = $this->sessionManager->getHistoryEmail();
+            $this->auditLogger->log('USER_HISTORY_LOGIN', "Pächter (Email: {$verifiedEmail}) hat sich im Genehmigungsverlauf eingeloggt.");
 
             return new RedirectResponse('history');
+
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('history');
+            return new RedirectResponse('history?sent=1');
         }
     }
 }
