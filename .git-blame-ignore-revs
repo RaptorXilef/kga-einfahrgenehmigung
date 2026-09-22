@@ -11,3 +11,6 @@
 # Cleanup: Vereinfachung der Lizenz-Header
 857c6a2a2d0640652885a7799dcfe016f353a102
 736858b7f7dfe2a6bacd17b6a71222aaa4e6c0a8
+
+# style: reformat HTML/PHTML attributes to modern wrapping
+f6d198dec96363309e4fb269dd87a8106b711cc8
