@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.77.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.5...v0.77.6) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **permit:** resolve missing StorageMapperTrait dependency in archive repositories ([83de063](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/83de06347cefdd77f15163f9b556acdde00ce50a))
+
+### ⚙️ Refactoring
+
+* **core:** eradicate legacy Core directory and enforce boundaries via deptrac ([0cf77e8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0cf77e88882aecd418d7ec6abcb9c39ccb39f81b))
+* **core:** migrate domain and application services out of legacy core ([66d0880](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/66d08806362f8b3adaa536c904c43b68e3360f7d))
+* **core:** strangulate legacy actions and migrate permit DTOs to VSA ([3392158](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/33921589baeca10b4772cdb82c813d12d7fe757f))
+* **events:** migrate domain events and listeners to bounded contexts ([615d418](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/615d418ba6f3cd1beaefa2c69bb46058b1974d02))
+* **infra:** migrate specific infrastructure implementations to modules ([86b9178](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/86b91783a8f63a8e993161ab2605c6be3db755c7))
+* **storage:** strangulate legacy storage and switch entirely to module repositories ([02c04ce](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/02c04ce5153e66d9834a3bf6ee54a9c0e9cb2ff2))
+
 ## [0.77.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.4...v0.77.5) (2026-09-22)
 
 ### ⚙️ Refactoring
