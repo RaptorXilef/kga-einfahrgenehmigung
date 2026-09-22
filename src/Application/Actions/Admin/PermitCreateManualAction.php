@@ -5,82 +5,98 @@ declare(strict_types=1);
 namespace App\Application\Actions\Admin;
 
 use App\Application\Attribute\Route;
-use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\DTO\PermitCreateManualRequest;
-use App\Application\Exception\ValidationException;
+use App\Application\Contracts\ViewActionInterface;
+use App\Application\DTO\ExportRequest;
 use App\Application\Http\ServerRequest;
-use App\Application\Response\RedirectResponse;
+use App\Application\Response\EmptyResponse;
+use App\Application\Response\FileDownloadResponse;
 use App\Application\Session\SessionManager;
-use App\Core\Service\AuditLoggerService;
-use App\Modules\Permit\Application\UseCases\CreateManualPermit\CreateManualPermitCommand;
-use App\Modules\Permit\Application\UseCases\CreateManualPermit\CreateManualPermitHandler;
-use InvalidArgumentException;
-use Throwable;
+use App\Modules\Finance\Application\UseCases\ExportFinanceData\ExportFinanceDataHandler;
+use App\Modules\Finance\Application\UseCases\ExportFinanceData\ExportFinanceDataQuery;
+use Modules\System\Application\Services\AuditLoggerService;
 
-/**
- * Action zur manuellen Ausstellung einer Genehmigung (CQRS Refactored).
- */
-#[Route('GET', '/create_manual')]
-#[Route('POST', '/create_manual')]
-final readonly class PermitCreateManualAction implements ActionInterface, RequiresPermissionInterface
+#[Route('GET', '/dashboard_export')]
+#[Route('POST', '/dashboard_export')]
+final readonly class DashboardExportAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
-        private CreateManualPermitHandler $createHandler, // <-- CQRS Injected
+        private ExportFinanceDataHandler $exportHandler, // CQRS
     ) {
     }
 
     public function getRequiredPermission(): string
     {
-        return 'permits.create';
+        return 'finance.export';
     }
 
-    /**
-     * Erstellt eine Genehmigung ohne vorangegangenen automatisierten Bezahlprozess.
-     *
-     * Erzwingt 'status' = 'bezahlt' und nutzt PermitService::createPermit().
-     *
-     * @return string Bestätigung mit dem generierten Genehmigungscode.
-     */
     public function execute(ServerRequest $request): mixed
     {
-        try {
-            $dto = PermitCreateManualRequest::fromArray($request->post);
-        } catch (ValidationException|InvalidArgumentException $e) {
-            // UX-Rettung: Eingegebene Formulardaten vor dem Redirect in der Session sichern
-            $postData = $request->post;
-            unset($postData['csrf_token']);
-            $this->sessionManager->setFormData($postData);
-            $this->sessionManager->addFlash('error', $e->getMessage());
+        $sessionFilters = $this->sessionManager->getAdminFilters();
+        $dto = ExportRequest::fromRequest($request, $sessionFilters);
 
-            return new RedirectResponse('admin?focus=tab-tools');
+        $query = new ExportFinanceDataQuery(
+            $dto->format,
+            $dto->start,
+            $dto->end,
+            $sessionFilters['type'] ?? 'all',
+            $sessionFilters['q'] ?? '',
+        );
+
+        $result = $this->exportHandler->handle($query);
+
+        $this->auditLogger->log('DATA_EXPORT', "Daten-Export ausgeführt. Format: {$dto->format}.");
+
+        if ($result->content !== '') {
+            return new FileDownloadResponse($result->content, $result->filename, $result->contentType);
         }
 
-        try {
-            $command = new CreateManualPermitCommand($dto->formData, $dto->sendEmail);
-            $this->createHandler->handle($command);
+        return new EmptyResponse(400);
+    }
+}
+g = 'Genehmigung wurde ' . $actionStr . '.';
 
-            // LOG SCHREIBEN
-            $this->auditLogger->log('PERMIT_CREATE', "Manuelle Genehmigung erstellt für: {$dto->formData->name} (Parzelle {$dto->formData->parzelle->getFormatted()})");
-            $this->sessionManager->addFlash('success', 'Manuelle Genehmigung wurde erfolgreich erstellt.');
+            $this->auditLogger->log('PERMIT_SUSPENSION', "Genehmigung '{$dto->code}' wurde {$actionStr}. Grund: {$dto->reason}");
+            $this->sessionManager->addFlash('success', $msg);
 
-            // Wenn erfolgreich, schicken wir den User auf den Aktive-Reiter
-            return new RedirectResponse('admin?focus=tab-active');
-
-        } catch (InvalidArgumentException $e) {
-            $postData = $request->post;
-            unset($postData['csrf_token']);
-            $this->sessionManager->setFormData($postData);
+        } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
+        }
 
-            return new RedirectResponse('admin?focus=tab-tools');
-        } catch (Throwable $e) {
-            $postData = $request->post;
-            unset($postData['csrf_token']);
-            $this->sessionManager->setFormData($postData);
-            $this->sessionManager->addFlash('error', 'Kritischer Fehler: ' . $e->getMessage());
+        return new RedirectResponse('admin');
+    }
+}
+RoleHandler->handle(new ChangeUserRoleCommand($userId, $roleId));
+
+            $roles = $this->roleRepository->loadAll();
+            $oldRoleName = isset($roles[$oldRole]) ? $roles[$oldRole]->name : $oldRole;
+            $newRoleName = isset($roles[$roleId]) ? $roles[$roleId]->name : $roleId;
+
+            $this->auditLogger->log(
+                'USER_CHANGE_ROLE',
+                "Rolle von Benutzer '{$username}' (ID: {$userId}) geändert: Von '{$oldRoleName}' auf '{$newRoleName}'.",
+            );
+
+            $this->sessionManager->addFlash('success', "Rolle für '{$username}' geändert.");
+
+            return new RedirectResponse('users');
+
+        } catch (DomainException $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('users');
+        }
+    }
+}
+ gewählten Genehmigungen konnte aktualisiert werden.');
+        }
+
+        return new RedirectResponse('admin');
+    }
+}
+sessionManager->addFlash('error', 'Kritischer Fehler: ' . $e->getMessage());
 
             return new RedirectResponse('admin?focus=tab-tools');
         }

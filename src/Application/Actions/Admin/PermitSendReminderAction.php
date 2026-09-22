@@ -10,10 +10,10 @@ use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Core\Service\AuditLoggerService;
 use App\Modules\Permit\Application\UseCases\SendPaymentReminders\SendPaymentRemindersCommand;
 use App\Modules\Permit\Application\UseCases\SendPaymentReminders\SendPaymentRemindersHandler;
 use Exception;
+use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/send_reminder')]
 final readonly class PermitSendReminderAction implements ActionInterface, RequiresPermissionInterface

@@ -12,10 +12,10 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Security\RateLimiterInterface;
-use App\Core\Service\AuditLoggerService;
 use App\Modules\Identity\Application\UseCases\VerifyMagicLink\VerifyMagicLinkCommand;
 use App\Modules\Identity\Application\UseCases\VerifyMagicLink\VerifyMagicLinkHandler;
 use DomainException;
+use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('GET', '/history_verify_token')]
 #[Route('POST', '/history_verify_token')]

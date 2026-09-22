@@ -8,14 +8,15 @@ use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\DTO\RoleSaveRequest;
+use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\RoleRepositoryInterface;
-use App\Core\Entity\Role;
-use App\Core\Security\Sanitizer;
-use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
+use App\Modules\Identity\Application\UseCases\ManageRoles\SaveRoleCommand;
+use App\Modules\Identity\Application\UseCases\ManageRoles\SaveRoleHandler;
+use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/save_role')]
 #[RequiresAuth]
@@ -24,8 +25,8 @@ final readonly class RoleSaveAction implements ActionInterface, RequiresPermissi
     public function __construct(
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
-        private RoleRepositoryInterface $roleRepository,
         private SessionManager $sessionManager,
+        private SaveRoleHandler $saveRoleHandler, // CQRS
     ) {
     }
 
@@ -36,46 +37,31 @@ final readonly class RoleSaveAction implements ActionInterface, RequiresPermissi
 
     public function execute(ServerRequest $request): mixed
     {
-        $id = Sanitizer::string($request->post['group_id'] ?? '');
-        $name = Sanitizer::string($request->post['group_name'] ?? '');
-        $perms = (array) ($request->post['perms'] ?? []);
-
-        if ($name === '') {
-            $this->sessionManager->addFlash('error', 'Fehler: Der Rollenname darf nicht leer sein.');
+        try {
+            $dto = RoleSaveRequest::fromArray($request->post);
+        } catch (ValidationException $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('users');
         }
 
-        $roles = $this->roleRepository->loadAll();
-        $isUpdate = $id !== '' && isset($roles[$id]);
+        $result = $this->saveRoleHandler->handle(new SaveRoleCommand(
+            $dto->roleId,
+            $dto->roleName,
+            $dto->inheritRole,
+            $dto->permissions,
+        ));
 
-        if (!$isUpdate) {
-            do {
-                $id = $this->auth->generateId('role_');
-            } while (isset($roles[$id]));
-        }
-
-        // Falls eine Basis-Rolle zur Vererbung ausgewählt wurde
-        $inherit = Sanitizer::string($request->post['inherit_group'] ?? '');
-        if (!$isUpdate && $inherit !== '' && isset($roles[$inherit])) {
-            $perms = $roles[$inherit]->permissions;
-        }
-
-        $roles[$id] = new Role($id, $name, $perms);
-        $this->roleRepository->saveAll($roles);
-
-        if ($isUpdate) {
-            if ($this->auth->getRole() === $id) {
-                $this->auth->refreshSessionPermissions($id);
+        if ($result->isUpdate) {
+            if ($this->auth->getRole() === $result->roleId) {
+                $this->auth->refreshSessionPermissions($result->roleId);
             }
-            $this->auditLogger->log('ROLE_UPDATE', "Rechte-Matrix für Rolle '{$name}' (ID: {$id}) aktualisiert.");
-            $this->sessionManager->addFlash('success', "Rechte für Rolle '{$name}' erfolgreich aktualisiert.");
-
-            return new RedirectResponse('users');
+            $this->auditLogger->log('ROLE_UPDATE', "Rechte-Matrix für Rolle '{$dto->roleName}' (ID: {$result->roleId}) aktualisiert.");
+            $this->sessionManager->addFlash('success', "Rechte für Rolle '{$dto->roleName}' erfolgreich aktualisiert.");
+        } else {
+            $this->auditLogger->log('ROLE_CREATE', "Neue Rechte-Rolle '{$dto->roleName}' (ID: {$result->roleId}) erstellt.");
+            $this->sessionManager->addFlash('success', "Neue Rolle '{$dto->roleName}' wurde erstellt.");
         }
-
-        $this->auditLogger->log('ROLE_CREATE', "Neue Rechte-Rolle '{$name}' (ID: {$id}) erstellt.");
-        $this->sessionManager->addFlash('success', "Neue Rolle '{$name}' wurde erstellt.");
 
         return new RedirectResponse('users');
     }

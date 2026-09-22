@@ -269,8 +269,9 @@
             "statusBarItem.remoteHoverForeground": "#000000"
         }
     },
-    "viraTheme.accent": "White"
+    "viraTheme.accent": "White",
 
     // -- HINWEISE ---
     // vscode://settings/php-cs-fixer.allow-risky muss auf true gesetzt werden! Also Haken rein!
+    "php-cs-fixer.toolPath": "${workspaceFolder}/vendor/bin/php-cs-fixer.bat"
 }

@@ -12,9 +12,9 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
 use App\Application\Response\FileDownloadResponse;
 use App\Application\Session\SessionManager;
-use App\Core\Service\AuditLoggerService;
 use App\Modules\Finance\Application\UseCases\ExportFinanceData\ExportFinanceDataHandler;
 use App\Modules\Finance\Application\UseCases\ExportFinanceData\ExportFinanceDataQuery;
+use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('GET', '/dashboard_export')]
 #[Route('POST', '/dashboard_export')]

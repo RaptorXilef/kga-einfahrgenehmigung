@@ -13,11 +13,11 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
-use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Modules\Identity\Application\UseCases\ManageUsers\DeleteUserCommand;
 use App\Modules\Identity\Application\UseCases\ManageUsers\DeleteUserHandler;
 use DomainException;
+use Modules\System\Application\Services\AuditLoggerService;
 
 /**
  * Action zum Löschen eines Benutzers.

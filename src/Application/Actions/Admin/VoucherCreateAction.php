@@ -13,12 +13,12 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
-use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Modules\Voucher\Application\UseCases\CreateVoucher\CreateVoucherCommand;
 use App\Modules\Voucher\Application\UseCases\CreateVoucher\CreateVoucherHandler;
 use DomainException;
 use InvalidArgumentException;
+use Modules\System\Application\Services\AuditLoggerService;
 use Throwable;
 
 /**

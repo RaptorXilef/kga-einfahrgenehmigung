@@ -11,7 +11,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
-use App\Core\Service\AuditLoggerService;
+use Modules\System\Application\Services\AuditLoggerService;
 use Throwable;
 
 /**

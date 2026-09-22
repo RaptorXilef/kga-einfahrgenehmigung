@@ -11,13 +11,13 @@ use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Security\Sanitizer;
-use App\Core\Service\AuditLoggerService;
 use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserRoleCommand;
 use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserRoleHandler;
+use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use DomainException;
+use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/change_user_role')]
 #[RequiresAuth]

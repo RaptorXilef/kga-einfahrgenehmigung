@@ -8,8 +8,8 @@ use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
-use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
+use Modules\System\Application\Services\AuditLoggerService;
 
 /**
  * Action für den sicheren Logout von Administratoren.

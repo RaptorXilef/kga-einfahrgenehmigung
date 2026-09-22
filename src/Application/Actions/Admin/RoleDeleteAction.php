@@ -8,12 +8,15 @@ use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\RoleRepositoryInterface;
-use App\Core\Security\Sanitizer;
-use App\Core\Service\AuditLoggerService;
+use App\Modules\Identity\Application\UseCases\ManageRoles\DeleteRoleCommand;
+use App\Modules\Identity\Application\UseCases\ManageRoles\DeleteRoleHandler;
+use DomainException;
+use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/delete_role')]
 #[RequiresAuth]
@@ -21,8 +24,8 @@ final readonly class RoleDeleteAction implements ActionInterface, RequiresPermis
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private RoleRepositoryInterface $roleRepository,
         private SessionManager $sessionManager,
+        private DeleteRoleHandler $deleteHandler, // CQRS
     ) {
     }
 
@@ -33,34 +36,25 @@ final readonly class RoleDeleteAction implements ActionInterface, RequiresPermis
 
     public function execute(ServerRequest $request): mixed
     {
-        $id = Sanitizer::string($request->post['group_id'] ?? '');
-
-        if ($id === '') {
-            $this->sessionManager->addFlash('error', 'Fehler: Keine Rollen-ID übermittelt.');
-
-            return new RedirectResponse('users');
-        }
-
-        if ($id === 'admin') {
-            $this->sessionManager->addFlash('error', 'Fehler: Die Admin-Rolle kann nicht gelöscht werden.');
+        try {
+            $dto = SimpleIdentifierRequest::fromArray($request->post, 'group_id');
+        } catch (ValidationException $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('users');
         }
 
-        $roles = $this->roleRepository->loadAll();
-        if (!isset($roles[$id])) {
-            $this->sessionManager->addFlash('error', 'Fehler: Rolle nicht gefunden.');
+        try {
+            $roleName = $this->deleteHandler->handle(new DeleteRoleCommand($dto->identifier));
+
+            $this->auditLogger->log('ROLE_DELETE', "Rechte-Rolle '{$roleName}' (ID: {$dto->identifier}) wurde gelöscht.");
+            $this->sessionManager->addFlash('success', 'Rolle gelöscht. (Zugeordnete Benutzer fallen auf Standard-Rechte zurück).');
+
+            return new RedirectResponse('users');
+        } catch (DomainException $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('users');
         }
-
-        $roleName = $roles[$id]->name;
-        unset($roles[$id]);
-        $this->roleRepository->saveAll($roles);
-
-        $this->auditLogger->log('ROLE_DELETE', "Rechte-Rolle '{$roleName}' (ID: {$id}) wurde gelöscht.");
-        $this->sessionManager->addFlash('success', 'Rolle gelöscht. (Zugeordnete Benutzer fallen auf Standard-Rechte zurück).');
-
-        return new RedirectResponse('users');
     }
 }

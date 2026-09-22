@@ -21,17 +21,12 @@ use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\LoginAttemptRepositoryInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
-use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
-use App\Contracts\Storage\UserRepositoryInterface; // Legacy
 use App\Contracts\Storage\VerificationRepositoryInterface;
-use App\Contracts\Storage\VoucherRepositoryInterface as LegacyVoucherRepositoryInterface;
-use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\System\PdfGeneratorInterface;
-use App\Contracts\System\RouteCacheInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
@@ -54,19 +49,16 @@ use App\Infrastructure\Storage\MySqlCancelledPermitRepository;
 use App\Infrastructure\Storage\MySqlLoginAttemptRepository;
 use App\Infrastructure\Storage\MySqlMailQueueRepository;
 use App\Infrastructure\Storage\MySqlPermitArchiveRepository;
-use App\Infrastructure\Storage\MySqlRoleRepository;
-use App\Infrastructure\Storage\MySqlUserRepository; // Legacy
 use App\Infrastructure\Storage\MySqlVerificationRepository;
-use App\Infrastructure\Storage\MySqlVoucherRepository;
 use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\System\DompdfGenerator;
-use App\Infrastructure\System\FileRouteCache;
-use App\Infrastructure\System\LocalAssetHelper;
 use App\Infrastructure\System\SystemInfoService;
 use App\Infrastructure\Utils\SystemClock;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface as IdentityMagicLinkRepositoryInterface;
+use App\Modules\Identity\Domain\RoleRepositoryInterface as IdentityRoleRepositoryInterface;
 use App\Modules\Identity\Domain\UserRepositoryInterface as IdentityUserRepositoryInterface;
 use App\Modules\Identity\Infrastructure\PdoMagicLinkRepository;
+use App\Modules\Identity\Infrastructure\PdoRoleRepository;
 use App\Modules\Identity\Infrastructure\PdoUserRepository as IdentityPdoUserRepository;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Infrastructure\PdoPermitRepository;
@@ -92,12 +84,11 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
      */
     public function register(ContainerInterface $container): void
     {
-
         // --- CORE SYSTEM & DATABASE ---
+
         $container->bind(PDO::class, fn (): ?PDO => PdoFactory::create(
             $container->get(ConfigInterface::class),
         ));
-
         $container->bind(StorageInterface::class, fn (): StorageInterface => StorageFactory::create(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
@@ -112,48 +103,26 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
         ));
-
         $container->bind(CancelledPermitRepositoryInterface::class, fn (): MySqlCancelledPermitRepository => new MySqlCancelledPermitRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
         ));
-
-        $container->bind(RoleRepositoryInterface::class, fn (): MySqlRoleRepository => new MySqlRoleRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-            $container->get(JsonHelperInterface::class),
-        ));
-
         $container->bind(LoginAttemptRepositoryInterface::class, fn (): MySqlLoginAttemptRepository => new MySqlLoginAttemptRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
         ));
-
         $container->bind(MailQueueRepositoryInterface::class, fn (): MySqlMailQueueRepository => new MySqlMailQueueRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
         ));
-
         $container->bind(PermitArchiveRepositoryInterface::class, fn (): MySqlPermitArchiveRepository => new MySqlPermitArchiveRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
         ));
-
-        $container->bind(UserRepositoryInterface::class, fn (): MySqlUserRepository => new MySqlUserRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
-
         $container->bind(VerificationRepositoryInterface::class, fn (): MySqlVerificationRepository => new MySqlVerificationRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-            $container->get(JsonHelperInterface::class),
-        ));
-
-        $container->bind(LegacyVoucherRepositoryInterface::class, fn (): MySqlVoucherRepository => new MySqlVoucherRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
@@ -164,17 +133,18 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(PermitRepositoryInterface::class, fn (): PdoPermitRepository => new PdoPermitRepository(
             $container->get(PDO::class),
         ));
-
         $container->bind(NewVoucherRepositoryInterface::class, fn (): PdoVoucherRepository => new PdoVoucherRepository(
             $container->get(PDO::class),
         ));
 
-        // --- IDENTITY DDD REPOSITORY BINDING ---
+        // --- IDENTITY DDD REPOSITORY BINDINGS ---
         $container->bind(IdentityUserRepositoryInterface::class, fn (): IdentityPdoUserRepository => new IdentityPdoUserRepository(
             $container->get(PDO::class),
         ));
-
         $container->bind(IdentityMagicLinkRepositoryInterface::class, fn (): PdoMagicLinkRepository => new PdoMagicLinkRepository(
+            $container->get(PDO::class),
+        ));
+        $container->bind(IdentityRoleRepositoryInterface::class, fn (): PdoRoleRepository => new PdoRoleRepository(
             $container->get(PDO::class),
         ));
 
@@ -184,9 +154,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         // Dynamische Mail-Transport Auflösung (Strategy Pattern)
         $container->bind('mail.transport', function () use ($container) {
             $config = $container->get(ConfigInterface::class);
-            $mailCfg = $config->get('mail', []);
-            $default = $mailCfg['default'] ?? 'smtp';
-
+            $default = $config->get('mail', [])['default'] ?? 'smtp';
             if ($default === 'graph') {
                 return new MicrosoftGraphMailService(
                     $container->get(PDO::class),
@@ -194,7 +162,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                     $container->get(JsonHelperInterface::class),
                 );
             }
-
             if ($default === 'oauth') {
                 return new OAuthSmtpMailService(
                     $container->get(PDO::class),
@@ -238,16 +205,11 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(PdfGeneratorInterface::class, fn (): DompdfGenerator => new DompdfGenerator());
 
         // Route Cache Binding für die ActionRegistry
-        $container->bind(RouteCacheInterface::class, function () use ($container): FileRouteCache {
-            $config = $container->get(ConfigInterface::class);
-
-            return new FileRouteCache($config);
-        });
-
-        $container->bind(AssetHelperInterface::class, function () use ($container): LocalAssetHelper {
-            $config = $container->get(ConfigInterface::class);
-
-            return new LocalAssetHelper($config);
-        });
+        $container->bind(RouteCacheInterface::class, fn () use ($container): FileRouteCache => new FileRouteCache(
+            $container->get(ConfigInterface::class);
+            ));
+        $container->bind(AssetHelperInterface::class, fn () use ($container): LocalAssetHelper => new LocalAssetHelper(
+            $container->get(ConfigInterface::class);
+            ));
     }
 }

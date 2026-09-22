@@ -14,7 +14,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
-use App\Core\Service\AuditLoggerService;
+use Modules\System\Application\Services\AuditLoggerService;
 use PDO;
 use Throwable;
 

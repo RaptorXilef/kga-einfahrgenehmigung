@@ -11,8 +11,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\System\RouteCacheInterface;
-use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
+use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/clear_cache')]
 final readonly class SystemClearCacheAction implements ActionInterface, RequiresPermissionInterface
@@ -42,5 +42,23 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
         $this->sessionManager->addFlash('success', 'Erfolg: Cache und Routen wurden erfolgreich geleert.');
 
         return new RedirectResponse('admin');
+    }
+}
+           return new RedirectResponse('profile');
+        }
+
+        try {
+            $oldName = $this->renameHandler->handle(new RenameUserCommand($userId, $dto->newUsername));
+
+            $this->sessionManager->updateAdminUsername($dto->newUsername);
+            $this->auditLogger->log('PROFILE_USERNAME_CHANGE', "Eigenes Login/Anzeigename geändert (von '{$oldName}' zu '{$dto->newUsername}').");
+            $this->sessionManager->addFlash('success', 'Erfolg: Ihr Anzeigename wurde aktualisiert.');
+
+            return new RedirectResponse('profile');
+        } catch (DomainException $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('profile');
+        }
     }
 }

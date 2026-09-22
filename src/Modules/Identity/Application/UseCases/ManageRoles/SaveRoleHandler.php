@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Identity\Application\UseCases\ManageRoles;
+
+use App\Modules\Identity\Domain\Role;
+use App\Modules\Identity\Domain\RoleRepositoryInterface;
+
+final readonly class SaveRoleHandler
+{
+    public function __construct(private RoleRepositoryInterface $repository)
+    {
+    }
+
+    public function handle(SaveRoleCommand $command): SaveRoleResult
+    {
+        $role = $command->roleId !== '' ? $this->repository->findById($command->roleId) : null;
+        $isUpdate = $role !== null;
+        $perms = $command->permissions;
+
+        if (!$isUpdate) {
+            $newId = $command->roleId !== '' ? $command->roleId : 'role_' . \bin2hex(\random_bytes(4));
+            if ($command->inheritRoleId !== '') {
+                $inherit = $this->repository->findById($command->inheritRoleId);
+                if ($inherit !== null) {
+                    $perms = $inherit->permissions;
+                }
+            }
+            $role = new Role($newId, $command->roleName, $perms);
+        } else {
+            $role->rename($command->roleName);
+            $role->updatePermissions($perms);
+        }
+
+        $this->repository->save($role);
+
+        return new SaveRoleResult($role->id, $isUpdate);
+    }
+}

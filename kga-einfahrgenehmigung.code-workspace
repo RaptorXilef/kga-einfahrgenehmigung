@@ -9,7 +9,13 @@
         "files.associations": {
             "*.module": "php"
         },
-        "todo-tree.tree.scanMode": "workspace only",
-        "better-todo-tree.tree.scanMode": "workspace only"
+        //"todo-tree.tree.scanMode": "workspace only",
+        "better-todo-tree.tree.scanMode": "workspace only",
+        "php-cs-fixer.executable": "C:\\xampp\\htdocs\\kga-einfahrgenehmigung\\vendor\\bin\\php-cs-fixer.bat",
+        "php-cs-fixer.config": "C:\\xampp\\htdocs\\kga-einfahrgenehmigung\\.php-cs-fixer.dist.php",
+        "php-cs-fixer.ignoreExitCode": true,
+        "php-cs-fixer.env": {
+            "PHP_CS_FIXER_IGNORE_ENV": "1"
+        }
     }
 }

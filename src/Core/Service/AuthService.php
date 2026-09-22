@@ -7,8 +7,8 @@ namespace App\Core\Service;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
-use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use RuntimeException;
 
 /**

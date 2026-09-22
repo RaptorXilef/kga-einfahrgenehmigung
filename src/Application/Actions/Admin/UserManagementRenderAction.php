@@ -11,10 +11,10 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuthService;
+use App\Modules\Identity\Domain\RoleRepositoryInterface;
 
 #[Route('GET', '/users')]
 #[RequiresAuth]

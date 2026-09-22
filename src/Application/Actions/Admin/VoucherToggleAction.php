@@ -13,10 +13,10 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Core\Service\AuditLoggerService;
 use App\Modules\Voucher\Application\UseCases\ToggleVoucher\ToggleVoucherCommand;
 use App\Modules\Voucher\Application\UseCases\ToggleVoucher\ToggleVoucherHandler;
 use DomainException;
+use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/activate_voucher')]
 #[Route('POST', '/deactivate_voucher')]

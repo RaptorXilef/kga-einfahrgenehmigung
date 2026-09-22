@@ -13,12 +13,12 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\System\ImageStorageInterface;
-use App\Core\Service\AuditLoggerService;
 use App\Modules\Identity\Application\UseCases\ManageUsers\CreateUserCommand;
 use App\Modules\Identity\Application\UseCases\ManageUsers\CreateUserHandler;
+use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use DomainException;
+use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/save_user')]
 #[RequiresAuth]

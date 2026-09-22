@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Service\Security;
+namespace App\Modules\System\Application\Services;
 
 use App\Contracts\Security\RateLimiterInterface;
 use InvalidArgumentException;

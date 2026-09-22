@@ -12,9 +12,9 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Core\Service\AuditLoggerService;
 use App\Modules\Voucher\Application\UseCases\DeleteVoucher\DeleteVoucherCommand;
 use App\Modules\Voucher\Application\UseCases\DeleteVoucher\DeleteVoucherHandler;
+use Modules\System\Application\Services\AuditLoggerService;
 
 /**
  * Action zum unwiderruflichen Löschen eines Gutscheins.

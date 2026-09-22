@@ -7,49 +7,54 @@ namespace App\Application\Actions\Admin;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\DTO\UserResetPasswordRequest;
+use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\UserRepositoryInterface; // Legacy für Namensauflösung
-use App\Core\Service\AuditLoggerService;
-use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserPasswordCommand;
-use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserPasswordHandler;
-use DomainException;
+use App\Modules\Voucher\Application\UseCases\DeleteVoucher\DeleteVoucherCommand;
+use App\Modules\Voucher\Application\UseCases\DeleteVoucher\DeleteVoucherHandler;
+use Modules\System\Application\Services\AuditLoggerService;
 
-#[Route('POST', '/change_user_password')]
-final readonly class UserResetPasswordAction implements ActionInterface, RequiresPermissionInterface
+/**
+ * Action zum unwiderruflichen Löschen eines Gutscheins.
+ */
+#[Route('GET', '/delete_voucher')]
+#[Route('POST', '/delete_voucher')]
+final readonly class VoucherDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
-        private UserRepositoryInterface $legacyUserRepository, // Für Logging Info
-        private ChangeUserPasswordHandler $changePasswordHandler, // CQRS
+        private DeleteVoucherHandler $deleteHandler,
     ) {
     }
 
     public function getRequiredPermission(): string
     {
-        return 'system.users.manage';
+        return 'vouchers.delete';
     }
 
-    /**
-     * Setzt das Passwort eines Benutzers administrativ (ohne Alt-Passwort-Prüfung) zurück.
-     */
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = UserResetPasswordRequest::fromArray($request->post);
+            $dto = SimpleIdentifierRequest::fromArray($request->post, 'code');
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('users');
+            return new RedirectResponse('admin');
         }
 
-        try {
-            // Name für das Log aus dem alten Read-Repository laden
-            $users = $this->legacyUserRepository->loadAll();
+        $command = new DeleteVoucherCommand($dto->identifier);
+        $this->deleteHandler->handle($command);
+
+        $this->auditLogger->log('VOUCHER_DELETE', "Gutscheincode '{$dto->identifier}' endgültig gelöscht.");
+        $this->sessionManager->addFlash('success', "Gutschein '{$dto->identifier}' gelöscht.");
+
+        return new RedirectResponse('admin');
+    }
+}
+);
             $username = isset($users[$dto->userId]) ? $users[$dto->userId]->username : 'Unbekannt';
 
             $this->changePasswordHandler->handle(new ChangeUserPasswordCommand($dto->userId, $dto->newPassword));

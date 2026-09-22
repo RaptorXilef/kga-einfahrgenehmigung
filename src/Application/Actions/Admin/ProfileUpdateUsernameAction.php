@@ -11,11 +11,11 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Modules\Identity\Application\UseCases\ManageUsers\RenameUserCommand;
 use App\Modules\Identity\Application\UseCases\ManageUsers\RenameUserHandler;
 use DomainException;
+use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/change_own_username')]
 final readonly class ProfileUpdateUsernameAction implements ActionInterface

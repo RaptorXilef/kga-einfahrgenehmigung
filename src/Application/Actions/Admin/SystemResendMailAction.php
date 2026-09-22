@@ -13,7 +13,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Core\Service\AuditLoggerService;
+use Modules\System\Application\Services\AuditLoggerService;
 
 /**
  * Action für den manuellen Neuversand von E-Mails aus den System-Logs.

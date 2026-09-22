@@ -11,11 +11,11 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserPasswordCommand;
 use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserPasswordHandler;
 use DomainException;
+use Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('POST', '/change_own_password')]
 final readonly class ProfileUpdatePasswordAction implements ActionInterface

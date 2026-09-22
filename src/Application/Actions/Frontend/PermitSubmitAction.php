@@ -12,11 +12,11 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Exception\PermitCollisionException;
-use App\Core\Service\Security\BotProtectionService;
 use App\Core\Service\Security\EmailValidationService;
 use App\Modules\Permit\Application\DTO\PermitFormData;
 use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\SubmitPermitRequestCommand;
 use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\SubmitPermitRequestHandler;
+use App\Modules\System\Application\Services\BotProtectionService;
 use InvalidArgumentException;
 use Throwable;
 

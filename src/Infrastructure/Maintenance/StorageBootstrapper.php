@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
-use App\Core\Entity\Role;
 use App\Core\Entity\User;
+use App\Modules\Identity\Domain\Role;
+use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use PDO;
 use PDOException;
 
