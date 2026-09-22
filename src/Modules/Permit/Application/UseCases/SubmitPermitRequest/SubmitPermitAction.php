@@ -54,9 +54,8 @@ final readonly class SubmitPermitAction implements ViewActionInterface
             // Strike registrieren: Auch bei fehlerhaften Spam-Versuchen das Limit belasten
             $this->botProtection->recordStrike($ip);
 
-            $postData = $request->post;
-            unset($postData['csrf_token']); // Sicherheits-Token nicht mitspeichern
-            $this->sessionManager->setFormData($postData);
+            // Formulardaten für die Korrektur retten
+            $this->rescueFormData($request);
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('index');
@@ -74,7 +73,7 @@ final readonly class SubmitPermitAction implements ViewActionInterface
             $this->sessionManager->clearFormData();
             $this->sessionManager->clearEditState();
             $this->sessionManager->clearFormStartTime();
-            $this->botProtection->recordStrike($ip);
+            $this->botProtection->recordStrike($ip); // Begrenzt auch erfolgreiche Anträge auf x pro 15 Min
 
             if ($result->action === 'redirect_checkout') {
                 return new RedirectResponse('checkout?token=' . $result->token);
@@ -91,6 +90,8 @@ final readonly class SubmitPermitAction implements ViewActionInterface
 
         } catch (PermitCollisionException $exception) {
             \error_log('Permit Collision: ' . $exception->getMessage());
+
+            $this->rescueFormData($request);
             $this->sessionManager->addFlash(
                 'error',
                 'Überschneidung: Für diese Parzelle liegt in dem gewählten Zeitraum bereits eine Anfrage oder Genehmigung vor.',
@@ -98,12 +99,15 @@ final readonly class SubmitPermitAction implements ViewActionInterface
 
             return new RedirectResponse('index');
         } catch (InvalidArgumentException $exception) {
-            // Validerungsmeldungen aus der Domain-Schicht (Value Objects) dem Nutzer anzeigen
+            // Validierungsmeldungen aus der Domain-Schicht (Value Objects) dem Nutzer anzeigen
+            $this->rescueFormData($request);
             $this->sessionManager->addFlash('error', $exception->getMessage());
 
             return new RedirectResponse('index');
         } catch (Throwable $exception) {
             \error_log('Permit Creation Error: ' . $exception->getMessage() . "\n" . $exception->getTraceAsString());
+
+            $this->rescueFormData($request);
             $this->sessionManager->addFlash(
                 'error',
                 'Ein unerwarteter Systemfehler ist aufgetreten. Bitte versuchen Sie es erneut.',
@@ -111,5 +115,15 @@ final readonly class SubmitPermitAction implements ViewActionInterface
 
             return new RedirectResponse('index');
         }
+    }
+
+    /**
+     * Sichert die POST-Daten für das Sticky-Form, bereinigt aber sicherheitsrelevante Felder.
+     */
+    private function rescueFormData(ServerRequest $request): void
+    {
+        $postData = $request->post;
+        unset($postData['csrf_token'], $postData['hp_contact_website']);
+        $this->sessionManager->setFormData($postData);
     }
 }
