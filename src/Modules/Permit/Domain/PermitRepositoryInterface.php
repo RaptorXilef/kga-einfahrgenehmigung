@@ -35,8 +35,9 @@ interface PermitRepositoryInterface
 
     /**
      * Prüft extrem performant direkt in der Datenbank, ob eine zeitliche Kollision vorliegt.
+     * Eine Kollision liegt nur vor, wenn sich Zeitraum, Parzelle UND (Kennzeichen oder Firma) überschneiden.
      */
-    public function hasCollision(int $plotNumber, DateTimeImmutable $start, DateTimeImmutable $end): bool;
+    public function hasCollision(int $plotNumber, DateTimeImmutable $start, DateTimeImmutable $end, string $licensePlate, ?string $company): bool;
 
     /**
      * Prüft über alle Tabellen (Aktiv, Archiv, Storniert), ob ein Code bereits vergeben ist.

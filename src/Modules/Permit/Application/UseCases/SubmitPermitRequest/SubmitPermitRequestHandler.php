@@ -41,11 +41,11 @@ final readonly class SubmitPermitRequestHandler
 
         $startDate = new DateTimeImmutable($newData->datumVon);
         $endDate = new DateTimeImmutable($newData->datumBis);
-        $this->validateNoCollisions($newData->parzelle->value, $startDate, $endDate);
+        $this->validateNoCollisions($newData->parzelle->value, $startDate, $endDate, $newData->kennzeichen->value, $newData->firma);
 
         $rawDataArray = $this->transformDtoToArray($newData);
 
-        // --- BUGFIX: UPDATE-MODUS (Korrektur im Formular) ---
+        // --- UPDATE-MODUS (Korrektur im Formular) ---
         if ($command->editToken !== null && $command->sessionEmail !== null) {
             $allVerified = $this->verificationRepository->loadVerified();
             $oldData = isset($allVerified[$command->editToken]) ? $allVerified[$command->editToken]->data : null;
@@ -121,15 +121,17 @@ final readonly class SubmitPermitRequestHandler
         return $token;
     }
 
-    private function validateNoCollisions(int $parzelleId, DateTimeImmutable $start, DateTimeImmutable $end): void
+    private function validateNoCollisions(int $parzelleId, DateTimeImmutable $start, DateTimeImmutable $end, string $licensePlate, ?string $company): void
     {
-        if ($this->permitRepository->hasCollision($parzelleId, $start, $end)) {
+        if ($this->permitRepository->hasCollision($parzelleId, $start, $end, $licensePlate, $company)) {
             $plotFormatted = \str_pad((string) $parzelleId, 4, '0', \STR_PAD_LEFT);
 
-            throw new PermitCollisionException("Kollision: Für Parzelle {$plotFormatted} existiert bereits eine Genehmigung im gewählten Zeitraum.");
+            throw new PermitCollisionException("Kollision: Für dieses Kennzeichen oder diese Firma existiert auf Parzelle {$plotFormatted} bereits eine Genehmigung im gewählten Zeitraum.");
         }
 
         $allPending = $this->verificationRepository->loadPending();
+        $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($licensePlate));
+
         foreach ($allPending as $pendingReq) {
             $pendingData = $pendingReq->data;
             $pPlot = (int) ($pendingData['parzelle'] ?? 0);
@@ -137,9 +139,17 @@ final readonly class SubmitPermitRequestHandler
             $pEnd = new DateTimeImmutable((string) ($pendingData['datum_bis'] ?? 'now'));
 
             if ($pPlot === $parzelleId && DateRangeHelper::overlaps($pStart, $pEnd, $start, $end)) {
-                $plotFormatted = \str_pad((string) $parzelleId, 4, '0', \STR_PAD_LEFT);
+                $pKennzeichen = \preg_replace('/[^A-Z0-9]/', '', \strtoupper((string) ($pendingData['kennzeichen'] ?? '')));
+                $pFirma = \trim((string) ($pendingData['firma'] ?? ''));
 
-                throw new PermitCollisionException("Hinweis: Für Parzelle {$plotFormatted} läuft bereits eine Anfrage für diesen Zeitraum. Bitte wählen Sie andere Daten.");
+                $isSamePlate = $searchPlate !== '' && $searchPlate !== 'XXXXX9999' && $searchPlate === $pKennzeichen;
+                $isSameCompany = $company !== null && $company !== '' && $company === $pFirma;
+
+                if ($isSamePlate || $isSameCompany) {
+                    $plotFormatted = \str_pad((string) $parzelleId, 4, '0', \STR_PAD_LEFT);
+
+                    throw new PermitCollisionException("Hinweis: Für dieses Kennzeichen oder diese Firma läuft auf Parzelle {$plotFormatted} bereits eine Anfrage für diesen Zeitraum.");
+                }
             }
         }
     }

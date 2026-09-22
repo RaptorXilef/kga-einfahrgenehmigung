@@ -166,10 +166,36 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         return $stmt->rowCount();
     }
 
-    public function hasCollision(int $plotNumber, DateTimeImmutable $start, DateTimeImmutable $end): bool
+    public function hasCollision(int $plotNumber, DateTimeImmutable $start, DateTimeImmutable $end, string $licensePlate, ?string $company): bool
     {
-        $stmt = $this->pdo->prepare('SELECT 1 FROM permits WHERE parzelle = ? AND von <= ? AND bis >= ? LIMIT 1');
-        $stmt->execute([$plotNumber, $end->format('Y-m-d'), $start->format('Y-m-d')]);
+        $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($licensePlate));
+        $query = 'SELECT 1 FROM permits WHERE parzelle = ? AND von <= ? AND bis >= ? AND status != \'storniert\' AND (';
+        $params = [$plotNumber, $end->format('Y-m-d'), $start->format('Y-m-d')];
+        $conditions = [];
+
+        // Prüfen auf echtes Kennzeichen (Platzhalter XXX-XX 9999 ignorieren)
+        if ($searchPlate !== '' && $searchPlate !== 'XXXXX9999') {
+            $conditions[] = "REPLACE(REPLACE(kennzeichen, ' ', ''), '-', '') = ?";
+            $params[] = $searchPlate;
+        }
+
+        // Prüfen auf Firmenname
+        if ($company !== null && \trim($company) !== '') {
+            $conditions[] = 'firma = ?';
+            $params[] = \trim($company);
+        }
+
+        // Fallback: Wenn jemand weder Firma noch echtes Kennzeichen hat, ist es immer eine Kollision
+        if (empty($conditions)) {
+            $query .= ' 1=1 ';
+        } else {
+            $query .= \implode(' OR ', $conditions);
+        }
+
+        $query .= ') LIMIT 1';
+
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute($params);
 
         return (bool) $stmt->fetchColumn();
     }
