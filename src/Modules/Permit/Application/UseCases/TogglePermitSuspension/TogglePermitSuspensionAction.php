@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Admin;
+namespace App\Modules\Permit\Application\UseCases\TogglePermitSuspension;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
@@ -11,8 +11,6 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Permit\Application\UseCases\TogglePermitSuspension\TogglePermitSuspensionCommand;
-use App\Modules\Permit\Application\UseCases\TogglePermitSuspension\TogglePermitSuspensionHandler;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
 
@@ -23,7 +21,7 @@ use DomainException;
 #[Route('POST', '/suspend_permit')]
 #[Route('GET', '/unsuspend_permit')]
 #[Route('POST', '/unsuspend_permit')]
-final readonly class PermitToggleSuspensionAction implements ActionInterface
+final readonly class TogglePermitSuspensionAction implements ActionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
@@ -33,9 +31,10 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
     }
 
     /**
-     * TODO DOCBLOCK
      * Setzt den Sperrstatus (Suspension) einer Genehmigung.
-     * Kontext: Interaktion mit PermitService::toggleSuspension().
+     *
+     * @param ServerRequest $request
+     * @return mixed
      */
     public function execute(ServerRequest $request): mixed
     {

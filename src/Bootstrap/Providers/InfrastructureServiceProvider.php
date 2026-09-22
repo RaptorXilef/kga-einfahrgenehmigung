@@ -15,9 +15,7 @@ use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\BackupServiceInterface;
-use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
-use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ErrorLoggerInterface;
@@ -42,8 +40,6 @@ use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\FileLockManager;
 use App\Infrastructure\Storage\ImageStorageService;
 use App\Infrastructure\Storage\JsonHelper;
-use App\Infrastructure\Storage\MySqlCancelledPermitRepository;
-use App\Infrastructure\Storage\MySqlPermitArchiveRepository;
 use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\System\DompdfGenerator;
 use App\Infrastructure\System\FileRouteCache;
@@ -58,8 +54,12 @@ use App\Modules\Identity\Infrastructure\PdoLoginAttemptRepository;
 use App\Modules\Identity\Infrastructure\PdoMagicLinkRepository;
 use App\Modules\Identity\Infrastructure\PdoRoleRepository;
 use App\Modules\Identity\Infrastructure\PdoUserRepository as IdentityPdoUserRepository;
+use App\Modules\Permit\Domain\CancelledPermitRepositoryInterface;
+use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
+use App\Modules\Permit\Infrastructure\PdoCancelledPermitRepository;
+use App\Modules\Permit\Infrastructure\PdoPermitArchiveRepository;
 use App\Modules\Permit\Infrastructure\PdoPermitRepository;
 use App\Modules\Permit\Infrastructure\PdoVerificationRepository;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
@@ -101,18 +101,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         // Mapping des System-Clocks für testbare Zeitstempel
         $container->bind(ClockInterface::class, fn (): mixed => $container->get(SystemClock::class));
 
-        // --- LEGACY REPOSITORIES (Archiv/Cancelled) ---
-        $container->bind(CancelledPermitRepositoryInterface::class, fn (): MySqlCancelledPermitRepository => new MySqlCancelledPermitRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-            $container->get(JsonHelperInterface::class),
-        ));
-        $container->bind(PermitArchiveRepositoryInterface::class, fn (): MySqlPermitArchiveRepository => new MySqlPermitArchiveRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-            $container->get(JsonHelperInterface::class),
-        ));
-
         // --- SYSTEM DDD REPOSITORY BINDINGS ---
         $container->bind(AuditLogRepositoryInterface::class, fn (): PdoAuditLogRepository => new PdoAuditLogRepository(
             $container->get(PDO::class),
@@ -129,6 +117,16 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(PDO::class),
         ));
         $container->bind(VerificationRepositoryInterface::class, fn (): PdoVerificationRepository => new PdoVerificationRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
+        ));
+        $container->bind(CancelledPermitRepositoryInterface::class, fn (): PdoCancelledPermitRepository => new PdoCancelledPermitRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
+        ));
+        $container->bind(PermitArchiveRepositoryInterface::class, fn (): PdoPermitArchiveRepository => new PdoPermitArchiveRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),

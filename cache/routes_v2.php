@@ -43,16 +43,6 @@
         'class' => 'App\\Application\\Actions\\Admin\\PermitMarkAsPaidAction',
         'auth' => false,
       ),
-      '/suspend_permit' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\PermitToggleSuspensionAction',
-        'auth' => false,
-      ),
-      '/unsuspend_permit' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\PermitToggleSuspensionAction',
-        'auth' => false,
-      ),
       '/profile' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\ProfileRenderAction',
@@ -243,6 +233,16 @@
         'class' => 'App\\Application\\Actions\\Frontend\\VerificationAction',
         'auth' => false,
       ),
+      '/suspend_permit' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\TogglePermitSuspension\\TogglePermitSuspensionAction',
+        'auth' => false,
+      ),
+      '/unsuspend_permit' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\TogglePermitSuspension\\TogglePermitSuspensionAction',
+        'auth' => false,
+      ),
     ),
     'POST' => 
     array (
@@ -289,16 +289,6 @@
       '/send_reminder' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\PermitSendReminderAction',
-        'auth' => false,
-      ),
-      '/suspend_permit' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\PermitToggleSuspensionAction',
-        'auth' => false,
-      ),
-      '/unsuspend_permit' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\PermitToggleSuspensionAction',
         'auth' => false,
       ),
       '/change_own_password' => 
@@ -546,11 +536,6 @@
         'class' => 'App\\Application\\Actions\\Frontend\\PermitEditAction',
         'auth' => false,
       ),
-      '/' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Frontend\\PermitSubmitAction',
-        'auth' => false,
-      ),
       '/success' => 
       array (
         'class' => 'App\\Application\\Actions\\Frontend\\SuccessAction',
@@ -559,6 +544,21 @@
       '/verify' => 
       array (
         'class' => 'App\\Application\\Actions\\Frontend\\VerificationAction',
+        'auth' => false,
+      ),
+      '/' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\SubmitPermitRequest\\SubmitPermitAction',
+        'auth' => false,
+      ),
+      '/suspend_permit' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\TogglePermitSuspension\\TogglePermitSuspensionAction',
+        'auth' => false,
+      ),
+      '/unsuspend_permit' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\TogglePermitSuspension\\TogglePermitSuspensionAction',
         'auth' => false,
       ),
     ),

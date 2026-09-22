@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\SearchPermits;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\Permit;
+use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 
 /**

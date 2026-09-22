@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\ArchiveExpiredPermits;
 
-use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Utils\ClockInterface;
+use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 

@@ -6,11 +6,11 @@ namespace App\Modules\Permit\Application\UseCases\CancelPermit;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
-use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Core\Event\PermitCancelledEvent;
 use App\Core\Security\Sanitizer;
+use App\Modules\Permit\Domain\CancelledPermitRepositoryInterface;
 use App\Modules\Permit\Domain\Owner;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitStatus;

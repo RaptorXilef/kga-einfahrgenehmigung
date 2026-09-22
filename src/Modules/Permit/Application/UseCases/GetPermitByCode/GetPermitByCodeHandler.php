@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\GetPermitByCode;
 
-use App\Contracts\Storage\CancelledPermitRepositoryInterface;
-use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
+use App\Modules\Permit\Domain\CancelledPermitRepositoryInterface;
 use App\Modules\Permit\Domain\Permit;
+use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 
 /**

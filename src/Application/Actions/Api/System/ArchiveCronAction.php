@@ -9,9 +9,9 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Modules\Permit\Application\UseCases\ArchiveExpiredPermits\ArchiveExpiredPermitsCommand;
 use App\Modules\Permit\Application\UseCases\ArchiveExpiredPermits\ArchiveExpiredPermitsHandler;
+use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 
 #[Route('GET', '/api/cron/archive')]
 #[Route('POST', '/api/cron/archive')]

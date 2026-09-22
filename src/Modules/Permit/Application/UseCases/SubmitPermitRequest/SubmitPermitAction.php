@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Actions\Frontend;
+namespace App\Modules\Permit\Application\UseCases\SubmitPermitRequest;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
@@ -14,8 +14,6 @@ use App\Application\Session\SessionManager;
 use App\Core\Exception\PermitCollisionException;
 use App\Core\Service\Security\EmailValidationService;
 use App\Modules\Permit\Application\DTO\PermitFormData;
-use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\SubmitPermitRequestCommand;
-use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\SubmitPermitRequestHandler;
 use App\Modules\System\Application\Services\BotProtectionService;
 use InvalidArgumentException;
 use Throwable;
@@ -24,10 +22,10 @@ use Throwable;
  * Action zur Verarbeitung des abgesendeten Antragsformulars (POST).
  */
 #[Route('POST', '/')]
-final readonly class PermitSubmitAction implements ViewActionInterface
+final readonly class SubmitPermitAction implements ViewActionInterface
 {
     public function __construct(
-        private SubmitPermitRequestHandler $submitHandler, // <-- CQRS
+        private SubmitPermitRequestHandler $submitHandler,
         private SessionManager $sessionManager,
         private BotProtectionService $botProtection,
         private EmailValidationService $emailValidation,

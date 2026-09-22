@@ -45,10 +45,11 @@ final class ActionRegistry
             }
         }
 
-        $rootPath = $this->config->get('root_path');
-        $baseDir = \rtrim(\is_string($rootPath) ? $rootPath : '', '/\\') . '/src/Application/Actions';
+        $rootPath = \rtrim(\is_string($this->config->get('root_path', '')) ? $this->config->get('root_path', '') : '', '/\\');
 
-        $this->scanDirectoryRecursively($baseDir);
+        // Scannt ab sofort BEIDE Verzeichnisse (Legacy Actions & VSA Modules)
+        $this->scanDirectoryRecursively($rootPath . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Application' . \DIRECTORY_SEPARATOR . 'Actions');
+        $this->scanDirectoryRecursively($rootPath . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules');
 
         $this->cache->save($this->routes);
     }
@@ -60,24 +61,23 @@ final class ActionRegistry
         }
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
+        $srcPath = \rtrim(\is_string($this->config->get('root_path', '')) ? $this->config->get('root_path', '') : '', '/\\') . \DIRECTORY_SEPARATOR . 'src';
 
         foreach ($iterator as $file) {
             /** @var SplFileInfo $file */
-            if (!$file->isFile()) {
+            if (!$file->isFile() || $file->getExtension() !== 'php') {
                 continue;
             }
-            if ($file->getExtension() !== 'php') {
+
+            // Performance: Wir prüfen NUR auf Dateien, die auf "Action.php" enden!
+            if (!\str_ends_with($file->getFilename(), 'Action.php')) {
                 continue;
             }
 
             $pathName = $file->getPathname();
-            if (!\is_string($pathName)) {
-                continue;
-            }
-
-            $relativePath = \str_replace($dir . \DIRECTORY_SEPARATOR, '', $pathName);
+            $relativePath = \str_replace($srcPath . \DIRECTORY_SEPARATOR, '', $pathName);
             $classSuffix = \str_replace(['/', '\\', '.php'], ['\\', '\\', ''], $relativePath);
-            $className = 'App\\Application\\Actions\\' . $classSuffix;
+            $className = 'App\\' . $classSuffix;
 
             if (!\class_exists($className)) {
                 continue;

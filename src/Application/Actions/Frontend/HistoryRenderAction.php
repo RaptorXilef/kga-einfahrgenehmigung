@@ -12,10 +12,10 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Core\Security\Sanitizer;
 use App\Modules\Permit\Application\UseCases\GetPermitHistory\GetPermitHistoryHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitHistory\GetPermitHistoryQuery;
+use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
 
 #[Route('GET', '/history')]

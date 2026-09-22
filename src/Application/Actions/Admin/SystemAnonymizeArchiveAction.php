@@ -10,14 +10,12 @@ use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\PermitArchiveRepositoryInterface;
+use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use Throwable;
 
 /**
  * Action zur DSGVO-konformen Anonymisierung von alten Archiv-Einträgen.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/anonymize_archive')]
 #[Route('POST', '/anonymize_archive')]
