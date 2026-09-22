@@ -15,7 +15,6 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\System\ImageStorageInterface;
-use App\Core\Service\ReleaseNotesService;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
@@ -25,6 +24,7 @@ use App\Modules\Permit\Application\UseCases\GetDashboardStats\GetDashboardStatsH
 use App\Modules\Permit\Application\UseCases\GetDashboardStats\GetDashboardStatsQuery;
 use App\Modules\Permit\Application\UseCases\GetFinanceList\GetFinanceListHandler;
 use App\Modules\Permit\Application\UseCases\GetFinanceList\GetFinanceListQuery;
+use App\Modules\System\Application\Services\ReleaseNotesService;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
 use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveQuery;

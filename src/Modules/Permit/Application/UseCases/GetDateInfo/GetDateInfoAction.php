@@ -8,7 +8,7 @@ use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
-use App\Core\Service\HolidayService;
+use App\Modules\Permit\Application\Services\HolidayService;
 use Throwable;
 
 #[Route('POST', '/api/get_date_info')]

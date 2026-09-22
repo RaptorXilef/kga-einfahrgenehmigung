@@ -7,7 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\CheckPermit;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
-use App\Core\Service\HolidayService;
+use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
@@ -40,7 +40,6 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
             // Fallback auf Kennzeichensuche im aktiven Storage
             $permit = $this->storage->findByLicensePlate($query->codeOrPlate);
 
-            // Da du im CodeDump `storage->findByLicensePlate` in der Action nutzt, machen wir es hier sicher:
             if ($permit === null) {
                 return $this->createNotFoundDto();
             }

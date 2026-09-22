@@ -11,9 +11,9 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Exception\PermitCollisionException;
-use App\Core\Service\Security\EmailValidationService;
 use App\Modules\Permit\Application\DTO\PermitFormData;
 use App\Modules\System\Application\Services\BotProtectionService;
+use App\Modules\System\Application\Services\EmailValidationService;
 use InvalidArgumentException;
 use Throwable;
 
@@ -43,7 +43,7 @@ final readonly class SubmitPermitAction implements ViewActionInterface
             $this->botProtection->verifyTimeCheck($this->sessionManager->getFormStartTime(), 3);
             $this->botProtection->verifyHoneypot((string) ($request->post['hp_contact_website'] ?? ''));
 
-            // 3. DTO Validierung (Slice-eigenes DTO)
+            // 3. DTO Validierung (Basic Syntax Checks)
             $dto = PermitSubmitRequest::fromArray($request->post);
 
             // 4. TIEFE E-MAIL-PRÜFUNG (DNS/MX & Trashmail)

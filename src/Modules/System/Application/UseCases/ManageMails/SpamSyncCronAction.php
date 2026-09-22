@@ -9,7 +9,7 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
-use App\Core\Service\Security\EmailValidationService;
+use App\Modules\System\Application\Services\EmailValidationService;
 
 #[Route('GET', '/api/cron/spam_sync')]
 #[Route('POST', '/api/cron/spam_sync')]

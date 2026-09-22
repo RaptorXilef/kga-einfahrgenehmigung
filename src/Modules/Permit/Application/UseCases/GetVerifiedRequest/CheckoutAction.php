@@ -12,7 +12,7 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
-use App\Core\Service\HolidayService;
+use App\Modules\Permit\Application\Services\HolidayService;
 use DateTimeImmutable;
 use Exception;
 

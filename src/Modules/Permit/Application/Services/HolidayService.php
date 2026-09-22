@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Service;
+namespace App\Modules\Permit\Application\Services;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
@@ -72,7 +72,6 @@ final readonly class HolidayService
         $openingHours = $this->getOpeningHoursForDate($date);
 
         // Wenn für diesen Tag leere Arrays definiert sind (wie bei 'sun'), ist er gesperrt
-        // FIX: empty() durch strikten Vergleich ersetzt
         if (($openingHours[$dayKey] ?? []) === []) {
             return true;
         }
@@ -136,7 +135,6 @@ final readonly class HolidayService
         $dayKey = \strtolower((new DateTimeImmutable())->format('D'));
         $slots = $this->getOpeningHoursForDate(new DateTimeImmutable())[$dayKey] ?? [];
 
-        // FIX: empty() durch strikten Vergleich ersetzt
         if ($slots === []) {
             return 'heute keine Einfahrt erlaubt';
         }
@@ -354,16 +352,11 @@ final readonly class HolidayService
         $easter = $base->modify('+' . \easter_days($year) . ' days');
 
         // Bundesweit einheitliche Feiertage
-        $holidays = [
-            $year . '-01-01', // Neujahr
-            $year . '-05-01', // Tag der Arbeit
-            $year . '-10-03', // Tag der Deutschen Einheit
-            $year . '-12-25', // 1. Weihnachtstag
-            $year . '-12-26', // 2. Weihnachtstag
-            $easter->modify('-2 days')->format('Y-m-d'),  // Karfreitag
-            $easter->modify('+1 day')->format('Y-m-d'),   // Ostermontag
-            $easter->modify('+39 days')->format('Y-m-d'), // Christi Himmelfahrt
-            $easter->modify('+50 days')->format('Y-m-d'), // Pfingstmontag
+        $holidays = [$year . '-01-01', // Neujahr
+            $year . '-05-01', // Tag der Arbeit$year . '-10-03', // Tag der Deutschen Einheit
+            $year . '-12-25', // 1. Weihnachtstag$year . '-12-26', // 2. Weihnachtstag
+            $easter->modify('-2 days')->format('Y-m-d'),  // Karfreitag$easter->modify('+1 day')->format('Y-m-d'),   // Ostermontag
+            $easter->modify('+39 days')->format('Y-m-d'), // Christi Himmelfahrt$easter->modify('+50 days')->format('Y-m-d'), // Pfingstmontag
         ];
 
         // Bundeslandspezifische Feiertage
@@ -514,7 +507,6 @@ final readonly class HolidayService
     }
 
     /**
-     * TODO DOCBLOCK
      * Formatiert ein rohes Array von Öffnungszeiten in den gruppierten HTML-Text.
      */
     private function formatHoursArrayToText(array $hours): array

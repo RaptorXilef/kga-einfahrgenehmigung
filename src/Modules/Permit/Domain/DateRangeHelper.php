@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Utils;
+namespace App\Modules\Permit\Domain;
 
 use DateTimeImmutable;
 
