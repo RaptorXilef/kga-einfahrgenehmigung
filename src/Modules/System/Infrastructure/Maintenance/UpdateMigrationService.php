@@ -73,7 +73,10 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
                         $this->pdo->exec($statement);
                     } catch (PDOException $e) {
                         $mysqlCode = $e->errorInfo[1] ?? 0;
-                        if (\in_array($mysqlCode, [1050, 1051, 1060, 1061, 1146], true)) {
+
+                        // BUGFIX: 1054 = Unknown column (Wird geworfen, wenn man eine Spalte via ALTER TABLE CHANGE
+                        // umbenennen will, sie aber schon umbenannt ist).
+                        if (\in_array($mysqlCode, [1050, 1051, 1054, 1060, 1061, 1146], true)) {
                             continue;
                         }
 

@@ -1,9 +1,15 @@
 # deptrac.yaml
-# Strikte Überwachung unserer Bounded Contexts (Modular Monolith)
+# Strikte VSA Überwachung der Bounded Contexts für den Modular Monolith
 parameters:
   paths:
-    - ./src
+    - src
+  cache_file: .cache/deptrac/.deptrac.cache
+
   layers:
+    - name: SharedKernel
+      collectors:
+        - type: directory
+          value: src/SharedKernel/.*
     - name: Permit
       collectors:
         - type: directory
@@ -24,42 +30,60 @@ parameters:
       collectors:
         - type: directory
           value: src/Modules/System/.*
-    - name: SharedKernel
+    - name: ApplicationFramework
       collectors:
         - type: directory
-          value: src/SharedKernel/.*
-    - name: Framework
+          value: src/Application/.*|src/Bootstrap/.*|src/Contracts/.*
+    - name: Vendor
       collectors:
-        - type: directory
-          value: src/Application/.*|src/Bootstrap/.*|src/Contracts/.*|src/Infrastructure/.*
+        - type: bool
+          must:
+            - type: classNameRegex
+              value: /.*/
+          must_not:
+            - type: directory
+              value: src/.*
 
   ruleset:
-    # Die Domänen/Module dürfen den SharedKernel und das Framework (z.B. HTTP/DI) nutzen.
+    # Die Domänen/Module dürfen den SharedKernel und das Framework (z.B. Interfaces) nutzen.
     Permit:
       - SharedKernel
-      - Framework
+      - ApplicationFramework
+      - Vendor
       - Voucher # Erlaubt für asynchrone / CQRS Preisabfragen (CalculateVoucherDiscount)
 
     Finance:
       - SharedKernel
-      - Framework
+      - ApplicationFramework
+      - Vendor
       - Permit # Erlaubt, da Finance bei Zahlungseingang das Permit-Modul triggert (MarkPermitAsPaid)
 
     Voucher:
       - SharedKernel
-      - Framework
+      - ApplicationFramework
+      - Vendor
 
     Identity:
       - SharedKernel
-      - Framework
+      - ApplicationFramework
+      - Vendor
+      - Permit # Erlaubt, da Identity die History prüft bevor Magic-Links gesendet werden
 
     System:
       - SharedKernel
-      - Framework
-      # Das System-Modul (z.B. Cronjobs, Backups) aggregiert technisch alle Module
+      - ApplicationFramework
+      - Vendor
+      # Das System-Modul orchestriert als Controller-Instanz alle anderen Module (Dashboard, Maintenance)
       - Permit
       - Finance
       - Voucher
       - Identity
 
-    SharedKernel: ~
+    SharedKernel:
+      - Vendor
+
+    ApplicationFramework:
+      - SharedKernel
+      - Vendor
+      - System # Der FrontendController loggt Exceptions via System-Services
+      - Identity # Der FrontendController verifiziert Sessions via AuthMiddleware

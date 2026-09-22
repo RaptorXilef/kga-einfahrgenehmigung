@@ -45,30 +45,40 @@ final readonly class SubmitPermitRequestHandler
 
         $rawDataArray = $this->transformDtoToArray($newData);
 
-        // --- UPDATE-MODUS (Korrektur im Formular) ---
+        // --- BUGFIX: UPDATE-MODUS (Korrektur im Formular) ---
         if ($command->editToken !== null && $command->sessionEmail !== null) {
             $allVerified = $this->verificationRepository->loadVerified();
             $oldData = isset($allVerified[$command->editToken]) ? $allVerified[$command->editToken]->data : null;
 
+            // Wenn die E-Mail NICHT geändert wurde -> Nur Daten updaten & direkt zurück zum Checkout!
             if ($oldData !== null && Sanitizer::normalizeEmail((string) $newData->email) === Sanitizer::normalizeEmail($command->sessionEmail)) {
 
-                $priceRelevantChanged = ($oldData['template_key'] ?? '') !== $rawDataArray['template_key']
-                    || ($oldData['typ'] ?? '') !== $rawDataArray['typ']
-                    || ($oldData['voucher'] ?? '') !== $rawDataArray['voucher'];
+                // Wir mergen die neuen Daten in die alten (damit verification_code erhalten bleibt)
+                $merged = \array_merge($oldData, $rawDataArray);
 
-                if (!$priceRelevantChanged) {
-                    $merged = \array_merge($oldData, $rawDataArray);
-                    $merged['preis'] = $oldData['preis'] ?? 0;
-                    $merged['status'] = PermitStatus::Offen->value;
+                // Preis dynamisch neu berechnen (falls sich Tarif oder Fahrzeugtyp geändert hat)
+                $tKey = $merged['template_key'];
+                $templates = (array) $this->config->get('permit_templates', []);
+                $template = $templates[$tKey] ?? $templates['std_7'] ?? ['prices' => []];
 
-                    $expires = $allVerified[$command->editToken]->expiresAt ?? $this->clock->now()->modify('+48 hours');
-                    $allVerified[$command->editToken] = new VerificationRequest($command->editToken, $expires, $merged);
-                    $this->verificationRepository->saveVerified($allVerified);
+                $vehicleTypes = (array) $this->config->get('vehicle_types', []);
+                $defaultType = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
+                $typ = $merged['typ'] ?? $defaultType;
 
-                    return new SubmitPermitResult('redirect_checkout', $command->editToken);
-                }
+                $merged['preis'] = (float) ($template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0));
+                $merged['status'] = PermitStatus::Offen->value;
 
-                // Preis hat sich geändert -> Löschen und neu anlegen!
+                $expires = $allVerified[$command->editToken]->expiresAt ?? $this->clock->now()->modify('+48 hours');
+                $allVerified[$command->editToken] = new VerificationRequest($command->editToken, $expires, $merged);
+
+                $this->verificationRepository->saveVerified($allVerified);
+
+                return new SubmitPermitResult('redirect_checkout', $command->editToken);
+            }
+
+            // Falls die E-Mail geändert WURDE, löschen wir das alte Token,
+            // damit unten regulär eine neue Bestätigungs-Mail rausgeht.
+            if ($oldData !== null) {
                 unset($allVerified[$command->editToken]);
                 $this->verificationRepository->saveVerified($allVerified);
             }
@@ -113,14 +123,12 @@ final readonly class SubmitPermitRequestHandler
 
     private function validateNoCollisions(int $parzelleId, DateTimeImmutable $start, DateTimeImmutable $end): void
     {
-        // 1. Check in Database (Super fast via SQL!)
         if ($this->permitRepository->hasCollision($parzelleId, $start, $end)) {
             $plotFormatted = \str_pad((string) $parzelleId, 4, '0', \STR_PAD_LEFT);
 
             throw new PermitCollisionException("Kollision: Für Parzelle {$plotFormatted} existiert bereits eine Genehmigung im gewählten Zeitraum.");
         }
 
-        // 2. Check in Pending/Unpaid Requests
         $allPending = $this->verificationRepository->loadPending();
         foreach ($allPending as $pendingReq) {
             $pendingData = $pendingReq->data;

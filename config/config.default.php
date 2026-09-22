@@ -15,6 +15,7 @@ declare(strict_types=1);
 return [
     'disable_backdoor' => false,     // KGA Sicherheitstoggle
     'disable_superadmin' => false,   // KGA Sicherheitstoggle
+    'stealth_superadmins' => true,   // Wenn true, werden SuperAdmin Aktivitäten nicht ins AuditLog geschrieben
 
     // --- WARTUNGSMODUS (MAINTENANCE) ---
     // Feingranulare Steuerung für Ausfallzeiten und Updates.

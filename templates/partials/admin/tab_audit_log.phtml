@@ -26,6 +26,7 @@ $auditTotalPages = \max(1, (int) \ceil($auditTotal / $limit));
 $page = \min($requestedPage, $auditTotalPages);
 $offset = ($page - 1) * $limit;
 
+// BUGFIX: USER_HISTORY_LOGOUT wurde zur Liste hinzugefügt
 $filterOptions = [
     '' => 'Alle Aktionen',
     'LOGIN' => 'Erfolgreiche Logins (Admin)',
@@ -48,6 +49,7 @@ $filterOptions = [
     'SYSTEM_BACKUP_CREATE' => 'Backup ausgelöst',
     'DATA_EXPORT' => 'Daten exportiert',
     'USER_HISTORY_LOGIN' => 'Pächter-Logins (Verlauf)',
+    'USER_HISTORY_LOGOUT' => 'Pächter-Logouts',
     'USER_PERMIT_CANCEL' => 'Pächter-Stornos',
 ];
 
@@ -56,7 +58,6 @@ $filterOptions = [
 $totalPages = $auditTotalPages;
 $totalCount = $auditTotal;
 $paginationParam = 'page';
-// ARCHITEKTUR-FIX: Das Stempeln des Tab-Links verhindert das Springen in den falschen Tab
 $tabFocusId = 'tab-audit-log';
 include $appRoot . '/templates/partials/admin/pagination.phtml';
 $paginationHtml = \ob_get_clean();
@@ -140,8 +141,8 @@ if ($auth->hasPermission('system.logs.view')) {
                     </tr>
                     <?php } else { ?>
                     <?php foreach ($auditLogs as $log) {
-                                $avatar = $imageStorage->getImageUrl('user', $log->userId, 'user.webp');
-                                ?>
+                        $avatar = $imageStorage->getImageUrl('user', $log->userId, 'user.webp');
+                        ?>
                     <tr class="u-hover-fade">
                         <td class="c-table__data-cell u-text-nowrap">
                             <div class="u-flex u-flex-column">

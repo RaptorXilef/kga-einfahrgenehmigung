@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Application\Services;
 
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\System\Domain\AuditLog;
@@ -19,6 +20,7 @@ final readonly class AuditLoggerService
         private AuthSessionInterface $session,
         private ClockInterface $clock,
         private AuditLogRepositoryInterface $repository,
+        private ConfigInterface $config,
     ) {
     }
 
@@ -32,15 +34,23 @@ final readonly class AuditLoggerService
     {
         $userId = $this->session->getUserId();
 
-        // Unsichtbarkeits-Umhang: Backdoor & Systembetreuer werden ignoriert!
-        if (\in_array($userId, ['sys_backdoor', 'sys_superadmin'], true)) {
+        // BUGFIX: Stealth Mode (Unsichtbarkeit) über Config steuerbar machen!
+        // Standardmäßig auf "false" setzen, damit Superadmins im Log auftauchen.
+        $stealthMode = (bool) $this->config->get('stealth_superadmins', false);
+        if ($stealthMode && \str_starts_with($userId, 'sys_')) { // TODO Schwachstelle beheben!
             return;
         }
 
-        // Wenn kein Admin eingeloggt ist (z.B. Pächter storniert seinen Antrag selbst)
+        // Identifiziere den Akteur: Wenn es kein Admin ist, ist es evtl. ein Pächter im History-Log!
         if ($userId === '') {
-            $userId = 'public_user';
-            $username = 'Pächter / Öffentlicher Nutzer';
+            $historyEmail = $this->session->getHistoryEmail();
+            if ($historyEmail !== null && $historyEmail !== '') {
+                $userId = 'history_user';
+                $username = 'Pächter (' . $historyEmail . ')';
+            } else {
+                $userId = 'public_user';
+                $username = 'Pächter / Öffentlicher Nutzer';
+            }
         } else {
             $username = $this->session->getAdminUser();
         }
