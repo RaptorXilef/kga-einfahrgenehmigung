@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.78.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.78.2...v0.78.3) (2026-09-23)
+
+### ⚙️ Refactoring
+
+* **architecture:** Decouple modules via events and sanitize global framework ([dab12e8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dab12e8dcf10f457b0961b3fee565b5af41a29d9))
+* **database:** Consolidate SQL schemas and enforce strict VSA dependencies via Deptrac ([d38e920](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d38e9200c6abce8b03cc1fcae1ad2d785b1291c2))
+* **infrastructure:** Evacuate global infrastructure components to SharedKernel and VSA modules ([17f4728](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/17f47280ad2abddb10d6023f435e23af620c3a28))
+* **infrastructure:** Move storage traits to SharedKernel and evacuate presenter ([8e181a1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8e181a1c4eb7c542c3aba1d2b98b03bc177b3947))
+
 ## [0.78.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.78.1...v0.78.2) (2026-09-23)
 
 ### ⚙️ Refactoring
