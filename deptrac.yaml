@@ -53,8 +53,9 @@ deptrac:
                       value: src/.*
 
     ruleset:
-        # Module (Die Bounded Contexts)
-        # Jedes Modul darf das Framework (Application) für Controller-Logik nutzen.
+        # ---------------------------------------------------------
+        # DIE BOUNDED CONTEXTS (Module)
+        # ---------------------------------------------------------
         Permit:
             - SharedKernel
             - Contracts
@@ -63,20 +64,22 @@ deptrac:
             - Finance # Benötigt GenerateEpcQrHandler für EPC-Code in E-Mails
             - Voucher # Benötigt CalculateVoucherDiscountHandler für Antrags-Kalkulation
             - System # Benötigt AuditLogger und MailService
+            - Identity # Benötigt AuthService für Berechtigungs-Checks in Actions/Middlewares
 
         Finance:
             - SharedKernel
             - Contracts
             - Application
             - Vendor
-            # STRIKT ENTKOppelt: Finance darf Permit NICHT mehr kennen! Kommuniziert via Domain Events.
+            - System # Benötigt den AuditLoggerService für die Actions
 
         Voucher:
             - SharedKernel
             - Contracts
             - Application
             - Vendor
-            - System # Benötigt AuditLogger
+            - System # Benötigt den AuditLoggerService
+            - Identity # Benötigt AuthService für Actions/Middlewares
 
         Identity:
             - SharedKernel
@@ -84,7 +87,7 @@ deptrac:
             - Application
             - Vendor
             - Permit # Benötigt GetPermitHistoryHandler für das Pächter-Login (History)
-            - System # Benötigt AuditLogger
+            - System # Benötigt den AuditLoggerService
 
         System:
             - SharedKernel
@@ -97,13 +100,17 @@ deptrac:
             - Voucher # Benötigt für Dashboard-Rendering
             - Identity # Benötigt für Role/User-Bereinigung und Dashboard
 
-        # Die Basis
+        # ---------------------------------------------------------
+        # GLOBALE SCHICHTEN
+        # ---------------------------------------------------------
         SharedKernel:
             - Vendor
+            - Contracts # Infrastruktur (wie der PdoFactory/SystemClock) implementiert die globalen Contracts
 
         Contracts:
             - SharedKernel
             - Vendor
+            - System # Erlaubt pragmatisch, dass das MailLogInterface das MailLogEntry aus dem System-Modul referenziert
 
         # Das Rahmenwerk
         Application:

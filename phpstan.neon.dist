@@ -42,9 +42,9 @@ parameters:
             - .debug (?)
             - public/dev (?)
 
-    # Wir simulieren eine PHP 8.4 Umgebung (80400), damit PHPStan
+    # Wir simulieren eine PHP 8.5 Umgebung (80500), damit PHPStan
     # neue Features bereits jetzt versteht.
-    phpVersion: 80400
+    phpVersion: 80500
 
     # Cache beschleunigt die Analyse massiv
     tmpDir: .cache/phpstan
@@ -68,26 +68,52 @@ parameters:
         # #Construct empty\(\) is not allowed...#: Strict-Rules hassen empty($array).
         # Sie zwingen dich, if ($array === [] || $array === null) zu schreiben.
         - '#Construct empty\(\) is not allowed. Use more strict comparison.#'
+
+        # #Dynamic call to static method#: Erlaubt dynamische Aufrufe statischer Methoden,
+        # was oft in Testing-Frameworks (Pest) oder bei dynamischen Factories vorkommt.
         - '#Dynamic call to static method#'
+
+        # #Cannot cast mixed to int.#: PHPStan warnt, wenn man einen unbekannten Typ (mixed)
+        # hart zu einem Integer castet (z.B. bei Array-Daten aus der DB). Wir erzwingen das aber oft bewusst zur Typ-Sicherheit.
         - '#Cannot cast mixed to int.#'
-        - '#Variable \$[a-zA-Z0-9_]+ might not be defined.#' # Normal für extrahierte Variablen in PHTML Templates
-        # #Expression on left side of \?\? is not nullable.#: Wenn PHPStan zu 100% sicher ist,
-        # dass $text ein String ist, verbietet es dir zur Sicherheit $text ?? '' zu schreiben.
-        # In der Praxis baut man solche Fallbacks aber gerne zur Sicherheit ein.
-        - '#Expression on left side of \?\? is not nullable.#' # PHTML Array Coalescing Fallbacks
+
         # #Variable \$[a-zA-Z0-9_]+ might not be defined.#: In deinen PHTML-Dateien nutzen wir extract($data).
         # PHPStan kann nicht wissen, dass dadurch plötzlich Variablen wie $vereinsName existieren und
         # wirft hunderte Fehlalarme.
+        - '#Variable \$[a-zA-Z0-9_]+ might not be defined.#'
+
+        # #Expression on left side of \?\? is not nullable.#: Wenn PHPStan zu 100% sicher ist,
+        # dass $text ein String ist, verbietet es dir zur Sicherheit $text ?? '' zu schreiben.
+        # In der Praxis baut man solche Fallbacks (z.B. in PHTMLs) aber gerne zur absoluten Sicherheit ein.
+        - '#Expression on left side of \?\? is not nullable.#'
+
+        # #Variable \$[a-zA-Z0-9_]+ in empty\(\) always exists and is not falsy.#: Manchmal weiß PHPStan durch
+        # vorherige Checks schon, dass eine Variable existiert und warnt dann bei redundanten empty() Prüfungen.
+        # In PHTMLs als Sicherheitsnetz aber gewollt.
         - '#Variable \$[a-zA-Z0-9_]+ in empty\(\) always exists and is not falsy.#'
+
+        # #Match expression does not handle remaining value#: Warnt, wenn ein match() nicht alle theoretisch
+        # möglichen Werte (mixed) abdeckt. Oft wissen wir aber durch die Domänen-Logik, dass andere Werte nicht auftreten können.
         - '#Match expression does not handle remaining value#'
-        # #Short ternary operator is not allowed#: Verbietet die kurze Schreibweise $a ?: $b und
-        # zwingt dich zu $a ? $a : $b.
+
+        # #Short ternary operator is not allowed#: Verbietet die extrem nützliche kurze Schreibweise $a ?: $b und
+        # zwingt dich zu $a ? $a : $b. Diese Regel ignorieren wir, um den Code kompakt zu halten.
         - '#Short ternary operator is not allowed#'
-        # #Only booleans are allowed in.*#: Verbietet if ($string).
-        # Du müsstest stattdessen zwingend if ($string !== '') schreiben.
+
+        # #Only booleans are allowed in.*#: Strict-Rules verbieten if ($string) oder if ($array).
+        # Du müsstest stattdessen zwingend if ($string !== '') schreiben. Das ignorieren wir für bessere Lesbarkeit.
         - '#Only booleans are allowed in.*#'
+
+        # #Call to function array_filter\(\) requires parameter \#2#: PHPStan möchte, dass man bei array_filter
+        # immer eine Callback-Funktion angibt. Wir nutzen es oft ohne, um einfach Leerwerte (null, false, '') aus Arrays zu filtern.
         - '#Call to function array_filter\(\) requires parameter \#2#'
+
+        # #Casting to string something that.*#: Warnt vor überflüssigen String-Casts, wenn die Variable laut PHPStan
+        # schon ein String ist. Besonders bei Datenbank-Rückgaben (PDO) ist das aber als Fallback ein guter Schutzmechanismus.
         - '#Casting to string something that.*#'
+
+        # #Path in require\(\).*is not a file or it does not exist#: PHPStan findet manchmal dynamische require-Pfade
+        # nicht (z.B. beim Template-Renderer oder Wartungsmodus). Zur Laufzeit existieren sie aber sicher.
         - '#Path in require\(\).*is not a file or it does not exist#'
 
         # Pest nutzt interne Methoden für seine API, das ist beabsichtigt.
