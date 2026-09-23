@@ -7,7 +7,6 @@ namespace App\Modules\Permit\Application\UseCases\SubmitPermitRequest;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Modules\Permit\Application\DTO\PermitFormData;
 use App\Modules\Permit\Domain\DateRangeHelper;
 use App\Modules\Permit\Domain\Events\VerificationRequestedEvent;
 use App\Modules\Permit\Domain\Exceptions\PermitCollisionException;
@@ -34,18 +33,17 @@ final readonly class SubmitPermitRequestHandler
 
     public function handle(SubmitPermitRequestCommand $command): SubmitPermitResult
     {
-        $newData = $command->formData;
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
 
-        if ($newData->parzelle->value > $maxPlot) {
-            throw new InvalidArgumentException("Die eingegebene Parzelle {$newData->parzelle->value} existiert nicht.");
+        if ($command->parzelle->value > $maxPlot) {
+            throw new InvalidArgumentException("Die eingegebene Parzelle {$command->parzelle->value} existiert nicht.");
         }
 
-        $startDate = new DateTimeImmutable($newData->datumVon);
-        $endDate = new DateTimeImmutable($newData->datumBis);
-        $this->validateNoCollisions($newData->parzelle->value, $startDate, $endDate, $newData->kennzeichen->value, $newData->firma);
+        $startDate = new DateTimeImmutable($command->datumVon);
+        $endDate = new DateTimeImmutable($command->datumBis);
+        $this->validateNoCollisions($command->parzelle->value, $startDate, $endDate, $command->kennzeichen->value, $command->firma);
 
-        $rawDataArray = $this->transformDtoToArray($newData);
+        $rawDataArray = $this->extractDataFromCommand($command);
 
         // --- UPDATE-MODUS (Korrektur im Formular) ---
         if ($command->editToken !== null && $command->sessionEmail !== null) {
@@ -53,7 +51,7 @@ final readonly class SubmitPermitRequestHandler
             $oldData = isset($allVerified[$command->editToken]) ? $allVerified[$command->editToken]->data : null;
 
             // Wenn die E-Mail NICHT geändert wurde -> Nur Daten updaten & direkt zurück zum Checkout!
-            if ($oldData !== null && Sanitizer::normalizeEmail((string) $newData->email) === Sanitizer::normalizeEmail($command->sessionEmail)) {
+            if ($oldData !== null && Sanitizer::normalizeEmail((string) $command->email) === Sanitizer::normalizeEmail($command->sessionEmail)) {
                 // Wir mergen die neuen Daten in die alten (damit verification_code erhalten bleibt)
                 $merged = \array_merge($oldData, $rawDataArray);
 
@@ -122,6 +120,26 @@ final readonly class SubmitPermitRequestHandler
         return $token;
     }
 
+    private function extractDataFromCommand(SubmitPermitRequestCommand $command): array
+    {
+        return [
+            'name' => $command->name,
+            'email' => $command->email instanceof EmailAddress ? (string) $command->email : null,
+            'parzelle' => (string) $command->parzelle->value,
+            'typ' => $command->typ,
+            'kennzeichen' => $command->kennzeichen->value,
+            'firma' => $command->firma,
+            'zweck' => $command->zweck,
+            'template_key' => $command->templateKey->value,
+            'datum_von' => $command->datumVon,
+            'datum_bis' => $command->datumBis,
+            'status' => 'offen',
+            'interner_kommentar' => null,
+            'agreements' => $command->agreements,
+            'voucher' => $command->voucher instanceof VoucherCode ? (string) $command->voucher : null,
+        ];
+    }
+
     private function validateNoCollisions(int $parzelleId, DateTimeImmutable $start, DateTimeImmutable $end, string $licensePlate, ?string $company): void
     {
         if ($this->permitRepository->hasCollision($parzelleId, $start, $end, $licensePlate, $company)) {
@@ -155,26 +173,5 @@ final readonly class SubmitPermitRequestHandler
                 throw new PermitCollisionException("Hinweis: Für dieses Kennzeichen oder diese Firma läuft auf Parzelle {$plotFormatted} bereits eine Anfrage für diesen Zeitraum.");
             }
         }
-    }
-
-    private function transformDtoToArray(PermitFormData $dto): array
-    {
-        return [
-            'name' => $dto->name,
-            'email' => $dto->email instanceof EmailAddress ? (string) $dto->email : null,
-            'parzelle' => (string) $dto->parzelle->value,
-            'typ' => $dto->typ,
-            'kennzeichen' => $dto->kennzeichen->value,
-            'firma' => $dto->firma,
-            'zweck' => $dto->zweck,
-            'template_key' => $dto->templateKey->value,
-            'datum_von' => $dto->datumVon,
-            'datum_bis' => $dto->datumBis,
-            'manual_price' => $dto->manualPrice->amount,
-            'status' => $dto->status->value,
-            'interner_kommentar' => $dto->internerKommentar,
-            'agreements' => $dto->agreements,
-            'voucher' => $dto->voucher instanceof VoucherCode ? (string) $dto->voucher : null,
-        ];
     }
 }

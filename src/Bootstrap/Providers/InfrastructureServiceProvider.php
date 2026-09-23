@@ -28,7 +28,9 @@ use App\Contracts\Utils\ClockInterface;
 use App\Infrastructure\Database\PdoFactory;
 use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Utils\SystemClock;
+use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
 use App\Modules\Finance\Infrastructure\Payment\PayPalService;
+use App\Modules\Finance\Infrastructure\PdoUnpaidPermitProvider;
 use App\Modules\Identity\Domain\LoginAttemptRepositoryInterface;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface as IdentityMagicLinkRepositoryInterface;
 use App\Modules\Identity\Domain\RoleRepositoryInterface as IdentityRoleRepositoryInterface;
@@ -148,6 +150,11 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(LoginAttemptRepositoryInterface::class, fn (): PdoLoginAttemptRepository => new PdoLoginAttemptRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
+        ));
+
+        // --- FINANCE DDD REPOSITORY BINDINGS ---
+        $container->bind(UnpaidPermitProviderInterface::class, fn (): PdoUnpaidPermitProvider => new PdoUnpaidPermitProvider(
+            $container->get(PDO::class),
         ));
 
         // --- NETWORK & THIRD-PARTY SERVICES ---

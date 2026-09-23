@@ -10,10 +10,14 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Permit\Application\DTO\PermitFormData;
 use App\Modules\Permit\Domain\Exceptions\PermitCollisionException;
 use App\Modules\System\Application\Services\BotProtectionService;
 use App\Modules\System\Application\Services\EmailValidationService;
+use App\SharedKernel\Domain\ValueObject\EmailAddress;
+use App\SharedKernel\Domain\ValueObject\LicensePlate;
+use App\SharedKernel\Domain\ValueObject\PlotNumber;
+use App\SharedKernel\Domain\ValueObject\TemplateKey;
+use App\SharedKernel\Domain\ValueObject\VoucherCode;
 use InvalidArgumentException;
 use Throwable;
 
@@ -62,10 +66,22 @@ final readonly class SubmitPermitAction implements ViewActionInterface
         }
 
         try {
+            // 5. Instanziierung des Domain-Commands mit sicheren Value Objects
             $command = new SubmitPermitRequestCommand(
-                PermitFormData::fromArray($dto->toDomainDto()),
-                $this->sessionManager->getEditToken(),
-                $this->sessionManager->getVerifiedEmail(),
+                name: $dto->name,
+                email: $dto->email !== '' ? new EmailAddress($dto->email) : null,
+                parzelle: new PlotNumber($dto->parzelle),
+                typ: $dto->typ,
+                kennzeichen: new LicensePlate($dto->kennzeichen),
+                firma: $dto->firma !== '' ? $dto->firma : null,
+                zweck: $dto->zweck,
+                templateKey: new TemplateKey($dto->templateKey),
+                datumVon: $dto->datumVon,
+                datumBis: $dto->datumBis,
+                agreements: $dto->agreements,
+                voucher: $dto->voucher !== '' ? new VoucherCode($dto->voucher) : null,
+                editToken: $this->sessionManager->getEditToken(),
+                sessionEmail: $this->sessionManager->getVerifiedEmail(),
             );
 
             $result = $this->submitHandler->handle($command);

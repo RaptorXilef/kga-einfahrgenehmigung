@@ -11,7 +11,13 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use App\SharedKernel\Domain\ValueObject\EmailAddress;
+use App\SharedKernel\Domain\ValueObject\LicensePlate;
+use App\SharedKernel\Domain\ValueObject\PlotNumber;
+use App\SharedKernel\Domain\ValueObject\Price;
+use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use InvalidArgumentException;
 use Throwable;
 
@@ -45,10 +51,27 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
         }
 
         try {
-            $command = new CreateManualPermitCommand($dto->formData, $dto->sendEmail);
+            $command = new CreateManualPermitCommand(
+                name: $dto->name,
+                email: $dto->email !== '' ? new EmailAddress($dto->email) : null,
+                parzelle: new PlotNumber($dto->parzelle),
+                typ: $dto->typ,
+                kennzeichen: new LicensePlate($dto->kennzeichen),
+                firma: $dto->firma !== '' ? $dto->firma : null,
+                zweck: $dto->zweck,
+                templateKey: new TemplateKey($dto->templateKey),
+                datumVon: $dto->datumVon,
+                datumBis: $dto->datumBis,
+                manualPrice: new Price($dto->manualPrice),
+                status: PermitStatus::tryFrom($dto->status) ?? PermitStatus::Offen,
+                internerKommentar: null,
+                agreements: [],
+                sendEmail: $dto->sendEmail,
+            );
+
             $this->createHandler->handle($command);
 
-            $this->auditLogger->log('PERMIT_CREATE', "Manuelle Genehmigung erstellt für: {$dto->formData->name} (Parzelle {$dto->formData->parzelle->getFormatted()})");
+            $this->auditLogger->log('PERMIT_CREATE', "Manuelle Genehmigung erstellt für: {$dto->name} (Parzelle {$dto->parzelle})");
             $this->sessionManager->addFlash('success', 'Manuelle Genehmigung wurde erfolgreich erstellt.');
 
             return new RedirectResponse('admin?focus=tab-active');

@@ -36,34 +36,32 @@ final readonly class CreateManualPermitHandler implements CommandHandlerInterfac
      */
     public function handle(mixed $command): void
     {
-        $data = $command->formData;
-
         $templates = (array) $this->config->get('permit_templates', []);
-        $template = (array) ($templates[$data->templateKey->value] ?? $templates['std_7'] ?? ['days' => 1]);
+        $template = (array) ($templates[$command->templateKey->value] ?? $templates['std_7'] ?? ['days' => 1]);
 
-        $startDate = new DateTimeImmutable($data->datumVon);
+        $startDate = new DateTimeImmutable($command->datumVon);
         if (($template['days'] ?? 1) === 'custom') {
-            $endDate = new DateTimeImmutable($data->datumBis);
+            $endDate = new DateTimeImmutable($command->datumBis);
         } else {
             $daysToAdd = \max(0, (int) $template['days'] - 1);
             $endDate = $startDate->modify('+' . $daysToAdd . ' days');
         }
 
         $purposes = (array) $this->config->get('purposes', []);
-        $zweckRaw = $data->zweck;
+        $zweckRaw = $command->zweck;
         $zweck = $purposes[$zweckRaw] ?? ($zweckRaw !== '' ? \strip_tags($zweckRaw) : 'Privat');
 
         // Generiere eindeutige Code ID
         do {
             $randomId = $this->generateV4Suffix();
-            $platePart = \str_replace(' ', '-', $data->kennzeichen->value);
+            $platePart = \str_replace(' ', '-', $command->kennzeichen->value);
 
             $useLongCode = (bool) $this->config->get('use_long_permit_code', false);
             if ($useLongCode) {
                 $fullIdentifier = \sprintf(
                     '%s-%s-%s-%s',
                     $this->config->get('prefix', 'ML'),
-                    $data->parzelle->getFormatted(),
+                    $command->parzelle->getFormatted(),
                     $platePart,
                     $randomId,
                 );
@@ -74,14 +72,14 @@ final readonly class CreateManualPermitHandler implements CommandHandlerInterfac
 
         $permit = new Permit(
             code: new PermitCode($fullIdentifier),
-            template_key: clone $data->templateKey,
-            owner: new Owner(\strip_tags($data->name), $data->email, clone $data->parzelle),
-            vehicle: new Vehicle($data->typ, clone $data->kennzeichen, $data->firma ? \strip_tags($data->firma) : null),
-            validity: new Validity($startDate, $endDate, $data->manualPrice, $zweck),
-            status: new Status($data->status),
+            template_key: clone $command->templateKey,
+            owner: new Owner(\strip_tags($command->name), $command->email, clone $command->parzelle),
+            vehicle: new Vehicle($command->typ, clone $command->kennzeichen, $command->firma ? \strip_tags($command->firma) : null),
+            validity: new Validity($startDate, $endDate, $command->manualPrice, $zweck),
+            status: new Status($command->status),
             erstellt: $this->clock->now(),
-            interner_kommentar: $data->internerKommentar,
-            agreements: $data->agreements,
+            interner_kommentar: $command->internerKommentar,
+            agreements: $command->agreements,
         );
 
         $this->repository->save($permit);

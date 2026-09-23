@@ -13,8 +13,6 @@ use Exception;
 /**
  * DTO für das öffentliche Antragsformular (VSA Slice).
  * Säubert alle Eingaben (XSS-Schutz) und validiert Pflichtfelder.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class PermitSubmitRequest
 {
@@ -66,7 +64,7 @@ final readonly class PermitSubmitRequest
             throw ValidationException::withMessage('Bitte geben Sie einen Gültigkeitszeitraum an.');
         }
 
-        // NEU: Serverseitige Datums-Prüfung gegen Manipulation durch Bots
+        // Serverseitige Datums-Prüfung gegen Manipulation durch Bots
         try {
             $dtVon = new DateTimeImmutable($datumVon);
             $dtBis = new DateTimeImmutable($datumBis);
@@ -90,7 +88,7 @@ final readonly class PermitSubmitRequest
         }
 
         // Wir jagen Parzelle und Kennzeichen sofort durch die Value Objects (Shared Kernel)!
-        // Schlägt die Format-Prüfung (Buchstaben in der Parzelle etc.) fehl, knallt es hier.
+        // Schlägt die Format-Prüfung fehl, knallt es hier (wird von der Action abgefangen).
         new PlotNumber($parzelle);
 
         if ($kennzeichen !== '') {
@@ -111,26 +109,5 @@ final readonly class PermitSubmitRequest
             voucher: $sanitized['voucher'] ?? '',
             zweck: $sanitized['zweck'] ?? '',
         );
-    }
-
-    /**
-     * Konvertiert das DTO in das für die Domain-Schicht benötigte Format.
-     */
-    public function toDomainDto(): array
-    {
-        return [
-            'agreements' => $this->agreements,
-            'datum_bis' => $this->datumBis,
-            'datum_von' => $this->datumVon,
-            'email' => $this->email,
-            'firma' => $this->firma,
-            'kennzeichen' => $this->kennzeichen,
-            'name' => $this->name,
-            'parzelle' => $this->parzelle,
-            'template_key' => $this->templateKey,
-            'typ' => $this->typ,
-            'voucher' => $this->voucher,
-            'zweck' => $this->zweck,
-        ];
     }
 }

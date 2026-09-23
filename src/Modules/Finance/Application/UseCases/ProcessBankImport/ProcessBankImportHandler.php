@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Finance\Application\UseCases\ProcessBankImport;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
 use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidCommand;
 use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidHandler;
 use DateTimeImmutable;
 use DomainException;
 use Exception;
 use League\Csv\Reader;
-use PDO;
 use ZipArchive;
 
 /**
@@ -21,7 +21,7 @@ use ZipArchive;
 final readonly class ProcessBankImportHandler
 {
     public function __construct(
-        private PDO $pdo,
+        private UnpaidPermitProviderInterface $unpaidPermitProvider, // <-- SAUBERES INTERFACE STATT PDO!
         private MarkPermitAsPaidHandler $markPaidHandler,
         private ConfigInterface $config,
     ) {
@@ -60,25 +60,12 @@ final readonly class ProcessBankImportHandler
             return new BankImportResultDto(false, 'CSV Format ist ungültig oder beschädigt.');
         }
 
-        // --- HIGH-SPEED PDO FETCH ---
-        $stmt = $this->pdo->query('SELECT code, name, kennzeichen, status, preis FROM permits');
-        $allCodes = [];
-        $unpaidCodes = [];
-        $unpaidPlates = [];
-        $prices = [];
-
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $c = $row['code'];
-            $allCodes[$c] = true;
-            $prices[$c] = (float) $row['preis'];
-
-            if ($row['status'] === 'bezahlt') {
-                continue;
-            }
-
-            $unpaidCodes[$c] = $row['name'];
-            $unpaidPlates[$c] = $row['kennzeichen'];
-        }
+        // --- DECOUPLED DATA FETCH ---
+        $permitData = $this->unpaidPermitProvider->getPermitDataForImport();
+        $allCodes = $permitData['allCodes'];
+        $unpaidCodes = $permitData['unpaidCodes'];
+        $unpaidPlates = $permitData['unpaidPlates'];
+        $prices = $permitData['prices'];
         // -----------------------------
 
         $aggregierteZahlungen = [];

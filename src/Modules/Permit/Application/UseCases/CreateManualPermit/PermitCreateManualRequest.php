@@ -5,12 +5,22 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\CreateManualPermit;
 
 use App\Application\Exception\ValidationException;
-use App\Modules\Permit\Application\DTO\PermitFormData;
 
 final readonly class PermitCreateManualRequest
 {
     public function __construct(
-        public PermitFormData $formData,
+        public string $name,
+        public string $email,
+        public string $parzelle,
+        public string $typ,
+        public string $kennzeichen,
+        public string $firma,
+        public string $zweck,
+        public string $templateKey,
+        public string $datumVon,
+        public string $datumBis,
+        public float $manualPrice,
+        public string $status,
         public bool $sendEmail,
     ) {
     }
@@ -36,11 +46,22 @@ final readonly class PermitCreateManualRequest
             throw ValidationException::withMessage('Fehler: Der Preis darf nicht negativ sein.');
         }
 
-        $sanitized['manual_price'] = $preis;
-
         $isPaid = isset($post['mark_as_paid']);
-        $sanitized['status'] = $isPaid ? 'bezahlt' : 'offen';
 
-        return new self(PermitFormData::fromArray($sanitized), isset($post['send_email']));
+        return new self(
+            name: $name,
+            email: $sanitized['email'] ?? '',
+            parzelle: $parzelle,
+            typ: $sanitized['typ'] ?? 'pkw',
+            kennzeichen: $sanitized['kennzeichen'] ?? '',
+            firma: $sanitized['firma'] ?? '',
+            zweck: $sanitized['zweck'] ?? 'Privat',
+            templateKey: $sanitized['template_key'] ?? 'std_7',
+            datumVon: $sanitized['datum_von'] ?? \date('Y-m-d'),
+            datumBis: $sanitized['datum_bis'] ?? \date('Y-m-d'),
+            manualPrice: $preis,
+            status: $isPaid ? 'bezahlt' : 'offen',
+            sendEmail: isset($post['send_email']),
+        );
     }
 }
