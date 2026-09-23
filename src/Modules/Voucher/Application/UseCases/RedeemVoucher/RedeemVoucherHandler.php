@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Voucher\Application\UseCases\RedeemVoucher;
 
 use App\Modules\Voucher\Domain\Voucher;
+use App\Modules\Voucher\Domain\VoucherArchiveRepositoryInterface;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DomainException;
-use PDO;
 
 /**
  * @implements CommandHandlerInterface<RedeemVoucherCommand>
@@ -17,7 +17,7 @@ final readonly class RedeemVoucherHandler implements CommandHandlerInterface
 {
     public function __construct(
         private VoucherRepositoryInterface $repository,
-        private PDO $pdo,
+        private VoucherArchiveRepositoryInterface $archiveRepository,
     ) {
     }
 
@@ -36,12 +36,11 @@ final readonly class RedeemVoucherHandler implements CommandHandlerInterface
         $voucher->recordUsage();
         $this->repository->save($voucher);
 
-        // 2. Infrastruktur: Dokumentation im Archiv (Write-Model)
-        $stmt = $this->pdo->prepare('INSERT INTO vouchers_archive (code, redeemed_at, user_name, user_plot) VALUES (?, NOW(), ?, ?)');
-        $stmt->execute([
+        // 2. Infrastruktur: Dokumentation im Archiv (Write-Model via Interface entkoppelt)
+        $this->archiveRepository->archiveRedemption(
             $voucher->code,
             $command->userName,
             $command->userPlot,
-        ]);
+        );
     }
 }

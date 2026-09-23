@@ -7,6 +7,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Modules\Identity\Application\Services\AuthService;
@@ -25,9 +26,10 @@ final readonly class MarkChangelogReadAction implements ActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        $version = \trim((string) ($request->post['version'] ?? ''));
-        if ($version === '') {
-            return JsonResponse::error('Keine Version übergeben.', 400);
+        try {
+            $dto = MarkChangelogReadRequest::fromArray($request->post);
+        } catch (ValidationException $e) {
+            return JsonResponse::error($e->getMessage(), 400);
         }
 
         $userId = $this->auth->getUserId();
@@ -38,7 +40,7 @@ final readonly class MarkChangelogReadAction implements ActionInterface
 
         $user = $this->userRepository->findById($userId);
         if ($user instanceof User) {
-            $user->markChangelogAsRead($version);
+            $user->markChangelogAsRead($dto->version);
             $this->userRepository->save($user);
         }
 

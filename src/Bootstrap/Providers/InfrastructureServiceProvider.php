@@ -64,7 +64,9 @@ use App\Modules\System\Infrastructure\System\DompdfGenerator;
 use App\Modules\System\Infrastructure\System\FileRouteCache;
 use App\Modules\System\Infrastructure\System\LocalAssetHelper;
 use App\Modules\System\Infrastructure\System\SystemInfoService;
+use App\Modules\Voucher\Domain\VoucherArchiveRepositoryInterface;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface as NewVoucherRepositoryInterface;
+use App\Modules\Voucher\Infrastructure\PdoVoucherArchiveRepository;
 use App\Modules\Voucher\Infrastructure\PdoVoucherRepository;
 use PDO;
 
@@ -127,6 +129,9 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
 
         // --- VOUCHER DDD REPOSITORY BINDINGS ---
         $container->bind(NewVoucherRepositoryInterface::class, fn (): PdoVoucherRepository => new PdoVoucherRepository(
+            $container->get(PDO::class),
+        ));
+        $container->bind(VoucherArchiveRepositoryInterface::class, fn (): PdoVoucherArchiveRepository => new PdoVoucherArchiveRepository(
             $container->get(PDO::class),
         ));
 
