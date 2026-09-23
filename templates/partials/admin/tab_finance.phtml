@@ -248,6 +248,7 @@ $paginationHtml = \ob_get_clean();
                                 <?php } ?>
                             </td>
                             <?php } ?>
+
                             <!-- 1. Name, Code & Parzelle -->
                             <td
                                 class="c-table__data-cell"
@@ -298,28 +299,22 @@ $paginationHtml = \ob_get_clean();
                                 class="c-table__data-cell u-text-center"
                                 data-sort-val="<?php echo \strtotime($permit->deadlineDate); ?>"
                             >
-                                <?php if ($permit->overdueLevel === 2) { ?>
-                                <span class="c-badge c-badge--danger u-text-nowrap">
+                                <span class="c-badge <?php echo $permit->deadlineBadgeClass; ?> u-text-nowrap">
+                                    <?php if ($permit->deadlineIcon) { ?>
                                     <img
-                                        src="<?php echo $asset->url('assets/img/icons/siren.webp'); ?>"
+                                        src="<?php echo $asset->url('assets/img/icons/' . $permit->deadlineIcon); ?>"
                                         class="c-icon"
                                         loading="lazy"
                                         alt=""
-                                    > <?php echo \str_replace('-', '', $permit->daysOverdueText); ?> TAGE ÜBERFÄLLIG
+                                    >
+                                    <?php } ?>
+                                    <?php echo $permit->deadlineText; ?>
                                 </span>
-                                <?php } elseif ($permit->overdueLevel === 1) { ?>
-                                <span class="c-badge c-badge--warning u-text-nowrap">MAHNFRIST ABGELAUFEN</span>
-                                <?php } else { ?>
-                                <span class="c-badge c-badge--outline u-text-nowrap">Noch
-                                    <?php echo $permit->daysOverdueText; ?> Tage</span>
-                                <?php } ?>
                                 <br><small class="u-color-muted u-text-nowrap">Ziel:
                                     <?php echo $permit->deadlineDate; ?></small>
-                                <?php if ($permit->lastReminderText) { ?>
-                                <br><small
-                                    class="u-font-semibold u-text-nowrap <?php echo $permit->isOnCooldown ? 'u-color-primary' : 'u-color-danger'; ?>"
-                                >
-                                    Erinnert: <?php echo $permit->lastReminderText; ?>
+                                <?php if ($permit->reminderText) { ?>
+                                <br><small class="u-font-semibold u-text-nowrap <?php echo $permit->reminderClass; ?>">
+                                    <?php echo $permit->reminderText; ?>
                                 </small>
                                 <?php } ?>
                             </td>

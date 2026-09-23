@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\GetFinanceList;
 
+/**
+ * 100% View-spezifisches Read-Model für die Finanz-Tabelle.
+ */
 final readonly class FinancePermitDto
 {
     public function __construct(
@@ -17,11 +20,13 @@ final readonly class FinancePermitDto
         public float $priceRaw,
         public string $priceFormatted,
         public string $rowClass,
-        public int $overdueLevel, // 0 = Ok, 1 = Mahnfrist, 2 = Überfällig
         public string $deadlineDate,
-        public string $daysOverdueText,
-        public bool $isOnCooldown,
-        public ?string $lastReminderText,
+        public string $deadlineBadgeClass,
+        public ?string $deadlineIcon,
+        public string $deadlineText,
+        public ?string $reminderClass,
+        public ?string $reminderText,
+        public bool $isOnCooldown, // Wird für die Button-Sperre in der View benötigt
         public bool $isSuspended,
         public ?string $suspensionReason,
     ) {

@@ -138,6 +138,43 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
             'monthCounts' => \array_values(\array_map(fn (array $d): int => $d['count'], $monthlyStats)),
         ];
 
-        return new DashboardStatsDto($periodStats, $yearlyStats, $chartDataPayload);
+        // 6. View-Auflösung der Fahrzeugstatistiken
+        $periodVehicleStats = [];
+        foreach (($periodStats['types'] ?? []) as $typeKey => $count) {
+            if ($count === 0) {
+                continue;
+            }
+            if ($typeKey === '__legacy__') {
+                $periodVehicleStats[] = ['count' => $count, 'label' => 'Sonstige / Ehem.', 'icon' => 'assets/img/icons/warning.webp'];
+            } else {
+                $periodVehicleStats[] = [
+                    'count' => $count,
+                    'label' => $vConfig[$typeKey]['label'] ?? $typeKey,
+                    'icon' => $vConfig[$typeKey]['icon'] ?? '',
+                ];
+            }
+        }
+
+        $yearlyVehicleStats = [];
+        foreach ($yearlyStats as $year => $data) {
+            $statsForYear = [];
+            foreach ($data['types'] as $tKey => $count) {
+                if ($count === 0) {
+                    continue;
+                }
+                if ($tKey === '__legacy__') {
+                    $statsForYear[] = ['count' => $count, 'label' => 'Sonstige', 'icon' => 'assets/img/icons/warning.webp'];
+                } else {
+                    $statsForYear[] = [
+                        'count' => $count,
+                        'label' => $vConfig[$tKey]['label'] ?? $tKey,
+                        'icon' => $vConfig[$tKey]['icon'] ?? '',
+                    ];
+                }
+            }
+            $yearlyVehicleStats[$year] = $statsForYear;
+        }
+
+        return new DashboardStatsDto($periodStats, $yearlyStats, $chartDataPayload, $periodVehicleStats, $yearlyVehicleStats);
     }
 }

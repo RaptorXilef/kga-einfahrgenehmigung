@@ -71,30 +71,19 @@ $yearlyStats = $statsDto->yearlyStats;
                 </div>
 
                 <div class="c-stat-card__footer">
-                    <?php
-                            $vConfig = $settings['vehicle_types'] ?? [];
-            $typeItems = [];
-            foreach (($periodStats['types'] ?? []) as $typeKey => $count) {
-                if ($count === 0) {
-                    continue;
-                }
-
-                if ($typeKey === '__legacy__') {
-                    $label = 'Sonstige / Ehem.';
-                    $icon = 'assets/img/icons/warning.webp';
-                } else {
-                    $label = $vConfig[$typeKey]['label'] ?? $typeKey;
-                    $icon = $vConfig[$typeKey]['icon'] ?? '';
-                } // Nur anzeigen wenn vorhanden
-                ?>
+                    <?php foreach ($statsDto->periodVehicleStats as $vStat) { ?>
                     <div class="c-badge c-badge--success u-font-bold u-text-xs">
+                        <?php if ($vStat['icon']) { ?>
                         <img
-                            src="<?php echo $settings['base_url'] . $icon; ?>"
+                            src="<?php echo $settings['base_url'] . $vStat['icon']; ?>"
                             loading="lazy"
                             class="c-icon c-icon--inline u-margin-inline-end-xs"
                             alt=""
-                        > <?php echo $count; ?>
-                        <small class="u-font-semibold u-margin-inline-start-xs"><?php echo $label; ?></small>
+                        >
+                        <?php } ?>
+                        <?php echo $vStat['count']; ?>
+                        <small
+                            class="u-font-semibold u-margin-inline-start-xs"><?php echo \htmlspecialchars($vStat['label']); ?></small>
                     </div>
                     <?php } ?>
                 </div>
@@ -209,24 +198,11 @@ $yearlyStats = $statsDto->yearlyStats;
                     <div class="u-font-bold u-text-lg u-margin-block-end-xs"><?php echo $data['count']; ?></div>
                     <div class="u-text-xs u-color-muted u-flex u-justify-center u-gap-s u-flex-wrap u-align-center">
                         <?php
-                        $vConfig = $settings['vehicle_types'] ?? [];
-                $typeItems = [];
-                foreach ($data['types'] as $tKey => $count) {
-                    if ($count === 0) {
-                        continue;
-                    } // Nur Typen anzeigen, die Daten haben
-
-                    if ($tKey === '__legacy__') {
-                        $vLabel = 'Sonstige';
-                        $vIcon = 'assets/img/icons/warning.webp';
-                    } else {
-                        $vLabel = $vConfig[$tKey]['label'] ?? $tKey;
-                        $vIcon = $vConfig[$tKey]['icon'] ?? '';
-                    }
-                    // Wir bauen uns ein Array von HTML-Schnipseln
-                    $typeItems[] = '<span><img src="' . $settings['base_url'] . $vIcon . '" alt="" class="c-icon c-icon--inline u-margin-inline-end-xs"> ' . $count . ' ' . $vLabel . '</span>';
+                                    $typeItems = [];
+                foreach ($statsDto->yearlyVehicleStats[$year] ?? [] as $vStat) {
+                    $imgHtml = $vStat['icon'] ? '<img src="' . $settings['base_url'] . $vStat['icon'] . '" alt="" class="c-icon c-icon--inline u-margin-inline-end-xs">' : '';
+                    $typeItems[] = '<span>' . $imgHtml . ' ' . $vStat['count'] . ' ' . \htmlspecialchars($vStat['label']) . '</span>';
                 }
-                // Wir verbinden die Schnipsel mit einem Trennstrich
                 echo \implode(' <span class="u-opacity-50">|</span> ', $typeItems);
                 ?>
                     </div>

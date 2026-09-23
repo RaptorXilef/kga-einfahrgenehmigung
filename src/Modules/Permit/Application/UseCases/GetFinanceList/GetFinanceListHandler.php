@@ -64,15 +64,19 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
             // 3. Erinnerungs-Logik (Cooldown)
             $lastRemDate = null;
             $isOnCooldown = false;
-            $lastReminderText = null;
+            $reminderClass = null;
+            $reminderText = null;
+
             if (!empty($row['last_reminder_at'])) {
                 $lastRemDate = new DateTimeImmutable($row['last_reminder_at']);
                 $cooldownDate = $lastRemDate->modify("+{$cooldownDays} days");
                 $isOnCooldown = $now < $cooldownDate;
-                $lastReminderText = $lastRemDate->format('d.m.Y');
+
+                $reminderClass = $isOnCooldown ? 'u-color-primary' : 'u-color-danger';
+                $reminderText = 'Erinnert: ' . $lastRemDate->format('d.m.Y');
             }
 
-            // 4. Anzeige-Formatierungen
+            // 4. Anzeige-Formatierungen & CSS UI Klassen direkt aus dem DTO
             $diff = $now->diff($deadline);
             $daysDiff = (int) $diff->format('%r%a');
 
@@ -82,12 +86,25 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
             $vehicleIcon = $vConfig[$vKey]['icon'] ?? 'assets/img/icons/warning.webp';
             $vehicleLabel = $vConfig[$vKey]['label'] ?? 'Ehem. ' . \strtoupper($vKey);
 
+            $deadlineBadgeClass = 'c-badge--outline';
+            $deadlineIcon = null;
+            $deadlineText = "Noch {$daysDiff} Tage";
+
+            if ($overdueLevel === 2) {
+                $deadlineBadgeClass = 'c-badge--danger';
+                $deadlineIcon = 'siren.webp';
+                $deadlineText = \str_replace('-', '', (string) $daysDiff) . ' TAGE ÜBERFÄLLIG';
+            } elseif ($overdueLevel === 1) {
+                $deadlineBadgeClass = 'c-badge--warning';
+                $deadlineText = 'MAHNFRIST ABGELAUFEN';
+            }
+
             $emailHtml = '<small class="u-color-muted"><em>Keine Mail</em></small>';
             if (!empty($row['email'])) {
                 $safeMail = \htmlspecialchars($row['email'], \ENT_QUOTES, 'UTF-8');
                 $wbrMail = \str_replace('@', '<wbr>@', $safeMail);
                 $emailHtml = <<<HTML
-                        <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
+                    <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
                     HTML;
             }
 
@@ -102,11 +119,13 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
                 priceRaw: (float) $row['preis'],
                 priceFormatted: \number_format((float) $row['preis'], 2, ',', '.') . ' €',
                 rowClass: $rowClass,
-                overdueLevel: $overdueLevel,
                 deadlineDate: $deadline->format('d.m.Y'),
-                daysOverdueText: (string) $daysDiff,
+                deadlineBadgeClass: $deadlineBadgeClass,
+                deadlineIcon: $deadlineIcon,
+                deadlineText: $deadlineText,
+                reminderClass: $reminderClass,
+                reminderText: $reminderText,
                 isOnCooldown: $isOnCooldown,
-                lastReminderText: $lastReminderText,
                 isSuspended: $isSuspended,
                 suspensionReason: $row['suspension_reason'] ?? null,
             );
