@@ -67,6 +67,10 @@
             "source.fixAll.stylelint": "explicit"
         }
     },
+    "[YAML]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": false
+    },
 
     // Stylelint explizit sagen, welche Dateien es validieren soll
     "stylelint.validate": ["css", "postcss", "scss"],
@@ -273,5 +277,9 @@
 
     // -- HINWEISE ---
     // vscode://settings/php-cs-fixer.allow-risky muss auf true gesetzt werden! Also Haken rein!
-    "php-cs-fixer.toolPath": "${workspaceFolder}/vendor/bin/php-cs-fixer.bat"
+    "php-cs-fixer.toolPath": "${workspaceFolder}/vendor/bin/php-cs-fixer.bat",
+    "[yaml]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "diffEditor.ignoreTrimWhitespace": false
+    }
 }

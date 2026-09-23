@@ -1,3 +1,6 @@
+-- Initiale Datenbankstruktur für das KGA Einfahrtsmanagement
+-- Enthält bereits alle DDD/VSA-Anpassungen der Vorversionen.
+
 CREATE TABLE IF NOT EXISTS `roles` (
     `id` VARCHAR(50) PRIMARY KEY,
     `name` VARCHAR(100) NOT NULL,
@@ -19,16 +22,16 @@ CREATE TABLE IF NOT EXISTS `vouchers` (
     `template_key` VARCHAR(50),
     `type` VARCHAR(20),
     `value` DECIMAL(10,2),
-    `multi_use` TINYINT(1),
+    `is_multi_use` TINYINT(1) NOT NULL DEFAULT 0,
     `max_uses` INT,
-    `uses_count` INT DEFAULT 0,
+    `current_uses` INT NOT NULL DEFAULT 0,
     `expires_at` DATETIME NULL,
     `date_mode` VARCHAR(20),
     `created_by` VARCHAR(50),
     `created_at` DATETIME,
     `status` VARCHAR(20) DEFAULT 'aktiv',
-    `data` JSON,
-    INDEX `idx_voucher_validity` (`expires_at`, `uses_count`, `max_uses`)
+    `prefill_data` TEXT DEFAULT NULL,
+    INDEX `idx_voucher_validity` (`expires_at`, `current_uses`, `max_uses`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `permits` (
@@ -181,4 +184,11 @@ CREATE TABLE IF NOT EXISTS `audit_logs` (
     `created_at` DATETIME NOT NULL,
     INDEX `idx_action` (`action`),
     INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `update_migrations` (
+    `id` VARCHAR(50) PRIMARY KEY,
+    `version` VARCHAR(50) NOT NULL,
+    `executed_at` DATETIME NOT NULL,
+    UNIQUE KEY `idx_version` (`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
