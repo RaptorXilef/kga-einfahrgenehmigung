@@ -8,6 +8,7 @@ use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use Throwable;
 
 /**
@@ -21,6 +22,7 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
     public function __construct(
         private ConfigInterface $config,
         private SessionManager $sessionManager,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -74,7 +76,8 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
         // --- 2. BUGFIX: Strict Session Manager anstelle von $_SESSION ---
         $sessionId = $this->sessionManager->getAnalyticsSessionId();
         if ($sessionId === null) {
-            $sessionId = \time();
+            // Nutze die ClockInterface statt nativer time() Funktion für Testbarkeit!
+            $sessionId = $this->clock->now()->getTimestamp();
             $this->sessionManager->setAnalyticsSessionId($sessionId);
         }
         // ---------------------------------

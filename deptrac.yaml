@@ -1,10 +1,9 @@
 # deptrac.yaml
-# Strikte VSA Überwachung der Bounded Contexts für den Modular Monolith
+# Finale, strikte VSA Überwachung der Bounded Contexts für den Modular Monolith
 deptrac:
-    parameters:
-        paths:
-            - src
-        cache_file: .cache/deptrac/.deptrac.cache
+    paths:
+        - src
+    cache_file: .cache/deptrac/.deptrac.cache
 
     layers:
         - name: SharedKernel

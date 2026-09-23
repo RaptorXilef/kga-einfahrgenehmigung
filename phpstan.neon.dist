@@ -65,14 +65,26 @@ parameters:
 
     # Ignoriere strikte Format-Regeln, die nichts mit der Architektur zu tun haben
     ignoreErrors:
+        # #Construct empty\(\) is not allowed...#: Strict-Rules hassen empty($array).
+        # Sie zwingen dich, if ($array === [] || $array === null) zu schreiben.
         - '#Construct empty\(\) is not allowed. Use more strict comparison.#'
         - '#Dynamic call to static method#'
         - '#Cannot cast mixed to int.#'
         - '#Variable \$[a-zA-Z0-9_]+ might not be defined.#' # Normal für extrahierte Variablen in PHTML Templates
+        # #Expression on left side of \?\? is not nullable.#: Wenn PHPStan zu 100% sicher ist,
+        # dass $text ein String ist, verbietet es dir zur Sicherheit $text ?? '' zu schreiben.
+        # In der Praxis baut man solche Fallbacks aber gerne zur Sicherheit ein.
         - '#Expression on left side of \?\? is not nullable.#' # PHTML Array Coalescing Fallbacks
+        # #Variable \$[a-zA-Z0-9_]+ might not be defined.#: In deinen PHTML-Dateien nutzen wir extract($data).
+        # PHPStan kann nicht wissen, dass dadurch plötzlich Variablen wie $vereinsName existieren und
+        # wirft hunderte Fehlalarme.
         - '#Variable \$[a-zA-Z0-9_]+ in empty\(\) always exists and is not falsy.#'
         - '#Match expression does not handle remaining value#'
+        # #Short ternary operator is not allowed#: Verbietet die kurze Schreibweise $a ?: $b und
+        # zwingt dich zu $a ? $a : $b.
         - '#Short ternary operator is not allowed#'
+        # #Only booleans are allowed in.*#: Verbietet if ($string).
+        # Du müsstest stattdessen zwingend if ($string !== '') schreiben.
         - '#Only booleans are allowed in.*#'
         - '#Call to function array_filter\(\) requires parameter \#2#'
         - '#Casting to string something that.*#'
