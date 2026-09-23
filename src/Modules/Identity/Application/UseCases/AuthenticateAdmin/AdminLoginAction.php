@@ -70,7 +70,7 @@ final readonly class AdminLoginAction implements ActionInterface
     {
         $postData = $request->post;
         unset($postData['csrf_token'], $postData['action'], $postData['code']);
-        $_SESSION['form_data'] = $postData;
+        $this->sessionManager->setFormData($postData); // STRICT: Encapsulated via SessionManager
     }
 
     private function renderForm(string $message): HtmlResponse

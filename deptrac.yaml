@@ -60,34 +60,38 @@ ruleset:
         - Contracts
         - Application
         - Vendor
-        - Finance # Benötigt GenerateEpcQrHandler für E-Mails
-        - Voucher # Benötigt CalculateVoucherDiscountHandler für Antrags-Berechnung
+        - Finance # Benötigt GenerateEpcQrHandler für EPC-Code in E-Mails
+        - Voucher # Benötigt CalculateVoucherDiscountHandler für Antrags-Kalkulation
+        - System # Benötigt AuditLogger und MailService
 
     Finance:
         - SharedKernel
         - Contracts
         - Application
         - Vendor
-        # Finance darf Permit NICHT mehr kennen! Komplett entkoppelt via Domain Events.
+        # STRIKT ENTKOppelt: Finance darf Permit NICHT mehr kennen! Kommuniziert via Domain Events.
 
     Voucher:
         - SharedKernel
         - Contracts
         - Application
         - Vendor
+        - System # Benötigt AuditLogger
 
     Identity:
         - SharedKernel
         - Contracts
         - Application
         - Vendor
-        - Permit # Benötigt GetPermitHistoryHandler für das Pächter-Login (Verlauf)
+        - Permit # Benötigt GetPermitHistoryHandler für das Pächter-Login (History)
+        - System # Benötigt AuditLogger
 
     System:
         - SharedKernel
         - Contracts
         - Application
         - Vendor
+        # System baut das Dashboard zusammen und darf dafür lesend (!) auf andere Module zugreifen
         - Permit # Benötigt für Dashboard-Rendering
         - Finance # Benötigt für Dashboard-Rendering
         - Voucher # Benötigt für Dashboard-Rendering
@@ -106,7 +110,7 @@ ruleset:
         - SharedKernel
         - Contracts
         - Vendor
-        # STRIKTER SCHUTZ: Application darf KEIN Modul mehr direkt kennen! Alles läuft über DI/Routen.
+        # STRIKTER SCHUTZ: Application darf KEIN Modul direkt kennen! Alles läuft dynamisch über DI/Routen-Reflection.
 
     Bootstrap:
         - Application

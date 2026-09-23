@@ -42,14 +42,13 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
             return;
         }
 
-        // FIX: Wir nutzen den aktuellen Pfad anstelle des Scriptnamens
         $path = $request->getPath();
         if (\str_contains($path, '/api/') || \str_contains($path, 'cron') || \str_contains($path, 'process_mail_queue')) {
             return;
         }
 
-        // --- 1. DATENSCHUTZ-FIX: Consent-Prüfung ---
-        $consentCookie = $_COOKIE['kga_cookie_consent'] ?? null;
+        // --- 1. DATENSCHUTZ-FIX: Strict Request Wrapper anstelle von $_COOKIE ---
+        $consentCookie = $request->cookie['kga_cookie_consent'] ?? null;
         if (!$consentCookie) {
             return; // Kein Consent-Cookie vorhanden -> Nichts tracken
         }
@@ -72,10 +71,12 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
             $this->sessionManager->setAnalyticsId(\bin2hex(\random_bytes(16)));
         }
 
-        // --- 2. BUGFIX: GA4 Session-ID ---
-        // GA4 erwartet als session_id in der Regel den UNIX-Timestamp des Sitzungsstarts
-        $_SESSION['ga4_session_id'] ??= \time();
-        $sessionId = $_SESSION['ga4_session_id'];
+        // --- 2. BUGFIX: Strict Session Manager anstelle von $_SESSION ---
+        $sessionId = $this->sessionManager->getAnalyticsSessionId();
+        if ($sessionId === null) {
+            $sessionId = \time();
+            $this->sessionManager->setAnalyticsSessionId($sessionId);
+        }
         // ---------------------------------
 
         $baseUrl = $this->config->getBaseUrl() !== ''

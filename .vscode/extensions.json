@@ -73,7 +73,8 @@
         "glenn2223.live-sass",
         "yzhang.markdown-all-in-one",
         "mehedidracula.php-namespace-resolver",
-        "redhat.vscode-xml"
+        "redhat.vscode-xml",
+        "neontoolkit.vscode-neon-toolkit"
     ],
     // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
     "unwantedRecommendations": ["htmlhint.vscode-htmlhint", "mikebovenlander.formate"]

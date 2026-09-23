@@ -229,6 +229,16 @@ final class SessionManager implements AuthSessionInterface
         return $_SESSION['ga4_client_id'] ?? null;
     }
 
+    public function getAnalyticsSessionId(): ?int
+    {
+        return $_SESSION['ga4_session_id'] ?? null;
+    }
+
+    public function setAnalyticsSessionId(int $timestamp): void
+    {
+        $_SESSION['ga4_session_id'] = $timestamp;
+    }
+
     public function initCsrfToken(): string
     {
         if (empty($_SESSION['csrf_token'])) {
