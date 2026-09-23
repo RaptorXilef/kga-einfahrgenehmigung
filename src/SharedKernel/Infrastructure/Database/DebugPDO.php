@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Database;
+namespace App\SharedKernel\Infrastructure\Database;
 
 use PDO;
 use PDOStatement;
@@ -32,7 +32,7 @@ class DebugPDO extends PDO
     public function logQuery(string $sql, array $params = [], ?float $durationMs = null): void
     {
         if (!isset($this->logFile)) {
-            $this->logFile = \dirname(__DIR__, 3) . '/logs/sql_debug.log';
+            $this->logFile = \dirname(__DIR__, 4) . '/logs/sql_debug.log';
         }
 
         $logDir = \dirname($this->logFile);

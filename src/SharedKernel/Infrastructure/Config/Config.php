@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Config;
+namespace App\SharedKernel\Infrastructure\Config;
 
 use App\Contracts\Config\ConfigInterface;
 

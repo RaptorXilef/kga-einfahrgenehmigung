@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Utils;
+namespace App\SharedKernel\Infrastructure\Utils;
 
 use App\Contracts\Utils\ClockInterface;
 use DateTimeImmutable;

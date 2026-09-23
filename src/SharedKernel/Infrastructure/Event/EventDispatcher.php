@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Event;
+namespace App\SharedKernel\Infrastructure\Event;
 
 use App\Contracts\Event\EventDispatcherInterface;
 

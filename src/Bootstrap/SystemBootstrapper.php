@@ -6,8 +6,8 @@ namespace App\Bootstrap;
 
 use App\Application\Exception\GlobalExceptionHandler;
 use App\Contracts\System\ErrorLoggerInterface;
-use App\Infrastructure\Config\Config;
 use App\Modules\Identity\Domain\PermissionRegistry;
+use App\SharedKernel\Infrastructure\Config\Config;
 
 final class SystemBootstrapper
 {

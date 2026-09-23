@@ -26,9 +26,6 @@ use App\Contracts\System\RouteCacheInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Infrastructure\Database\PdoFactory;
-use App\Infrastructure\Security\RateLimiter;
-use App\Infrastructure\Utils\SystemClock;
 use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
 use App\Modules\Finance\Infrastructure\Payment\PayPalService;
 use App\Modules\Finance\Infrastructure\PdoUnpaidPermitProvider;
@@ -41,6 +38,7 @@ use App\Modules\Identity\Infrastructure\PdoLoginAttemptRepository;
 use App\Modules\Identity\Infrastructure\PdoMagicLinkRepository;
 use App\Modules\Identity\Infrastructure\PdoRoleRepository;
 use App\Modules\Identity\Infrastructure\PdoUserRepository as IdentityPdoUserRepository;
+use App\Modules\Identity\Infrastructure\Security\RateLimiter;
 use App\Modules\Permit\Domain\CancelledPermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
@@ -72,6 +70,8 @@ use App\Modules\Voucher\Domain\VoucherArchiveRepositoryInterface;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface as NewVoucherRepositoryInterface;
 use App\Modules\Voucher\Infrastructure\PdoVoucherArchiveRepository;
 use App\Modules\Voucher\Infrastructure\PdoVoucherRepository;
+use App\SharedKernel\Infrastructure\Database\PdoFactory;
+use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use PDO;
 
 /**
@@ -203,7 +203,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(AuthSessionInterface::class, fn (): object => clone $container->get(SessionManager::class));
         $container->bind(RateLimiterInterface::class, fn (): mixed => $container->get(RateLimiter::class));
         $container->bind(AuthorizationInterface::class, fn (): mixed => $container->get(AuthService::class));
-        $container->bind(AuthSessionInterface::class, fn (): object => clone $container->get(SessionManager::class));
 
         // --- SYSTEM ---
         $container->bind(LockManagerInterface::class, fn (): mixed => $container->get(FileLockManager::class));

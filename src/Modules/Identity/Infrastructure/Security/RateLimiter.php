@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Security;
+namespace App\Modules\Identity\Infrastructure\Security;
 
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Utils\ClockInterface;

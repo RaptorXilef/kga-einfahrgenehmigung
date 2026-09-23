@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Database;
+namespace App\SharedKernel\Infrastructure\Database;
 
 use App\Contracts\Config\ConfigInterface;
 use PDO;

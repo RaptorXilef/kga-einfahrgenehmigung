@@ -8,7 +8,7 @@ use App\Bootstrap\Providers\EventServiceProvider;
 use App\Bootstrap\Providers\InfrastructureServiceProvider;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\DependencyInjection\ContainerInterface;
-use App\Infrastructure\Config\Config;
+use App\SharedKernel\Infrastructure\Config\Config;
 use Closure;
 use ReflectionClass;
 use ReflectionException;

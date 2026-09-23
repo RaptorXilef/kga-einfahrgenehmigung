@@ -24,7 +24,15 @@ const ALWAYS_IGNORE_DIRS = [
 
 const ALWAYS_IGNORE_PATHS = ['public/assets', 'public/dev'];
 
-const ALWAYS_IGNORE_FILES = ['.lock', '-lock.json', '.DS_Store', 'min.js', 'min.css', '*.local.*', 'routes_v2.php'];
+const ALWAYS_IGNORE_FILES = [
+    '.lock',
+    '-lock.json',
+    '.DS_Store',
+    'min.js',
+    'min.css',
+    '*.local.*',
+    'routes_v2.php',
+];
 
 // =============================================================================
 
@@ -107,6 +115,15 @@ const configs = {
             // '.github/workflows/deploy.yml', // Mit Slashes angeben, wird durch path.normalize systemübergreifend korrekt verarbeitet
         ],
         ext: '.md',
+    },
+    // NEU: 8. Option für SQL Migrations
+    SQL: {
+        name: 'SqlMigrations',
+        filter: /\.sql$/,
+        ext: '.md',
+        targetDir: 'database/migrations', // Schränkt die Suche direkt auf diesen Ordner ein
+        exclDirs: [],
+        exclFiles: [],
     },
 };
 
@@ -206,7 +223,7 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
         if (stat.isDirectory()) {
             const normalizedRelPath = relPath.replace(/\\/g, '/').toLowerCase();
 
-            // NEU: matchPattern() verwendet und file.startsWith('.') für bessere Performance vorgezogen
+            // matchPattern() verwendet und file.startsWith('.') für bessere Performance vorgezogen
             const isExcluded =
                 file.startsWith('.') ||
                 ALWAYS_IGNORE_DIRS.some((d) => matchPattern(file, d)) ||
@@ -222,13 +239,17 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
 
             const matchesFilter = filter.test(file);
 
-            // NEU: matchPattern() hier für Dateien verwendet, um *.local.* abzufangen
+            // matchPattern() hier für Dateien verwendet, um *.local.* abzufangen
             const isExcludedFile =
                 ALWAYS_IGNORE_FILES.some((f) => matchPattern(file, f)) ||
                 exclFiles.some((f) => matchPattern(file, f));
 
             if (matchesFilter && !isExcludedFile) {
-                currentFiles.push({ fullPath, relPath, ext: path.extname(file) });
+                currentFiles.push({
+                    fullPath,
+                    relPath,
+                    ext: path.extname(file),
+                });
             }
         }
     }
@@ -249,7 +270,13 @@ function startStructureMirror() {
     console.log(`\n${c.cyan}🚀 Starte Erstellung der gespiegelten RAW-Struktur...`);
     console.log(`${c.yellow}Target: .debug/${version}/${targetDirName}/${c.reset}`);
 
-    const foundFiles = getFiles(basePath, /\.(js|php|phtml|scss)$/, [], [], globalIncludeRootFiles);
+    const foundFiles = getFiles(
+        basePath,
+        /\.(js|php|phtml|scss|sql)$/,
+        [],
+        [],
+        globalIncludeRootFiles
+    );
 
     if (foundFiles.length === 0) {
         console.log(`${c.red}❌ Keine Dateien gefunden.${c.reset}`);
@@ -319,13 +346,21 @@ function startFileCollection(configKey, silent = false) {
             }
         }
     } else {
-        foundFiles = getFiles(
-            basePath,
-            conf.filter,
-            conf.exclDirs,
-            conf.exclFiles,
-            globalIncludeRootFiles
-        );
+        // Berücksichtigt einen optionalen Zielordner für spezifische Sammlungen (wie SQL)
+        const searchDir = conf.targetDir ? path.join(basePath, conf.targetDir) : basePath;
+
+        if (fs.existsSync(searchDir)) {
+            foundFiles = getFiles(
+                searchDir,
+                conf.filter,
+                conf.exclDirs || [],
+                conf.exclFiles || [],
+                globalIncludeRootFiles
+            );
+        } else {
+            if (!silent)
+                console.log(`${c.yellow} ! Ordner nicht gefunden: ${conf.targetDir}${c.reset}`);
+        }
     }
 
     if (foundFiles.length === 0) {
@@ -354,6 +389,7 @@ function startFileCollection(configKey, silent = false) {
                 json: 'json',
                 yml: 'yaml',
                 yaml: 'yaml',
+                sql: 'sql', // Mapping für SQL Syntax Highlighting
             };
             // Fallback auf die Erweiterung selbst, falls sie nicht in der Map ist
             const lang = langMap[extName] || extName;
@@ -387,14 +423,30 @@ function showHelp() {
         { Argument: '--php', Beschreibung: 'Sammelt nur PHP Dateien' },
         { Argument: '--phtml', Beschreibung: 'Sammelt nur PHTML Dateien' },
         { Argument: '--scss', Beschreibung: 'Sammelt nur SCSS Dateien' },
-        { Argument: '--project', Beschreibung: 'Projektweite Zusammenfassung (*.md)' },
+        {
+            Argument: '--project',
+            Beschreibung: 'Projektweite Zusammenfassung (*.md)',
+        },
         {
             Argument: '--env',
             Beschreibung: 'Sammelt Entwicklungsumgebungs-Dateien (composer.json etc.)',
         },
-        { Argument: '--mirror', Beschreibung: 'Spiegelt die gesamte Ordnerstruktur' },
-        { Argument: '--all', Beschreibung: 'Führt Punkt 1-4 automatisch aus' },
-        { Argument: '--root', Beschreibung: 'Bezieht Dateien im Root-Verzeichnis mit ein' },
+        {
+            Argument: '--sql',
+            Beschreibung: 'Sammelt SQL Dateien (database/migrations)',
+        },
+        {
+            Argument: '--mirror',
+            Beschreibung: 'Spiegelt die gesamte Ordnerstruktur',
+        },
+        {
+            Argument: '--all',
+            Beschreibung: 'Führt Code-Sammlungen automatisch aus (1-4, 8)',
+        },
+        {
+            Argument: '--root',
+            Beschreibung: 'Bezieht Dateien im Root-Verzeichnis mit ein',
+        },
         { Argument: '--help', Beschreibung: 'Zeigt diese Hilfe an' },
     ]);
     console.log(`${c.gray}Info: Im CI-Modus (mit Argumenten) läuft das Skript stumm.${c.reset}\n`);
@@ -411,7 +463,7 @@ if (args.length > 0) {
     if (args.includes('--root')) globalIncludeRootFiles = true;
 
     if (args.includes('--all')) {
-        for (const k of ['JS', 'PHP', 'PHTML', 'SCSS']) {
+        for (const k of ['JS', 'PHP', 'PHTML', 'SCSS', 'SQL']) {
             startFileCollection(k, true);
         }
     } else {
@@ -421,11 +473,15 @@ if (args.length > 0) {
         if (args.includes('--scss')) startFileCollection('SCSS', true);
         if (args.includes('--project')) startFileCollection('PROJECT', true);
         if (args.includes('--env')) startFileCollection('ENV', true);
+        if (args.includes('--sql')) startFileCollection('SQL', true);
         if (args.includes('--mirror')) startStructureMirror();
     }
     process.exit(0);
 } else {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
 
     const showMenu = () => {
         const rootStatus = globalIncludeRootFiles
@@ -451,9 +507,12 @@ if (args.length > 0) {
         console.log(
             `${c.bright} 7)${c.reset} ${c.blue}ENTWICKLUNGSUMGEBUNG${c.reset} (composer, yaml, etc.)`
         );
+        console.log(
+            `${c.bright} 8)${c.reset} ${c.cyan}SQL MIGRATIONS${c.reset} (database/migrations/*.sql)`
+        );
         console.log(`${c.gray}-----------------------------------------------${c.reset}`);
         console.log(`${c.bright} T)${c.reset} Toggle Root-Files: [${rootStatus}]`);
-        console.log(`${c.bright} A)${c.reset} ${c.yellow}ALLE nacheinander (1-4)${c.reset}`);
+        console.log(`${c.bright} A)${c.reset} ${c.yellow}ALLE nacheinander (1-4, 8)${c.reset}`);
         console.log(`${c.bright} H)${c.reset} Hilfe / CI Info`);
         console.log(`${c.bright} Q)${c.reset} Beenden`);
         console.log(`${c.gray}-----------------------------------------------${c.reset}`);
@@ -473,7 +532,7 @@ if (args.length > 0) {
                 return;
             }
             if (choice === 'A') {
-                for (const k of ['JS', 'PHP', 'PHTML', 'SCSS']) {
+                for (const k of ['JS', 'PHP', 'PHTML', 'SCSS', 'SQL']) {
                     startFileCollection(k);
                 }
                 rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);
@@ -485,7 +544,15 @@ if (args.length > 0) {
                 return;
             }
 
-            const map = { 1: 'JS', 2: 'PHP', 3: 'PHTML', 4: 'SCSS', 5: 'PROJECT', 7: 'ENV' };
+            const map = {
+                1: 'JS',
+                2: 'PHP',
+                3: 'PHTML',
+                4: 'SCSS',
+                5: 'PROJECT',
+                7: 'ENV',
+                8: 'SQL',
+            };
             if (map[choice]) {
                 startFileCollection(map[choice]);
                 rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);
