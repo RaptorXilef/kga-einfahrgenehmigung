@@ -24,7 +24,7 @@ const ALWAYS_IGNORE_DIRS = [
 
 const ALWAYS_IGNORE_PATHS = ['public/assets', 'public/dev'];
 
-const ALWAYS_IGNORE_FILES = ['.lock', '-lock.json', '.DS_Store', 'min.js', 'min.css', '*.local.*'];
+const ALWAYS_IGNORE_FILES = ['.lock', '-lock.json', '.DS_Store', 'min.js', 'min.css', '*.local.*', 'routes_v2.php'];
 
 // =============================================================================
 
@@ -102,8 +102,8 @@ const configs = {
         name: 'Entwicklungsumgebung',
         explicitFiles: [
             'composer.json',
-            // 'package.json',
-            // 'deptrac.yaml',
+            'package.json',
+            'deptrac.yaml',
             // '.github/workflows/deploy.yml', // Mit Slashes angeben, wird durch path.normalize systemübergreifend korrekt verarbeitet
         ],
         ext: '.md',

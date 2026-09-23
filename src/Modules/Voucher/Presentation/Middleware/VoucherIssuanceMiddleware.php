@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Middleware;
+namespace App\Modules\Voucher\Presentation\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;

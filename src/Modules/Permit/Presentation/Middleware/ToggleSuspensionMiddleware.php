@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Middleware;
+namespace App\Modules\Permit\Presentation\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
 use App\Application\DTO\SimpleIdentifierRequest;
@@ -31,7 +31,7 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
     public function process(ServerRequest $request, callable $next): mixed
     {
         try {
-            // Nutze DTO für die Validierung statt rohem Array-Zugriff!
+            // Nutzt temporär noch das globale DTO (Wird in Slice 2 aufgelöst)
             $dto = SimpleIdentifierRequest::fromArray($request->post, 'code');
             $code = $dto->identifier;
         } catch (ValidationException) {

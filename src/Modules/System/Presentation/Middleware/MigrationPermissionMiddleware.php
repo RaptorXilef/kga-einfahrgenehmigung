@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Middleware;
+namespace App\Modules\System\Presentation\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
@@ -20,7 +20,6 @@ final readonly class MigrationPermissionMiddleware implements MiddlewareInterfac
 
     public function process(ServerRequest $request, callable $next): mixed
     {
-        // Nutzt nun sauber das globale Wartungs-Recht
         if (!$this->auth->hasPermission('system.maintenance.execute')) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung für diese Migrations-Aktion.');
 

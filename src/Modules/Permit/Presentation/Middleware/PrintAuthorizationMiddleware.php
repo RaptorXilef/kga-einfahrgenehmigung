@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Middleware;
+namespace App\Modules\Permit\Presentation\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
@@ -21,7 +21,7 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
     public function __construct(
         private AuthService $auth,
         private SessionManager $sessionManager,
-        private GetPermitByCodeHandler $getPermitByCodeHandler, // CQRS
+        private GetPermitByCodeHandler $getPermitByCodeHandler,
     ) {
     }
 

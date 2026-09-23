@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
@@ -13,9 +14,11 @@ use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Response\HtmlResponse;
 use App\Application\Response\JsonResponse;
+use App\Application\Response\RedirectResponse;
 use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Application\UseCases\AuthenticateAdmin\AdminLoginAction;
 
 /**
@@ -28,6 +31,7 @@ final readonly class FrontendController
         private UniversalActionFactory $actionFactory,
         private SecurityHeadersMiddleware $securityHeaders,
         private SessionManager $sessionManager,
+        private AuthService $authService, // <-- NEU: Für globale Rechteprüfung!
     ) {
     }
 
@@ -61,7 +65,7 @@ final readonly class FrontendController
      */
     private function checkMaintenanceStatus(string $className, string $relativePath): array
     {
-        // Ausnahmeliste für essentielle Background-Prozesse, die selbst bei globaler Sperre laufen (optional anpassbar)
+        // Ausnahmeliste für essentielle Background-Prozesse, die selbst bei globaler Sperre laufen
         $safeDuringMaintenance = [
             AdminLoginAction::class, // Login muss möglich sein, damit Admin ins Dashboard kommt
         ];
@@ -206,6 +210,15 @@ final readonly class FrontendController
         $response = $pipeline->process($request, function (ServerRequest $req) use ($className): mixed {
 
             $action = $this->actionFactory->create($className);
+
+            // --- SECURITY FIX: Role-Based Access Control (RBAC) Enforcement ---
+            if ($action instanceof RequiresPermissionInterface) {
+                if (!$this->authService->hasPermission($action->getRequiredPermission())) {
+                    $this->sessionManager->addFlash('error', 'Zugriff verweigert: Sie haben nicht die erforderlichen Berechtigungen für diese Aktion.');
+
+                    return new RedirectResponse(\rtrim($this->config->getBaseUrl(), '/') . '/admin');
+                }
+            }
 
             if ($action instanceof ActionInterface || $action instanceof ViewActionInterface) {
                 return $action->execute($req);
