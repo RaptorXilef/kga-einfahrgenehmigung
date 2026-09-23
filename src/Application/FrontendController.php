@@ -9,7 +9,10 @@ use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
+use App\Application\Middleware\ApiCsrfMiddleware;
 use App\Application\Middleware\AuthMiddleware;
+use App\Application\Middleware\CsrfMiddleware;
+use App\Application\Middleware\JsonBodyParserMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Response\HtmlResponse;
@@ -30,7 +33,9 @@ final readonly class FrontendController
         private UniversalActionFactory $actionFactory,
         private SecurityHeadersMiddleware $securityHeaders,
         private SessionManager $sessionManager,
-        private AuthorizationInterface $authService, // Entkoppelt!
+        private AuthorizationInterface $authService,
+        private JsonBodyParserMiddleware $jsonBodyParser,
+        private ApiCsrfMiddleware $apiCsrf,
     ) {
     }
 
@@ -199,13 +204,28 @@ final readonly class FrontendController
         $pipeline = new MiddlewarePipeline();
 
         $pipeline->add($this->securityHeaders);
+        $pipeline->add($this->jsonBodyParser);
+
+        $path = $this->resolveRelativePath($request);
+
+        // Ausnahmen für Server-to-Server oder Cronjobs, die keine Session (und somit kein CSRF-Token) besitzen
+        $isCronOrWebhook = \str_starts_with($path, '/api/cron/')
+            || \str_starts_with($path, '/api/system_update')
+            || \str_starts_with($path, '/api/process_mail_queue');
+
+        if (!$isCronOrWebhook) {
+            if (\str_starts_with($path, '/api/')) {
+                $pipeline->add($this->apiCsrf);
+            } else {
+                $pipeline->add(new CsrfMiddleware($this->sessionManager, \rtrim($this->config->getBaseUrl(), '/') . '/'));
+            }
+        }
 
         if ($requiresAuth) {
             $pipeline->add(new AuthMiddleware($this->sessionManager, $this->config));
         }
 
         $response = $pipeline->process($request, function (ServerRequest $req) use ($className): mixed {
-
             $action = $this->actionFactory->create($className);
 
             // --- SECURITY FIX: Role-Based Access Control (RBAC) Enforcement ---

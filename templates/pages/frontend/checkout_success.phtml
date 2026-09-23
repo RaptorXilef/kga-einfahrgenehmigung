@@ -1,8 +1,7 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Permit\Domain\Permit;
-use App\Modules\Permit\Domain\PermitStatus;
+use App\Modules\Permit\Application\UseCases\FinalizePermit\CheckoutSuccessViewDto;
 
 /**
  * Page: Checkout Success
@@ -10,15 +9,10 @@ use App\Modules\Permit\Domain\PermitStatus;
  * Erfolgsmeldung nach erfolgreicher Beantragung/Bestätigung.
  *
  * @var AssetHelperInterface $asset
- * @var Permit $permit         Die bewilligte Genehmigungs-Entität.
+ * @var CheckoutSuccessViewDto $viewDto
  * @var array $settings        Globale UI-Einstellungen.
- * @var bool $requirePayment Gibt an, ob das Ticket erst nach Zahlungseingang gültig ist.
  * @var string $appRoot        Absoluter Pfad.
  * @var string $cspNonce
- * @var string $dueDate        Das berechnete Datum für das Zahlungsziel.
- * @var string $epcData        Der rohe Payload für den Giro-QR-Code.
- * @var string $method         Zahlungsmethode (z.B. 'wire' oder 'paypal').
- * @var string $usage          Der maschinenlesbare Verwendungszweck.
  */
 $layout = 'public';
 $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
@@ -44,18 +38,18 @@ $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
 
             <div class="c-box u-margin-block-l">
                 <span class="u-color-muted u-text-sm u-font-semibold u-display-block">Ihre Vorgangs-Nummer:</span>
-                <code class="u-text-xl u-color-dark u-font-extrabold"><?php echo $permit->code->value; ?></code>
+                <code class="u-text-xl u-color-dark u-font-extrabold"><?php echo $viewDto->permitCode; ?></code>
             </div>
 
-            <?php if ($method === 'wire' && $permit->getStatus() !== PermitStatus::Bezahlt) { ?>
+            <?php if ($viewDto->method === 'wire' && !$viewDto->isPaid) { ?>
             <div class="c-box c-box--dashed u-margin-block-start-l">
                 <h3 class="u-margin-block-start-none u-color-main">Zahlungsinformationen</h3>
-                <?php if ($requirePayment) { ?>
+                <?php if ($viewDto->requirePayment) { ?>
                 <p class="u-color-danger u-font-semibold">Achtung: Ihre Genehmigung wird erst nach
                     Zahlungseingang freigeschaltet.</p>
                 <?php } else { ?>
                 <p class="u-color-dark">Bitte überweisen Sie den Betrag bis spätestens
-                    <strong><?php echo $dueDate; ?></strong>.
+                    <strong><?php echo \htmlspecialchars($viewDto->dueDate); ?></strong>.
                 </p>
                 <?php } ?>
 
@@ -65,35 +59,35 @@ $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
                             <tr>
                                 <td class="c-table__data-cell c-table__label">Betrag:</td>
                                 <td class="c-table__data-cell c-table__value c-table__value--highlight">
-                                    <?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?> €
+                                    <?php echo $viewDto->preisFormatted; ?>
                                 </td>
                             </tr>
                             <tr class="c-table__row">
                                 <td class="c-table__data-cell c-table__label">Empfänger:</td>
                                 <td class="c-table__data-cell c-table__value">
-                                    <?php echo \htmlspecialchars($settings['kontoinhaber']); ?></td>
+                                    <?php echo \htmlspecialchars($viewDto->kontoinhaber); ?></td>
                             </tr>
                             <tr class="c-table__row">
                                 <td class="c-table__data-cell c-table__label">IBAN:</td>
                                 <td class="c-table__data-cell c-table__value u-font-mono">
-                                    <?php echo \htmlspecialchars($settings['iban']); ?></td>
+                                    <?php echo \htmlspecialchars($viewDto->iban); ?></td>
                             </tr>
                             <tr class="c-table__row">
                                 <td class="c-table__data-cell c-table__label">BIC:</td>
                                 <td class="c-table__data-cell c-table__value">
-                                    <?php echo \htmlspecialchars($settings['bic']); ?></td>
+                                    <?php echo \htmlspecialchars($viewDto->bic); ?></td>
                             </tr>
                             <tr class="c-table__row">
                                 <td class="c-table__data-cell c-table__label">Verwendungszweck:<br><small>(Zwingend
                                         erforderlich!)</small></td>
                                 <td class="c-table__data-cell c-table__value c-table__value--danger u-font-mono">
-                                    <?php echo \htmlspecialchars($usage); ?></td>
+                                    <?php echo \htmlspecialchars($viewDto->usage); ?></td>
                             </tr>
                         </table>
                     </div>
                     <div class="u-text-center">
                         <img
-                            src="<?php echo $settings['base_url']; ?>api/qr.png?size=150&margin=10&data=<?php echo $epcData; ?>"
+                            src="<?php echo $settings['base_url']; ?>api/qr.png?size=150&margin=10&data=<?php echo \urlencode($viewDto->epcData); ?>"
                             alt="GiroCode wird erstellt, bitte warten"
                             loading="lazy"
                             class="c-qr-box"
@@ -114,11 +108,11 @@ $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
                         alt=""
                     >
                     Wir haben Ihnen diese Informationen soeben auch an <strong
-                        class="u-color-dark"><?php echo \htmlspecialchars($permit->getOwnerEmail() ?: 'Ihre E-Mail-Adresse'); ?></strong>
+                        class="u-color-dark"><?php echo \htmlspecialchars($viewDto->ownerEmail); ?></strong>
                     gesendet.
                 </p>
                 <a
-                    href="check?code=<?php echo $permit->code->value; ?>"
+                    href="check?code=<?php echo $viewDto->permitCode; ?>"
                     class="c-button c-button--primary c-button--large o-container o-container--small"
                 >
                     Zum Live-Status der Genehmigung &rarr;

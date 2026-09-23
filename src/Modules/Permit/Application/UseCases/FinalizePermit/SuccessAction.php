@@ -43,8 +43,9 @@ final readonly class SuccessAction implements ViewActionInterface
 
         $epcData = '';
         $usage = '';
+        $isPaid = $permit->getStatus() === PermitStatus::Bezahlt;
 
-        if ($dto->method === 'wire' && $permit->getStatus() !== PermitStatus::Bezahlt) {
+        if ($dto->method === 'wire' && !$isPaid) {
             $usage = $this->financialCalculator->generateUsageText($permit);
             $epcData = $this->qrHandler->handle(new GenerateEpcQrQuery($permit->getPrice(), $usage));
         }
@@ -52,13 +53,23 @@ final readonly class SuccessAction implements ViewActionInterface
         $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
         $dueDate = $this->financialCalculator->calculatePaymentDueDate($permit)->format('d.m.Y');
 
+        $viewDto = new CheckoutSuccessViewDto(
+            permitCode: $permit->code->value,
+            method: $dto->method,
+            isPaid: $isPaid,
+            requirePayment: $requirePayment,
+            dueDate: $dueDate,
+            epcData: $epcData,
+            preisFormatted: \number_format($permit->getPrice(), 2, ',', '.') . ' €',
+            kontoinhaber: (string) $this->config->get('kontoinhaber', ''),
+            iban: (string) $this->config->get('iban', ''),
+            bic: (string) $this->config->get('bic', ''),
+            usage: $usage,
+            ownerEmail: $permit->getOwnerEmail() ?: 'Ihre E-Mail-Adresse',
+        );
+
         $html = $this->renderer->render('frontend/checkout_success', [
-            'dueDate' => $dueDate,
-            'epcData' => \urlencode($epcData),
-            'method' => $dto->method,
-            'permit' => $permit,
-            'requirePayment' => $requirePayment,
-            'usage' => $usage,
+            'viewDto' => $viewDto,
         ]);
 
         return new HtmlResponse($html);

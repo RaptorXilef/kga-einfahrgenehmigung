@@ -2,28 +2,25 @@
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
+use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\CheckoutSummaryViewDto;
 
 /**
  * Page: Checkout Summary & Payment Gateway
  *
  * @var AssetHelperInterface $asset
  * @var ConfigInterface $config
+ * @var CheckoutSummaryViewDto $viewDto
  * @var array $settings      Layout-Einstellungen.
- * @var array $tempData      Temporäre Sitzungsdaten des Antrags.
  * @var string $appRoot      Absoluter Systempfad.
  * @var string $cspNonce
- * @var string $token        Das Verifizierungs-Token.
- * @var string|null $holidayNotice Warnung bei Feiertagen im gewählten Zeitraum.
- * @var string|null $opening       Formatierter Text der allgemeinen Öffnungszeiten.
  */
 $layout = 'public';
 $pageTitle = 'Zusammenfassung - ' . ($settings['vereins_name'] ?? '');
 
 $paypalConfig = $config->get('paypal', []);
-$isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
 ?>
 
-<?php if ($isPayPalEnabled && (float) ($tempData['preis'] ?? 0) > 0.0) { ?>
+<?php if ($viewDto->isPayPalEnabled && $viewDto->preisRaw > 0.0) { ?>
 <script
     src="https://www.paypal.com/sdk/js?client-id=<?php echo \urlencode($paypalConfig[$config->isTestMode() ? 'sandbox' : 'live']['client_id'] ?? ''); ?>&currency=EUR&intent=capture"
     nonce="<?php echo $cspNonce; ?>"
@@ -39,9 +36,9 @@ $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
         nonce="<?php echo $cspNonce; ?>"
     >
     <?php echo \json_encode([
-            'token' => $token,
+            'token' => $viewDto->token,
             'csrfToken' => $_SESSION['csrf_token'] ?? '',
-            'isPayPalEnabled' => $isPayPalEnabled,
+            'isPayPalEnabled' => $viewDto->isPayPalEnabled,
         ], \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
     </script>
@@ -71,50 +68,50 @@ $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
                             style="--col-width: 35%; inline-size: var(--col-width);"
                         >Antragsteller:</td>
                         <td class="c-table__data-cell c-table__value">
-                            <?php echo \htmlspecialchars($tempData['name'] ?? ''); ?></td>
+                            <?php echo \htmlspecialchars($viewDto->name); ?></td>
                     </tr>
                     <tr class="c-table__row">
                         <td class="c-table__data-cell c-table__label">E-Mail-Adresse:</td>
                         <td class="c-table__data-cell c-table__value u-color-primary">
-                            <?php echo \htmlspecialchars($tempData['email'] ?? ''); ?></td>
+                            <?php echo \htmlspecialchars($viewDto->email); ?></td>
                     </tr>
                     <tr class="c-table__row">
                         <td class="c-table__data-cell c-table__label">Parzelle:</td>
                         <td class="c-table__data-cell c-table__value">Nr.
-                            <?php echo \htmlspecialchars($tempData['parzelle'] ?? ''); ?></td>
+                            <?php echo \htmlspecialchars($viewDto->parzelle); ?></td>
                     </tr>
                     <tr class="c-table__row">
                         <td class="c-table__data-cell c-table__label">Fahrzeugtyp:</td>
-                        <td class="c-table__data-cell c-table__value"><?php $vKey = $tempData['typ'] ?? '';
-echo \htmlspecialchars($settings['vehicle_types'][$vKey]['label'] ?? $vKey); ?></td>
+                        <td class="c-table__data-cell c-table__value">
+                            <?php echo \htmlspecialchars($viewDto->typLabel); ?></td>
                     </tr>
                     <tr class="c-table__row">
                         <td class="c-table__data-cell c-table__label">Kennzeichen:</td>
                         <td class="c-table__data-cell c-table__value c-table__value--code">
-                            <?php echo \htmlspecialchars($tempData['kennzeichen'] ?? ''); ?></td>
+                            <?php echo \htmlspecialchars($viewDto->kennzeichen); ?></td>
                     </tr>
-                    <?php if (!empty($tempData['firma'])) { ?>
+                    <?php if ($viewDto->firma !== '') { ?>
                     <tr class="c-table__row">
                         <td class="c-table__data-cell c-table__label">Firma / Lieferant:</td>
                         <td class="c-table__data-cell c-table__value">
-                            <?php echo \htmlspecialchars($tempData['firma']); ?></td>
+                            <?php echo \htmlspecialchars($viewDto->firma); ?></td>
                     </tr>
                     <?php } ?>
                     <tr class="c-table__row">
                         <td class="c-table__data-cell c-table__label">Grund der Einfahrt:</td>
-                        <td class="c-table__data-cell c-table__value"><?php $zKey = $tempData['zweck'] ?? '';
-echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
+                        <td class="c-table__data-cell c-table__value">
+                            <?php echo \htmlspecialchars($viewDto->zweckLabel); ?></td>
                     </tr>
                     <tr class="c-table__row">
                         <td class="c-table__data-cell c-table__label">Zeitraum:</td>
                         <td class="c-table__data-cell c-table__value">
-                            <?php echo \date('d.m.Y', \strtotime($tempData['datum_von'] ?? 'now')); ?> bis
-                            <?php echo \date('d.m.Y', \strtotime($tempData['datum_bis'] ?? 'now')); ?></td>
+                            <?php echo $viewDto->datumVon; ?> bis
+                            <?php echo $viewDto->datumBis; ?></td>
                     </tr>
                     <tr>
                         <td class="c-table__data-cell c-table__label--total">Zu zahlender Betrag:</td>
                         <td class="c-table__data-cell c-table__value--total">
-                            <?php echo \number_format((float) ($tempData['preis'] ?? 0), 2, ',', '.'); ?> €</td>
+                            <?php echo $viewDto->preisFormatted; ?></td>
                     </tr>
                 </table>
             </div>
@@ -127,15 +124,15 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
                         alt=""
                     > Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>
                 Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>
-                <span class="u-color-dark"><?php echo $opening ?? ''; ?></span>
-                <?php if (!empty($holidayNotice)) { ?>
+                <span class="u-color-dark"><?php echo $viewDto->openingHoursHtml; ?></span>
+                <?php if ($viewDto->holidayNoticeHtml !== '') { ?>
                 <div class="c-box c-box--danger-soft u-margin-block-start-s">
-                    <?php echo $holidayNotice; ?>
+                    <?php echo $viewDto->holidayNoticeHtml; ?>
                 </div>
                 <?php } ?>
             </div>
 
-            <?php if ($isPayPalEnabled && (float) ($tempData['preis'] ?? 0) > 0.0) { ?>
+            <?php if ($viewDto->isPayPalEnabled && $viewDto->preisRaw > 0.0) { ?>
             <div
                 id="paypal-button-container"
                 class="c-payment-gateway u-margin-block-end-l js-paypal-button-container"
@@ -147,7 +144,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
 
             <div class="u-flex u-gap-m u-flex-wrap u-justify-center u-align-stretch">
                 <a
-                    href="permit_edit?token=<?php echo $token; ?>"
+                    href="permit_edit?token=<?php echo $viewDto->token; ?>"
                     class="c-button c-button--secondary c-button--responsive"
                 >
                     <img
@@ -157,7 +154,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
                         alt=""
                     > Daten korrigieren
                 </a>
-                <?php if ((float) ($tempData['preis'] ?? 0) <= 0.0) { ?>
+                <?php if ($viewDto->preisRaw <= 0.0) { ?>
                 <button class="c-button c-button--success c-button--responsive js-finalize-wire">
                     <img
                         src="<?php echo $asset->url('assets/img/icons/success.webp'); ?>"
@@ -173,7 +170,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
                 <?php } ?>
             </div>
 
-            <?php if ((float) ($tempData['preis'] ?? 0) > 0.0) { ?>
+            <?php if ($viewDto->preisRaw > 0.0) { ?>
             <div class="u-text-center u-margin-block-start-m">
                 <small class="u-color-muted">Sie erhalten bei Auswahl der Überweisung im nächsten Schritt alle
                     Bankdaten angezeigt.</small>
