@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\System\Infrastructure;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Infrastructure\Storage\DynamicSqlTrait;
 use App\Modules\System\Domain\AuditLog;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
 use App\SharedKernel\Domain\ValueObject\IpAddress;
+use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
 use DateTimeImmutable;
 use PDO;
 

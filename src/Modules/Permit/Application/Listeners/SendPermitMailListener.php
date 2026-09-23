@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\Listeners;
 
-use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
@@ -15,6 +14,7 @@ use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Domain\Events\PermitCreatedEvent;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
 use App\Modules\Permit\Domain\PermitStatus;
+use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;

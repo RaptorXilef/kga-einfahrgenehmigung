@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Storage;
+namespace App\SharedKernel\Infrastructure\Storage;
 
 use DateTime;
 use DateTimeImmutable;

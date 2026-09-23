@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\View;
+namespace App\Modules\Permit\Presentation\View;
 
 /**
  * Presenter für die Aufbereitung von Feiertagen und Öffnungszeiten.

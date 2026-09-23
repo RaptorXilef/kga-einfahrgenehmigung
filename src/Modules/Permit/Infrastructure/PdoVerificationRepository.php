@@ -6,9 +6,9 @@ namespace App\Modules\Permit\Infrastructure;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
-use App\Infrastructure\Storage\DynamicSqlTrait;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
+use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
 use DateTimeImmutable;
 use Exception;
 use PDO;

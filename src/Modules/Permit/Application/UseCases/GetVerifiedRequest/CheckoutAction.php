@@ -9,9 +9,9 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
-use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Modules\Permit\Application\Services\HolidayService;
+use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
 use DateTimeImmutable;
 use Exception;
 

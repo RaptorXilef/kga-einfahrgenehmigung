@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\CheckPermit;
 
-use App\Application\View\HolidayHtmlPresenter;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
+use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
 

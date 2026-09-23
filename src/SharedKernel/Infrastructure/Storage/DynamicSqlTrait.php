@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Storage;
+namespace App\SharedKernel\Infrastructure\Storage;
 
 trait DynamicSqlTrait
 {
@@ -16,7 +16,7 @@ trait DynamicSqlTrait
         $valString = \implode(', ', \array_map(fn (int|string $c): string => ":$c", $columns));
         $updString = \implode(', ', \array_map(fn (int|string $c): string => "`$c` = VALUES(`$c`)", $columns));
 
-        return "INSERT INTO `{$table}` ($colString) VALUES ($valString) ON DUPLICATE KEY UPDATE $updString";
+        return "INSERT INTO `{$table}` ($colString) VALUES ($valString) ON DUPLICATE KEY UPDATE$updString";
     }
 
     /**

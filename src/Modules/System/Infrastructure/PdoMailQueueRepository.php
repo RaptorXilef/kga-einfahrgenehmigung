@@ -6,10 +6,10 @@ namespace App\Modules\System\Infrastructure;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
-use App\Infrastructure\Storage\DynamicSqlTrait;
-use App\Infrastructure\Storage\EntityHydratorTrait;
 use App\Modules\System\Domain\MailJob;
 use App\Modules\System\Domain\MailQueueRepositoryInterface;
+use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
+use App\SharedKernel\Infrastructure\Storage\EntityHydratorTrait;
 use PDO;
 use Throwable;
 
