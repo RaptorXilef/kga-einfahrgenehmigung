@@ -13,6 +13,8 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailableVouchersHandler;
 use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailableVouchersQuery;
+use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\GetVoucherPrefillHandler;
+use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\GetVoucherPrefillQuery;
 
 #[Route('GET', '/')]
 final readonly class PermitRenderAction implements ViewActionInterface
@@ -22,6 +24,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private CheckAvailableVouchersHandler $checkVouchersHandler,
+        private GetVoucherPrefillHandler $prefillHandler,
     ) {
     }
 
@@ -41,9 +44,53 @@ final readonly class PermitRenderAction implements ViewActionInterface
             $this->sessionManager->setFormStartTime(\time());
         }
 
+        // Gutschein-Daten über CQRS Schnittstelle auflösen
+        $voucherCode = \trim((string) ($request->get['voucher'] ?? ''));
+        $prefillDto = null;
+        if ($voucherCode !== '') {
+            $prefillDto = $this->prefillHandler->handle(new GetVoucherPrefillQuery($voucherCode));
+        }
+
+        // Formulardaten vereinen
+        $formData = $this->sessionManager->getFormData();
+        $prefillData = $prefillDto ? $prefillDto->data : [];
+
+        $permitTemplates = $this->config->get('permit_templates', []);
+        $publicTemplates = \array_filter($permitTemplates, fn (array $t): bool => ($t['public'] ?? false) === true);
+        $defaultTemplateKey = \array_key_first($publicTemplates) ?? 'std_7';
+
+        // Flaches View-DTO für das PHTML erzeugen
+        $viewDto = new PermitFormViewDto(
+            name: (string) ($formData['name'] ?? $prefillData['name'] ?? ''),
+            isNameLocked: !empty($prefillData['name']),
+            email: (string) ($formData['email'] ?? $prefillData['email'] ?? ''),
+            isEmailLocked: !empty($prefillData['email']),
+            parzelle: (string) ($formData['parzelle'] ?? $prefillData['parzelle'] ?? ''),
+            isParzelleLocked: !empty($prefillData['parzelle']),
+            typ: (string) ($formData['typ'] ?? $prefillData['typ'] ?? ''),
+            isTypLocked: !empty($prefillData['typ']),
+            kennzeichen: (string) ($formData['kennzeichen'] ?? $prefillData['kennzeichen'] ?? ''),
+            isKennzeichenLocked: !empty($prefillData['kennzeichen']),
+            firma: (string) ($formData['firma'] ?? $prefillData['firma'] ?? ''),
+            isFirmaLocked: !empty($prefillData['firma']),
+            zweck: (string) ($formData['zweck'] ?? $prefillData['zweck'] ?? ''),
+            isZweckLocked: !empty($prefillData['zweck']),
+            templateKey: (string) ($formData['template_key'] ?? $prefillDto?->templateKey ?? $defaultTemplateKey),
+            isTemplateKeyLocked: !empty($prefillDto?->templateKey),
+            datumVon: (string) ($formData['datum_von'] ?? $prefillData['datum_von'] ?? \date('Y-m-d')),
+            isDatumVonLocked: !empty($prefillData['datum_von']),
+            datumBis: (string) ($formData['datum_bis'] ?? $prefillData['datum_bis'] ?? ''),
+            isDatumBisLocked: !empty($prefillData['datum_bis']),
+            voucherInput: (string) ($formData['voucher'] ?? $request->get['voucher'] ?? ''),
+            voucherCode: $prefillDto ? $prefillDto->code : '',
+            voucherReason: $prefillDto ? $prefillDto->reason : '',
+            hasActiveVoucher: $prefillDto !== null,
+            agreementsChecked: (array) ($formData['agreements'] ?? []),
+        );
+
         $html = $this->renderer->render('frontend/formular', [
             'agreements' => $this->getParsedAgreements(),
-            'formData' => $this->sessionManager->getFormData(),
+            'viewDto' => $viewDto,
             'hasActiveVouchers' => $this->checkVouchersHandler->handle(new CheckAvailableVouchersQuery()),
             'success' => $dto->isSuccess,
             'message' => $successMessage,

@@ -2,6 +2,7 @@
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
+use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\PermitFormViewDto;
 
 /**
  * Page: Public Application Form
@@ -14,30 +15,23 @@ use App\Contracts\System\AssetHelperInterface;
  *
  * @var AssetHelperInterface $asset
  * @var ConfigInterface $config  Anwendungs-Konfigurationsinstanz.
- * @var array $formData  Temporär gespeicherte Formulardaten (Sticky Forms).
+ * @var PermitFormViewDto $viewDto Enthält den vollständig aufgelösten Formulardaten-Status.
  * @var array $settings  Enthält gefilterte Templates.
- * @var array|null $prefill  Gutschein-Stammdaten.
  * @var bool $hasActiveVouchers  True, falls einlösbare Gutscheine existieren.
  * @var bool $success  True, wenn der Vorab-Antrag erfolgreich ausgelöst wurde.
  * @var string $appRoot  System-Root-Pfad.
  * @var string $cspNonce
  * @var string $message  Erfolgs- oder Fehlermeldungen nach dem Absenden.
- * @var string $token  Das Sitzungs-Token für Korrekturen.
  */
 $layout = 'public';
 $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
 
-$prefill ??= null;
-$formData ??= [];
 $tplMetadata = [];
-
 $publicTemplates = $settings['public_templates'] ?? [];
 
 foreach ($publicTemplates as $key => $tpl) {
     $tplMetadata[$key] = ['days' => $tpl['days'], 'type' => $tpl['type']];
 }
-
-$isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) && $prefill['data'][$fieldName] !== '') ? 'readonly' : '';
 
 // Suche nach dem Logo mit verschiedenen Endungen
 $logoFile = null;
@@ -130,7 +124,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
             </div>
 
             <!-- GUTSCHEIN EINGABE / ANZEIGE -->
-            <?php if ($prefill) { ?>
+            <?php if ($viewDto->hasActiveVoucher) { ?>
             <div class="c-voucher-alert">
                 <span class="u-text-xl"><img
                         src="<?php echo $asset->url('assets/img/icons/voucher.webp'); ?>"
@@ -139,14 +133,13 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         alt=""
                     ></span>
                 <div>
-                    <strong>Aktivierungscode aktiv: <?php echo $prefill['code']; ?></strong><br>
-                    <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
+                    <strong>Aktivierungscode aktiv: <?php echo \htmlspecialchars($viewDto->voucherCode); ?></strong><br>
+                    <small><?php echo \htmlspecialchars($viewDto->voucherReason); ?></small>
                 </div>
             </div>
             <?php } elseif ($hasActiveVouchers) { ?>
             <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
             <div class="u-text-center u-margin-block-end-l u-flex u-justify-center">
-                <!-- A11Y FIX: aria-expanded und aria-controls hinzugefügt -->
                 <button
                     type="button"
                     class="c-voucher-toggle js-voucher-toggle u-border-none"
@@ -164,7 +157,6 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 </button>
             </div>
 
-            <!-- A11Y FIX: ID passend zum aria-controls hinzugefügt -->
             <div
                 id="voucher-container"
                 class="c-voucher-container js-voucher-container c-box c-box--dashed o-container o-container--small u-margin-inline-auto"
@@ -188,7 +180,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             class="c-form-input u-text-uppercase js-pf-voucher-input"
                             placeholder="GUT-XXXX-XXXX"
                             autocomplete="off"
-                            value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ''); ?>"
+                            value="<?php echo \htmlspecialchars($viewDto->voucherInput); ?>"
                         >
                     </div>
                     <button
@@ -211,12 +203,11 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     name="csrf_token"
                     value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
                 >
-                <!-- Wir nutzen die js-pf-voucher-input Klasse hier ebenfalls für das Hidden Field (Fallback) -->
                 <input
                     type="hidden"
                     name="voucher"
                     class="js-pf-voucher-input"
-                    value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ($prefill['code'] ?? '')); ?>"
+                    value="<?php echo \htmlspecialchars($viewDto->voucherInput); ?>"
                 >
 
                 <!-- SCHRITT 1: PERSÖNLICH -->
@@ -236,8 +227,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 required
                                 placeholder="Vorname Nachname"
                                 autocomplete="name"
-                                value="<?php echo \htmlspecialchars((string) ($formData['name'] ?? $prefill['data']['name'] ?? '')); ?>"
-                                <?php echo $isLocked('name'); ?>
+                                value="<?php echo \htmlspecialchars($viewDto->name); ?>"
+                                <?php echo $viewDto->isNameLocked ? 'readonly' : ''; ?>
                             >
                         </div>
                         <div class="c-form-group">
@@ -253,8 +244,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 required
                                 placeholder="Nr."
                                 autocomplete="off"
-                                value="<?php echo \htmlspecialchars((string) ($formData['parzelle'] ?? $prefill['data']['parzelle'] ?? '')); ?>"
-                                <?php echo $isLocked('parzelle'); ?>
+                                value="<?php echo \htmlspecialchars($viewDto->parzelle); ?>"
+                                <?php echo $viewDto->isParzelleLocked ? 'readonly' : ''; ?>
                             >
                         </div>
                     </div>
@@ -271,8 +262,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             required
                             placeholder="ihre@mail.de"
                             autocomplete="email"
-                            value="<?php echo \htmlspecialchars((string) ($formData['email'] ?? $prefill['data']['email'] ?? '')); ?>"
-                            <?php echo $isLocked('email'); ?>
+                            value="<?php echo \htmlspecialchars($viewDto->email); ?>"
+                            <?php echo $viewDto->isEmailLocked ? 'readonly' : ''; ?>
                         >
                         <small class="u-text-muted u-margin-block-start-xs">An diese Adresse senden wir die
                             Ausnahmegenehmigung.</small>
@@ -294,16 +285,16 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 id="typ"
                                 class="c-form-select js-pf-typ"
                                 autocomplete="off"
-                                <?php echo ($prefill['data']['typ'] ?? '') ? 'readonly' : ''; ?>
+                                <?php echo $viewDto->isTypLocked ? 'readonly tabindex="-1"' : ''; ?>
                             >
                                 <?php foreach ($config->get('vehicle_types') as $val => $vData) {
                                         // Pächter sehen NUR aktive Typen, außer er wird vom Gutschein/Session verlangt
-                                        if (!($vData['active'] ?? true) && ($formData['typ'] ?? $prefill['data']['typ'] ?? '') !== $val) {
+                                        if (!($vData['active'] ?? true) && $viewDto->typ !== $val) {
                                             continue;
                                         } ?>
                                 <option
                                     value="<?php echo $val; ?>"
-                                    <?php echo ($formData['typ'] ?? $prefill['data']['typ'] ?? '') === $val ? 'selected' : ''; ?>
+                                    <?php echo $viewDto->typ === $val ? 'selected' : ''; ?>
                                 >
                                     <?php echo \htmlspecialchars($vData['label']); ?>
                                 </option>
@@ -327,8 +318,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 title="Bitte geben Sie nur ein gültiges Kennzeichen ein."
                                 placeholder="B-HD 123"
                                 autocomplete="off"
-                                value="<?php echo \htmlspecialchars((string) ($formData['kennzeichen'] ?? $prefill['data']['kennzeichen'] ?? '')); ?>"
-                                <?php echo $isLocked('kennzeichen'); ?>
+                                value="<?php echo \htmlspecialchars($viewDto->kennzeichen); ?>"
+                                <?php echo $viewDto->isKennzeichenLocked ? 'readonly' : ''; ?>
                             >
                         </div>
                     </div>
@@ -350,8 +341,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             class="c-form-input js-pf-firma"
                             placeholder="Name der Firma"
                             autocomplete="organization"
-                            value="<?php echo \htmlspecialchars((string) ($formData['firma'] ?? $prefill['data']['firma'] ?? '')); ?>"
-                            <?php echo $isLocked('firma'); ?>
+                            value="<?php echo \htmlspecialchars($viewDto->firma); ?>"
+                            <?php echo $viewDto->isFirmaLocked ? 'readonly' : ''; ?>
                         >
                     </div>
 
@@ -365,12 +356,12 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             id="zweck"
                             class="c-form-select"
                             autocomplete="off"
-                            <?php echo ($prefill['data']['zweck'] ?? '') ? 'readonly' : ''; ?>
+                            <?php echo $viewDto->isZweckLocked ? 'readonly tabindex="-1"' : ''; ?>
                         >
                             <?php foreach ($config->get('purposes') as $val => $label) { ?>
                             <option
                                 value="<?php echo $val; ?>"
-                                <?php echo ($formData['zweck'] ?? $prefill['data']['zweck'] ?? '') === $val ? 'selected' : ''; ?>
+                                <?php echo $viewDto->zweck === $val ? 'selected' : ''; ?>
                             ><?php echo $label; ?></option>
                             <?php } ?>
                         </select>
@@ -392,12 +383,12 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             id="template_key"
                             class="c-form-select js-pf-template"
                             autocomplete="off"
-                            <?php echo ($prefill['template_key'] ?? '') ? 'readonly' : ''; ?>
+                            <?php echo $viewDto->isTemplateKeyLocked ? 'readonly tabindex="-1"' : ''; ?>
                         >
                             <?php foreach ($publicTemplates as $key => $tpl) { ?>
                             <option
                                 value="<?php echo $key; ?>"
-                                <?php echo ($formData['template_key'] ?? $prefill['template_key'] ?? 'std_7') === $key ? 'selected' : ''; ?>
+                                <?php echo $viewDto->templateKey === $key ? 'selected' : ''; ?>
                             >
                                 <?php echo $tpl['label']; ?>
                             </option>
@@ -429,8 +420,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 class="c-form-input js-pf-von"
                                 required
                                 autocomplete="off"
-                                value="<?php echo \htmlspecialchars((string) ($formData['datum_von'] ?? $prefill['data']['datum_von'] ?? \date('Y-m-d'))); ?>"
-                                <?php echo $isLocked('datum_von'); ?>
+                                value="<?php echo \htmlspecialchars($viewDto->datumVon); ?>"
+                                <?php echo $viewDto->isDatumVonLocked ? 'readonly' : ''; ?>
                             >
                         </div>
                         <div class="c-form-group">
@@ -445,8 +436,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 class="c-form-input js-pf-bis"
                                 required
                                 autocomplete="off"
-                                value="<?php echo \htmlspecialchars((string) ($formData['datum_bis'] ?? $prefill['data']['datum_bis'] ?? '')); ?>"
-                                <?php echo $isLocked('datum_bis'); ?>
+                                value="<?php echo \htmlspecialchars($viewDto->datumBis); ?>"
+                                <?php echo $viewDto->isDatumBisLocked ? 'readonly' : ''; ?>
                             >
                         </div>
                     </div>
@@ -490,7 +481,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 id="agree_<?php echo $key; ?>"
                                 class="c-checkbox__input"
                                 <?php echo $agree['required'] ? 'required' : ''; ?>
-                                <?php echo isset($formData['agreements'][$key]) ? 'checked' : ''; ?>
+                                <?php echo isset($viewDto->agreementsChecked[$key]) ? 'checked' : ''; ?>
                             >
                             <span class="c-checkbox__label">
                                 <?php echo $agree['label_html']; ?>
@@ -528,10 +519,10 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     type="submit"
                     class="c-button c-button--primary c-button--submit u-inline-size-100 u-margin-block-start-l"
                 >
-                    <?php echo $prefill ? 'Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
+                    <?php echo $viewDto->hasActiveVoucher ? 'Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
                 </button>
 
-                <?php if (!$prefill) { ?>
+                <?php if (!$viewDto->hasActiveVoucher) { ?>
                 <p class="u-text-sm u-text-center u-text-muted u-margin-block-start-s">Die Auswahl der
                     Zahlungsart erfolgt erst nach erfolgreicher E-Mail-Bestätigung.</p>
                 <div class="u-margin-block-start-m u-text-center">
