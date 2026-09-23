@@ -6,7 +6,6 @@ namespace App\Modules\Permit\Application\UseCases\GetVerifiedRequest;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
-use App\Application\DTO\SimpleTokenRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
@@ -29,7 +28,7 @@ final readonly class CheckoutAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleTokenRequest::fromArray($request->get);
+            $dto = CheckoutRequest::fromArray($request->get);
         } catch (Exception) {
             return new RedirectResponse('/');
         }

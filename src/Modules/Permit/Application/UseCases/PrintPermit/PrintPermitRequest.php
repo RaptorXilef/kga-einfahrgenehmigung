@@ -2,21 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Permit\Application\UseCases\PrintPermit;
 
 use App\Application\Exception\ValidationException;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-final readonly class SimpleCodeRequest
+final readonly class PrintPermitRequest
 {
     public function __construct(
         public string $code,
-        public string $token,
-        public bool $hasCode,
     ) {
     }
 
@@ -28,6 +21,6 @@ final readonly class SimpleCodeRequest
             throw ValidationException::withMessage('Kein Code übergeben.');
         }
 
-        return new self($code, (string) ($get['token'] ?? ''), true);
+        return new self($code);
     }
 }

@@ -6,7 +6,6 @@ namespace App\Modules\Permit\Application\UseCases\FinalizePermit;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
-use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
@@ -28,13 +27,13 @@ final readonly class CreateOrderAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleIdentifierRequest::fromArray($request->post, 'token');
+            $dto = CreateOrderRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             return JsonResponse::error($e->getMessage());
         }
 
         try {
-            $tempRequest = $this->getVerifiedHandler->handle(new GetVerifiedRequestQuery($dto->identifier));
+            $tempRequest = $this->getVerifiedHandler->handle(new GetVerifiedRequestQuery($dto->token));
             if ($tempRequest === null) {
                 throw new Exception('Sitzung nicht gefunden oder abgelaufen');
             }

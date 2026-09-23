@@ -6,10 +6,10 @@ namespace App\Modules\Permit\Application\UseCases\GetVerifiedRequest;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
-use App\Application\DTO\SimpleTokenRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use Throwable;
 
 #[Route('GET', '/permit_edit')]
 #[Route('POST', '/permit_edit')]
@@ -23,7 +23,12 @@ final readonly class PermitEditAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        $dto = SimpleTokenRequest::fromArray($request->get);
+        try {
+            $dto = PermitEditRequest::fromArray($request->get);
+        } catch (Throwable) {
+            return new RedirectResponse('./');
+        }
+
         $tempData = $this->getVerifiedHandler->handle(new GetVerifiedRequestQuery($dto->token));
 
         if ($tempData !== null) {

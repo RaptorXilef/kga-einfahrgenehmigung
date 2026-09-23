@@ -6,7 +6,6 @@ namespace App\Modules\Permit\Application\UseCases\CheckPermit;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
-use App\Application\DTO\SimpleCodeRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
@@ -30,7 +29,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleCodeRequest::fromArray($request->get);
+            $dto = CheckPermitRequest::fromArray($request->get);
         } catch (ValidationException) {
             $html = $this->renderer->render('frontend/check_search');
 

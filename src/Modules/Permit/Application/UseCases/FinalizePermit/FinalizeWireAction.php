@@ -6,7 +6,6 @@ namespace App\Modules\Permit\Application\UseCases\FinalizePermit;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
-use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
@@ -27,13 +26,13 @@ final readonly class FinalizeWireAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleIdentifierRequest::fromArray($request->post, 'token');
+            $dto = FinalizeWireRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             return JsonResponse::error($e->getMessage());
         }
 
         try {
-            $tempRequest = $this->getVerifiedHandler->handle(new GetVerifiedRequestQuery($dto->identifier));
+            $tempRequest = $this->getVerifiedHandler->handle(new GetVerifiedRequestQuery($dto->token));
             if ($tempRequest === null) {
                 return JsonResponse::error('Sitzung abgelaufen oder nicht gefunden.');
             }
@@ -44,7 +43,7 @@ final readonly class FinalizeWireAction implements ViewActionInterface
             $comment = $price <= 0.0 ? 'Kostenlos / Gebührenfrei' : 'Zahlung per Überweisung gewählt';
 
             $permit = $this->finalizeHandler->handle(new FinalizePermitCommand(
-                $dto->identifier,
+                $dto->token,
                 $targetStatus,
                 $comment,
             ));

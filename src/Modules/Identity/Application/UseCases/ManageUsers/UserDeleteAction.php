@@ -7,7 +7,6 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -38,7 +37,7 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleIdentifierRequest::fromArray($request->post, 'user_id');
+            $dto = DeleteUserRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
@@ -47,16 +46,16 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
 
         try {
             $deletedName = $this->deleteHandler->handle(new DeleteUserCommand(
-                $dto->identifier,
+                $dto->userId,
                 $this->auth->getUserId(),
             ));
 
-            $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user/' . $dto->identifier . '.webp';
+            $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user/' . $dto->userId . '.webp';
             if (\file_exists($avatarPath)) {
                 @\unlink($avatarPath);
             }
 
-            $this->auditLogger->log('USER_DELETE', "Benutzerkonto '{$deletedName}' (ID: {$dto->identifier}) unwiderruflich gelöscht.");
+            $this->auditLogger->log('USER_DELETE', "Benutzerkonto '{$deletedName}' (ID: {$dto->userId}) unwiderruflich gelöscht.");
             $this->sessionManager->addFlash('success', "Benutzer '{$deletedName}' wurde entfernt.");
 
             return new RedirectResponse('users');

@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Presentation\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
-use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\Permit\Application\UseCases\TogglePermitSuspension\PermitToggleSuspensionRequest;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 
@@ -31,9 +31,8 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
     public function process(ServerRequest $request, callable $next): mixed
     {
         try {
-            // Nutzt temporär noch das globale DTO (Wird in Slice 2 aufgelöst)
-            $dto = SimpleIdentifierRequest::fromArray($request->post, 'code');
-            $code = $dto->identifier;
+            $dto = PermitToggleSuspensionRequest::fromArray($request->post);
+            $code = $dto->code;
         } catch (ValidationException) {
             // Wenn Code fehlt, durchlassen -> Die Action wirft dann den Fehler!
             return $next($request);

@@ -7,7 +7,6 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\DTO\SimpleUploadImageRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -34,15 +33,15 @@ final readonly class UserUploadAvatarAction implements ActionInterface, Requires
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleUploadImageRequest::fromRequest($request->post, 'user_id', $request->files);
+            $dto = UploadUserAvatarRequest::fromRequest($request->post, $request->files);
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('users');
         }
 
-        if ($this->imageStorage->uploadImage('user', $dto->identifier, $dto->file)) {
-            $this->auditLogger->log('USER_AVATAR_UPLOAD', "Neues Profilbild für Benutzer (ID: {$dto->identifier}) hochgeladen.");
+        if ($this->imageStorage->uploadImage('user', $dto->userId, $dto->file)) {
+            $this->auditLogger->log('USER_AVATAR_UPLOAD', "Neues Profilbild für Benutzer (ID: {$dto->userId}) hochgeladen.");
             $this->sessionManager->addFlash('success', 'Profilbild aktualisiert.');
         } else {
             $this->sessionManager->addFlash('error', 'Fehler beim Verarbeiten.');

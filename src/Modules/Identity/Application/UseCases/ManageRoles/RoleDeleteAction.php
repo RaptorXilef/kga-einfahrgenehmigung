@@ -8,7 +8,6 @@ use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -35,7 +34,7 @@ final readonly class RoleDeleteAction implements ActionInterface, RequiresPermis
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleIdentifierRequest::fromArray($request->post, 'group_id');
+            $dto = DeleteRoleRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
@@ -43,9 +42,9 @@ final readonly class RoleDeleteAction implements ActionInterface, RequiresPermis
         }
 
         try {
-            $roleName = $this->deleteHandler->handle(new DeleteRoleCommand($dto->identifier));
+            $roleName = $this->deleteHandler->handle(new DeleteRoleCommand($dto->roleId));
 
-            $this->auditLogger->log('ROLE_DELETE', "Rechte-Rolle '{$roleName}' (ID: {$dto->identifier}) wurde gelöscht.");
+            $this->auditLogger->log('ROLE_DELETE', "Rechte-Rolle '{$roleName}' (ID: {$dto->roleId}) wurde gelöscht.");
             $this->sessionManager->addFlash('success', 'Rolle gelöscht. (Zugeordnete Benutzer fallen auf Standard-Rechte zurück).');
 
             return new RedirectResponse('users');

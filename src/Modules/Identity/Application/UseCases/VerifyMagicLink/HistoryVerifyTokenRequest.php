@@ -2,16 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO;
+namespace App\Modules\Identity\Application\UseCases\VerifyMagicLink;
 
 use App\Application\Exception\ValidationException;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-final readonly class SimpleTokenRequest
+final readonly class HistoryVerifyTokenRequest
 {
     private function __construct(public string $token)
     {

@@ -7,7 +7,6 @@ namespace App\Modules\Permit\Application\UseCases\PrintPermit;
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
-use App\Application\DTO\SimpleCodeRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\PdfStreamResponse;
@@ -42,7 +41,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleCodeRequest::fromArray($request->get);
+            $dto = PrintPermitRequest::fromArray($request->get);
         } catch (ValidationException) {
             return null;
         }

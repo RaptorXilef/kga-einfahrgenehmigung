@@ -6,7 +6,6 @@ namespace App\Modules\Identity\Application\UseCases\VerifyMagicLink;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
-use App\Application\DTO\SimpleTokenRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -32,7 +31,7 @@ final readonly class HistoryVerifyTokenAction implements ViewActionInterface
         $ip = $request->getIp();
 
         try {
-            $dto = SimpleTokenRequest::fromArray($request->get);
+            $dto = HistoryVerifyTokenRequest::fromArray($request->get);
         } catch (ValidationException $e) {
             $this->rateLimiter->recordFailedAttempt($ip);
             $this->sessionManager->addFlash('error', $e->getMessage());
