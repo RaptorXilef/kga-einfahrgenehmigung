@@ -19,7 +19,6 @@ use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthorizationInterface;
-use App\Modules\Identity\Application\UseCases\AuthenticateAdmin\AdminLoginAction;
 
 /**
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
@@ -65,12 +64,10 @@ final readonly class FrontendController
      */
     private function checkMaintenanceStatus(string $className, string $relativePath): array
     {
-        // Ausnahmeliste für essentielle Background-Prozesse, die selbst bei globaler Sperre laufen
-        $safeDuringMaintenance = [
-            AdminLoginAction::class, // Login muss möglich sein, damit Admin ins Dashboard kommt
-        ];
-
-        if (\in_array($className, $safeDuringMaintenance, true)) {
+        // Ausnahmeliste für essentielle Background-Prozesse, die selbst bei globaler Sperre laufen.
+        // ARCHITEKTUR-FIX: Wir matchen gegen die Route, nicht gegen die Modul-Klasse,
+        // damit das globale Framework komplett "dumm" bleibt!
+        if ($relativePath === '/admin_login') {
             return ['active' => false, 'message' => ''];
         }
 

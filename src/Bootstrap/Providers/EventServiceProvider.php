@@ -10,6 +10,7 @@ use App\Modules\Identity\Application\Listeners\DeleteGroupImageListener;
 use App\Modules\Identity\Application\Listeners\SendMagicLinkMailListener;
 use App\Modules\Identity\Domain\Events\MagicLinkRequestedEvent;
 use App\Modules\Identity\Domain\Events\RoleDeletedEvent;
+use App\Modules\Permit\Application\Listeners\MarkPermitPaidOnBankPaymentListener;
 use App\Modules\Permit\Application\Listeners\SendPaymentReminderMailListener;
 use App\Modules\Permit\Application\Listeners\SendPermitCancelledMailListener;
 use App\Modules\Permit\Application\Listeners\SendPermitMailListener;
@@ -18,6 +19,7 @@ use App\Modules\Permit\Domain\Events\PaymentReminderEvent;
 use App\Modules\Permit\Domain\Events\PermitCancelledEvent;
 use App\Modules\Permit\Domain\Events\PermitCreatedEvent;
 use App\Modules\Permit\Domain\Events\VerificationRequestedEvent;
+use App\SharedKernel\Domain\Event\BankPaymentAssignedEvent;
 use App\SharedKernel\Infrastructure\Event\EventDispatcher;
 
 /**
@@ -57,6 +59,11 @@ final class EventServiceProvider
 
         $dispatcher->addListener(PermitCancelledEvent::class, fn ($event) => $container->get(
             SendPermitCancelledMailListener::class,
+        )->handle($event));
+
+        // Cross-Module Integration Event (Finance -> Permit)
+        $dispatcher->addListener(BankPaymentAssignedEvent::class, fn ($event) => $container->get(
+            MarkPermitPaidOnBankPaymentListener::class,
         )->handle($event));
     }
 }

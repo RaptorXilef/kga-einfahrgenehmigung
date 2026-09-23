@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Finance\Application\UseCases\ProcessBankImport;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Event\EventDispatcherInterface;
 use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
-use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidCommand;
-use App\Modules\Permit\Application\UseCases\MarkPermitAsPaid\MarkPermitAsPaidHandler;
+use App\SharedKernel\Domain\Event\BankPaymentAssignedEvent;
 use DateTimeImmutable;
 use DomainException;
 use Exception;
@@ -21,9 +21,9 @@ use ZipArchive;
 final readonly class ProcessBankImportHandler
 {
     public function __construct(
-        private UnpaidPermitProviderInterface $unpaidPermitProvider, // <-- SAUBERES INTERFACE STATT PDO!
-        private MarkPermitAsPaidHandler $markPaidHandler,
+        private UnpaidPermitProviderInterface $unpaidPermitProvider,
         private ConfigInterface $config,
+        private EventDispatcherInterface $eventDispatcher,
     ) {
     }
 
@@ -278,12 +278,13 @@ final readonly class ProcessBankImportHandler
                 $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . $istFormatted . ')';
 
                 try {
-                    // Domain-Kommunikation! Das Finance-Modul triggert einen Use-Case im Permit-Modul.
-                    $this->markPaidHandler->handle(new MarkPermitAsPaidCommand($permitId, $grund, $formatierterTag));
+                    // Domain-Kommunikation! Das Finance-Modul feuert nun ein Event.
+                    $this->eventDispatcher->dispatch(new BankPaymentAssignedEvent($permitId, $grund, $formatierterTag));
 
                     $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).", $runLogs);
                     $erfolgreichDetails[] = "{$permitId} ({$ownerName})";
                 } catch (DomainException) {
+                    // Das Permit Modul hat das Event abgelehnt (z.B. weil das Permit nicht mehr existiert)
                     $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).", $runLogs);
                     $fehlerhaftStorage[] = "{$permitId} ({$ownerName})";
                 }
