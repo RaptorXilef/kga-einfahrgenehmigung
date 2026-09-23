@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Application\Services;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
@@ -14,9 +15,8 @@ use RuntimeException;
 
 /**
  * Service für Sitzungsverwaltung und Berechtigungsprüfung von Administratoren.
- * (Login-Logik wurde ins Identity-Modul via CQRS ausgelagert)
  */
-final readonly class AuthService
+final readonly class AuthService implements AuthorizationInterface
 {
     public function __construct(
         private ConfigInterface $config,
@@ -100,7 +100,6 @@ final readonly class AuthService
             return;
         }
 
-        // Nutzt jetzt die pfeilschnelle, neue DDD-Methode findById()
         $user = $this->userRepository->findById($userId);
         if (!$user instanceof User) {
             $this->logout();

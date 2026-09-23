@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\System\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
 use App\Modules\Identity\Domain\Role;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
@@ -21,19 +22,24 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
         private ConfigInterface $config,
         private RoleRepositoryInterface $roleRepository,
         private UserRepositoryInterface $userRepository,
+        private UpdateMigrationServiceInterface $migrationService,
     ) {
     }
 
     public function bootstrap(): void
     {
         if ($this->pdo instanceof PDO) {
-            $schema = $this->config->get('db_schema', []);
-            foreach ($schema as $tableName => $sql) {
-                try {
-                    $this->pdo->exec($sql);
-                } catch (PDOException $e) {
-                    \error_log("Bootstrap: Fehler beim Erstellen der Tabelle '$tableName': " . $e->getMessage());
-                }
+            try {
+                $this->pdo->exec('CREATE TABLE IF NOT EXISTS `update_migrations` (
+                    `id` VARCHAR(50) PRIMARY KEY,
+                    `version` VARCHAR(50) NOT NULL,
+                    `executed_at` DATETIME NOT NULL,
+                    UNIQUE KEY `idx_version` (`version`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;');
+
+                $this->migrationService->runAllPending();
+            } catch (PDOException $e) {
+                \error_log('Bootstrap: Fehler bei der Ausführung der Migrationen: ' . $e->getMessage());
             }
         }
 

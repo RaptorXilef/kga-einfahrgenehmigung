@@ -12,6 +12,7 @@ use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\BackupServiceInterface;
@@ -31,6 +32,7 @@ use App\Infrastructure\Utils\SystemClock;
 use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
 use App\Modules\Finance\Infrastructure\Payment\PayPalService;
 use App\Modules\Finance\Infrastructure\PdoUnpaidPermitProvider;
+use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\LoginAttemptRepositoryInterface;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface as IdentityMagicLinkRepositoryInterface;
 use App\Modules\Identity\Domain\RoleRepositoryInterface as IdentityRoleRepositoryInterface;
@@ -200,6 +202,8 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         // --- SECURITY ---
         $container->bind(AuthSessionInterface::class, fn (): object => clone $container->get(SessionManager::class));
         $container->bind(RateLimiterInterface::class, fn (): mixed => $container->get(RateLimiter::class));
+        $container->bind(AuthorizationInterface::class, fn (): mixed => $container->get(AuthService::class));
+        $container->bind(AuthSessionInterface::class, fn (): object => clone $container->get(SessionManager::class));
 
         // --- SYSTEM ---
         $container->bind(LockManagerInterface::class, fn (): mixed => $container->get(FileLockManager::class));

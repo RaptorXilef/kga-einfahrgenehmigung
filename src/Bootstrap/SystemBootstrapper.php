@@ -7,7 +7,6 @@ namespace App\Bootstrap;
 use App\Application\Exception\GlobalExceptionHandler;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Infrastructure\Config\Config;
-use App\Infrastructure\Database\SchemaRegistry;
 use App\Modules\Identity\Domain\PermissionRegistry;
 
 final class SystemBootstrapper
@@ -89,8 +88,7 @@ final class SystemBootstrapper
         /** @var array<string, mixed> $settings */
         $settings = [];
 
-        // System-Basisdaten vorladen (Nutzt jetzt die Identity PermissionRegistry)
-        $settings['db_schema'] = SchemaRegistry::getSchemas();
+        // Structure loaded via DDD Registry
         $settings['structure'] = PermissionRegistry::getStructure();
         $settings['admin_ui'] = ['permissions_desc_on_top' => true];
         $settings['permissions'] = self::flattenPermissions($settings['structure']);
@@ -102,7 +100,6 @@ final class SystemBootstrapper
             if (!\is_array($loaded)) {
                 continue;
             }
-
             $settings = \array_replace_recursive($settings, $loaded);
         }
 
@@ -116,7 +113,6 @@ final class SystemBootstrapper
             if (!\is_array($loaded)) {
                 continue;
             }
-
             $settings = \array_replace_recursive($settings, $loaded);
         }
 
@@ -127,14 +123,10 @@ final class SystemBootstrapper
             if (!\is_array($loaded)) {
                 continue;
             }
-
             $settings = \array_replace_recursive($settings, $loaded);
         }
 
-        /** @var array<string, mixed> $validSettings */
-        $validSettings = $settings;
-
-        return $validSettings;
+        return $settings;
     }
 
     /**
@@ -206,8 +198,7 @@ final class SystemBootstrapper
             $devAdmins = [$legacyUser => [
                 'pass' => $legacyPass,
                 'label' => $legacyLabel,
-            ],
-            ];
+            ]];
         }
 
         $configuredAdmins = \is_array($settings['superadmins'] ?? null) ? $settings['superadmins'] : [];
@@ -233,6 +224,7 @@ final class SystemBootstrapper
 
         if (isset($_SESSION['csrf_token']) && $_SESSION['csrf_token'] !== '') {
             return;
-        }$_SESSION['csrf_token'] = \bin2hex(\random_bytes(32));
+        }
+        $_SESSION['csrf_token'] = \bin2hex(\random_bytes(32));
     }
 }

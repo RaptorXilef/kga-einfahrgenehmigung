@@ -18,7 +18,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Modules\Identity\Application\UseCases\AuthenticateAdmin\AdminLoginAction;
 
 /**
@@ -31,7 +31,7 @@ final readonly class FrontendController
         private UniversalActionFactory $actionFactory,
         private SecurityHeadersMiddleware $securityHeaders,
         private SessionManager $sessionManager,
-        private AuthService $authService, // <-- NEU: Für globale Rechteprüfung!
+        private AuthorizationInterface $authService, // Entkoppelt!
     ) {
     }
 

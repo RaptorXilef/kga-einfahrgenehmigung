@@ -89,19 +89,6 @@ final class PdoFactory
             }
         }
 
-        try {
-            $pdo->query('SELECT 1 FROM `users` LIMIT 1');
-        } catch (PDOException) {
-            $schema = $config->get('db_schema', []);
-            foreach ($schema as $tableName => $sql) {
-                try {
-                    $pdo->exec($sql);
-                } catch (PDOException $ex) {
-                    \error_log("MySQL Auto-Install Error (Table $tableName): " . $ex->getMessage());
-                }
-            }
-        }
-
         return $pdo;
     }
 }
