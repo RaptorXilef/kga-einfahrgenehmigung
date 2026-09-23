@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.78.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.78.1...v0.78.2) (2026-09-23)
+
+### ⚙️ Refactoring
+
+* **architecture:** Finalize Deptrac boundaries and move schema setup to migrations ([f26578c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f26578c094bb1dd82bfe37f42ec7be40a48ee3d4))
+* **domain:** Enforce strict module boundaries and eliminate redundant DTOs ([d2f6580](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d2f6580b3a67c930d92b87e1a43e5c0ac35b3d67))
+* **dto:** Dismantle generic DTOs in favor of VSA specific requests ([64d1f20](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/64d1f20e19ab6fc8395fa9f55872fca5ae345f28))
+* **middleware:** Evacuate domain middlewares and enforce RBAC globally ([50131f6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/50131f6c76205974c8f59cc6cc4ff5748d039463))
+* **vsa:** Sharpen Identity and Voucher vertical slices ([9aad5fa](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9aad5faca03578c03932e0079de902ce5f461fbf))
+
 ## [0.78.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.78.0...v0.78.1) (2026-09-23)
 
 ### 💎 Styling
