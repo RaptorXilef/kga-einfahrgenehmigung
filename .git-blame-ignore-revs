@@ -14,3 +14,6 @@
 
 # style: reformat HTML/PHTML attributes to modern wrapping
 f6d198dec96363309e4fb269dd87a8106b711cc8
+
+# style(all): apply automated code formatting and modernizations
+f502c15bb54fdf7ae7e05e0a4e4ec88d17e9fe2b
