@@ -1,124 +1,125 @@
 # deptrac.yaml
 # Strikte VSA Überwachung der Bounded Contexts für den Modular Monolith
-parameters:
-    paths:
-        - src
-    cache_file: .cache/deptrac/.deptrac.cache
+deptrac:
+    parameters:
+        paths:
+            - src
+        cache_file: .cache/deptrac/.deptrac.cache
 
-layers:
-    - name: SharedKernel
-      collectors:
-          - type: directory
-            value: src/SharedKernel/.*
-    - name: Permit
-      collectors:
-          - type: directory
-            value: src/Modules/Permit/.*
-    - name: Finance
-      collectors:
-          - type: directory
-            value: src/Modules/Finance/.*
-    - name: Voucher
-      collectors:
-          - type: directory
-            value: src/Modules/Voucher/.*
-    - name: Identity
-      collectors:
-          - type: directory
-            value: src/Modules/Identity/.*
-    - name: System
-      collectors:
-          - type: directory
-            value: src/Modules/System/.*
-    - name: Application
-      collectors:
-          - type: directory
-            value: src/Application/.*
-    - name: Contracts
-      collectors:
-          - type: directory
-            value: src/Contracts/.*
-    - name: Bootstrap
-      collectors:
-          - type: directory
-            value: src/Bootstrap/.*
-    - name: Vendor
-      collectors:
-          - type: bool
-            must:
-                - type: classNameRegex
-                  value: /.*/
-            must_not:
-                - type: directory
-                  value: src/.*
+    layers:
+        - name: SharedKernel
+          collectors:
+              - type: directory
+                value: src/SharedKernel/.*
+        - name: Permit
+          collectors:
+              - type: directory
+                value: src/Modules/Permit/.*
+        - name: Finance
+          collectors:
+              - type: directory
+                value: src/Modules/Finance/.*
+        - name: Voucher
+          collectors:
+              - type: directory
+                value: src/Modules/Voucher/.*
+        - name: Identity
+          collectors:
+              - type: directory
+                value: src/Modules/Identity/.*
+        - name: System
+          collectors:
+              - type: directory
+                value: src/Modules/System/.*
+        - name: Application
+          collectors:
+              - type: directory
+                value: src/Application/.*
+        - name: Contracts
+          collectors:
+              - type: directory
+                value: src/Contracts/.*
+        - name: Bootstrap
+          collectors:
+              - type: directory
+                value: src/Bootstrap/.*
+        - name: Vendor
+          collectors:
+              - type: bool
+                must:
+                    - type: classNameRegex
+                      value: /.*/
+                must_not:
+                    - type: directory
+                      value: src/.*
 
-ruleset:
-    # Module (Die Bounded Contexts)
-    # Jedes Modul darf das Framework (Application) für Controller-Logik nutzen.
-    Permit:
-        - SharedKernel
-        - Contracts
-        - Application
-        - Vendor
-        - Finance # Benötigt GenerateEpcQrHandler für EPC-Code in E-Mails
-        - Voucher # Benötigt CalculateVoucherDiscountHandler für Antrags-Kalkulation
-        - System # Benötigt AuditLogger und MailService
+    ruleset:
+        # Module (Die Bounded Contexts)
+        # Jedes Modul darf das Framework (Application) für Controller-Logik nutzen.
+        Permit:
+            - SharedKernel
+            - Contracts
+            - Application
+            - Vendor
+            - Finance # Benötigt GenerateEpcQrHandler für EPC-Code in E-Mails
+            - Voucher # Benötigt CalculateVoucherDiscountHandler für Antrags-Kalkulation
+            - System # Benötigt AuditLogger und MailService
 
-    Finance:
-        - SharedKernel
-        - Contracts
-        - Application
-        - Vendor
-        # STRIKT ENTKOppelt: Finance darf Permit NICHT mehr kennen! Kommuniziert via Domain Events.
+        Finance:
+            - SharedKernel
+            - Contracts
+            - Application
+            - Vendor
+            # STRIKT ENTKOppelt: Finance darf Permit NICHT mehr kennen! Kommuniziert via Domain Events.
 
-    Voucher:
-        - SharedKernel
-        - Contracts
-        - Application
-        - Vendor
-        - System # Benötigt AuditLogger
+        Voucher:
+            - SharedKernel
+            - Contracts
+            - Application
+            - Vendor
+            - System # Benötigt AuditLogger
 
-    Identity:
-        - SharedKernel
-        - Contracts
-        - Application
-        - Vendor
-        - Permit # Benötigt GetPermitHistoryHandler für das Pächter-Login (History)
-        - System # Benötigt AuditLogger
+        Identity:
+            - SharedKernel
+            - Contracts
+            - Application
+            - Vendor
+            - Permit # Benötigt GetPermitHistoryHandler für das Pächter-Login (History)
+            - System # Benötigt AuditLogger
 
-    System:
-        - SharedKernel
-        - Contracts
-        - Application
-        - Vendor
-        # System baut das Dashboard zusammen und darf dafür lesend (!) auf andere Module zugreifen
-        - Permit # Benötigt für Dashboard-Rendering
-        - Finance # Benötigt für Dashboard-Rendering
-        - Voucher # Benötigt für Dashboard-Rendering
-        - Identity # Benötigt für Role/User-Bereinigung und Dashboard
+        System:
+            - SharedKernel
+            - Contracts
+            - Application
+            - Vendor
+            # System baut das Dashboard zusammen und darf dafür lesend (!) auf andere Module zugreifen
+            - Permit # Benötigt für Dashboard-Rendering
+            - Finance # Benötigt für Dashboard-Rendering
+            - Voucher # Benötigt für Dashboard-Rendering
+            - Identity # Benötigt für Role/User-Bereinigung und Dashboard
 
-    # Die Basis
-    SharedKernel:
-        - Vendor
+        # Die Basis
+        SharedKernel:
+            - Vendor
 
-    Contracts:
-        - SharedKernel
-        - Vendor
+        Contracts:
+            - SharedKernel
+            - Vendor
 
-    # Das Rahmenwerk
-    Application:
-        - SharedKernel
-        - Contracts
-        - Vendor
-        # STRIKTER SCHUTZ: Application darf KEIN Modul direkt kennen! Alles läuft dynamisch über DI/Routen-Reflection.
+        # Das Rahmenwerk
+        Application:
+            - SharedKernel
+            - Contracts
+            - Vendor
+            # STRIKTER SCHUTZ: Application darf KEIN Modul direkt kennen! Alles läuft dynamisch über DI/Routen-Reflection.
 
-    Bootstrap:
-        - Application
-        - Contracts
-        - SharedKernel
-        - Vendor
-        - Permit
-        - Finance
-        - Voucher
-        - Identity
-        - System
+        Bootstrap:
+            - Application
+            - Contracts
+            - SharedKernel
+            - Vendor
+            - Permit
+            - Finance
+            - Voucher
+            - Identity
+            - System

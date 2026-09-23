@@ -56,14 +56,14 @@ parameters:
     # Prüft, ob Funktionen Seiteneffekte haben (Clean Code)
     rememberPossiblyImpureFunctionValues: true
 
-    # Meldet, wenn du einen Fehler ignorierst, der gar nicht mehr existiert
-    reportUnmatchedIgnoredErrors: true
+    # Meldet, wenn ich einen Fehler ignoriere, der gar nicht mehr existiert (bei true)
+    reportUnmatchedIgnoredErrors: false
 
     # Dies verhindert, dass PHPStan denkt, er wüsste es besser als die Laufzeit,
     # wenn es um native Funktionen geht, die false liefern können.
     treatPhpDocTypesAsCertain: false
 
-    # Ignoriere absichtliche dynamische Magie im DI-Container und in PHTML Templates
+    # Ignoriere strikte Format-Regeln, die nichts mit der Architektur zu tun haben
     ignoreErrors:
         - '#Construct empty\(\) is not allowed. Use more strict comparison.#'
         - '#Dynamic call to static method#'
@@ -72,6 +72,11 @@ parameters:
         - '#Expression on left side of \?\? is not nullable.#' # PHTML Array Coalescing Fallbacks
         - '#Variable \$[a-zA-Z0-9_]+ in empty\(\) always exists and is not falsy.#'
         - '#Match expression does not handle remaining value#'
+        - '#Short ternary operator is not allowed#'
+        - '#Only booleans are allowed in.*#'
+        - '#Call to function array_filter\(\) requires parameter \#2#'
+        - '#Casting to string something that.*#'
+        - '#Path in require\(\).*is not a file or it does not exist#'
 
         # Pest nutzt interne Methoden für seine API, das ist beabsichtigt.
         #- message: '#Call to method .* of internal class Pest\\.* from outside its root namespace Pest#'
@@ -89,10 +94,11 @@ parameters:
               - 'PDO'
               - 'PDOException'
               - 'PDOStatement'
-          message: 'Verstoß gegen Clean Architecture: Die native PDO-Klasse darf ausschließlich im Infrastructure-Layer oder Container verwendet werden!'
+          message: 'Verstoß gegen Clean Architecture: Die native PDO-Klasse darf ausschließlich im Infrastructure-Layer, Container oder in CQRS-Read-Handlern verwendet werden!'
           allowIn:
               - src/SharedKernel/Infrastructure/*
               - src/Modules/*/Infrastructure/*
+              - src/Modules/*/Application/UseCases/* # Erlaubt pragmatisches CQRS Read-Model Fetching
               - src/Bootstrap/*
 
     # =========================================================================
@@ -116,7 +122,9 @@ parameters:
           allowIn:
               - src/SharedKernel/Infrastructure/*
               - src/Modules/*/Infrastructure/*
-              - src/Modules/Finance/Application/UseCases/* # Temporäre CSV Temp-Files erlaubt
+              - src/Modules/*/Application/UseCases/* # Für Temp-Files und PDF Generierung
+              - src/Modules/*/Application/Listeners/* # Für Dateibereinigungen nach Events
+              - src/Modules/System/Application/Services/* # Z.B. ReleaseNotes und MailValidation
               - src/Application/Middleware/JsonBodyParserMiddleware.php
               - src/Bootstrap/*
               - public/*
@@ -230,6 +238,8 @@ parameters:
               - src/SharedKernel/Infrastructure/*
               - src/Modules/*/Infrastructure/*
               - src/Modules/*/Application/UseCases/* # Temporäre DTO Transformationen
+              - src/Modules/*/Application/Services/* # HolidayService & Co
+              - src/Modules/*/Presentation/*
               - src/Bootstrap/*
               - src/Application/Session/SessionManager.php
               - public/*

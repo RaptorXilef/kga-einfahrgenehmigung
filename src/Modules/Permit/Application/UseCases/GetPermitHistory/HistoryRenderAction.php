@@ -11,10 +11,10 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Core\Security\Sanitizer;
 use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\ViewRenderRequest;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
+use App\SharedKernel\Application\Security\Sanitizer;
 
 #[Route('GET', '/history')]
 final readonly class HistoryRenderAction implements ViewActionInterface
