@@ -22,6 +22,7 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
 
     /**
      * @param GetVoucherListQuery $query
+     *
      * @return array<VoucherListDto>
      */
     public function handle(mixed $query): array
@@ -54,7 +55,7 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
 
             // 1. Logik-Auswertung
             $isDeactivated = $status !== 'aktiv';
-            $isExpired = $expiresAtObj !== null && $expiresAtObj < $now;
+            $isExpired = $expiresAtObj instanceof DateTimeImmutable && $expiresAtObj < $now;
             $isDepleted = ($isMultiUse && $currentUses >= $maxUses) || (!$isMultiUse && $currentUses > 0);
             $isInvalid = $isDeactivated || $isExpired || $isDepleted;
 
@@ -80,7 +81,7 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
                 dateModeText: empty($prefill['datum_von']) ? 'Flexible Datenwahl' : 'Gefixte Daten',
                 prefilledName: !empty($prefill['name']) ? (string) $prefill['name'] : null,
                 prefilledPlot: !empty($prefill['parzelle']) ? (string) $prefill['parzelle'] : null,
-                expiresText: $expiresAtObj ? "Gültig bis: <strong class=\"u-color-dark\">{$expiresAtObj->format('d.m.Y H:i')} Uhr</strong>" : null,
+                expiresText: $expiresAtObj instanceof DateTimeImmutable ? "Gültig bis: <strong class=\"u-color-dark\">{$expiresAtObj->format('d.m.Y H:i')} Uhr</strong>" : null,
                 isDeactivated: $isDeactivated,
                 toggleActionUrl: $isDeactivated ? 'activate_voucher' : 'deactivate_voucher',
                 toggleIcon: $isDeactivated ? 'unlock.webp' : 'denied.webp',

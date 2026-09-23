@@ -11,6 +11,7 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
@@ -43,7 +44,7 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
 
         try {
             $user = $this->userRepository->findById($dto->userId);
-            $username = $user !== null ? $user->username : 'Unbekannt';
+            $username = $user instanceof User ? $user->username : 'Unbekannt';
 
             $this->changePasswordHandler->handle(new ChangeUserPasswordCommand($dto->userId, $dto->newPassword));
 

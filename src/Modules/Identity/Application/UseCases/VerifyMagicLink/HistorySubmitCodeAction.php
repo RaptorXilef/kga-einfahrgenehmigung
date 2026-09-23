@@ -42,7 +42,6 @@ final readonly class HistorySubmitCodeAction implements ViewActionInterface
             $this->auditLogger->log('USER_HISTORY_LOGIN', "Pächter (Email: {$verifiedEmail}) hat sich im Genehmigungsverlauf eingeloggt.");
 
             return new RedirectResponse('history');
-
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Domain;
 
+use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use App\SharedKernel\Domain\ValueObject\PermitCode;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
@@ -141,7 +142,7 @@ final class Permit
 
     public function getOwnerEmail(): string
     {
-        return $this->owner->email !== null ? $this->owner->email->value : '';
+        return $this->owner->email instanceof EmailAddress ? $this->owner->email->value : '';
     }
 
     public function getLicensePlate(): string

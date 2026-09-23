@@ -9,6 +9,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
+use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
@@ -36,11 +37,11 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
         // 1. Genehmigung suchen (Zuerst via Code in allen Tabellen)
         $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($query->codeOrPlate));
 
-        if ($permit === null) {
+        if (!$permit instanceof Permit) {
             // Fallback auf Kennzeichensuche im aktiven Storage
             $permit = $this->repository->findByLicensePlate($query->codeOrPlate);
 
-            if ($permit === null) {
+            if (!$permit instanceof Permit) {
                 return $this->createNotFoundDto();
             }
         }
@@ -97,7 +98,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
             $nextSlot = $this->holidayService->getNextAvailableSlot($now);
             $nextText = 'Keine weitere Einfahrt möglich.';
 
-            if ($nextSlot !== null) {
+            if ($nextSlot instanceof DateTimeImmutable) {
                 if ($nextSlot > $permit->getValidUntil()) {
                     $nextText = 'Die Gültigkeit endet, bevor die Anlage wieder befahren werden darf.';
                 } else {

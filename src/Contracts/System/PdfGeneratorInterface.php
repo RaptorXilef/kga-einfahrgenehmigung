@@ -15,6 +15,7 @@ interface PdfGeneratorInterface
      * Wandelt einen HTML-String in einen binären PDF-String um.
      *
      * @param string $html Das Quell-HTML
+     *
      * @return string Die binären PDF-Daten (für Dateisystem oder E-Mail-Anhang)
      */
     public function generateFromHtml(string $html): string;

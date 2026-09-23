@@ -32,7 +32,7 @@ if (\file_exists($packageJsonPath)) {
         if (\is_array($pkgData) && isset($pkgData['version'])) {
             $version = 'v' . $pkgData['version'];
         }
-    } catch (\Throwable $e) {
+    } catch (\Throwable) {
         // Fallback bleibt v0.0.0
     }
 }

@@ -48,7 +48,7 @@ final readonly class PermitSendReminderAction implements ActionInterface, Requir
             try {
                 $this->reminderHandler->handle(new SendPaymentRemindersCommand($code, true));
                 ++$successCount;
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // Fehler beim individuellen Senden ignorieren
             }
         }

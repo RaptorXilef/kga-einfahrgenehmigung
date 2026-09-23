@@ -16,6 +16,8 @@ use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
 use App\SharedKernel\Application\Security\Sanitizer;
+use App\SharedKernel\Domain\ValueObject\EmailAddress;
+use App\SharedKernel\Domain\ValueObject\VoucherCode;
 use DateTimeImmutable;
 use InvalidArgumentException;
 
@@ -52,7 +54,6 @@ final readonly class SubmitPermitRequestHandler
 
             // Wenn die E-Mail NICHT geändert wurde -> Nur Daten updaten & direkt zurück zum Checkout!
             if ($oldData !== null && Sanitizer::normalizeEmail((string) $newData->email) === Sanitizer::normalizeEmail($command->sessionEmail)) {
-
                 // Wir mergen die neuen Daten in die alten (damit verification_code erhalten bleibt)
                 $merged = \array_merge($oldData, $rawDataArray);
 
@@ -138,18 +139,20 @@ final readonly class SubmitPermitRequestHandler
             $pStart = new DateTimeImmutable((string) ($pendingData['datum_von'] ?? 'now'));
             $pEnd = new DateTimeImmutable((string) ($pendingData['datum_bis'] ?? 'now'));
 
-            if ($pPlot === $parzelleId && DateRangeHelper::overlaps($pStart, $pEnd, $start, $end)) {
-                $pKennzeichen = \preg_replace('/[^A-Z0-9]/', '', \strtoupper((string) ($pendingData['kennzeichen'] ?? '')));
-                $pFirma = \trim((string) ($pendingData['firma'] ?? ''));
+            if ($pPlot !== $parzelleId || !DateRangeHelper::overlaps($pStart, $pEnd, $start, $end)) {
+                continue;
+            }
 
-                $isSamePlate = $searchPlate !== '' && $searchPlate !== 'XXXXX9999' && $searchPlate === $pKennzeichen;
-                $isSameCompany = $company !== null && $company !== '' && $company === $pFirma;
+            $pKennzeichen = \preg_replace('/[^A-Z0-9]/', '', \strtoupper((string) ($pendingData['kennzeichen'] ?? '')));
+            $pFirma = \trim((string) ($pendingData['firma'] ?? ''));
 
-                if ($isSamePlate || $isSameCompany) {
-                    $plotFormatted = \str_pad((string) $parzelleId, 4, '0', \STR_PAD_LEFT);
+            $isSamePlate = $searchPlate !== '' && $searchPlate !== 'XXXXX9999' && $searchPlate === $pKennzeichen;
+            $isSameCompany = $company !== null && $company !== '' && $company === $pFirma;
 
-                    throw new PermitCollisionException("Hinweis: Für dieses Kennzeichen oder diese Firma läuft auf Parzelle {$plotFormatted} bereits eine Anfrage für diesen Zeitraum.");
-                }
+            if ($isSamePlate || $isSameCompany) {
+                $plotFormatted = \str_pad((string) $parzelleId, 4, '0', \STR_PAD_LEFT);
+
+                throw new PermitCollisionException("Hinweis: Für dieses Kennzeichen oder diese Firma läuft auf Parzelle {$plotFormatted} bereits eine Anfrage für diesen Zeitraum.");
             }
         }
     }
@@ -158,7 +161,7 @@ final readonly class SubmitPermitRequestHandler
     {
         return [
             'name' => $dto->name,
-            'email' => $dto->email ? (string) $dto->email : null,
+            'email' => $dto->email instanceof EmailAddress ? (string) $dto->email : null,
             'parzelle' => (string) $dto->parzelle->value,
             'typ' => $dto->typ,
             'kennzeichen' => $dto->kennzeichen->value,
@@ -171,7 +174,7 @@ final readonly class SubmitPermitRequestHandler
             'status' => $dto->status->value,
             'interner_kommentar' => $dto->internerKommentar,
             'agreements' => $dto->agreements,
-            'voucher' => $dto->voucher ? (string) $dto->voucher : null,
+            'voucher' => $dto->voucher instanceof VoucherCode ? (string) $dto->voucher : null,
         ];
     }
 }

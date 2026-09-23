@@ -8,5 +8,5 @@ interface MailQueueRepositoryInterface
 {
     public function enqueue(MailJob $job): void;
 
-    public function processBatch(int $limit, callable$processor): int;
+    public function processBatch(int $limit, callable $processor): int;
 }

@@ -22,6 +22,7 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
 
     /**
      * @param GetFinanceListQuery $query
+     *
      * @return array<FinancePermitDto>
      */
     public function handle(mixed $query): array
@@ -75,7 +76,7 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
             $diff = $now->diff($deadline);
             $daysDiff = (int) $diff->format('%r%a');
 
-            $rowClass = ($overdueLevel === 2 || $isSuspended) ? 'c-table__row--danger' : '';
+            $rowClass = $overdueLevel === 2 || $isSuspended ? 'c-table__row--danger' : '';
 
             $vKey = $row['typ'];
             $vehicleIcon = $vConfig[$vKey]['icon'] ?? 'assets/img/icons/warning.webp';

@@ -50,7 +50,6 @@ final readonly class ToggleVoucherAction implements ActionInterface, RequiresPer
 
             $this->auditLogger->log('VOUCHER_TOGGLE', "Gutscheincode '{$dto->code}' wurde {$actionStr}.");
             $this->sessionManager->addFlash('success', "Gutschein wurde {$actionStr}.");
-
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
         }

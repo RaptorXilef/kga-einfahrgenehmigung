@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
+use App\Modules\Identity\Domain\Role;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use DomainException;
 
@@ -16,7 +17,7 @@ final readonly class RenameRoleHandler
     public function handle(RenameRoleCommand $command): string
     {
         $role = $this->repository->findById($command->roleId);
-        if ($role === null) {
+        if (!$role instanceof Role) {
             throw new DomainException('Rolle nicht gefunden.');
         }
 

@@ -10,6 +10,7 @@ use App\Application\Contracts\ActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 
 #[Route('POST', '/api/mark_changelog_read')]
@@ -36,7 +37,7 @@ final readonly class MarkChangelogReadAction implements ActionInterface
         }
 
         $user = $this->userRepository->findById($userId);
-        if ($user !== null) {
+        if ($user instanceof User) {
             $user->markChangelogAsRead($version);
             $this->userRepository->save($user);
         }

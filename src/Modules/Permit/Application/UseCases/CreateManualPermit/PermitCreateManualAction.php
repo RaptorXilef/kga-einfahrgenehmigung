@@ -52,7 +52,6 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
             $this->sessionManager->addFlash('success', 'Manuelle Genehmigung wurde erfolgreich erstellt.');
 
             return new RedirectResponse('admin?focus=tab-active');
-
         } catch (InvalidArgumentException $e) {
             $postData = $request->post;
             unset($postData['csrf_token']);

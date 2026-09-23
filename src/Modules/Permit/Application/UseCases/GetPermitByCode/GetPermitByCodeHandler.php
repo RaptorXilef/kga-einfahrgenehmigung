@@ -12,6 +12,7 @@ use App\SharedKernel\Application\Query\QueryHandlerInterface;
 
 /**
  * Löst einen Code schichtenübergreifend auf.
+ *
  * @implements QueryHandlerInterface<GetPermitByCodeQuery, ?Permit>
  */
 final readonly class GetPermitByCodeHandler implements QueryHandlerInterface

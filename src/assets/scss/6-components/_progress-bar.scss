@@ -1,7 +1,10 @@
 @layer components {
     .c-progress-bar {
         inline-size: var(--size-full);
-        block-size: var(--space-s); /* FIX: Strikte Token-Nutzung statt 0.5rem */
+        block-size: var(
+            --space-s
+        ); /* FIX: Strikte Token-Nutzung statt 0.5rem */
+
         overflow: hidden;
         background-color: var(--color-bg-light);
         border: var(--border-s) solid var(--color-border);

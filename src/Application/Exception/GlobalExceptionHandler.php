@@ -93,7 +93,7 @@ final readonly class GlobalExceptionHandler
         }
 
         $vereinsName = \htmlspecialchars((string) $this->config->get('vereins_name', 'KGA'));
-        $baseUrl = \rtrim((string) $this->config->getBaseUrl(), '/') . '/';
+        $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
         $appRoot = \rtrim((string) $this->config->get('root_path', ''), '/\\');
 
         $errorTitle = 'Ups! Etwas ist schiefgelaufen';

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Voucher\Application\UseCases\ToggleVoucher;
 
+use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DomainException;
@@ -25,7 +26,7 @@ final readonly class ToggleVoucherHandler implements CommandHandlerInterface
     {
         $voucher = $this->repository->findByCode($command->code);
 
-        if ($voucher === null) {
+        if (!$voucher instanceof Voucher) {
             throw new DomainException("Gutscheincode '{$command->code}' nicht gefunden.");
         }
 

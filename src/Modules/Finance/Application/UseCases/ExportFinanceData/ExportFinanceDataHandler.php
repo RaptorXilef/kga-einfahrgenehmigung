@@ -57,11 +57,13 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
 
         if ($query->type !== 'all') {
             foreach ($permitTemplates as $k => $tpl) {
-                if (($tpl['type'] ?? 'standard') === $query->type) {
-                    $validTplKeys[] = $k;
+                if (!(($tpl['type'] ?? 'standard') === $query->type)) {
+                    continue;
                 }
+
+                $validTplKeys[] = $k;
             }
-            if (empty($validTplKeys)) {
+            if ($validTplKeys === []) {
                 return [];
             }
         }
@@ -69,7 +71,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
         $whereParts = ['DATE(erstellt) >= ? AND DATE(erstellt) <= ?'];
         $binds = [$query->start, $query->end];
 
-        if (!empty($validTplKeys)) {
+        if ($validTplKeys !== []) {
             $in = \str_repeat('?,', \count($validTplKeys) - 1) . '?';
             $whereParts[] = "template_key IN ($in)";
             $binds = \array_merge($binds, $validTplKeys);

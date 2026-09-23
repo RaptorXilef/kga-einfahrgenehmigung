@@ -68,14 +68,7 @@ final readonly class ImageStorageService implements ImageStorageInterface
         $destPath = $root . '/public/assets/img/' . $folder . '/' . $id . '.webp';
 
         // Speichern als WebP mit 85% Qualität
-        $result = \imagewebp($target, $destPath, 85);
-
-        // WICHTIG: Kein imagedestroy() mehr!
-        // Ab PHP 8.0 sind GD-Ressourcen vollwertige Objekte (\GdImage).
-        // Der PHP Garbage Collector räumt sie am Ende des Skripts automatisch aus dem Speicher.
-        // Ab PHP 8.5 ist der Aufruf von imagedestroy() offiziell verboten und wirft Exceptions.
-
-        return $result;
+        return \imagewebp($target, $destPath, 85);
     }
 
     /**

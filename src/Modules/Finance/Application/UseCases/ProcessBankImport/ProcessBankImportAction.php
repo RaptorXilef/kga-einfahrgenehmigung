@@ -43,10 +43,8 @@ final readonly class ProcessBankImportAction implements ActionInterface, Require
             ));
 
             if ($result->success) {
-                if (!empty($result->collectiveTransfers)) {
-                    foreach ($result->collectiveTransfers as $transfer) {
-                        $this->sessionManager->addCollectiveTransfer($transfer);
-                    }
+                foreach ($result->collectiveTransfers as $transfer) {
+                    $this->sessionManager->addCollectiveTransfer($transfer);
                 }
 
                 $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
@@ -57,7 +55,7 @@ final readonly class ProcessBankImportAction implements ActionInterface, Require
                         if (\is_numeric($cat)) {
                             $html .= '<li>' . \htmlspecialchars((string) $items) . '</li>';
                         } else {
-                            $html .= '<li class="u-margin-block-end-xs"><strong class="u-font-bold"><em>' . \htmlspecialchars((string) $cat) . '</em></strong>:';
+                            $html .= '<li class="u-margin-block-end-xs"><strong class="u-font-bold"><em>' . \htmlspecialchars($cat) . '</em></strong>:';
                             $html .= '<ul class="u-margin-block-start-none u-margin-block-end-xs u-padding-inline-start-m">';
                             foreach ((array) $items as $item) {
                                 $html .= '<li>' . \htmlspecialchars((string) $item) . '</li>';
@@ -65,19 +63,18 @@ final readonly class ProcessBankImportAction implements ActionInterface, Require
                             $html .= '</ul></li>';
                         }
                     }
-                    $html .= '</ul>';
 
-                    return $html;
+                    return $html . '</ul>';
                 };
 
                 $htmlDetails = [];
-                if (!empty($result->successDetails)) {
+                if ($result->successDetails !== []) {
                     $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/success.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Freigeschaltet:</strong>' . $formatList($result->successDetails) . '</div>';
                 }
-                if (!empty($result->skippedDetails)) {
+                if ($result->skippedDetails !== []) {
                     $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/skip.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Übersprungen:</strong>' . $formatList($result->skippedDetails) . '</div>';
                 }
-                if (!empty($result->errorDetails)) {
+                if ($result->errorDetails !== []) {
                     $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/warning.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($result->errorDetails) . '</div>';
                 }
 

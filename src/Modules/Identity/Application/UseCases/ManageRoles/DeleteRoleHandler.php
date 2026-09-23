@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Modules\Identity\Domain\Events\RoleDeletedEvent;
+use App\Modules\Identity\Domain\Role;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use DomainException;
 
@@ -24,7 +25,7 @@ final readonly class DeleteRoleHandler
         }
 
         $role = $this->repository->findById($command->roleId);
-        if ($role === null) {
+        if (!$role instanceof Role) {
             throw new DomainException('Rolle nicht gefunden.');
         }
 

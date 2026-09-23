@@ -87,7 +87,6 @@ final readonly class SubmitPermitAction implements ViewActionInterface
             }
 
             return new RedirectResponse('?sent=1');
-
         } catch (PermitCollisionException $exception) {
             \error_log('Permit Collision: ' . $exception->getMessage());
 

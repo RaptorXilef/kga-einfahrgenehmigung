@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\TogglePermitSuspension;
 
+use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DomainException;
@@ -25,7 +26,7 @@ final readonly class TogglePermitSuspensionHandler implements CommandHandlerInte
     {
         $permit = $this->repository->findByCode($command->code);
 
-        if ($permit === null) {
+        if (!$permit instanceof Permit) {
             throw new DomainException('Genehmigung nicht gefunden.');
         }
 

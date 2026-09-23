@@ -30,9 +30,11 @@ final readonly class BackupService implements BackupServiceInterface
         }
 
         $htaccessPath = $this->backupDir . '/.htaccess';
-        if (!\file_exists($htaccessPath)) {
-            \file_put_contents($htaccessPath, "Order allow,deny\nDeny from all\n");
+        if (\file_exists($htaccessPath)) {
+            return;
         }
+
+        \file_put_contents($htaccessPath, "Order allow,deny\nDeny from all\n");
     }
 
     public function runCronBackup(): void

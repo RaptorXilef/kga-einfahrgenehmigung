@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
+use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use DomainException;
 
@@ -24,7 +25,7 @@ final readonly class DeleteUserHandler
         }
 
         $user = $this->repository->findById($command->userId);
-        if ($user === null) {
+        if (!$user instanceof User) {
             throw new DomainException('Fehler: Benutzer nicht gefunden.');
         }
 

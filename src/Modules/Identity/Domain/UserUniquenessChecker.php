@@ -20,7 +20,7 @@ final readonly class UserUniquenessChecker
     {
         $existing = $this->repository->findByUsername($username);
 
-        if ($existing !== null && $existing->id !== $excludeUserId) {
+        if ($existing instanceof User && $existing->id !== $excludeUserId) {
             throw new DomainException("Fehler: Ein Benutzer mit dem Namen '{$username}' existiert bereits.");
         }
     }

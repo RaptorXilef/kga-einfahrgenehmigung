@@ -93,47 +93,49 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
                 $searchMatch = \str_contains($searchString, $queryLower);
             }
 
-            if ($inPeriod && $typeMatch && $searchMatch) {
-                ++$periodStats['count'];
-                isset($periodStats['types'][$typ]) ? $periodStats['types'][$typ]++ : $periodStats['types']['__legacy__']++;
-
-                if ($status === 'bezahlt') {
-                    $periodStats['revenue_paid'] += $price;
-                } else {
-                    $periodStats['revenue_unpaid'] += $price;
-                }
-
-                $pNum = \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT);
-                // FIX: E-Mail Feld initialisieren und stets updaten!
-                $periodStats['plots'][$pNum] ??= ['count' => 0, 'revenue' => 0.0, 'name' => $row['name'], 'email' => $row['email']];
-                ++$periodStats['plots'][$pNum]['count'];
-                $periodStats['plots'][$pNum]['revenue'] += $price;
-                // Immer die Daten des aktuellsten Antrags (der am weitesten oben steht) merken
-                $periodStats['plots'][$pNum]['name'] = $row['name'];
-                $periodStats['plots'][$pNum]['email'] = $row['email'];
-
-                // ---- C) Monats-Statistiken für den Chart (NUR gefilterte Daten) ----
-                $monthlyStats[$monthKey] ??= ['sort_key' => $monthSortKey, 'count' => 0, 'revenue' => 0.0];
-                ++$monthlyStats[$monthKey]['count'];
-                $monthlyStats[$monthKey]['revenue'] += $price;
+            if (!$inPeriod || !$typeMatch || !$searchMatch) {
+                continue;
             }
+
+            ++$periodStats['count'];
+            isset($periodStats['types'][$typ]) ? $periodStats['types'][$typ]++ : $periodStats['types']['__legacy__']++;
+
+            if ($status === 'bezahlt') {
+                $periodStats['revenue_paid'] += $price;
+            } else {
+                $periodStats['revenue_unpaid'] += $price;
+            }
+
+            $pNum = \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT);
+            // FIX: E-Mail Feld initialisieren und stets updaten!
+            $periodStats['plots'][$pNum] ??= ['count' => 0, 'revenue' => 0.0, 'name' => $row['name'], 'email' => $row['email']];
+            ++$periodStats['plots'][$pNum]['count'];
+            $periodStats['plots'][$pNum]['revenue'] += $price;
+            // Immer die Daten des aktuellsten Antrags (der am weitesten oben steht) merken
+            $periodStats['plots'][$pNum]['name'] = $row['name'];
+            $periodStats['plots'][$pNum]['email'] = $row['email'];
+
+            // ---- C) Monats-Statistiken für den Chart (NUR gefilterte Daten) ----
+            $monthlyStats[$monthKey] ??= ['sort_key' => $monthSortKey, 'count' => 0, 'revenue' => 0.0];
+            ++$monthlyStats[$monthKey]['count'];
+            $monthlyStats[$monthKey]['revenue'] += $price;
         }
 
         // 4. Sortierungen anwenden
         \krsort($yearlyStats);
-        \uasort($periodStats['plots'], fn ($a, $b) => $b['count'] === $a['count'] ? $b['revenue'] <=> $a['revenue'] : $b['count'] <=> $a['count']);
-        \uasort($monthlyStats, fn ($a, $b) => $a['sort_key'] <=> $b['sort_key']);
+        \uasort($periodStats['plots'], fn ($a, $b): int => $b['count'] === $a['count'] ? $b['revenue'] <=> $a['revenue'] : $b['count'] <=> $a['count']);
+        \uasort($monthlyStats, fn ($a, $b): int => $a['sort_key'] <=> $b['sort_key']);
 
         $periodStats['max_plot_count'] = !empty($periodStats['plots']) ? \reset($periodStats['plots'])['count'] : 1;
 
         // 5. Payload für Chart.js aufbereiten
         $chartDataPayload = [
             'yearLabels' => \array_reverse(\array_keys($yearlyStats)),
-            'yearRevenue' => \array_reverse(\array_map(fn ($d) => $d['paid'] + $d['unpaid'], $yearlyStats)),
-            'yearCounts' => \array_reverse(\array_map(fn ($d) => $d['count'], $yearlyStats)),
+            'yearRevenue' => \array_reverse(\array_map(fn (array $d): float => $d['paid'] + $d['unpaid'], $yearlyStats)),
+            'yearCounts' => \array_reverse(\array_map(fn (array $d): int => $d['count'], $yearlyStats)),
             'monthLabels' => \array_values(\array_keys($monthlyStats)),
-            'monthRevenue' => \array_values(\array_map(fn ($d) => $d['revenue'], $monthlyStats)),
-            'monthCounts' => \array_values(\array_map(fn ($d) => $d['count'], $monthlyStats)),
+            'monthRevenue' => \array_values(\array_map(fn (array $d): float => $d['revenue'], $monthlyStats)),
+            'monthCounts' => \array_values(\array_map(fn (array $d): int => $d['count'], $monthlyStats)),
         ];
 
         return new DashboardStatsDto($periodStats, $yearlyStats, $chartDataPayload);

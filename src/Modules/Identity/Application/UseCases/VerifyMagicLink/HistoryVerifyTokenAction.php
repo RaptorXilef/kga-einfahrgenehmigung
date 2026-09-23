@@ -48,7 +48,6 @@ final readonly class HistoryVerifyTokenAction implements ViewActionInterface
             $this->auditLogger->log('USER_HISTORY_LOGIN', "Pächter (Email: {$verifiedEmail}) hat sich via Magic-Link im Genehmigungsverlauf eingeloggt.");
 
             return new RedirectResponse('history');
-
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 

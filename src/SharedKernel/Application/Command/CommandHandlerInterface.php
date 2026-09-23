@@ -14,6 +14,7 @@ interface CommandHandlerInterface
 {
     /**
      * @param TCommand $command
+     *
      * @return void Commands geben nach striktem CQRS niemals Daten zurück (außer Exceptions bei Fehlern).
      */
     public function handle(CommandInterface $command): void;

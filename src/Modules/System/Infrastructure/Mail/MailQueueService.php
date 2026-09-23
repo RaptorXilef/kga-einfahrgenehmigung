@@ -24,7 +24,7 @@ final readonly class MailQueueService implements MailServiceInterface
 
     public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50, array $attachments = []): bool
     {
-        if (!empty($attachments)) {
+        if ($attachments !== []) {
             $safeAtt = [];
             foreach ($attachments as $att) {
                 $safeAtt[] = [

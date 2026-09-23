@@ -59,7 +59,7 @@ final class OAuthSmtpMailService extends AbstractMailService
             $mail->send();
 
             return true;
-        } catch (PHPMailerException $e) {
+        } catch (PHPMailerException) {
             return 'PHPMailer OAuth Fehler: ' . $mail->ErrorInfo;
         }
     }

@@ -45,7 +45,7 @@ final class SmtpMailService extends AbstractMailService
             $mail->send();
 
             return true;
-        } catch (PHPMailerException $e) {
+        } catch (PHPMailerException) {
             return 'PHPMailer Fehler: ' . $mail->ErrorInfo;
         }
     }

@@ -111,7 +111,7 @@ final readonly class EmailValidationService
             }
         }
 
-        if (empty($domains)) {
+        if ($domains === []) {
             $domains = ['mailinator.com', '10minutemail.com', 'tempmail.com', 'trashmail.com', 'yopmail.com'];
         }
 
@@ -128,6 +128,6 @@ final readonly class EmailValidationService
         }
 
         // 3. Alle Domains in Kleinschreibung umwandeln für absolut sicheren Abgleich
-        return \array_map('strtolower', $domains);
+        return \array_map(strtolower(...), $domains);
     }
 }

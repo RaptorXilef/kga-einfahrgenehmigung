@@ -74,7 +74,7 @@ final readonly class Config implements ConfigInterface
         $mail = $this->get($isTestMode ? 'mail-test' : 'mail', []);
 
         // Fallback auf normalen Mail-Block, falls mail-test leer oder nicht konfiguriert ist
-        if (!\is_array($mail) || empty($mail)) {
+        if (!\is_array($mail) || $mail === []) {
             $mail = $this->get('mail', []);
         }
 

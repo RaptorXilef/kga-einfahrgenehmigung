@@ -8,7 +8,7 @@ final readonly class SubmitPermitResult
 {
     public function __construct(
         public string $action, // 'redirect_verify', 'redirect_checkout'
-        public ?string $token = null
+        public ?string $token = null,
     ) {
     }
 }

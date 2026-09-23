@@ -45,7 +45,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
             bezahlt_am=VALUES(bezahlt_am), last_reminder_at=VALUES(last_reminder_at)';
 
         // Explizite Null-Prüfung für Intelephense
-        $emailValue = $permit->owner->email !== null ? (string) $permit->owner->email : null;
+        $emailValue = $permit->owner->email instanceof EmailAddress ? (string) $permit->owner->email : null;
 
         // Nutzt nun sauber die öffentlichen Getter für private Domain-States!
         $this->pdo->prepare($sql)->execute([
@@ -186,7 +186,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         }
 
         // Fallback: Wenn jemand weder Firma noch echtes Kennzeichen hat, ist es immer eine Kollision
-        if (empty($conditions)) {
+        if ($conditions === []) {
             $query .= ' 1=1 ';
         } else {
             $query .= \implode(' OR ', $conditions);

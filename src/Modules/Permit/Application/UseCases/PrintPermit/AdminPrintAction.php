@@ -18,6 +18,7 @@ use App\Contracts\System\PdfGeneratorInterface;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
+use App\Modules\Permit\Domain\Permit;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
@@ -49,7 +50,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
         $code = $dto->code;
         $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($code));
 
-        if ($permit === null) {
+        if (!$permit instanceof Permit) {
             return null;
         }
 

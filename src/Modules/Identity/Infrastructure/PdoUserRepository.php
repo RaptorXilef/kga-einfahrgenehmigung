@@ -21,7 +21,7 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
         $stmt = $this->pdo->query('SELECT * FROM users ORDER BY username ASC');
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $users[(string)$row['id']] = $this->mapRowToEntity($row);
+            $users[(string) $row['id']] = $this->mapRowToEntity($row);
         }
 
         return $users;

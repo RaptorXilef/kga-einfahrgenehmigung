@@ -46,7 +46,6 @@ final readonly class QrCodeRenderAction implements ActionInterface
 
             echo $result->getString();
             exit;
-
         } catch (Exception $e) {
             \error_log('QR-Code Generierung fehlgeschlagen: ' . $e->getMessage());
 

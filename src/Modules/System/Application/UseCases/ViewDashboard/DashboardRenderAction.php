@@ -17,6 +17,7 @@ use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\GetDashboardPermitsHandler;
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\GetDashboardPermitsQuery;
@@ -98,7 +99,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         if (!\str_starts_with($userId, 'sys_')) {
             $user = $this->userRepository->findById($userId);
-            if ($user !== null) {
+            if ($user instanceof User) {
                 $unreadReleaseNotes = $this->releaseNotesService->getUnreadNotes($user->getLastSeenChangelog());
             }
         }

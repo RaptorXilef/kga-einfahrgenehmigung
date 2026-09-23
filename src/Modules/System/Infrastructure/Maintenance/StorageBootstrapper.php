@@ -75,7 +75,7 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
         $validKeys[] = '*';
 
         $changed = false;
-        foreach ($roles as $id => $role) {
+        foreach ($roles as $role) {
             $originalCount = \count($role->permissions);
             $cleanedPerms = [];
 
@@ -96,20 +96,22 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
             $changed = true;
         }
 
-        if ($changed) {
-            \error_log('Bootstrap: Veraltete Berechtigungen (Orphaned Permissions) wurden erfolgreich bereinigt.');
+        if (!$changed) {
+            return;
         }
+
+        \error_log('Bootstrap: Veraltete Berechtigungen (Orphaned Permissions) wurden erfolgreich bereinigt.');
     }
 
     private function initDefaultRolesAndUsers(): void
     {
         try {
             $currentRoles = $this->roleRepository->loadAll();
-        } catch (Throwable $t) {
+        } catch (Throwable) {
             $currentRoles = [];
         }
 
-        if (empty($currentRoles)) {
+        if ($currentRoles === []) {
             \error_log('Bootstrap: Initialisiere Standard-Rollen.');
             foreach ($this->getDefaultRoles() as $role) {
                 $this->roleRepository->save($role);
@@ -118,15 +120,17 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
 
         try {
             $userCheck = $this->userRepository->findById('usr_7c13b491');
-        } catch (Throwable $t) {
+        } catch (Throwable) {
             $userCheck = null;
         }
 
-        if ($userCheck === null) {
-            \error_log('Bootstrap: Initialisiere Standard-Admin.');
-            foreach ($this->getDefaultUsers() as $user) {
-                $this->userRepository->save($user);
-            }
+        if ($userCheck instanceof User) {
+            return;
+        }
+
+        \error_log('Bootstrap: Initialisiere Standard-Admin.');
+        foreach ($this->getDefaultUsers() as $user) {
+            $this->userRepository->save($user);
         }
     }
 

@@ -51,7 +51,6 @@ final readonly class TogglePermitSuspensionAction implements ActionInterface
 
             $this->auditLogger->log('PERMIT_SUSPENSION', "Genehmigung '{$dto->code}' wurde {$actionStr}. Grund: {$dto->reason}");
             $this->sessionManager->addFlash('success', $msg);
-
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
         }

@@ -10,13 +10,13 @@ use DateTimeImmutable;
 /**
  * Aggregatwurzel für einen temporären, passwortlosen Login (OTP / Magic Link).
  */
-final class MagicLink
+final readonly class MagicLink
 {
     public function __construct(
-        public readonly string $token,
-        public readonly EmailAddress $email,
-        public readonly string $code,
-        public readonly DateTimeImmutable $expiresAt,
+        public string $token,
+        public EmailAddress $email,
+        public string $code,
+        public DateTimeImmutable $expiresAt,
     ) {
     }
 

@@ -64,13 +64,15 @@ final readonly class ReleaseNotesService
             $cleanFileVer = \ltrim($ver, 'vV');
 
             // Wenn kein Limit gesetzt ist (alle laden) ODER die Datei neuer ist
-            if ($cleanUserVer === null || \version_compare($cleanFileVer, $cleanUserVer, '>')) {
-                $notes[] = [
-                    'version' => $ver,
-                    'content' => \file_get_contents($file) ?: '',
-                    'clean_version' => $cleanFileVer,
-                ];
+            if ($cleanUserVer !== null && !\version_compare($cleanFileVer, $cleanUserVer, '>')) {
+                continue;
             }
+
+            $notes[] = [
+                'version' => $ver,
+                'content' => \file_get_contents($file) ?: '',
+                'clean_version' => $cleanFileVer,
+            ];
         }
 
         // Absteigend sortieren (Neueste Version oben)

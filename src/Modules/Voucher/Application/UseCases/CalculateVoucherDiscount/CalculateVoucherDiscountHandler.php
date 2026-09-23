@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount;
 
+use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
@@ -26,7 +27,7 @@ final readonly class CalculateVoucherDiscountHandler implements QueryHandlerInte
         $voucher = $this->repository->findByCode($query->code);
 
         // 1. Existenz-Prüfung
-        if ($voucher === null) {
+        if (!$voucher instanceof Voucher) {
             return new VoucherDiscountDto($query->originalPrice, false, '', 'Ungültiger Code');
         }
 
@@ -55,7 +56,7 @@ final readonly class CalculateVoucherDiscountHandler implements QueryHandlerInte
             $finalPrice = 0.0;
             $discountText = '100% Rabatt (Kostenlos)';
         } elseif ($voucher->type === 'percent') {
-            $discount = $query->originalPrice * ($voucher->value / 100);
+            $discount = $query->originalPrice * $voucher->value / 100;
             $finalPrice = \max(0.0, $query->originalPrice - $discount);
             $discountText = $voucher->value . '% Rabatt';
         } elseif ($voucher->type === 'fixed') {

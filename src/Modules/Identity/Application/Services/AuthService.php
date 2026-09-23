@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use RuntimeException;
 
@@ -101,7 +102,7 @@ final readonly class AuthService
 
         // Nutzt jetzt die pfeilschnelle, neue DDD-Methode findById()
         $user = $this->userRepository->findById($userId);
-        if ($user === null) {
+        if (!$user instanceof User) {
             $this->logout();
 
             throw new RuntimeException('Session abgelaufen oder Benutzer gelöscht.');

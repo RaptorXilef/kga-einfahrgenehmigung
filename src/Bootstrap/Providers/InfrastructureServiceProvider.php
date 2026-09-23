@@ -149,7 +149,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(PaymentProviderInterface::class, fn (): mixed => $container->get(PayPalService::class));
 
         // Dynamische Mail-Transport Auflösung (Strategy Pattern)
-        $container->bind('mail.transport', function () use ($container) {
+        $container->bind('mail.transport', function () use ($container): MicrosoftGraphMailService|OAuthSmtpMailService|SmtpMailService {
             $config = $container->get(ConfigInterface::class);
             $default = $config->get('mail', [])['default'] ?? 'smtp';
 

@@ -72,10 +72,12 @@ final readonly class ProcessBankImportHandler
             $allCodes[$c] = true;
             $prices[$c] = (float) $row['preis'];
 
-            if ($row['status'] !== 'bezahlt') {
-                $unpaidCodes[$c] = $row['name'];
-                $unpaidPlates[$c] = $row['kennzeichen'];
+            if ($row['status'] === 'bezahlt') {
+                continue;
             }
+
+            $unpaidCodes[$c] = $row['name'];
+            $unpaidPlates[$c] = $row['kennzeichen'];
         }
         // -----------------------------
 
@@ -137,20 +139,22 @@ final readonly class ProcessBankImportHandler
             }
 
             // PRIO 2: Fallback (Vorhandensein der ID im Text)
-            if (empty($gefundeneCodes)) {
+            if ($gefundeneCodes === []) {
                 foreach ($unpaidCodes as $fullUnpaidCode => $ownerName) {
                     $codeParts = \explode('-', $fullUnpaidCode);
                     $shortCode = \end($codeParts);
-                    if (\str_contains($zweckUpper, $shortCode)) {
-                        $gefundeneCodes[] = $fullUnpaidCode;
-                        $matchMethodsForLine[] = 'Direktsuche (Unbezahlt)';
-                        $matchMethodsMap[$fullUnpaidCode] = 'Direktsuche';
+                    if (!\str_contains($zweckUpper, $shortCode)) {
+                        continue;
                     }
+
+                    $gefundeneCodes[] = $fullUnpaidCode;
+                    $matchMethodsForLine[] = 'Direktsuche (Unbezahlt)';
+                    $matchMethodsMap[$fullUnpaidCode] = 'Direktsuche';
                 }
             }
 
             // PRIO 3: Regex Fallback
-            if (empty($gefundeneCodes)) {
+            if ($gefundeneCodes === []) {
                 if (\preg_match_all('/([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6,8})/', $zweckUpper, $matches)) {
                     foreach ($matches[1] as $shortCodeCandidate) {
                         foreach ($allCodes as $fullCode => $dummy) {
@@ -172,7 +176,7 @@ final readonly class ProcessBankImportHandler
 
             // PRIO 4: Fallback Kennzeichen-Suche
             $gefundeneKennzeichen = [];
-            if (empty($gefundeneCodes)) {
+            if ($gefundeneCodes === []) {
                 $zweckNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $zweckUpper);
                 foreach ($unpaidPlates as $unpaidCode => $plate) {
                     if (empty($plate)) {
@@ -180,18 +184,20 @@ final readonly class ProcessBankImportHandler
                     }
 
                     $plateNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', \strtoupper($plate));
-                    if (\strlen($plateNormalized) >= 4 && \str_contains($zweckNormalized, $plateNormalized)) {
-                        $gefundeneKennzeichen[$unpaidCode] = $plate;
+                    if (\strlen($plateNormalized) < 4 || !\str_contains($zweckNormalized, $plateNormalized)) {
+                        continue;
                     }
+
+                    $gefundeneKennzeichen[$unpaidCode] = $plate;
                 }
             }
 
-            if (empty($gefundeneCodes) && empty($gefundeneKennzeichen)) {
+            if ($gefundeneCodes === [] && $gefundeneKennzeichen === []) {
                 $this->writeLog("[Zeile {$rowNumber}] Info: Kein System-Code und kein Kennzeichen gefunden. Rohdaten Zweck: '{$verwendungszweck}'", $runLogs);
                 continue;
             }
 
-            if (empty($gefundeneCodes) && !empty($gefundeneKennzeichen)) {
+            if ($gefundeneCodes === [] && $gefundeneKennzeichen !== []) {
                 $matchedCodes = \array_keys($gefundeneKennzeichen);
                 $codesStr = \implode(', ', $matchedCodes);
                 $platesStr = \implode(', ', \array_values($gefundeneKennzeichen));
@@ -290,7 +296,7 @@ final readonly class ProcessBankImportHandler
 
                     $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).", $runLogs);
                     $erfolgreichDetails[] = "{$permitId} ({$ownerName})";
-                } catch (DomainException $e) {
+                } catch (DomainException) {
                     $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).", $runLogs);
                     $fehlerhaftStorage[] = "{$permitId} ({$ownerName})";
                 }
@@ -310,24 +316,24 @@ final readonly class ProcessBankImportHandler
         $unlesbareZeilenDetails = \array_values(\array_unique($unlesbareZeilenDetails));
 
         $uebersprungenDetails = [];
-        if (!empty($skippedNotInCsv)) {
+        if ($skippedNotInCsv !== []) {
             $uebersprungenDetails['Fehlt auf Auszug (in CSV)'] = $skippedNotInCsv;
         }
-        if (!empty($skippedAlreadyPaid)) {
+        if ($skippedAlreadyPaid !== []) {
             $uebersprungenDetails['Bereits verbucht'] = $skippedAlreadyPaid;
         }
-        if (!empty($skippedNotInDb)) {
+        if ($skippedNotInDb !== []) {
             $uebersprungenDetails['Unbekannter Code in CSV'] = $skippedNotInDb;
         }
 
         $fehlerhaftDetails = [];
-        if (!empty($fehlerhaftPartial)) {
+        if ($fehlerhaftPartial !== []) {
             $fehlerhaftDetails['Zu geringer Betrag'] = $fehlerhaftPartial;
         }
-        if (!empty($fehlerhaftStorage)) {
+        if ($fehlerhaftStorage !== []) {
             $fehlerhaftDetails['Speicherfehler'] = $fehlerhaftStorage;
         }
-        if (!empty($unlesbareZeilenDetails)) {
+        if ($unlesbareZeilenDetails !== []) {
             $fehlerhaftDetails['CSV-Lesefehler'] = $unlesbareZeilenDetails;
         }
 
@@ -386,17 +392,19 @@ final readonly class ProcessBankImportHandler
         $uniq = \uniqid();
         $zipFilename = $archiveDir . '/import_' . $timestamp . '_' . $uniq . '.zip';
         $zip = new ZipArchive();
-        if ($zip->open($zipFilename, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-            $zip->addFile($csvFilePath, 'import_' . $timestamp . '.csv');
-            $zip->addFromString('import_' . $timestamp . '.log', \implode('', $logs));
-            $password = (string) $this->config->get('bank_import_zip_password', '');
-            if ($password !== '') {
-                $zip->setPassword($password);
-                $zip->setEncryptionName('import_' . $timestamp . '.csv', ZipArchive::EM_AES_256);
-                $zip->setEncryptionName('import_' . $timestamp . '.log', ZipArchive::EM_AES_256);
-            }
-            $zip->close();
+        if ($zip->open($zipFilename, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            return;
         }
+
+        $zip->addFile($csvFilePath, 'import_' . $timestamp . '.csv');
+        $zip->addFromString('import_' . $timestamp . '.log', \implode('', $logs));
+        $password = (string) $this->config->get('bank_import_zip_password', '');
+        if ($password !== '') {
+            $zip->setPassword($password);
+            $zip->setEncryptionName('import_' . $timestamp . '.csv', ZipArchive::EM_AES_256);
+            $zip->setEncryptionName('import_' . $timestamp . '.log', ZipArchive::EM_AES_256);
+        }
+        $zip->close();
     }
 
     private function prepareAndNormalizeFile(string $filePath): void

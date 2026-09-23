@@ -15,6 +15,7 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\System\ImageStorageInterface;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 
 #[Route('GET', '/profile')]
@@ -37,13 +38,14 @@ final readonly class ProfileRenderAction implements ViewActionInterface
 
         if (\str_starts_with($userId, 'sys_')) {
             $this->sessionManager->addFlash('info', 'System-Accounts können nicht über das Frontend bearbeitet werden.');
+
             return new RedirectResponse('admin');
         }
 
         $roles = $this->roleRepository->loadAll();
         $user = $this->userRepository->findById($userId);
 
-        $userRoleId = $user !== null ? $user->roleId : 'guest';
+        $userRoleId = $user instanceof User ? $user->roleId : 'guest';
         $role = $roles[$userRoleId] ?? null;
 
         $html = $this->renderer->render('admin/profile', [
@@ -52,7 +54,7 @@ final readonly class ProfileRenderAction implements ViewActionInterface
             'roleRepository' => $this->roleRepository,
             'imageStorage' => $this->imageStorage,
             'userId' => $userId,
-            'username' => $user !== null ? $user->username : 'Unbekannt',
+            'username' => $user instanceof User ? $user->username : 'Unbekannt',
             'userRepository' => $this->userRepository,
         ]);
 

@@ -15,6 +15,7 @@ interface QueryHandlerInterface
 {
     /**
      * @param TQuery $query
+     *
      * @return TResult
      */
     public function handle(QueryInterface $query): mixed;

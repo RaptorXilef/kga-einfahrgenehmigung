@@ -69,7 +69,7 @@ final readonly class SendPermitMailListener
             $userEmail = $permit->getOwnerEmail() !== '' ? $permit->getOwnerEmail() : null;
 
             $boardRecipientsRaw = $mailConfig['board_recipients'] ?? '';
-            $boardRecipients = \array_filter(\array_map('trim', \explode(',', (string) $boardRecipientsRaw)));
+            $boardRecipients = \array_filter(\array_map(trim(...), \explode(',', (string) $boardRecipientsRaw)));
 
             $data = [
                 'adminLink' => $checkUrl . "&token={$token}",
@@ -92,15 +92,17 @@ final readonly class SendPermitMailListener
             ];
 
             foreach ($boardRecipients as $recipient) {
-                if (\filter_var($recipient, \FILTER_VALIDATE_EMAIL)) {
-                    $this->mailService->sendTemplate(
-                        recipient: $recipient,
-                        subject: "[{$permitCodeStr}] - {$zeitraum} - {$permit->getOwnerName()}",
-                        template: 'board_notification',
-                        data: $data,
-                        replyTo: $userEmail,
-                    );
+                if (!\filter_var($recipient, \FILTER_VALIDATE_EMAIL)) {
+                    continue;
                 }
+
+                $this->mailService->sendTemplate(
+                    recipient: $recipient,
+                    subject: "[{$permitCodeStr}] - {$zeitraum} - {$permit->getOwnerName()}",
+                    template: 'board_notification',
+                    data: $data,
+                    replyTo: $userEmail,
+                );
             }
         }
 

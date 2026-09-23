@@ -63,7 +63,7 @@ final class MicrosoftGraphMailService extends AbstractMailService
                 ];
             }
 
-            if (!empty($graphAttachments)) {
+            if ($graphAttachments !== []) {
                 $payload['message']['attachments'] = $graphAttachments;
             }
 

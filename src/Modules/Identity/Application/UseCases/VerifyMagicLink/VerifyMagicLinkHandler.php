@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\VerifyMagicLink;
 
 use App\Application\Session\SessionManager;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Modules\Identity\Domain\MagicLink;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DateTimeImmutable;
@@ -36,7 +37,7 @@ final readonly class VerifyMagicLinkHandler implements CommandHandlerInterface
         $input = \strtoupper(\trim($command->input));
         $magicLink = $this->repository->findByInput($input);
 
-        if ($magicLink === null || $magicLink->isExpired($now)) {
+        if (!$magicLink instanceof MagicLink || $magicLink->isExpired($now)) {
             $this->rateLimiter->recordFailedAttempt($command->ipAddress);
 
             throw new DomainException('Der Code oder Link ist ungültig oder abgelaufen.');

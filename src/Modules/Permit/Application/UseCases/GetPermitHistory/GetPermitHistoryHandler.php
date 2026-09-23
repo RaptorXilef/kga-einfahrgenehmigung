@@ -24,8 +24,6 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
         $all = $this->repository->findAllWithEmail();
         $normalizedSearch = Sanitizer::normalizeEmail($query->email);
 
-        return \array_filter($all, function (Permit $permit) use ($normalizedSearch): bool {
-            return Sanitizer::normalizeEmail($permit->getOwnerEmail()) === $normalizedSearch;
-        });
+        return \array_filter($all, fn (Permit $permit): bool => Sanitizer::normalizeEmail($permit->getOwnerEmail()) === $normalizedSearch);
     }
 }

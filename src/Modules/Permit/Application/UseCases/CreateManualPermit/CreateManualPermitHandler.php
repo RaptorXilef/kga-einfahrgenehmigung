@@ -70,7 +70,7 @@ final readonly class CreateManualPermitHandler implements CommandHandlerInterfac
             } else {
                 $fullIdentifier = $randomId;
             }
-        } while ($this->repository->findByCode($fullIdentifier) !== null);
+        } while ($this->repository->findByCode($fullIdentifier) instanceof Permit);
 
         $permit = new Permit(
             code: new PermitCode($fullIdentifier),
@@ -86,9 +86,11 @@ final readonly class CreateManualPermitHandler implements CommandHandlerInterfac
 
         $this->repository->save($permit);
 
-        if ($command->sendEmail) {
-            $this->eventDispatcher->dispatch(new PermitCreatedEvent($permit, $randomId));
+        if (!$command->sendEmail) {
+            return;
         }
+
+        $this->eventDispatcher->dispatch(new PermitCreatedEvent($permit, $randomId));
     }
 
     private function generateV4Suffix(): string

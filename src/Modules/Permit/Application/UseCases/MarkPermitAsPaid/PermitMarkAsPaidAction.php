@@ -52,7 +52,7 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
                 $command = new MarkPermitAsPaidCommand($code, 'Manuell bestätigt');
                 $this->markPaidHandler->handle($command);
                 ++$successCount;
-            } catch (DomainException $e) {
+            } catch (DomainException) {
                 ++$errorCount;
             }
         }

@@ -151,7 +151,8 @@ function sanitizeJsonContent(filePath, rawContent) {
         }
 
         return JSON.stringify(parsed, null, indent);
-    } catch (_e) { // Linter-Fix: "e" zu "_e" geändert, da ungenutzt
+    } catch (_e) {
+        // Linter-Fix: "e" zu "_e" geändert, da ungenutzt
         // Falls das JSON defekt ist, geben wir sicherheitshalber den Roh-Inhalt zurück
         return rawContent;
     }

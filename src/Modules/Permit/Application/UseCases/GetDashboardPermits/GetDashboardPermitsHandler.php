@@ -31,11 +31,13 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
         $validTplKeys = [];
         if ($query->filterType !== 'all') {
             foreach ($this->config->get('permit_templates', []) as $k => $tpl) {
-                if (($tpl['type'] ?? 'standard') === $query->filterType) {
-                    $validTplKeys[] = $k;
+                if (!(($tpl['type'] ?? 'standard') === $query->filterType)) {
+                    continue;
                 }
+
+                $validTplKeys[] = $k;
             }
-            if (empty($validTplKeys)) {
+            if ($validTplKeys === []) {
                 return new DashboardPermitsResultDto([], [], [], [], 0, 0, 0, 0, 0);
             }
         }
@@ -44,7 +46,7 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
         $whereParts = ['DATE(erstellt) >= ? AND DATE(erstellt) <= ?'];
         $binds = [$query->filterStart, $query->filterEnd];
 
-        if (!empty($validTplKeys)) {
+        if ($validTplKeys !== []) {
             $in = \str_repeat('?,', \count($validTplKeys) - 1) . '?';
             $whereParts[] = "template_key IN ($in)";
             $binds = \array_merge($binds, $validTplKeys);
@@ -197,11 +199,11 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
 
             if ($isFuture) {
                 $daysUntil = (int) $now->diff($von)->format('%r%a');
-                $countdownText = ($daysUntil === 1) ? 'Morgen' : "In {$daysUntil} Tagen";
+                $countdownText = $daysUntil === 1 ? 'Morgen' : "In {$daysUntil} Tagen";
             } elseif (!$isExpired) {
                 $remaining = (int) $now->diff($bis)->format('%r%a');
-                $countdownText = ($remaining === 0) ? 'Läuft heute ab' : "Noch {$remaining} Tage";
-                $countdownBadgeClass = ($remaining <= 1) ? 'c-badge--danger' : 'c-badge--primary';
+                $countdownText = $remaining === 0 ? 'Läuft heute ab' : "Noch {$remaining} Tage";
+                $countdownBadgeClass = $remaining <= 1 ? 'c-badge--danger' : 'c-badge--primary';
             }
 
             $statusBadgeHtml = '';

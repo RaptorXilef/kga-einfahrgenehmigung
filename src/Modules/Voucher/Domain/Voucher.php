@@ -84,7 +84,7 @@ final class Voucher
 
     public function isExpired(DateTimeImmutable $now): bool
     {
-        if ($this->expiresAt === null) {
+        if (!$this->expiresAt instanceof DateTimeImmutable) {
             return false;
         }
 

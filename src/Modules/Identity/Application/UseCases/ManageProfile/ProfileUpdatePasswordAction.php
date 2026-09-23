@@ -33,6 +33,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
 
         if (\str_starts_with($userId, 'sys_')) {
             $this->sessionManager->addFlash('error', 'System-Accounts können nicht bearbeitet werden.');
+
             return new RedirectResponse('admin');
         }
 
@@ -40,6 +41,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
             $dto = ProfileUpdatePasswordRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
+
             return new RedirectResponse('profile');
         }
 
@@ -55,6 +57,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
             return new RedirectResponse('profile');
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
+
             return new RedirectResponse('profile');
         }
     }

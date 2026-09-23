@@ -44,6 +44,7 @@ final readonly class AdminLoginAction implements ActionInterface
             $dto = AdminLoginRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             $this->rescueFormData($request);
+
             return $this->renderForm($e->getMessage());
         }
 
@@ -60,6 +61,7 @@ final readonly class AdminLoginAction implements ActionInterface
             return new RedirectResponse('admin');
         } catch (DomainException|RuntimeException $e) {
             $this->rescueFormData($request);
+
             return $this->renderForm($e->getMessage());
         }
     }

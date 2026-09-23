@@ -55,7 +55,6 @@ final readonly class HistoryPrintAction implements ViewActionInterface
 
         // Vergleicht die E-Mails via Normalisierung (+ Aliase) für höchste Zuverlässigkeit
         if ($permit instanceof Permit && Sanitizer::normalizeEmail($permit->getOwnerEmail()) === Sanitizer::normalizeEmail($emailInSession)) {
-
             $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
             $checkUrl = $safeBaseUrl . 'check?code=' . $permit->code->value;
 

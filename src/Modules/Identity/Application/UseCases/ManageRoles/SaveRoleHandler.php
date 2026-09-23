@@ -16,14 +16,14 @@ final readonly class SaveRoleHandler
     public function handle(SaveRoleCommand $command): SaveRoleResult
     {
         $role = $command->roleId !== '' ? $this->repository->findById($command->roleId) : null;
-        $isUpdate = $role !== null;
+        $isUpdate = $role instanceof Role;
         $perms = $command->permissions;
 
         if (!$isUpdate) {
             $newId = $command->roleId !== '' ? $command->roleId : 'role_' . \bin2hex(\random_bytes(4));
             if ($command->inheritRoleId !== '') {
                 $inherit = $this->repository->findById($command->inheritRoleId);
-                if ($inherit !== null) {
+                if ($inherit instanceof Role) {
                     $perms = $inherit->permissions;
                 }
             }

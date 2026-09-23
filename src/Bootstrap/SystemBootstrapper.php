@@ -99,9 +99,11 @@ final class SystemBootstrapper
         $defaultFiles = \glob($appRoot . '/config/*.default.php') ?: [];
         foreach ($defaultFiles as $file) {
             $loaded = require $file;
-            if (\is_array($loaded)) {
-                $settings = \array_replace_recursive($settings, $loaded);
+            if (!\is_array($loaded)) {
+                continue;
             }
+
+            $settings = \array_replace_recursive($settings, $loaded);
         }
 
         // 2. Normale Configs laden (*.php, außer default und local)
@@ -111,18 +113,22 @@ final class SystemBootstrapper
                 continue;
             }
             $loaded = require $file;
-            if (\is_array($loaded)) {
-                $settings = \array_replace_recursive($settings, $loaded);
+            if (!\is_array($loaded)) {
+                continue;
             }
+
+            $settings = \array_replace_recursive($settings, $loaded);
         }
 
         // 3. Lokale Overrides laden (*.local.php)
         $localFiles = \glob($appRoot . '/config/*.local.php') ?: [];
         foreach ($localFiles as $file) {
             $loaded = require $file;
-            if (\is_array($loaded)) {
-                $settings = \array_replace_recursive($settings, $loaded);
+            if (!\is_array($loaded)) {
+                continue;
             }
+
+            $settings = \array_replace_recursive($settings, $loaded);
         }
 
         /** @var array<string, mixed> $validSettings */

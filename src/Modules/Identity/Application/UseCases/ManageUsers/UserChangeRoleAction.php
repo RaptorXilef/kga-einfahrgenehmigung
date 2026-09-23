@@ -12,6 +12,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use App\SharedKernel\Application\Security\Sanitizer;
@@ -54,7 +55,7 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
 
         try {
             $user = $this->userRepository->findById($userId);
-            if ($user === null) {
+            if (!$user instanceof User) {
                 throw new DomainException('Fehler: Benutzer nicht gefunden.');
             }
 

@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Modules\Permit\Domain\Permit;
 
 #[Route('GET', '/verify')]
 #[Route('POST', '/verify')]
@@ -47,7 +48,7 @@ final readonly class VerificationAction implements ViewActionInterface
 
         $this->rateLimiter->clearAttempts($ip);
 
-        if ($result->finalisedPermit !== null) {
+        if ($result->finalisedPermit instanceof Permit) {
             return new RedirectResponse('check?code=' . $result->finalisedPermit->code->value . '&verified=1');
         }
 

@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DomainException;
@@ -65,7 +66,7 @@ final readonly class AuthenticateAdminHandler implements CommandHandlerInterface
         // 3. Echte Datenbank-User prüfen
         $user = $this->repository->findByUsername($command->username);
 
-        if ($user !== null && $user->verifyPassword($command->password)) {
+        if ($user instanceof User && $user->verifyPassword($command->password)) {
             $this->loginSuccess($user->id, $user->roleId, $user->username, $user->getPasswordHash(), $command->ipAddress);
 
             return;

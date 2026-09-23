@@ -24,11 +24,13 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
         $validTplKeys = [];
         if ($query->templateType !== 'all') {
             foreach ($this->config->get('permit_templates', []) as $k => $tpl) {
-                if (($tpl['type'] ?? 'standard') === $query->templateType) {
-                    $validTplKeys[] = $k;
+                if (!(($tpl['type'] ?? 'standard') === $query->templateType)) {
+                    continue;
                 }
+
+                $validTplKeys[] = $k;
             }
-            if (empty($validTplKeys)) {
+            if ($validTplKeys === []) {
                 return ['items' => [], 'total' => 0];
             }
         }
@@ -36,7 +38,7 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
         $binds = [];
         $whereParts = [];
 
-        if (!empty($validTplKeys)) {
+        if ($validTplKeys !== []) {
             $in = \str_repeat('?,', \count($validTplKeys) - 1) . '?';
             $whereParts[] = "template_key IN ($in)";
             $binds = \array_merge($binds, $validTplKeys);
@@ -86,23 +88,21 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
         $items = \array_slice($rows, $offset, $query->limit);
 
         // Daten flach mappen, wie es die API / das Vue.js Frontend erwartet
-        $formattedItems = \array_map(function (array $row) {
-            return [
-                'bis' => \date('d.m.Y', \strtotime($row['bis'])),
-                'code' => $row['code'],
-                'email' => $row['email'] ?: '',
-                'erstellt' => \date('d.m.Y H:i', \strtotime($row['erstellt'])),
-                'is_archived' => (bool) $row['is_archived'],
-                'kennzeichen' => $row['kennzeichen'],
-                'name' => $row['name'],
-                'parzelle' => \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
-                'preis' => (float) $row['preis'],
-                'status' => $row['status'],
-                'template_key' => $row['template_key'],
-                'von' => \date('d.m.Y', \strtotime($row['von'])),
-                'zweck' => $row['zweck'],
-            ];
-        }, $items);
+        $formattedItems = \array_map(fn (array $row): array => [
+            'bis' => \date('d.m.Y', \strtotime($row['bis'])),
+            'code' => $row['code'],
+            'email' => $row['email'] ?: '',
+            'erstellt' => \date('d.m.Y H:i', \strtotime($row['erstellt'])),
+            'is_archived' => (bool) $row['is_archived'],
+            'kennzeichen' => $row['kennzeichen'],
+            'name' => $row['name'],
+            'parzelle' => \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
+            'preis' => (float) $row['preis'],
+            'status' => $row['status'],
+            'template_key' => $row['template_key'],
+            'von' => \date('d.m.Y', \strtotime($row['von'])),
+            'zweck' => $row['zweck'],
+        ], $items);
 
         return ['items' => $formattedItems, 'total' => $total];
     }
