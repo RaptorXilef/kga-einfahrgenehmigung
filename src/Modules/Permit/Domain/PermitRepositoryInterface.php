@@ -19,19 +19,19 @@ interface PermitRepositoryInterface
     public function deleteMultiple(array $codes): int;
 
     /**
-     * @return Permit[] Liste aller Genehmigungen, bei denen eine E-Mail-Adresse hinterlegt ist.
+     * @return iterable<Permit> Generator: Liste aller Genehmigungen, bei denen eine E-Mail-Adresse hinterlegt ist.
      */
-    public function findAllWithEmail(): array;
+    public function yieldAllWithEmail(): iterable;
 
     /**
-     * @return Permit[] Liste aller abgelaufenen Genehmigungen, die bezahlt oder storniert sind.
+     * @return iterable<Permit> Generator: Liste aller abgelaufenen Genehmigungen, die bezahlt oder storniert sind.
      */
-    public function findExpired(DateTimeImmutable $cutoffDate): array;
+    public function yieldExpired(DateTimeImmutable $cutoffDate): iterable;
 
     /**
-     * @return Permit[] Liste aller noch nicht bezahlten, aktiven Genehmigungen.
+     * @return iterable<Permit> Generator: Liste aller noch nicht bezahlten, aktiven Genehmigungen.
      */
-    public function findUnpaid(): array;
+    public function yieldUnpaid(): iterable;
 
     /**
      * Prüft extrem performant direkt in der Datenbank, ob eine zeitliche Kollision vorliegt.

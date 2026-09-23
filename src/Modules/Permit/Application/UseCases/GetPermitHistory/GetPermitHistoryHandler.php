@@ -20,10 +20,17 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
 
     public function handle(mixed $query): array
     {
-        // Deutlich performanter: Wir laden nur Genehmigungen, die überhaupt eine E-Mail haben.
-        $all = $this->repository->findAllWithEmail();
         $normalizedSearch = Sanitizer::normalizeEmail($query->email);
+        $result = [];
 
-        return \array_filter($all, fn (Permit $permit): bool => Sanitizer::normalizeEmail($permit->getOwnerEmail()) === $normalizedSearch);
+        // Deutlich performanter: Wir iterieren als Stream (Generator) durch die Datensätze,
+        // prüfen das Pächter-Login-Kriterium und bauen nur dann das Ergebnis-Array auf.
+        foreach ($this->repository->yieldAllWithEmail() as $permit) {
+            if (Sanitizer::normalizeEmail($permit->getOwnerEmail()) === $normalizedSearch) {
+                $result[] = $permit;
+            }
+        }
+
+        return $result;
     }
 }

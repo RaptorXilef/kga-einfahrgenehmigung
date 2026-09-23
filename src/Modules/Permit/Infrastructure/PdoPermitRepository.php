@@ -123,29 +123,32 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         return $candidates[0];
     }
 
-    public function findAllWithEmail(): array
+    public function yieldAllWithEmail(): iterable
     {
         $stmt = $this->pdo->query("SELECT * FROM permits WHERE email IS NOT NULL AND email != '' AND email != '0'");
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        return \array_map($this->mapRowToEntity(...), $rows);
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            yield $this->mapRowToEntity($row);
+        }
     }
 
-    public function findExpired(DateTimeImmutable $cutoffDate): array
+    public function yieldExpired(DateTimeImmutable $cutoffDate): iterable
     {
         $stmt = $this->pdo->prepare("SELECT * FROM permits WHERE bis < :cutoff AND status IN ('bezahlt', 'storniert')");
         $stmt->execute(['cutoff' => $cutoffDate->format('Y-m-d')]);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        return \array_map($this->mapRowToEntity(...), $rows);
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            yield $this->mapRowToEntity($row);
+        }
     }
 
-    public function findUnpaid(): array
+    public function yieldUnpaid(): iterable
     {
         $stmt = $this->pdo->query("SELECT * FROM permits WHERE status = 'offen' AND is_suspended = 0");
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        return \array_map($this->mapRowToEntity(...), $rows);
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            yield $this->mapRowToEntity($row);
+        }
     }
 
     public function delete(string $code): void

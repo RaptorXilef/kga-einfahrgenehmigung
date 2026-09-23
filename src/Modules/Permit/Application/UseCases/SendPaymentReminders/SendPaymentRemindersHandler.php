@@ -37,9 +37,9 @@ final readonly class SendPaymentRemindersHandler implements CommandHandlerInterf
             return;
         }
 
-        // Hochperformanter Aufruf für den Cronjob: Nur offene Permits in den RAM laden!
-        $unpaidPermits = $this->repository->findUnpaid();
-        foreach ($unpaidPermits as $permit) {
+        // Hochperformanter Generator-Aufruf für den Cronjob:
+        // Wir iterieren über den Cursor der Datenbank (yield) statt FetchAll!
+        foreach ($this->repository->yieldUnpaid() as $permit) {
             $this->dispatchReminder($permit->code->value, false);
         }
     }

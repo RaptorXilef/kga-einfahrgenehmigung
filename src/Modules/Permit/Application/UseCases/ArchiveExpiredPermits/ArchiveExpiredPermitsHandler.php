@@ -24,20 +24,31 @@ final readonly class ArchiveExpiredPermitsHandler implements CommandHandlerInter
     public function handle(mixed $command): void
     {
         $cutoffDate = $this->clock->now()->modify("-{$command->graceDays} days")->setTime(0, 0, 0);
-
-        // Nutzt jetzt die hochperformante SQL-Suche, anstatt alle Permits in den RAM zu laden!
-        $expiredPermits = $this->repository->findExpired($cutoffDate);
-
-        if ($expiredPermits === []) {
-            return;
-        }
+        $chunkSize = 100;
 
         $codesToDelete = [];
-        foreach ($expiredPermits as $permit) {
+        $permitsToArchive = [];
+
+        // Nutzt jetzt die hochperformante SQL-Suche als Generator (yield),
+        // anstatt alle abgelaufenen Permits auf einmal in den RAM zu laden!
+        foreach ($this->repository->yieldExpired($cutoffDate) as $permit) {
             $codesToDelete[] = $permit->code->value;
+            $permitsToArchive[] = $permit;
+
+            // Chunking: Sobald 100 erreicht sind, abarbeiten und Arrays leeren (Speicher freigeben)
+            if (\count($codesToDelete) >= $chunkSize) {
+                $this->archiveRepository->archivePermits(0, $permitsToArchive);
+                $this->repository->deleteMultiple($codesToDelete);
+
+                $codesToDelete = [];
+                $permitsToArchive = [];
+            }
         }
 
-        $this->archiveRepository->archivePermits(0, $expiredPermits);
-        $this->repository->deleteMultiple($codesToDelete);
+        // Restliche Daten abarbeiten, falls das Array nicht exakt durch 100 teilbar war
+        if (\count($codesToDelete) > 0) {
+            $this->archiveRepository->archivePermits(0, $permitsToArchive);
+            $this->repository->deleteMultiple($codesToDelete);
+        }
     }
 }
