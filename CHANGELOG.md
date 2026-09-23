@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.78.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.78.0...v0.78.1) (2026-09-23)
+
+### 💎 Styling
+
+* **all:** apply automated code formatting and modernizations ([f502c15](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f502c15bb54fdf7ae7e05e0a4e4ec88d17e9fe2b))
+
+### 🧹 Chore / Maintenance
+
+* **git:** ignore mass formatting commit in git blame ([6f5f8d9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6f5f8d9638469c9907ccbf333c929db92d1e81f7))
+
 ## [0.78.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.77.7...v0.78.0) (2026-09-22)
 
 ### 🚀 Features
