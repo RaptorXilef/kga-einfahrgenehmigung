@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.78.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.78.3...v0.78.4) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **config:** Update Deptrac ruleset for pragmatic cross-module dependencies & doc PHPStan ignores ([aa84b01](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/aa84b014c0e79db2add5f97bccbce9f4f80320df))
+* **qa:** Resolve Deptrac 1.0 schema error and inject ClockInterface into AnalyticsMiddleware ([2a9cd3f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2a9cd3f8fb780725dc07ebf7c3293ab11ca511c3))
+* **qa:** Resolve Deptrac v1.0 root node error and tune PHPStan strict rules ([38cdf28](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/38cdf280779bff8e63e4b2b204285ef69ff9b865))
+
+### ⚙️ Refactoring
+
+* **architecture:** Finalize Phase 5 - Harden architecture and remove leaky abstractions ([ed3a8c6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ed3a8c6d49bde0765fd742775e0bf6cf088166bb))
+* **cron:** Prevent memory leaks in background jobs via Generators (Yield) ([a7f1697](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a7f169786cd07414fecf8b9a7295cce3d546fe00))
+* **dashboard:** Move all presentation logic into strict Read-Models (CQRS) ([f125ae9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f125ae93f32f5b2fd3b44d0433fd4ffbea6e2182))
+* **payment:** Secure checkout pipeline and introduce strict ViewDTOs ([72569cd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/72569cdbeb3735b2914998651496e983f80431e1))
+* **permit:** Move public form logic into strictly typed ViewDto ([3115e2b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3115e2bece9d419a9a1fef3b0e41300ac0610744))
+
 ## [0.78.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.78.2...v0.78.3) (2026-09-23)
 
 ### ⚙️ Refactoring
