@@ -9,6 +9,7 @@ final readonly class CheckoutSummaryViewDto
     public function __construct(
         public string $token,
         public bool $isPayPalEnabled,
+        public string $paypalClientId,
         public string $name,
         public string $email,
         public string $parzelle,

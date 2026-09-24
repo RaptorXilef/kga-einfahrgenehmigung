@@ -17,6 +17,10 @@ final readonly class UserManagementViewDto
         public array $roles,
         public array $globalRoleOptions,
         public int $userCount,
+        public bool $canManageSystem,
+        public bool $canManageUsers,
+        public bool $canManageRoles,
+        public bool $hasGodMode,
     ) {
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Application\UseCases\GetUserManagementData\UserManagementViewDto;
 
 /**
@@ -9,12 +8,11 @@ use App\Modules\Identity\Application\UseCases\GetUserManagementData\UserManageme
  *
  * Erstellung, Bearbeitung und Zuweisung von Benutzerkonten.
  *
- * @var AuthService $auth
  * @var AssetHelperInterface $asset
  * @var UserManagementViewDto $viewDto
  * @var array $settings
  */
-if ($auth->hasPermission('system.users.manage')) { ?>
+if ($viewDto->canManageUsers) { ?>
 <div class="u-flex u-flex-column u-gap-l">
     <section class="c-card c-card--success">
         <header class="c-card__header">
@@ -392,5 +390,4 @@ if ($auth->hasPermission('system.users.manage')) { ?>
         </div>
         <?php } ?>
     </div>
-</div>
-<?php } ?>
+    <?php } ?>

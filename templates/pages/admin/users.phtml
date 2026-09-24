@@ -1,7 +1,6 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Application\UseCases\GetUserManagementData\UserManagementViewDto;
 
 /**
@@ -13,7 +12,6 @@ use App\Modules\Identity\Application\UseCases\GetUserManagementData\UserManageme
  * Bietet Masken für Passwörtrücksetzungen, Gruppen-Rechte-Zuweisungen (Matrix) sowie Avatar-/Icon-Uploads.
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
  * @var UserManagementViewDto $viewDto
  * @var array $settings
  * @var string $appRoot
@@ -22,13 +20,13 @@ use App\Modules\Identity\Application\UseCases\GetUserManagementData\UserManageme
 $layout = 'admin';
 $pageTitle = 'Benutzer & Rechte - ' . ($settings['vereins_name'] ?? '');
 
-if ($auth->hasPermission('system.manage')) { ?>
+if ($viewDto->canManageSystem) { ?>
 <main class="c-tab-content-container u-padding-block-l js-permission-matrix js-admin-dashboard">
     <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
     <div class="c-tabs">
         <div class="c-tabs__nav u-margin-block-end-l">
-            <?php if ($auth->hasPermission('system.users.manage')) { ?>
+            <?php if ($viewDto->canManageUsers) { ?>
             <button
                 class="c-tabs__btn is-active"
                 data-tab-target="tab-users"
@@ -41,7 +39,7 @@ if ($auth->hasPermission('system.manage')) { ?>
                 > Benutzerverwaltung
             </button>
             <?php } ?>
-            <?php if ($auth->hasPermission('system.roles.manage')) { ?>
+            <?php if ($viewDto->canManageRoles) { ?>
             <button
                 class="c-tabs__btn"
                 data-tab-target="tab-roles"
@@ -56,7 +54,7 @@ if ($auth->hasPermission('system.manage')) { ?>
             <?php } ?>
         </div>
 
-        <?php if ($auth->hasPermission('system.users.manage')) { ?>
+        <?php if ($viewDto->canManageUsers) { ?>
         <div
             id="tab-users"
             class="c-tabs__content is-active"
@@ -64,7 +62,7 @@ if ($auth->hasPermission('system.manage')) { ?>
             <?php include $appRoot . '/templates/partials/admin/tab_users.phtml'; ?>
         </div>
         <?php } ?>
-        <?php if ($auth->hasPermission('system.roles.manage')) { ?>
+        <?php if ($viewDto->canManageRoles) { ?>
         <div
             id="tab-roles"
             class="c-tabs__content"

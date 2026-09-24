@@ -69,13 +69,17 @@ final readonly class PermitRenderAction implements ViewActionInterface
 
         // Dropdown-Optionen vorbereiten (Logik aus der View verbannt)
         $templateOptions = [];
+        $tplMetadata = [];
         foreach ($publicTemplates as $key => $tpl) {
             $templateOptions[] = [
                 'value' => $key,
                 'label' => $tpl['label'],
                 'selected' => $activeTemplateKey === $key,
             ];
+            $tplMetadata[$key] = ['days' => $tpl['days'], 'type' => $tpl['type']];
         }
+
+        $tplMetadataJson = \json_encode($tplMetadata, \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT) ?: '{}';
 
         $vehicleOptions = [];
         foreach ($this->config->get('vehicle_types', []) as $val => $vData) {
@@ -129,6 +133,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
             vehicleOptions: $vehicleOptions,
             purposeOptions: $purposeOptions,
             agreements: $this->getParsedAgreements(),
+            tplMetadataJson: $tplMetadataJson,
         );
 
         $html = $this->renderer->render('frontend/formular', [
@@ -157,7 +162,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
                     $finalLink = \rtrim($baseUrl, '/') . '/' . \ltrim($agree['link'], '/');
                 }
                 $linkHtml = '<a href="' . \htmlspecialchars($finalLink) .
-                    '" target="_blank" style="color: var(--primary-color); text-decoration: underline; font-weight: 500;">$1</a>';
+                '" target="_blank" style="color: var(--primary-color); text-decoration: underline; font-weight: 500;">$1</a>';
                 $renderedLabel = \preg_replace('/\[(.*?)\]/', $linkHtml, $cleanLabel);
             } else {
                 $renderedLabel = \preg_replace('/\[(.*?)\]/', '$1', $cleanLabel);

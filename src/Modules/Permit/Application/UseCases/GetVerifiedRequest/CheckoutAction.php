@@ -55,12 +55,15 @@ final readonly class CheckoutAction implements ViewActionInterface
 
         $paypalConfig = $this->config->get('paypal', []);
         $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
+        $paypalMode = $this->config->isTestMode() ? 'sandbox' : 'live';
+        $paypalClientId = $paypalConfig[$paypalMode]['client_id'] ?? '';
 
         $preisRaw = (float) ($tempData['preis'] ?? 0);
 
         $viewDto = new CheckoutSummaryViewDto(
             token: $token,
             isPayPalEnabled: $isPayPalEnabled,
+            paypalClientId: $paypalClientId,
             name: (string) ($tempData['name'] ?? ''),
             email: (string) ($tempData['email'] ?? ''),
             parzelle: (string) ($tempData['parzelle'] ?? ''),

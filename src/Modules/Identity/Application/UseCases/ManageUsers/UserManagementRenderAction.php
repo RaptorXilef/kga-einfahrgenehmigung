@@ -27,10 +27,10 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        $viewDto = $this->dataHandler->handle(new GetUserManagementDataQuery());
+        $viewDto = $this->dataHandler->handle(new GetUserManagementDataQuery($this->auth));
 
         $html = $this->renderer->render('admin/users', [
-            'auth' => $this->auth,
+            'auth' => $this->auth, // Legacy-Objekt bleibt vorerst für Container verfügbar, falls benötigt
             'viewDto' => $viewDto,
         ]);
 

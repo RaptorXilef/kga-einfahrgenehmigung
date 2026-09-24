@@ -61,6 +61,12 @@ final readonly class TemplateRenderer
         $adminRoleName = \ucfirst(\str_replace('role_', '', $adminRoleRaw));
         $adminAvatarUrl = $adminUserId !== '' ? $this->imageStorage->getImageUrl('user', $adminUserId, 'user.webp') : '';
 
+        $globalPermissions = $this->sessionManager->getPermissions();
+        $isSysAdmin = \str_starts_with($adminUserId, 'sys_');
+        $hasGodMode = ($globalPermissions['*'] ?? false) || $isSysAdmin;
+        $canManageSystem = ($globalPermissions['system.manage'] ?? false) || $hasGodMode;
+        $canAccessAdmin = ($globalPermissions['admin.access'] ?? false) || $hasGodMode;
+
         // 3. Systemvariablen bereitstellen
         $systemVars = [
             'appRoot' => $appRoot,
@@ -80,7 +86,10 @@ final readonly class TemplateRenderer
             'adminUserName' => $this->sessionManager->getAdminUser(),
             'adminRoleName' => $adminRoleName,
             'adminAvatarUrl' => $adminAvatarUrl,
-            'globalPermissions' => $this->sessionManager->getPermissions(),
+            'globalPermissions' => $globalPermissions,
+            'hasGodMode' => $hasGodMode,
+            'canManageSystem' => $canManageSystem,
+            'canAccessAdmin' => $canAccessAdmin,
             'allReleaseNotes' => $this->systemInfo->getAllReleaseNotes(),
         ];
 

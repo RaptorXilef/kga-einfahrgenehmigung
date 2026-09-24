@@ -95,6 +95,10 @@ final readonly class GetUserManagementDataHandler implements QueryHandlerInterfa
             roles: $roleDtos,
             globalRoleOptions: $globalRoleOptions,
             userCount: \count($userDtos),
+            canManageSystem: $query->auth->hasPermission('system.manage'),
+            canManageUsers: $query->auth->hasPermission('system.users.manage'),
+            canManageRoles: $query->auth->hasPermission('system.roles.manage'),
+            hasGodMode: $query->auth->hasPermission('*'),
         );
     }
 }

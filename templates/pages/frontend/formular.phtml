@@ -1,6 +1,5 @@
 <?php
 
-use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\PermitFormViewDto;
 
@@ -15,7 +14,6 @@ use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\PermitFormViewDt
  * falls ein Tarif kostenpflichtig ist und unterstützt Vorbefüllungen durch Gutscheincodes.
  *
  * @var AssetHelperInterface $asset
- * @var ConfigInterface $config  Anwendungs-Konfigurationsinstanz.
  * @var PermitFormViewDto $viewDto Enthält den vollständig aufgelösten Formulardaten-Status.
  * @var array $settings  Enthält gefilterte Templates.
  * @var bool $hasActiveVouchers  True, falls einlösbare Gutscheine existieren.
@@ -26,13 +24,6 @@ use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\PermitFormViewDt
  */
 $layout = 'public';
 $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
-
-$tplMetadata = [];
-$publicTemplates = $settings['public_templates'] ?? [];
-
-foreach ($publicTemplates as $key => $tpl) {
-    $tplMetadata[$key] = ['days' => $tpl['days'], 'type' => $tpl['type']];
-}
 
 // Suche nach dem Logo mit verschiedenen Endungen
 $logoFile = null;
@@ -51,7 +42,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
             <div class="u-margin-block-end-m u-flex u-justify-center">
                 <img
                     src="<?php echo $settings['base_url'] . $logoFile; ?>"
-                    alt="<?php echo \htmlspecialchars($config->get('vereins_name')); ?>"
+                    alt="<?php echo \htmlspecialchars($settings['vereins_name'] ?? ''); ?>"
                     loading="lazy"
                     class="c-logo"
                 >
@@ -370,7 +361,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <!-- SCHRITT 3: ZEITRAUM -->
                 <div class="c-form-section">
                     <h4 class="c-form-section__title"><span class="c-form-section__step">3</span> Gültigkeit</h4>
-                    <?php if (\count($publicTemplates) > 1) { ?>
+                    <?php if (\count($viewDto->templateOptions) > 1) { ?>
                     <!-- Mehrere Optionen: Auswahl anzeigen -->
                     <div class="c-form-group u-margin-block-end-m">
                         <label
@@ -396,7 +387,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     </div>
                     <?php } else { ?>
                     <!-- Nur eine Option: Feld verstecken, Wert für JS/Backend bereitstellen -->
-                    <?php $singleKey = \array_key_first($publicTemplates); ?>
+                    <?php $singleKey = $viewDto->templateOptions[0]['value'] ?? ''; ?>
                     <input
                         type="hidden"
                         name="template_key"
@@ -539,6 +530,6 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 </div>
 
 <script nonce="<?php echo $cspNonce; ?>">
-window.KGA_TEMPLATES = <?php echo \json_encode($tplMetadata); ?>;
+window.KGA_TEMPLATES = <?php echo $viewDto->tplMetadataJson; ?>;
 
 </script>

@@ -11,16 +11,15 @@ use App\Contracts\System\AssetHelperInterface;
  * @var AssetHelperInterface $asset
  * @var array $settings
  * @var array $allReleaseNotes
- * @var array $globalPermissions
  * @var string $currentRoute
  * @var string $csrfToken
  * @var string $adminUserId
  * @var string $adminUserName
  * @var string $adminRoleName
  * @var string $adminAvatarUrl
+ * @var bool $canManageSystem
+ * @var bool $canAccessAdmin
  */
-$canManageSystem = ($globalPermissions['system.manage'] ?? false) || ($globalPermissions['*'] ?? false) || \str_starts_with($adminUserId, 'sys_');
-$canAccessAdmin = ($globalPermissions['admin.access'] ?? false) || ($globalPermissions['*'] ?? false) || \str_starts_with($adminUserId, 'sys_');
 ?>
 
 <nav class="c-header-nav">
