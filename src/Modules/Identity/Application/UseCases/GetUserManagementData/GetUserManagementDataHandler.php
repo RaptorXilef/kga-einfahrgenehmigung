@@ -9,6 +9,7 @@ use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Modules\Identity\Presentation\View\PermissionTreePresenter;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use Override;
 use PDO;
 
 /**
@@ -24,6 +25,7 @@ final readonly class GetUserManagementDataHandler implements QueryHandlerInterfa
     ) {
     }
 
+    #[Override]
     public function handle(mixed $query): UserManagementViewDto
     {
         // 1. Rollen laden & parsen
