@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.79.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.1...v0.79.2) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* **core:** Resolve signature mismatches for ResponseInterface in missed actions ([b82c9e1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b82c9e1ba101a68279e8beeb433ed86f41dda44a))
+* **infra:** Resolve ArgumentCountError in PdoFactory ([bbbeb0e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bbbeb0effc1eab1e096f09aac8be16480cb7caee))
+* **system:** Enforce ResponseInterface and #[Override] in ManageBackups actions ([02fee81](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/02fee81560aadb795380dfa6fe5d5bafc113ab34))
+* **ui:** resolve undefined property and unused imports in dashboard view ([2bfa5ca](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2bfa5ca65d9611afd84b6d2b13c921f47aca5fca))
+* **ui:** restore clickable version changelog link in footer for dashboard users ([d03a862](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d03a8626797b0bb0b2ace7f8a6cb42e5c1e9010b))
+
+### ⚙️ Refactoring
+
+* **architecture:** Implement Integration Ports and isolate Clock/IO functions ([e6bf4d3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e6bf4d399d5d09c54a1c920510b3ad096059ec21))
+* **core:** Add #[Override] to all CQRS handlers ([ae3a953](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ae3a95396352aca71eccec4c8b62ea70dc93a88f))
+* **core:** decouple native I/O from application layer ([ad89605](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ad896052e6911d09f6113a50f2247f506f519136))
+* **core:** Enforce native return types and #[Override] attributes - Part 1 ([0762dcb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0762dcbe6fd3eea3788c27a95f18deac8bb60f40))
+* **core:** Enforce native return types and #[Override] attributes - Part 2 ([9f7d447](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9f7d44762d00dbffa31b98bf41db722754ca9c30))
+* **core:** Enforce native return types and #[Override] attributes - Part 3 (Final) ([9b0ada9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9b0ada908f14e3da6ec67df7798e9b4b2bb6daf0))
+* **core:** enforce strict CQRS on finalize and eradicate superglobals in renderer ([4072e33](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4072e337f3e6ca7ab7536dd8a8f4ba4a932da952))
+* **core:** implement FormExceptionHandlerMiddleware for centralized form state rescue ([ac61229](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ac61229bc39c6e6cd3772677da110246fe7eeea9))
+* **core:** introduce AuditLogViewDto to keep templates strictly logic-free ([30b5fca](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/30b5fca9f0a5f53ae06e130538dc0c25267d011c))
+* **core:** Polish architecture, enforce type safety, and decouple middleware ([550d254](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/550d2540afcf32b5645f2a7d7382dc8ddcb16d82))
+* **cqrs:** Eliminate Context-Bags and enforce strict CQRS principles (Phase 2) ([c0ccf35](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c0ccf351497d51badf20cea6d1908601bec535cd))
+* **domain/app:** Purge native time/IO functions and enforce ClockInterface & Request DTOs ([95968dc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/95968dce3f0075ab24af7a9db7b5cd4df50941d0))
+* **domain/permit:** Extract PermitFactory and deduplicate business logic ([7319c2c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7319c2ceebb06d7263cbcddb4d786e5041bb721c))
+* **identity:** Add missing #[Override] attribute to GetUserManagementDataHandler ([53bf98a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/53bf98ab0b040354c0fc1289a770b8801127a671))
+* **infra:** Purge native time functions and enforce DTOs in providers ([775fac1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/775fac11c0e8f795ce6ffa4f53772799bcf49065))
+* **sys/repo:** Enforce memory-safe operations (Phase 4) ([4728a8b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4728a8bfc03c0246d045087d620b6dc749bb5ecb))
+* **system:** delegate mail queue file locking to LockManagerInterface ([e266e10](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e266e10f2bf5ac73d9baf9554e45971a3d878d82))
+* **system:** replace native time() with ClockInterface in BotProtectionService ([9df775c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9df775c9c63f9ec8cf07f8ee971f1450217a901a))
+* **ui:** achieve 100% dumb views for dashboard and global layouts ([ca70af4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ca70af45839bfa26e56eee582395d8b7036ba98d))
+* **ui:** Extract business logic from UI templates into DTOs ([dcc77a7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dcc77a766dc4fc41397d3eaedb8c0f8cc32128f3))
+
 ## [0.79.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.0...v0.79.1) (2026-09-24)
 
 ### ⚙️ Refactoring
