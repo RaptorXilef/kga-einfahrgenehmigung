@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\FinalizePermit;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
@@ -17,6 +18,7 @@ use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
 use App\Modules\Permit\Domain\PermitStatus;
+use Override;
 
 #[Route('GET', '/success')]
 #[Route('POST', '/success')]
@@ -31,7 +33,8 @@ final readonly class SuccessAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $dto = SuccessRequest::fromArray($request->get);
         $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($dto->code));
@@ -49,7 +52,7 @@ final readonly class SuccessAction implements ViewActionInterface
             $epcData = $this->financeIntegration->generateEpcQrData($permit->getPrice(), $usage);
         }
 
-        $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
+        $requirePayment = $this->config->getBool('require_payment_for_validity', false);
         $dueDate = $this->financialCalculator->calculatePaymentDueDate($permit)->format('d.m.Y');
 
         $viewDto = new CheckoutSuccessViewDto(
@@ -60,9 +63,9 @@ final readonly class SuccessAction implements ViewActionInterface
             dueDate: $dueDate,
             epcData: $epcData,
             preisFormatted: \number_format($permit->getPrice(), 2, ',', '.') . ' €',
-            kontoinhaber: (string) $this->config->get('kontoinhaber', ''),
-            iban: (string) $this->config->get('iban', ''),
-            bic: (string) $this->config->get('bic', ''),
+            kontoinhaber: $this->config->getString('kontoinhaber'),
+            iban: $this->config->getString('iban'),
+            bic: $this->config->getString('bic'),
             usage: $usage,
             ownerEmail: $permit->getOwnerEmail() ?: 'Ihre E-Mail-Adresse',
         );

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\ConfirmPermitEmail;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
@@ -13,6 +14,7 @@ use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Security\RateLimiterInterface;
 use DomainException;
+use Override;
 
 #[Route('GET', '/verify')]
 #[Route('POST', '/verify')]
@@ -26,7 +28,8 @@ final readonly class VerificationAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $token = \trim((string) ($request->get['token'] ?? $request->post['verification_code'] ?? ''));
 

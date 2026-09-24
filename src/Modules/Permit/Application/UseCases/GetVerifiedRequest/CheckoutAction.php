@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\GetVerifiedRequest;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
@@ -15,6 +16,7 @@ use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
 use DateTimeImmutable;
 use Exception;
+use Override;
 
 #[Route('GET', '/checkout')]
 final readonly class CheckoutAction implements ViewActionInterface
@@ -27,7 +29,8 @@ final readonly class CheckoutAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = CheckoutRequest::fromArray($request->get);
@@ -45,18 +48,18 @@ final readonly class CheckoutAction implements ViewActionInterface
         $dtVon = new DateTimeImmutable($tempData['datum_von'] ?? 'now');
         $dtBis = new DateTimeImmutable($tempData['datum_bis'] ?? 'now');
 
-        $vehicleTypes = $this->config->get('vehicle_types', []);
+        $vehicleTypes = $this->config->getArray('vehicle_types');
         $vKey = $tempData['typ'] ?? '';
         $typLabel = $vehicleTypes[$vKey]['label'] ?? $vKey;
 
-        $purposes = $this->config->get('purposes', []);
+        $purposes = $this->config->getArray('purposes');
         $zKey = $tempData['zweck'] ?? '';
         $zweckLabel = $purposes[$zKey] ?? $zKey;
 
-        $paypalConfig = $this->config->get('paypal', []);
-        $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
+        $paypalConfig = $this->config->getArray('paypal');
+        $isPayPalEnabled = (bool) ($paypalConfig['enabled'] ?? false);
         $paypalMode = $this->config->isTestMode() ? 'sandbox' : 'live';
-        $paypalClientId = $paypalConfig[$paypalMode]['client_id'] ?? '';
+        $paypalClientId = (string) ($paypalConfig[$paypalMode]['client_id'] ?? '');
 
         $preisRaw = (float) ($tempData['preis'] ?? 0);
 

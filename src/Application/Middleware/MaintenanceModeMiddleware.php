@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Application\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Response\JsonResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use Override;
 
 /**
  * Überwacht globale und feingranulare Wartungsmodi für die Anwendung.
@@ -25,7 +27,8 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(ServerRequest $request, callable $next): mixed
+    #[Override]
+    public function process(ServerRequest $request, callable $next): ResponseInterface
     {
         $relativePath = $this->resolveRelativePath($request);
 
@@ -117,7 +120,7 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
         return $relativePath;
     }
 
-    private function sendMaintenanceResponse(string $message, string $relativePath): mixed
+    private function sendMaintenanceResponse(string $message, string $relativePath): ResponseInterface
     {
         if (\str_starts_with($relativePath, '/api/')) {
             return JsonResponse::error($message, 503);
