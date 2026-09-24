@@ -6,6 +6,9 @@ namespace App\Modules\Finance\Application\UseCases\ProcessBankImport;
 
 use App\Application\Exception\ValidationException;
 
+/**
+ * Validiert die Eingabeparameter für den CSV-Bankabgleich komplett ohne Dateisystem-I/O.
+ */
 final readonly class BankImportProcessRequest
 {
     private function __construct(
@@ -19,8 +22,8 @@ final readonly class BankImportProcessRequest
     public static function fromArray(array $post): self
     {
         $file = \trim((string) ($post['temp_file'] ?? ''));
-        if ($file === '' || !\file_exists($file)) {
-            throw ValidationException::withMessage('Temporäre Importdatei nicht gefunden.');
+        if ($file === '' || !\str_ends_with(\strtolower($file), '.csv')) {
+            throw ValidationException::withMessage('Temporäre Importdatei nicht angegeben oder ungültig.');
         }
 
         return new self(

@@ -10,7 +10,7 @@ use Override;
 use PDO;
 
 /**
- * @implements QueryHandlerInterface<GetVoucherArchiveQuery, array>
+ * @implements QueryHandlerInterface<GetVoucherArchiveQuery, array<VoucherArchiveItemDto>>
  */
 final readonly class GetVoucherArchiveHandler implements QueryHandlerInterface
 {
@@ -21,20 +21,25 @@ final readonly class GetVoucherArchiveHandler implements QueryHandlerInterface
 
     /**
      * @param GetVoucherArchiveQuery $query
+     *
+     * @return array<VoucherArchiveItemDto>
      */
     #[Override]
     public function handle(mixed $query): array
     {
-        // Pragmatischer Direkt-Query für das Dashboard (CQRS Read-Model)
-        $stmt = $this->pdo->query('SELECT * FROM vouchers_archive ORDER BY redeemed_at DESC LIMIT 500');
+        $stmt = $this->pdo->query('SELECT code, redeemed_at, user_name, user_plot FROM vouchers_archive ORDER BY redeemed_at DESC LIMIT 500');
 
-        $rows = [];
+        $dtos = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $dt = new DateTimeImmutable((string) $row['redeemed_at']);
-            $row['redeemed_at_formatted'] = $dt->format('d.m.y');
-            $rows[] = $row;
+            $dtos[] = new VoucherArchiveItemDto(
+                code: (string) $row['code'],
+                redeemedAtFormatted: $dt->format('d.m.y'),
+                userName: (string) ($row['user_name'] ?? 'Unbekannt'),
+                userPlot: (string) ($row['user_plot'] ?? '0000'),
+            );
         }
 
-        return $rows;
+        return $dtos;
     }
 }

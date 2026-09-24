@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Voucher\Application\UseCases\GetVoucherList;
 
+use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
 use Override;
 use PDO;
 
 /**
- * Holt die Gutschein-Daten direkt und ungefiltert aus der Datenbank.
+ * Holt die Gutschein-Daten direkt und speicherschonend aus der Datenbank.
  *
  * @implements QueryHandlerInterface<GetVoucherListQuery, array<VoucherListDto>>
  */
@@ -18,6 +20,8 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
 {
     public function __construct(
         private PDO $pdo,
+        private ConfigInterface $config,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -41,10 +45,12 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
 
-        $now = new DateTimeImmutable();
+        $now = $this->clock->now();
+        $baseUrl = \rtrim($this->config->getBaseUrl(), '/');
         $dtos = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $code = (string) $row['code'];
             $isMultiUse = (bool) $row['is_multi_use'];
             $currentUses = (int) $row['current_uses'];
             $maxUses = (int) $row['max_uses'];
@@ -72,7 +78,8 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
             }
 
             $dtos[] = new VoucherListDto(
-                code: (string) $row['code'],
+                code: $code,
+                redeemUrl: $baseUrl . '/index?voucher=' . $code,
                 reason: $reasonText,
                 isInvalid: $isInvalid,
                 rowClass: $isInvalid ? 'c-table__row--danger u-opacity-50' : '',

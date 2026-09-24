@@ -6,12 +6,13 @@ namespace App\Modules\Voucher\Application\UseCases\GetVoucherList;
 
 /**
  * 100% View-spezifisches DTO.
- * Enthält fertige Strings und CSS-Klassen für das PHTML-Template.
+ * Enthält fertige Strings, URLs und CSS-Klassen für das PHTML-Template.
  */
 final readonly class VoucherListDto
 {
     public function __construct(
         public string $code,
+        public string $redeemUrl,
         public string $reason,
         public bool $isInvalid,         // Für die ausgegraute Zeile
         public string $rowClass,        // c-table__row--danger u-opacity-50 oder leer

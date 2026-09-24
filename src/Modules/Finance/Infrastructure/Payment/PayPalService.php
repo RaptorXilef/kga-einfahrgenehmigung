@@ -6,6 +6,7 @@ namespace App\Modules\Finance\Infrastructure\Payment;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
+use Override;
 use RuntimeException;
 
 /**
@@ -30,6 +31,7 @@ final readonly class PayPalService implements PaymentProviderInterface
             : $this->config->get('paypal_api_live', 'https://api-m.paypal.com');
     }
 
+    #[Override]
     public function createOrder(float $amount): string|false
     {
         $accessToken = $this->getAccessToken();
@@ -61,6 +63,7 @@ final readonly class PayPalService implements PaymentProviderInterface
         return $data['id'] ?? false;
     }
 
+    #[Override]
     public function captureOrder(string $orderId, float $expectedAmount): bool
     {
         $accessToken = $this->getAccessToken();

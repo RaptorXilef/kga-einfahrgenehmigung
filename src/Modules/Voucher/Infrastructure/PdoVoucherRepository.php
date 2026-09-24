@@ -7,6 +7,7 @@ namespace App\Modules\Voucher\Infrastructure;
 use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 /**
@@ -20,20 +21,21 @@ final readonly class PdoVoucherRepository implements VoucherRepositoryInterface
     ) {
     }
 
+    #[Override]
     public function save(Voucher $voucher): void
     {
         $sql = 'INSERT INTO vouchers (
-                    code, template_key, reason, type, value, is_multi_use, max_uses,
-                    current_uses, expires_at, status, prefill_data, created_by, created_at
-                ) VALUES (
-                    :code, :tpl, :reason, :type, :value, :multi, :max,
-                    :curr, :exp, :status, :prefill, :cb, :ca
-                )
-                ON DUPLICATE KEY UPDATE
-                    template_key = VALUES(template_key), reason = VALUES(reason), type = VALUES(type),
-                    value = VALUES(value), is_multi_use = VALUES(is_multi_use), max_uses = VALUES(max_uses),
-                    current_uses = VALUES(current_uses), expires_at = VALUES(expires_at), status = VALUES(status),
-                    prefill_data = VALUES(prefill_data)';
+            code, template_key, reason, type, value, is_multi_use, max_uses,
+            current_uses, expires_at, status, prefill_data, created_by, created_at
+        ) VALUES (
+            :code, :tpl, :reason, :type, :value, :multi, :max,
+            :curr, :exp, :status, :prefill, :cb, :ca
+        )
+        ON DUPLICATE KEY UPDATE
+            template_key = VALUES(template_key), reason = VALUES(reason), type = VALUES(type),
+            value = VALUES(value), is_multi_use = VALUES(is_multi_use), max_uses = VALUES(max_uses),
+            current_uses = VALUES(current_uses), expires_at = VALUES(expires_at), status = VALUES(status),
+            prefill_data = VALUES(prefill_data)';
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
@@ -53,6 +55,7 @@ final readonly class PdoVoucherRepository implements VoucherRepositoryInterface
         ]);
     }
 
+    #[Override]
     public function findByCode(string $code): ?Voucher
     {
         $stmt = $this->pdo->prepare('SELECT * FROM vouchers WHERE code = :code');
@@ -80,6 +83,7 @@ final readonly class PdoVoucherRepository implements VoucherRepositoryInterface
         );
     }
 
+    #[Override]
     public function delete(string $code): void
     {
         $stmt = $this->pdo->prepare('DELETE FROM vouchers WHERE code = :code');

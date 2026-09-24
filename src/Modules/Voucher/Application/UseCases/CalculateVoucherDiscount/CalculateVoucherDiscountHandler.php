@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount;
 
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
-use DateTimeImmutable;
 use Override;
 
 /**
@@ -17,6 +17,7 @@ final readonly class CalculateVoucherDiscountHandler implements QueryHandlerInte
 {
     public function __construct(
         private VoucherRepositoryInterface $repository,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -38,7 +39,7 @@ final readonly class CalculateVoucherDiscountHandler implements QueryHandlerInte
             return new VoucherDiscountDto($query->originalPrice, false, '', 'Code gesperrt');
         }
 
-        if ($voucher->isExpired(new DateTimeImmutable())) {
+        if ($voucher->isExpired($this->clock->now())) {
             return new VoucherDiscountDto($query->originalPrice, false, '', 'Code abgelaufen');
         }
 

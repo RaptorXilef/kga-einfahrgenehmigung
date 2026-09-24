@@ -10,6 +10,7 @@ use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateV
 use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountQuery;
 use App\Modules\Voucher\Application\UseCases\RedeemVoucher\RedeemVoucherCommand;
 use App\Modules\Voucher\Application\UseCases\RedeemVoucher\RedeemVoucherHandler;
+use Override;
 
 /**
  * Adapter-Implementierung für externe Bounded Contexts.
@@ -22,6 +23,7 @@ final readonly class VoucherIntegrationService implements VoucherIntegrationInte
     ) {
     }
 
+    #[Override]
     public function calculateDiscount(string $code, float $originalPrice): VoucherDiscountResult
     {
         $dto = $this->discountHandler->handle(new CalculateVoucherDiscountQuery($code, $originalPrice));
@@ -34,6 +36,7 @@ final readonly class VoucherIntegrationService implements VoucherIntegrationInte
         );
     }
 
+    #[Override]
     public function redeemVoucher(string $code, string $userName, string $userPlot): void
     {
         $this->redeemHandler->handle(new RedeemVoucherCommand($code, $userName, $userPlot));
