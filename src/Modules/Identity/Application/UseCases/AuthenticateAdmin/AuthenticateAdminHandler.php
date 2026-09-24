@@ -12,6 +12,7 @@ use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DomainException;
+use Override;
 
 /**
  * @implements CommandHandlerInterface<AuthenticateAdminCommand>
@@ -23,13 +24,14 @@ final readonly class AuthenticateAdminHandler implements CommandHandlerInterface
         private AuthSessionInterface $session,
         private RateLimiterInterface $rateLimiter,
         private ConfigInterface $config,
-        private AuthService $authService, // Temporary Legacy Bridge für die Rechte-Kompilierung
+        private AuthService $authService,
     ) {
     }
 
     /**
      * @param AuthenticateAdminCommand $command
      */
+    #[Override]
     public function handle(mixed $command): void
     {
         // 1. Brute-Force Schutz
@@ -38,14 +40,14 @@ final readonly class AuthenticateAdminHandler implements CommandHandlerInterface
         }
 
         // 2. Fallback: Superadmins / Backdoor aus der Config (dev_admin.php)
-        $superadmins = $this->config->get('superadmins', []);
-        $backdoor = $this->config->get('backdoor', []);
+        $superadmins = $this->config->getArray('superadmins');
+        $backdoor = $this->config->getArray('backdoor');
 
         // Backdoor prüfen
         if (
             $command->username === ($backdoor['user'] ?? '')
             && \password_verify($command->password, $backdoor['pass'] ?? '')
-            && !$this->config->get('disable_backdoor', false)
+            && !$this->config->getBool('disable_backdoor', false)
         ) {
             $this->loginSuccess('sys_backdoor', 'admin', $backdoor['label'] ?? 'System', null, $command->ipAddress);
 
@@ -53,7 +55,7 @@ final readonly class AuthenticateAdminHandler implements CommandHandlerInterface
         }
 
         // Konfigurierte Superadmins prüfen
-        if (isset($superadmins[$command->username]) && !$this->config->get('disable_superadmin', false)) {
+        if (isset($superadmins[$command->username]) && !$this->config->getBool('disable_superadmin', false)) {
             $admin = $superadmins[$command->username];
             // Superadmins in KGA Legacy nutzen Klartext in der PHP-Config
             if ($command->password === ($admin['pass'] ?? '')) {

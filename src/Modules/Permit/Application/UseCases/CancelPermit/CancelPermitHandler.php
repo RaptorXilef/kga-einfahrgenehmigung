@@ -20,6 +20,7 @@ use App\SharedKernel\Application\Security\Sanitizer;
 use App\SharedKernel\Domain\ValueObject\LicensePlate;
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use DomainException;
+use Override;
 
 /**
  * @implements CommandHandlerInterface<CancelPermitCommand>
@@ -35,9 +36,10 @@ final readonly class CancelPermitHandler implements CommandHandlerInterface
     ) {
     }
 
+    #[Override]
     public function handle(mixed $command): void
     {
-        if (!$this->config->get('allow_user_cancellation', true)) {
+        if (!$this->config->getBool('allow_user_cancellation', true)) {
             throw new DomainException('Stornierungen sind derzeit deaktiviert.');
         }
 

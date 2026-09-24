@@ -14,6 +14,7 @@ use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DateTimeImmutable;
+use Override;
 
 /**
  * @implements CommandHandlerInterface<SendPaymentRemindersCommand>
@@ -29,6 +30,7 @@ final readonly class SendPaymentRemindersHandler implements CommandHandlerInterf
     ) {
     }
 
+    #[Override]
     public function handle(mixed $command): void
     {
         if ($command->code !== null && $command->code !== '') {
@@ -62,7 +64,7 @@ final readonly class SendPaymentRemindersHandler implements CommandHandlerInterf
             return false;
         }
 
-        $cooldownDays = (int) $this->config->get('payment_reminder_cooldown_days', 7);
+        $cooldownDays = $this->config->getInt('payment_reminder_cooldown_days', 7);
         if ($permit->getStatusObject()->last_reminder_at instanceof DateTimeImmutable) {
             $cooldownDate = $permit->getStatusObject()->last_reminder_at->modify("+{$cooldownDays} days");
             if ($now < $cooldownDate) {

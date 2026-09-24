@@ -8,6 +8,7 @@ use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DomainException;
+use Override;
 
 /**
  * @implements CommandHandlerInterface<TogglePermitSuspensionCommand>
@@ -22,6 +23,7 @@ final readonly class TogglePermitSuspensionHandler implements CommandHandlerInte
     /**
      * @param TogglePermitSuspensionCommand $command
      */
+    #[Override]
     public function handle(mixed $command): void
     {
         $permit = $this->repository->findByCode($command->code);

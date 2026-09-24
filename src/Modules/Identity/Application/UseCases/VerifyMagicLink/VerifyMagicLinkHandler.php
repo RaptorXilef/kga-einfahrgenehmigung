@@ -11,6 +11,7 @@ use App\Modules\Identity\Domain\MagicLink;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DomainException;
+use Override;
 
 /**
  * @implements CommandHandlerInterface<VerifyMagicLinkCommand>
@@ -21,13 +22,14 @@ final readonly class VerifyMagicLinkHandler implements CommandHandlerInterface
         private MagicLinkRepositoryInterface $repository,
         private SessionManager $sessionManager,
         private RateLimiterInterface $rateLimiter,
-        private ClockInterface $clock, // VSA FIX: Inject ClockInterface
+        private ClockInterface $clock,
     ) {
     }
 
     /**
      * @param VerifyMagicLinkCommand $command
      */
+    #[Override]
     public function handle(mixed $command): void
     {
         $now = $this->clock->now();

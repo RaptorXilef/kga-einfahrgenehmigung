@@ -14,6 +14,7 @@ use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
+use Override;
 
 /**
  * @implements QueryHandlerInterface<GetPermitCheckDetailsQuery, PermitCheckDetailsDto>
@@ -21,17 +22,18 @@ use DateTimeImmutable;
 final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterface
 {
     public function __construct(
-        private GetPermitByCodeHandler $getPermitByCodeHandler, // CQRS statt PermitService
+        private GetPermitByCodeHandler $getPermitByCodeHandler,
         private PermitRepositoryInterface $repository,
         private HolidayService $holidayService,
         private ConfigInterface $config,
-        private ClockInterface $clock, // VSA FIX: Inject ClockInterface
+        private ClockInterface $clock,
     ) {
     }
 
     /**
      * @param GetPermitCheckDetailsQuery $query
      */
+    #[Override]
     public function handle(mixed $query): PermitCheckDetailsDto
     {
         $now = $this->clock->now();
@@ -51,7 +53,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
         // 2. Rechte prüfen
         $showAdminView = $query->isAdminAuth;
         if (!$showAdminView) {
-            $secret = (string) $this->config->get('geheimnis', '');
+            $secret = $this->config->getString('geheimnis');
             if ($secret !== '') {
                 $expected = \hash_hmac('sha256', $permit->code->value, $secret);
                 $showAdminView = \hash_equals($expected, $query->token);
@@ -59,7 +61,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
         }
 
         // 3. Status & Zeiten berechnen
-        $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
+        $requirePayment = $this->config->getBool('require_payment_for_validity', false);
         $isDateValid = $permit->isValid($requirePayment);
         $isTimeAllowed = $this->holidayService->isTimeAllowedNow();
 
@@ -72,7 +74,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
         if ($permit->isSuspended()) {
             $pageStateClass = 'is-state-error';
             $statusColorClass = 'u-color-danger';
-            $statusIcon = 'error.webp'; // denied.webp im public view
+            $statusIcon = 'error.webp';
             $statusHeadline = 'ZUTRITT VERWEIGERT';
             $statusSubTextHtml = '<p class="u-font-semibold u-margin-block-none">Diese Genehmigung ist gesperrt/widerrufen.</p>';
 

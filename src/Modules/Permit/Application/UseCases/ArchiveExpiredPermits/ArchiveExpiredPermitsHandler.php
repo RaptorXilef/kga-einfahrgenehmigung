@@ -8,6 +8,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use Override;
 
 /**
  * @implements CommandHandlerInterface<ArchiveExpiredPermitsCommand>
@@ -21,6 +22,7 @@ final readonly class ArchiveExpiredPermitsHandler implements CommandHandlerInter
     ) {
     }
 
+    #[Override]
     public function handle(mixed $command): void
     {
         $cutoffDate = $this->clock->now()->modify("-{$command->graceDays} days")->setTime(0, 0, 0);

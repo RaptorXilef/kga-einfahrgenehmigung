@@ -9,6 +9,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
 use Generator;
+use Override;
 use PDO;
 
 /**
@@ -25,6 +26,7 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
     ) {
     }
 
+    #[Override]
     public function handle(mixed $query): ExportPermitsResultDto
     {
         // 1. Data-Stream anstoßen (Generator)
@@ -48,7 +50,7 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
     private function yieldFilteredData(ExportPermitsQuery $query): Generator
     {
         $validTplKeys = [];
-        $permitTemplates = $this->config->get('permit_templates', []);
+        $permitTemplates = $this->config->getArray('permit_templates');
 
         if ($query->type !== 'all') {
             foreach ($permitTemplates as $k => $tpl) {
@@ -91,7 +93,7 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
             'future' => "von > CURDATE() AND status != 'storniert'",
             'expired' => "bis < CURDATE() AND status != 'storniert'",
             'active_future' => "bis >= CURDATE() AND status != 'storniert'",
-            default => '1=1' // all
+            default => '1=1'
         };
 
         $orderBy = match ($query->state) {
@@ -110,7 +112,6 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(\array_merge($binds, $binds)); // Binds für beide Tabellen
 
-        // VSA FIX: Yield statt fetchAll. Reduziert RAM-Bedarf um 99%.
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             yield $row;
         }
@@ -152,7 +153,7 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
 
     private function generateFilename(string $state, string $start, string $end): string
     {
-        $clubName = (string) $this->config->get('vereins_name', 'export');
+        $clubName = $this->config->getString('vereins_name', 'export');
         $clubName = \mb_strtolower($clubName, 'UTF-8');
         $clubName = \str_replace(['ä', 'ö', 'ü', 'ß'], ['ae', 'oe', 'ue', 'ss'], $clubName);
         $slug = \trim((string) \preg_replace('/[^a-z0-9]+/', '_', $clubName), '_');

@@ -10,6 +10,7 @@ use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DateTimeImmutable;
 use DomainException;
+use Override;
 
 /**
  * @implements CommandHandlerInterface<MarkPermitAsPaidCommand>
@@ -27,6 +28,7 @@ final readonly class MarkPermitAsPaidHandler implements CommandHandlerInterface
      *
      * @throws DomainException Wenn das Permit nicht gefunden wird.
      */
+    #[Override]
     public function handle(mixed $command): void
     {
         $permit = $this->repository->findByCode($command->code);
@@ -47,7 +49,7 @@ final readonly class MarkPermitAsPaidHandler implements CommandHandlerInterface
             $dtBezahltAm = $this->clock->now();
         }
 
-        // FIX: Sauberer Getter Aufruf statt Private-Property Zugriff
+        // Sauberer Getter Aufruf statt Private-Property Zugriff
         $aktuellerKommentar = $permit->getInternalComment() ?? '';
         $neuerKommentar = $aktuellerKommentar;
 

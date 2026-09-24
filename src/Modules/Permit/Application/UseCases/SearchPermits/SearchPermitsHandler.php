@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\SearchPermits;
 use App\Contracts\Config\ConfigInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 /**
@@ -20,11 +21,12 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
     ) {
     }
 
+    #[Override]
     public function handle(mixed $query): array
     {
         $validTplKeys = [];
         if ($query->templateType !== 'all') {
-            foreach ($this->config->get('permit_templates', []) as $k => $tpl) {
+            foreach ($this->config->getArray('permit_templates') as $k => $tpl) {
                 if (!(($tpl['type'] ?? 'standard') === $query->templateType)) {
                     continue;
                 }
@@ -47,7 +49,7 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
 
         if ($query->query !== '') {
             $whereParts[] = "CONCAT_WS(' ', code, name, IFNULL(email, ''), kennzeichen, LPAD(parzelle, 4, '0'), zweck) LIKE ?";
-            $binds[] = '%' . \strtolower(\trim($query->query)) . '%';
+            $binds[] = '\%' . \strtolower(\trim($query->query)) . '%';
         }
 
         $whereStr = empty($whereParts) ? '1=1' : \implode(' AND ', $whereParts);
@@ -64,13 +66,13 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
             } elseif ($query->tab === 'expired') {
                 $statusCond = ' AND bis < CURDATE()';
             }
-            $sqlParts[] = "SELECT $baseCols, 0 AS is_archived FROM permits WHERE $whereStr $statusCond";
+            $sqlParts[] = "SELECT $baseCols, 0 AS is_archived FROM permits WHERE $whereStr$statusCond";
             $allBinds = \array_merge($allBinds, $binds);
         }
 
         // Archivierte (aus der Archiv-Tabelle)
         if (\in_array($query->tab, ['all', 'archive'], true)) {
-            $sqlParts[] = "SELECT $baseCols, 1 AS is_archived FROM permits_archive WHERE $whereStr";
+            $sqlParts[] = "SELECT $baseCols, 1 AS is_archived FROM permits_archive WHERE$whereStr";
             $allBinds = \array_merge($allBinds, $binds);
         }
 

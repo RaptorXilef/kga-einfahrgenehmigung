@@ -12,6 +12,7 @@ use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\Vehicle;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DateTimeImmutable;
+use Override;
 
 /**
  * @implements CommandHandlerInterface<CreateManualPermitCommand>
@@ -28,12 +29,12 @@ final readonly class CreateManualPermitHandler implements CommandHandlerInterfac
     /**
      * @param CreateManualPermitCommand $command
      */
+    #[Override]
     public function handle(mixed $command): void
     {
         $startDate = new DateTimeImmutable($command->datumVon);
         $customEndDate = $command->datumBis !== '' ? new DateTimeImmutable($command->datumBis) : null;
 
-        // VSA FIX: Nutzt die reine Domain Factory statt Business Logic im Handler!
         $permit = $this->permitFactory->createNew(
             templateKey: clone $command->templateKey,
             owner: new Owner(\strip_tags($command->name), $command->email, clone $command->parzelle),

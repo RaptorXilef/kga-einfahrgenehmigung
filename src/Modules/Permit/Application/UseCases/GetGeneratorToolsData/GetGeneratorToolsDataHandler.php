@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\GetGeneratorToolsData;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use Override;
 use PDO;
 
 /**
@@ -24,12 +25,13 @@ final readonly class GetGeneratorToolsDataHandler implements QueryHandlerInterfa
     /**
      * @param GetGeneratorToolsDataQuery $query
      */
+    #[Override]
     public function handle(mixed $query): GeneratorToolsViewDto
     {
         // 1. Templates basierend auf Berechtigungen auflösen
         $allowedTemplates = [];
         $tplMetadata = [];
-        foreach ($this->config->get('permit_templates', []) as $key => $tpl) {
+        foreach ($this->config->getArray('permit_templates') as $key => $tpl) {
             if ($query->auth->hasPermission("template.$key")) {
                 $allowedTemplates[] = ['value' => $key, 'label' => $tpl['label']];
             }
@@ -43,7 +45,7 @@ final readonly class GetGeneratorToolsDataHandler implements QueryHandlerInterfa
         // 2. Eigene Zwecke aus der Datenbank holen (für Autocomplete)
         $stmt = $this->pdo->query("SELECT DISTINCT zweck FROM permits WHERE zweck != ''");
         $dbPurposes = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
-        $standardPurposes = $this->config->get('purposes', []);
+        $standardPurposes = $this->config->getArray('purposes');
         $customPurposes = [];
 
         foreach ($dbPurposes as $z) {
@@ -53,7 +55,8 @@ final readonly class GetGeneratorToolsDataHandler implements QueryHandlerInterfa
             }
 
             $customPurposes[] = $z;
-        }         \sort($customPurposes);
+        }
+        \sort($customPurposes);
 
         $standardPurposesOptions = [];
         foreach ($standardPurposes as $val => $label) {
@@ -62,7 +65,7 @@ final readonly class GetGeneratorToolsDataHandler implements QueryHandlerInterfa
 
         // 3. Fahrzeugtypen
         $vehicleOptions = [];
-        foreach ($this->config->get('vehicle_types', []) as $val => $vData) {
+        foreach ($this->config->getArray('vehicle_types') as $val => $vData) {
             if (!($vData['active'] ?? true)) {
                 continue;
             }
@@ -70,7 +73,7 @@ final readonly class GetGeneratorToolsDataHandler implements QueryHandlerInterfa
             $vehicleOptions[] = ['value' => $val, 'label' => $vData['label']];
         }
 
-        $reasons = $this->config->get('internal_reasons', ['Barzahlung vor Ort', 'Vorstandsbeschluss']);
+        $reasons = $this->config->getArray('internal_reasons', ['Barzahlung vor Ort', 'Vorstandsbeschluss']);
 
         return new GeneratorToolsViewDto(
             hasAnyTemplate: $allowedTemplates !== [],

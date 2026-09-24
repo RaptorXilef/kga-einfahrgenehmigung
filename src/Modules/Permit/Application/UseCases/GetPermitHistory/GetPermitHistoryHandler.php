@@ -9,6 +9,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use App\SharedKernel\Application\Security\Sanitizer;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 /**
@@ -26,6 +27,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
     ) {
     }
 
+    #[Override]
     public function handle(mixed $query): array
     {
         $normalizedSearch = Sanitizer::normalizeEmail($query->email);
@@ -55,16 +57,16 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
 
         $now = $this->clock->now();
         $nowDateStr = $now->format('Y-m-d');
-        $vConfig = $this->config->get('vehicle_types', []);
+        $vConfig = $this->config->getArray('vehicle_types');
 
-        $dueDaysCfg = (int) $this->config->get('payment_due_days', 14);
-        $daysBeforeValidity = (int) $this->config->get('payment_due_days_before_validity', 2);
-        $notifyDays = (int) $this->config->get('payment_due_days_notify', 2);
-        $allowCancel = (bool) $this->config->get('allow_user_cancellation', true);
+        $dueDaysCfg = $this->config->getInt('payment_due_days', 14);
+        $daysBeforeValidity = $this->config->getInt('payment_due_days_before_validity', 2);
+        $notifyDays = $this->config->getInt('payment_due_days_notify', 2);
+        $allowCancel = $this->config->getBool('allow_user_cancellation', true);
 
         $dtos = [];
 
-        // VSA FIX: Nutzt `while` anstelle von fetchAll() um Speicher zu schonen
+        // Nutzt `while` anstelle von fetchAll() um Speicher zu schonen
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             // Serverseitiger, exakter E-Mail Abgleich (Alias Ignorance)
             if (Sanitizer::normalizeEmail((string) $row['email']) !== $normalizedSearch) {

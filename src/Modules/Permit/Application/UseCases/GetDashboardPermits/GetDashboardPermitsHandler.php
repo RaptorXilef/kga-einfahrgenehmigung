@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 /**
@@ -25,12 +26,13 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
     /**
      * @param GetDashboardPermitsQuery $query
      */
+    #[Override]
     public function handle(mixed $query): DashboardPermitsResultDto
     {
         // 1. Template-Filter auflösen
         $validTplKeys = [];
         if ($query->filterType !== 'all') {
-            foreach ($this->config->get('permit_templates', []) as $k => $tpl) {
+            foreach ($this->config->getArray('permit_templates') as $k => $tpl) {
                 if (!(($tpl['type'] ?? 'standard') === $query->filterType)) {
                     continue;
                 }
@@ -156,8 +158,8 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
         $dtos = [];
         $now = $this->clock->now();
         $nowDateStr = $now->format('Y-m-d');
-        $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
-        $vehicleConfig = $this->config->get('vehicle_types', []);
+        $requirePayment = $this->config->getBool('require_payment_for_validity', false);
+        $vehicleConfig = $this->config->getArray('vehicle_types');
 
         foreach ($rows as $row) {
             $isSuspended = (bool) $row['is_suspended'];
@@ -186,10 +188,10 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
                 $safeMail = \htmlspecialchars($row['email'], \ENT_QUOTES, 'UTF-8');
                 $wbrMail = \str_replace('@', '<wbr>@', $safeMail);
                 $emailHtml = <<<HTML
-                        <div class="u-flex u-align-center u-gap-xs">
-                            <img src="assets/img/icons/envelope.webp" class="c-icon c-icon--inline" loading="lazy" alt="">
-                            <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
-                        </div>
+                    <div class="u-flex u-align-center u-gap-xs">
+                        <img src="assets/img/icons/envelope.webp" class="c-icon c-icon--inline" loading="lazy" alt="">
+                        <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
+                    </div>
                     HTML;
             }
 
@@ -219,7 +221,6 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
                 $statusBadgeHtml = '<span class="c-badge c-badge--danger">STORNIERT</span>';
             }
 
-            // VSA Fix: Vorher im Template per Inline-If berechnet
             $statusSortValue = $isSuspended ? '2' : ($isFuture ? '1' : '0');
 
             $dtos[] = new DashboardPermitDto(

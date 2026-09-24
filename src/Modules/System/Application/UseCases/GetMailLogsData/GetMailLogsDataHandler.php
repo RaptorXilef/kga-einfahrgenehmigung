@@ -9,6 +9,7 @@ use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 /**
@@ -30,9 +31,10 @@ final readonly class GetMailLogsDataHandler implements QueryHandlerInterface
     /**
      * @param GetMailLogsDataQuery $query
      */
+    #[Override]
     public function handle(mixed $query): MailLogsResultDto
     {
-        $cfg = $this->config->get('storage_config')['mail_log'];
+        $cfg = $this->config->getArray('storage_config')['mail_log'] ?? [];
         $table = $cfg['table'] ?? 'mail_logs';
 
         $stmtCount = $this->pdo->query("SELECT COUNT(*) FROM `{$table}`");
@@ -47,7 +49,7 @@ final readonly class GetMailLogsDataHandler implements QueryHandlerInterface
         $stmt->execute();
 
         $dtos = [];
-        $isDebugMode = $this->config->get('debug_mode', false) === true;
+        $isDebugMode = $this->config->getBool('debug_mode', false);
         $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {

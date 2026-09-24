@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\GetFinanceList;
 use App\Contracts\Config\ConfigInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 /**
@@ -25,21 +26,22 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
      *
      * @return array<FinancePermitDto>
      */
+    #[Override]
     public function handle(mixed $query): array
     {
         $stmt = $this->pdo->query("SELECT * FROM permits WHERE status = 'offen'");
 
         $now = new DateTimeImmutable('today');
-        $dueDaysCfg = (int) $this->config->get('payment_due_days', 14);
-        $daysBeforeValidity = (int) $this->config->get('payment_due_days_before_validity', 2);
-        $notifyDays = (int) $this->config->get('payment_due_days_notify', 2);
-        $cooldownDays = (int) $this->config->get('payment_reminder_cooldown_days', 7);
-        $vConfig = $this->config->get('vehicle_types', []);
+        $dueDaysCfg = $this->config->getInt('payment_due_days', 14);
+        $daysBeforeValidity = $this->config->getInt('payment_due_days_before_validity', 2);
+        $notifyDays = $this->config->getInt('payment_due_days_notify', 2);
+        $cooldownDays = $this->config->getInt('payment_reminder_cooldown_days', 7);
+        $vConfig = $this->config->getArray('vehicle_types');
 
         $dtos = [];
         $sortDeadlines = [];
 
-        // VSA FIX: Memory Safe Unbuffered Loop
+        // Memory Safe Unbuffered Loop
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $createdAt = new DateTimeImmutable($row['erstellt']);
             $validFrom = new DateTimeImmutable($row['von']);
@@ -104,11 +106,11 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
                 $safeMail = \htmlspecialchars($row['email'], \ENT_QUOTES, 'UTF-8');
                 $wbrMail = \str_replace('@', '<wbr>@', $safeMail);
                 $emailHtml = <<<HTML
-                    <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
+                        <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
                     HTML;
             }
 
-            // VSA Fix: Logik für die PHTML-Buttons in die Domain holen
+            // Logik für die PHTML-Buttons in die Domain holen
             $reminderButtonClass = $isOnCooldown ? 'c-button--secondary' : 'c-button--danger';
             $reminderButtonTitle = 'Zahlungserinnerung senden' . ($isOnCooldown ? ' (Cooldown aktiv)' : '');
             $sortSuspendedValue = $isSuspended ? '1' : '0';
@@ -139,7 +141,6 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
             );
         }
 
-        // Am längsten überfällig (älteste Deadline) zuerst!
         \array_multisort($sortDeadlines, \SORT_ASC, \SORT_NUMERIC, $dtos);
 
         return $dtos;

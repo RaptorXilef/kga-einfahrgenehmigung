@@ -8,6 +8,7 @@ use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DomainException;
+use Override;
 
 /**
  * @implements CommandHandlerInterface<ChangeUserRoleCommand>
@@ -19,6 +20,7 @@ final readonly class ChangeUserRoleHandler implements CommandHandlerInterface
     ) {
     }
 
+    #[Override]
     public function handle(mixed $command): void
     {
         $user = $this->repository->findById($command->userId);

@@ -9,6 +9,7 @@ use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use Override;
 
 /**
  * Löst einen Code schichtenübergreifend auf.
@@ -24,6 +25,7 @@ final readonly class GetPermitByCodeHandler implements QueryHandlerInterface
     ) {
     }
 
+    #[Override]
     public function handle(mixed $query): ?Permit
     {
         $permit = $this->repository->findByCode($query->code);

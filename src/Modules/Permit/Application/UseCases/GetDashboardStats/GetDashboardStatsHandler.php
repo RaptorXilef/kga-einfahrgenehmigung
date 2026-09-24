@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\GetDashboardStats;
 use App\Contracts\Config\ConfigInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 /**
@@ -23,10 +24,11 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
     /**
      * @param GetDashboardStatsQuery $query
      */
+    #[Override]
     public function handle(mixed $query): DashboardStatsDto
     {
-        $vConfig = $this->config->get('vehicle_types', []);
-        $permitTemplates = $this->config->get('permit_templates', []);
+        $vConfig = $this->config->getArray('vehicle_types');
+        $permitTemplates = $this->config->getArray('permit_templates');
 
         // 1. Schlanker PDO Fetch über beide Tabellen
         $sql = '
@@ -58,13 +60,13 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
         // 3. VSA FIX: Ein einziger High-Speed Loop (Unbuffered/Row-by-Row).
         // Wirft fetchAll() komplett raus, um RAM-Leaks bei großen Archiven zu verhindern!
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $date = \substr((string) $row['erstellt'], 0, 10); // Y-m-d
+            $date = \substr((string) $row['erstellt'], 0, 10);
             $status = (string) $row['status'];
             $typ = (string) $row['typ'];
             $price = (float) $row['preis'];
             $year = \substr((string) $row['erstellt'], 0, 4);
-            $monthKey = \substr((string) $row['erstellt'], 5, 2) . '.' . $year; // m.Y
-            $monthSortKey = \substr((string) $row['erstellt'], 0, 7); // Y-m
+            $monthKey = \substr((string) $row['erstellt'], 5, 2) . '.' . $year;
+            $monthSortKey = \substr((string) $row['erstellt'], 0, 7);
 
             // ---- A) Globale Jahresstatistiken (Für Akkordeon) ----
             if (!isset($yearlyStats[$year])) {
