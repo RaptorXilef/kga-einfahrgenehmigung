@@ -54,7 +54,7 @@ final readonly class FrontendController
         $requiresAuth = $routeMatch['requiresAuth'];
 
         // Wartungsmodus prüfen (Global + Granular)
-        $maintenanceStatus = $this->checkMaintenanceStatus($className, $relativePath);
+        $maintenanceStatus = $this->checkMaintenanceStatus($relativePath);
         if ($maintenanceStatus['active']) {
             return $this->sendMaintenanceResponse($className, $maintenanceStatus['message'], $relativePath);
         }
@@ -67,7 +67,7 @@ final readonly class FrontendController
      *
      * @return array{active: bool, message: string}
      */
-    private function checkMaintenanceStatus(string $className, string $relativePath): array
+    private function checkMaintenanceStatus(string $relativePath): array
     {
         // Ausnahmeliste für essentielle Background-Prozesse, die selbst bei globaler Sperre laufen.
         // ARCHITEKTUR-FIX: Wir matchen gegen die Route, nicht gegen die Modul-Klasse,

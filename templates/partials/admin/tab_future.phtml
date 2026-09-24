@@ -1,275 +1,251 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitDto;
+use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Future Permits
  *
  * Übersicht aller noch nicht gestarteten, anstehenden Genehmigungen.
+ * VSA FIX: 100% Dumme View - Konsumiert nur noch das View-DTO.
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
+ * @var DashboardViewDto $viewDto
  * @var array $settings
- * @var string $appRoot
- * @var DashboardPermitDto[] $futurePermitsDto
- * @var int $totalFuture
  */
-
-// Paginierungs-Logik
-$limit = $itemsPerPage ?? 25;
-$page = $currentPage ?? 1;
-
-$totalPages = \max(1, (int) \ceil($totalFuture / $limit));
-$offset = ($page - 1) * $limit;
-
-$futurePermits = $futurePermitsDto;
-
-\ob_start();
-$paginationParam = 'page';
-$totalCount = $totalFuture;
-$tabFocusId = 'tab-future';
-include $appRoot . '/templates/partials/admin/pagination.phtml';
-$paginationHtml = \ob_get_clean();
 ?>
-<?php if ($auth->hasPermission('permits.view')) { ?>
-<div class="c-tab-content-container">
-    <section class="c-card c-card--primary">
-        <header class="c-card__header u-flex u-justify-between u-align-center">
-            <div>
-                <h3 class="u-margin-block-none">
-                    <img
-                        src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
-                        class="c-icon"
-                        loading="lazy"
-                        alt=""
-                    > Anstehende Genehmigungen
-                </h3>
-                <p class="u-color-muted u-text-sm u-margin-block-none">Geplante Einfahrten in der Zukunft.</p>
-            </div>
-            <!-- FIX: Datensätze Badge ist wieder da! -->
-            <span class="c-badge c-badge--primary">DATENSÄTZE: <?php echo $totalFuture; ?></span>
-        </header>
+<section class="c-card c-card--primary">
+    <header class="c-card__header u-flex u-justify-between u-align-center">
+        <div>
+            <h3 class="u-margin-block-none">
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
+                    class="c-icon"
+                    loading="lazy"
+                    alt=""
+                > Anstehende Genehmigungen
+            </h3>
+            <p class="u-color-muted u-text-sm u-margin-block-none">Geplante Einfahrten in der Zukunft.</p>
+        </div>
+        <span class="c-badge c-badge--primary">DATENSÄTZE: <?php echo $viewDto->totalFuture; ?></span>
+    </header>
 
-        <?php echo $paginationHtml; ?>
+    <?php echo $viewDto->paginationHtmlFuture; ?>
 
-        <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
-            <table class="c-table js-sort-table u-inline-size-100">
-                <thead>
-                    <tr>
-                        <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung</th>
-                        <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
-                        <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                        <th class="c-table__header-cell js-sort-header u-text-start">Kontakt (E-Mail)</th>
-                        <?php } ?>
-                        <th class="c-table__header-cell js-sort-header u-text-center">Zeitraum & Countdown</th>
-                        <th class="c-table__header-cell js-sort-header u-text-center">Status</th>
-                        <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Verwaltung</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($futurePermits)) { ?>
-                    <tr>
-                        <td
-                            colspan="6"
-                            class="c-table__data-cell u-text-center u-padding-around-l u-color-muted"
-                        >
-                            Aktuell keine zukünftigen Genehmigungen geplant.
-                        </td>
-                    </tr>
-                    <?php } else { ?>
-                    <?php foreach ($futurePermits as $permit) { ?>
-                    <tr class="u-hover-fade <?php echo $permit->rowClass; ?>">
-                        <!-- 1. Antragsteller & Code -->
-                        <td
-                            class="c-table__data-cell"
-                            data-sort-val="<?php echo \htmlspecialchars($permit->ownerName); ?>"
-                        >
-                            <div class="u-flex u-flex-column">
-                                <span
-                                    class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->ownerName); ?></span>
-                                <code class="u-color-muted u-text-xs u-font-mono u-margin-block-xs"><?php echo $permit->code; ?></code>
-                                <div><span class="c-badge c-badge--primary">PARZELLE
-                                        <?php echo $permit->plotNumber; ?></span></div>
+    <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
+        <table class="c-table js-sort-table u-inline-size-100">
+            <thead>
+                <tr>
+                    <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung</th>
+                    <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
+                    <?php if ($viewDto->permissions->showPrivacyEmails) { ?>
+                    <th class="c-table__header-cell js-sort-header u-text-start">Kontakt (E-Mail)</th>
+                    <?php } ?>
+                    <th class="c-table__header-cell js-sort-header u-text-center">Zeitraum & Countdown</th>
+                    <th class="c-table__header-cell js-sort-header u-text-center">Status</th>
+                    <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Verwaltung</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($viewDto->futurePermitsDto)) { ?>
+                <tr>
+                    <td
+                        colspan="6"
+                        class="c-table__data-cell u-text-center u-padding-around-l u-color-muted"
+                    >
+                        Aktuell keine zukünftigen Genehmigungen geplant.
+                    </td>
+                </tr>
+                <?php } else { ?>
+                <?php foreach ($viewDto->futurePermitsDto as $permit) { ?>
+                <tr class="u-hover-fade <?php echo $permit->rowClass; ?>">
+                    <!-- 1. Antragsteller & Code -->
+                    <td
+                        class="c-table__data-cell"
+                        data-sort-val="<?php echo \htmlspecialchars($permit->ownerName); ?>"
+                    >
+                        <div class="u-flex u-flex-column">
+                            <span
+                                class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->ownerName); ?></span>
+                            <code class="u-color-muted u-text-xs u-font-mono u-margin-block-xs"><?php echo $permit->code; ?></code>
+                            <div><span class="c-badge c-badge--primary">PARZELLE
+                                    <?php echo $permit->plotNumber; ?></span></div>
+                        </div>
+                    </td>
+                    <!-- 2. Fahrzeug (Icon + Kennzeichen darunter) -->
+                    <td
+                        class="c-table__data-cell u-text-center"
+                        data-sort-val="<?php echo \htmlspecialchars($permit->licensePlate); ?>"
+                    >
+                        <div>
+                            <img
+                                src="<?php echo $asset->url($permit->vehicleIcon); ?>"
+                                class="c-icon c-table__icon"
+                                title="<?php echo \htmlspecialchars($permit->vehicleLabel); ?>"
+                                loading="lazy"
+                                alt=""
+                            >
+                        </div>
+                        <div class="u-margin-block-start-xs">
+                            <span
+                                class="c-license-plate c-table__license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->licensePlate); ?></span>
+                        </div>
+                    </td>
+                    <!-- 3. Kontakt / E-Mail -->
+                    <?php if ($viewDto->permissions->showPrivacyEmails) { ?>
+                    <td
+                        class="c-table__data-cell"
+                        data-sort-val="<?php echo \htmlspecialchars(\strip_tags($permit->emailHtml)); ?>"
+                    >
+                        <?php echo $permit->emailHtml; ?>
+                    </td>
+                    <?php } ?>
+                    <!-- 4. Zeitraum & Countdown -->
+                    <td
+                        class="c-table__data-cell u-text-center"
+                        data-sort-val="<?php echo $permit->validFromDate; ?>"
+                    >
+                        <div class="u-line-height-tight">
+                            <strong class="u-text-sm"><?php echo $permit->validFromDate; ?></strong><br>
+                            <small class="u-color-muted">bis <?php echo $permit->validUntilDate; ?></small>
+                            <div class="u-margin-block-start-xs">
+                                <span class="c-badge c-badge--primary u-text-nowrap">
+                                    <img
+                                        src="<?php echo $asset->url('assets/img/icons/stopwatch.webp'); ?>"
+                                        class="c-icon"
+                                        loading="lazy"
+                                        alt=""
+                                    > <?php echo $permit->countdownText; ?>
+                                </span>
                             </div>
-                        </td>
-                        <!-- 2. Fahrzeug (Icon + Kennzeichen darunter) -->
-                        <td
-                            class="c-table__data-cell u-text-center"
-                            data-sort-val="<?php echo \htmlspecialchars($permit->licensePlate); ?>"
-                        >
-                            <div>
+                        </div>
+                    </td>
+                    <td
+                        class="c-table__data-cell u-text-center"
+                        data-sort-val="<?php echo $permit->statusSortValue; ?>"
+                    >
+                        <?php echo $permit->statusBadgeHtml; ?>
+                    </td>
+                    <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
+                        <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
+                            <?php if ($viewDto->permissions->canPrintPermits) { ?>
+                            <a
+                                href="admin_print?code=<?php echo $permit->code; ?>"
+                                target="_blank"
+                                class="c-button c-button--secondary c-button--small c-button--icon-only"
+                                title="Drucken"
+                            >
                                 <img
-                                    src="<?php echo $asset->url($permit->vehicleIcon); ?>"
-                                    class="c-icon c-table__icon"
-                                    title="<?php echo \htmlspecialchars($permit->vehicleLabel); ?>"
+                                    src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>"
+                                    class="c-icon c-button__icon"
                                     loading="lazy"
                                     alt=""
                                 >
-                            </div>
-                            <div class="u-margin-block-start-xs">
-                                <span
-                                    class="c-license-plate c-table__license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->licensePlate); ?></span>
-                            </div>
-                        </td>
-                        <!-- 3. Kontakt / E-Mail -->
-                        <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                        <td
-                            class="c-table__data-cell"
-                            data-sort-val="<?php echo \htmlspecialchars(\strip_tags($permit->emailHtml)); ?>"
-                        >
-                            <?php echo $permit->emailHtml; ?>
-                        </td>
-                        <?php } ?>
-                        <!-- 4. Zeitraum & Countdown -->
-                        <td
-                            class="c-table__data-cell u-text-center"
-                            data-sort-val="<?php echo $permit->validFromDate; ?>"
-                        >
-                            <div class="u-line-height-tight">
-                                <strong class="u-text-sm"><?php echo $permit->validFromDate; ?></strong><br>
-                                <small class="u-color-muted">bis <?php echo $permit->validUntilDate; ?></small>
-                                <div class="u-margin-block-start-xs">
-                                    <span class="c-badge c-badge--primary u-text-nowrap">
-                                        <img
-                                            src="<?php echo $asset->url('assets/img/icons/stopwatch.webp'); ?>"
-                                            class="c-icon"
-                                            loading="lazy"
-                                            alt=""
-                                        > <?php echo $permit->countdownText; ?>
-                                    </span>
-                                </div>
-                            </div>
-                        </td>
-                        <td
-                            class="c-table__data-cell u-text-center"
-                            data-sort-val="<?php echo $permit->isSuspended ? '1' : '0'; ?>"
-                        >
-                            <?php echo $permit->statusBadgeHtml; ?>
-                        </td>
-                        <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
-                            <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
-                                <?php if ($auth->hasPermission('permits.print')) { ?>
-                                <a
-                                    href="admin_print?code=<?php echo $permit->code; ?>"
-                                    target="_blank"
-                                    class="c-button c-button--secondary c-button--small c-button--icon-only"
-                                    title="Drucken"
+                            </a>
+                            <?php } ?>
+                            <?php if ($viewDto->permissions->canViewPermits) { ?>
+                            <a
+                                href="check?code=<?php echo $permit->code; ?>"
+                                target="_blank"
+                                class="c-button c-button--secondary c-button--small c-button--icon-only"
+                                title="Details"
+                            >
+                                <img
+                                    src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
+                                    class="c-icon c-button__icon"
+                                    loading="lazy"
+                                    alt=""
                                 >
-                                    <img
-                                        src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>"
-                                        class="c-icon c-button__icon"
-                                        loading="lazy"
-                                        alt=""
-                                    >
-                                </a>
-                                <?php } ?>
-                                <?php if ($auth->hasPermission('permits.view')) { ?>
-                                <a
-                                    href="check?code=<?php echo $permit->code; ?>"
-                                    target="_blank"
-                                    class="c-button c-button--secondary c-button--small c-button--icon-only"
-                                    title="Details"
+                            </a>
+                            <?php } ?>
+                            <?php if ($viewDto->permissions->canSuspendPermits) { ?>
+                            <?php if ($permit->isSuspended) { ?>
+                            <form
+                                method="POST"
+                                action="<?php echo $settings['base_url'] . $permit->suspendActionUrl; ?>"
+                                class="u-margin-block-none js-form-unsuspend"
+                                data-code="<?php echo $permit->code; ?>"
+                            >
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
                                 >
-                                    <img
-                                        src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
-                                        class="c-icon c-button__icon"
-                                        loading="lazy"
-                                        alt=""
-                                    >
-                                </a>
-                                <?php } ?>
-                                <?php if ($auth->hasPermission('permits.suspend')) { ?>
-                                <?php if ($permit->isSuspended) { ?>
-                                <form
-                                    method="POST"
-                                    action="<?php echo $settings['base_url'] . $permit->suspendActionUrl; ?>"
-                                    class="u-margin-block-none js-form-unsuspend"
-                                    data-code="<?php echo $permit->code; ?>"
+                                <input
+                                    type="hidden"
+                                    name="code"
+                                    value="<?php echo $permit->code; ?>"
                                 >
-                                    <input
-                                        type="hidden"
-                                        name="csrf_token"
-                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
-                                    >
-                                    <input
-                                        type="hidden"
-                                        name="code"
-                                        value="<?php echo $permit->code; ?>"
-                                    >
-                                    <input
-                                        type="hidden"
-                                        name="action"
-                                        value="<?php echo $permit->suspendActionUrl; ?>"
-                                    >
-                                    <button
-                                        type="submit"
-                                        class="c-button c-button--success c-button--small c-button--icon-only"
-                                        title="<?php echo $permit->suspendTitle; ?>"
-                                    >
-                                        <img
-                                            src="<?php echo $asset->url('assets/img/icons/' . $permit->suspendIcon); ?>"
-                                            class="c-icon c-button__icon"
-                                            loading="lazy"
-                                            alt=""
-                                        >
-                                    </button>
-                                </form>
-                                <?php } else { ?>
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="<?php echo $permit->suspendActionUrl; ?>"
+                                >
                                 <button
-                                    class="c-button c-button--danger c-button--small c-button--icon-only js-suspend-btn"
-                                    data-code="<?php echo $permit->code; ?>"
-                                    title="Sperren"
+                                    type="submit"
+                                    class="c-button c-button--success c-button--small c-button--icon-only"
+                                    title="<?php echo $permit->suspendTitle; ?>"
                                 >
                                     <img
-                                        src="<?php echo $asset->url('assets/img/icons/denied.webp'); ?>"
+                                        src="<?php echo $asset->url('assets/img/icons/' . $permit->suspendIcon); ?>"
                                         class="c-icon c-button__icon"
                                         loading="lazy"
                                         alt=""
                                     >
                                 </button>
-                                <form
-                                    id="form_suspend_<?php echo $permit->code; ?>"
-                                    method="POST"
-                                    action="<?php echo $settings['base_url'] . $permit->suspendActionUrl; ?>"
-                                    class="u-hidden js-form-suspend"
-                                    data-code="<?php echo $permit->code; ?>"
+                            </form>
+                            <?php } else { ?>
+                            <button
+                                class="c-button c-button--danger c-button--small c-button--icon-only js-suspend-btn"
+                                data-code="<?php echo $permit->code; ?>"
+                                title="Sperren"
+                            >
+                                <img
+                                    src="<?php echo $asset->url('assets/img/icons/denied.webp'); ?>"
+                                    class="c-icon c-button__icon"
+                                    loading="lazy"
+                                    alt=""
                                 >
-                                    <input
-                                        type="hidden"
-                                        name="csrf_token"
-                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
-                                    >
-                                    <input
-                                        type="hidden"
-                                        name="code"
-                                        value="<?php echo $permit->code; ?>"
-                                    >
-                                    <input
-                                        type="hidden"
-                                        name="action"
-                                        value="<?php echo $permit->suspendActionUrl; ?>"
-                                    >
-                                    <input
-                                        type="hidden"
-                                        name="reason"
-                                        id="reason_suspend_<?php echo $permit->code; ?>"
-                                        class="js-reason-suspend"
-                                    >
-                                </form>
-                                <?php } ?>
-                                <?php } ?>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php } ?>
-                    <?php } ?>
-                </tbody>
-            </table>
-        </div>
+                            </button>
+                            <form
+                                id="form_suspend_<?php echo $permit->code; ?>"
+                                method="POST"
+                                action="<?php echo $settings['base_url'] . $permit->suspendActionUrl; ?>"
+                                class="u-hidden js-form-suspend"
+                                data-code="<?php echo $permit->code; ?>"
+                            >
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                >
+                                <input
+                                    type="hidden"
+                                    name="code"
+                                    value="<?php echo $permit->code; ?>"
+                                >
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="<?php echo $permit->suspendActionUrl; ?>"
+                                >
+                                <input
+                                    type="hidden"
+                                    name="reason"
+                                    id="reason_suspend_<?php echo $permit->code; ?>"
+                                    class="js-reason-suspend"
+                                >
+                            </form>
+                            <?php } ?>
+                            <?php } ?>
+                        </div>
+                    </td>
+                </tr>
+                <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
 
-        <?php echo $paginationHtml; ?>
-    </section>
-</div>
-<?php } ?>
+    <?php echo $viewDto->paginationHtmlFuture; ?>
+</section>

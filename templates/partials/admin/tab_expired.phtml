@@ -1,210 +1,175 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitDto;
+use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Expired Permits
  *
  * Historisches Archiv der abgelaufenen Genehmigungen im gewählten Zeitraum.
+ * VSA FIX: 100% Dumme View - Konsumiert nur noch das View-DTO.
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
+ * @var DashboardViewDto $viewDto
  * @var array $settings
- * @var int $minArchiveYear
- * @var string $appRoot
- * @var DashboardPermitDto[] $expiredPermitsDto
- * @var int $totalExpired
  */
-
-// Paginierungs-Logik
-$limit = $itemsPerPage ?? 25;
-$page = $currentPage ?? 1;
-
-$totalPages = \max(1, (int) \ceil($totalExpired / $limit));
-$offset = ($page - 1) * $limit;
-
-$expiredPermits = $expiredPermitsDto;
-
-\ob_start();
-$paginationParam = 'page';
-$totalCount = $totalExpired;
-$tabFocusId = 'tab-expired';
-include $appRoot . '/templates/partials/admin/pagination.phtml';
-$paginationHtml = \ob_get_clean();
 ?>
-<?php if ($auth->hasPermission('permits.view')) { ?>
-<div class="c-tab-content-container">
-    <section class="c-card c-card--dark">
-        <header class="c-card__header u-flex u-justify-between u-align-center">
-            <div>
-                <h3 class="u-margin-block-none">
-                    <img
-                        src="<?php echo $asset->url('assets/img/icons/expired.webp'); ?>"
-                        class="c-icon"
-                        loading="lazy"
-                        alt=""
-                    > Historisches Archiv
-                </h3>
-                <p class="u-color-muted u-text-sm u-margin-block-none">Abgelaufene Genehmigungen aus dem gewählten
-                    Zeitraum.</p>
-            </div>
-            <!-- FIX: Zähler Badge ist wieder da! -->
-            <span class="c-badge c-badge--outline">ARCHIV: <?php echo $totalExpired; ?></span>
-        </header>
+<section class="c-card c-card--dark">
+    <header class="c-card__header u-flex u-justify-between u-align-center">
+        <div>
+            <h3 class="u-margin-block-none">
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/expired.webp'); ?>"
+                    class="c-icon"
+                    loading="lazy"
+                    alt=""
+                > Historisches Archiv
+            </h3>
+            <p class="u-color-muted u-text-sm u-margin-block-none">Abgelaufene Genehmigungen aus dem gewählten Zeitraum.
+            </p>
+        </div>
+        <span class="c-badge c-badge--outline">ARCHIV: <?php echo $viewDto->totalExpired; ?></span>
+    </header>
 
-        <?php echo $paginationHtml; ?>
+    <?php echo $viewDto->paginationHtmlExpired; ?>
 
-        <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
-            <table class="c-table js-sort-table u-inline-size-100">
-                <thead>
-                    <tr>
-                        <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung</th>
-                        <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
-                        <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                        <th class="c-table__header-cell js-sort-header u-text-start">Kontakt (E-Mail)</th>
-                        <?php } ?>
-                        <th class="c-table__header-cell js-sort-header u-text-center">Zeitraum</th>
-                        <!-- FIX: Spalte Verwaltung ist wieder da! -->
-                        <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Verwaltung</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($expiredPermits)) { ?>
-                    <tr>
-                        <td
-                            colspan="5"
-                            class="c-table__data-cell u-text-center u-padding-around-l u-color-muted"
-                        >
-                            Keine abgelaufenen Einträge im gewählten Zeitraum.
-                        </td>
-                    </tr>
-                    <?php } else { ?>
-                    <?php foreach ($expiredPermits as $permit) { ?>
-                    <tr class="u-hover-fade <?php echo $permit->rowClass; ?>">
-                        <!-- 1. Pächter, Code & Parzelle -->
-                        <td
-                            class="c-table__data-cell"
-                            data-sort-val="<?php echo \htmlspecialchars($permit->ownerName); ?>"
-                        >
-                            <div class="u-flex u-flex-column">
-                                <span
-                                    class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->ownerName); ?></span>
-                                <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs"><?php echo $permit->code; ?></code>
-                                <div>
-                                    <span class="c-badge c-badge--primary">PARZELLE
-                                        <?php echo $permit->plotNumber; ?></span>
-                                </div>
-                            </div>
-                        </td>
-                        <!-- 2. Fahrzeug unter Icon (Nummernschild-Style) -->
-                        <td
-                            class="c-table__data-cell u-text-center"
-                            data-sort-val="<?php echo \htmlspecialchars($permit->licensePlate); ?>"
-                        >
-                            <div>
+    <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
+        <table class="c-table js-sort-table u-inline-size-100">
+            <thead>
+                <tr>
+                    <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung</th>
+                    <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
+                    <?php if ($viewDto->permissions->showPrivacyEmails) { ?>
+                    <th class="c-table__header-cell js-sort-header u-text-start">Kontakt (E-Mail)</th>
+                    <?php } ?>
+                    <th class="c-table__header-cell js-sort-header u-text-center">Zeitraum</th>
+                    <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Verwaltung</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($viewDto->expiredPermitsDto)) { ?>
+                <tr>
+                    <td
+                        colspan="5"
+                        class="c-table__data-cell u-text-center u-padding-around-l u-color-muted"
+                    >
+                        Keine abgelaufenen Einträge im gewählten Zeitraum.
+                    </td>
+                </tr>
+                <?php } else { ?>
+                <?php foreach ($viewDto->expiredPermitsDto as $permit) { ?>
+                <tr class="u-hover-fade <?php echo $permit->rowClass; ?>">
+                    <!-- 1. Pächter, Code & Parzelle -->
+                    <td
+                        class="c-table__data-cell"
+                        data-sort-val="<?php echo \htmlspecialchars($permit->ownerName); ?>"
+                    >
+                        <div class="u-flex u-flex-column">
+                            <span
+                                class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->ownerName); ?></span>
+                            <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs"><?php echo $permit->code; ?></code>
+                            <div><span class="c-badge c-badge--primary">PARZELLE
+                                    <?php echo $permit->plotNumber; ?></span></div>
+                        </div>
+                    </td>
+                    <!-- 2. Fahrzeug unter Icon (Nummernschild-Style) -->
+                    <td
+                        class="c-table__data-cell u-text-center"
+                        data-sort-val="<?php echo \htmlspecialchars($permit->licensePlate); ?>"
+                    >
+                        <div>
+                            <img
+                                src="<?php echo $asset->url($permit->vehicleIcon); ?>"
+                                class="c-icon c-table__icon u-grayscale u-opacity-50"
+                                title="<?php echo \htmlspecialchars($permit->vehicleLabel); ?>"
+                                loading="lazy"
+                                alt=""
+                            >
+                        </div>
+                        <div class="u-margin-block-start-xs">
+                            <span
+                                class="c-license-plate c-table__license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->licensePlate); ?></span>
+                        </div>
+                    </td>
+                    <!-- 3. E-Mail -->
+                    <?php if ($viewDto->permissions->showPrivacyEmails) { ?>
+                    <td
+                        class="c-table__data-cell"
+                        data-sort-val="<?php echo \htmlspecialchars(\strip_tags($permit->emailHtml)); ?>"
+                    >
+                        <?php echo $permit->emailHtml; ?>
+                    </td>
+                    <?php } ?>
+                    <!-- 4. Zeitraum -->
+                    <td class="c-table__data-cell u-text-center u-text-nowrap">
+                        <div class="u-flex u-flex-column u-gap-xs">
+                            <small class="u-color-muted">
+                                <?php echo $permit->validFromDate; ?> -<br>
+                                <?php echo $permit->validUntilDate; ?>
+                            </small>
+                        </div>
+                    </td>
+                    <!-- 5. Verwaltung -->
+                    <td class="c-table__data-cell u-text-end u-text-nowrap u-padding-inline-end-m">
+                        <div class="u-flex u-gap-xs u-justify-end">
+                            <?php if ($viewDto->permissions->canPrintPermits) { ?>
+                            <a
+                                href="admin_print?code=<?php echo $permit->code; ?>"
+                                target="_blank"
+                                class="c-button c-button--secondary c-button--small c-button--icon-only"
+                                title="Drucken"
+                            >
                                 <img
-                                    src="<?php echo $asset->url($permit->vehicleIcon); ?>"
-                                    class="c-icon c-table__icon u-grayscale u-opacity-50"
-                                    title="<?php echo \htmlspecialchars($permit->vehicleLabel); ?>"
+                                    src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>"
+                                    class="c-icon c-button__icon"
                                     loading="lazy"
                                     alt=""
                                 >
-                            </div>
-                            <div class="u-margin-block-start-xs">
-                                <span
-                                    class="c-license-plate c-table__license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->licensePlate); ?></span>
-                            </div>
-                        </td>
-                        <!-- 3. E-Mail -->
-                        <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                        <td
-                            class="c-table__data-cell"
-                            data-sort-val="<?php echo \htmlspecialchars(\strip_tags($permit->emailHtml)); ?>"
-                        >
-                            <?php echo $permit->emailHtml; ?>
-                        </td>
-                        <?php } ?>
-                        <td class="c-table__data-cell u-text-center u-text-nowrap">
-                            <div class="u-flex u-flex-column u-gap-xs">
-                                <small class="u-color-muted">
-                                    <?php echo $permit->validFromDate; ?> -<br>
-                                    <?php echo $permit->validUntilDate; ?>
-                                </small>
-                            </div>
-                        </td>
-                        <!-- FIX: Buttons in Spalte Verwaltung für Expired Tab hinzugefügt -->
-                        <td class="c-table__data-cell u-text-end u-text-nowrap u-padding-inline-end-m">
-                            <div class="u-flex u-gap-xs u-justify-end">
-                                <?php if ($auth->hasPermission('permits.print')) { ?>
-                                <a
-                                    href="admin_print?code=<?php echo $permit->code; ?>"
-                                    target="_blank"
-                                    class="c-button c-button--secondary c-button--small c-button--icon-only"
-                                    title="Drucken"
+                            </a>
+                            <?php } ?>
+                            <?php if ($viewDto->permissions->canViewPermits) { ?>
+                            <a
+                                href="check?code=<?php echo $permit->code; ?>"
+                                target="_blank"
+                                class="c-button c-button--secondary c-button--small c-button--icon-only"
+                                title="Details"
+                            >
+                                <img
+                                    src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
+                                    class="c-icon c-button__icon"
+                                    loading="lazy"
+                                    alt=""
                                 >
-                                    <img
-                                        src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>"
-                                        class="c-icon c-button__icon"
-                                        loading="lazy"
-                                        alt=""
-                                    >
-                                </a>
-                                <?php } ?>
-                                <?php if ($auth->hasPermission('permits.view')) { ?>
-                                <a
-                                    href="check?code=<?php echo $permit->code; ?>"
-                                    target="_blank"
-                                    class="c-button c-button--secondary c-button--small c-button--icon-only"
-                                    title="Details"
-                                >
-                                    <img
-                                        src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
-                                        class="c-icon c-button__icon"
-                                        loading="lazy"
-                                        alt=""
-                                    >
-                                </a>
-                                <?php } ?>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php } ?>
-                    <?php } ?>
-                </tbody>
-            </table>
-        </div>
+                            </a>
+                            <?php } ?>
+                        </div>
+                    </td>
+                </tr>
+                <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
 
-        <?php echo $paginationHtml; ?>
+    <?php echo $viewDto->paginationHtmlExpired; ?>
 
-        <div class="c-card__footer u-text-center">
-            <?php
-                $queryParams = $_GET;
-    // Verhindere, dass Paginierungen jeglicher Art beim Laden von Archiven mitgenommen werden
-    unset($queryParams['page'], $queryParams['audit_page']);
-    $queryParams['archive_depth'] = $minArchiveYear - 1;
-    $queryParams['focus'] = 'tab-expired'; // Zwingt den Tab nach dem Laden wieder auf "Abgelaufen"
-    $loadUrl = '?' . \http_build_query($queryParams);
-    ?>
-            <a
-                href="<?php echo $loadUrl; ?>"
-                class="c-button c-button--secondary"
+    <div class="c-card__footer u-text-center">
+        <a
+            href="<?php echo $viewDto->expiredLoadArchiveUrl; ?>"
+            class="c-button c-button--secondary"
+        >
+            <img
+                src="<?php echo $asset->url('assets/img/icons/inbox.webp'); ?>"
+                class="c-icon c-button__icon"
+                loading="lazy"
+                alt=""
             >
-                <img
-                    src="<?php echo $asset->url('assets/img/icons/inbox.webp'); ?>"
-                    class="c-icon c-button__icon"
-                    loading="lazy"
-                    alt=""
-                >
-                &nbsp; Daten aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
-            </a>
-            <p class="u-text-sm u-color-muted u-margin-block-start-s u-margin-block-none">
-                Aktuell im Speicher: Daten bis einschließlich <strong
-                    class="u-color-main"><?php echo $minArchiveYear; ?></strong>. <br>
-                <em>Aus Performance-Gründen werden ältere Archiv-Einträge nicht automatisch geladen.</em>
-            </p>
-        </div>
-    </section>
-</div>
-<?php } ?>
+            &nbsp; Daten aus dem Jahr <?php echo $viewDto->minArchiveYear - 1; ?> dazuladen
+        </a>
+        <p class="u-text-sm u-color-muted u-margin-block-start-s u-margin-block-none">
+            Aktuell im Speicher: Daten bis einschließlich <strong
+                class="u-color-main"><?php echo $viewDto->minArchiveYear; ?></strong>. <br>
+            <em>Aus Performance-Gründen werden ältere Archiv-Einträge nicht automatisch geladen.</em>
+        </p>
+    </div>
+</section>

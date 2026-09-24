@@ -7,6 +7,7 @@ namespace App\Modules\Finance\Application\UseCases\ExportFinanceData;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use DateTimeImmutable;
 use PDO;
 
 /**
@@ -115,7 +116,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
 
         foreach ($rows as $row) {
             $dateStr = \substr($row['bezahlt_am'] ?: $row['erstellt'], 0, 10);
-            $dt = new \DateTimeImmutable($dateStr); // Sicherer als strtotime
+            $dt = new DateTimeImmutable($dateStr); // Sicherer als strtotime
             $belegDate = $dt->format('d.m.Y');
 
             $zweck = $this->sanitizeCsvCell($row['zweck'] . ' (Kfz: ' . $row['kennzeichen'] . ')');

@@ -36,19 +36,23 @@ final readonly class ArchiveExpiredPermitsHandler implements CommandHandlerInter
             $permitsToArchive[] = $permit;
 
             // Chunking: Sobald 100 erreicht sind, abarbeiten und Arrays leeren (Speicher freigeben)
-            if (\count($codesToDelete) >= $chunkSize) {
-                $this->archiveRepository->archivePermits(0, $permitsToArchive);
-                $this->repository->deleteMultiple($codesToDelete);
-
-                $codesToDelete = [];
-                $permitsToArchive = [];
+            if (\count($codesToDelete) < $chunkSize) {
+                continue;
             }
+
+            $this->archiveRepository->archivePermits(0, $permitsToArchive);
+            $this->repository->deleteMultiple($codesToDelete);
+
+            $codesToDelete = [];
+            $permitsToArchive = [];
         }
 
         // Restliche Daten abarbeiten, falls das Array nicht exakt durch 100 teilbar war
-        if (\count($codesToDelete) > 0) {
-            $this->archiveRepository->archivePermits(0, $permitsToArchive);
-            $this->repository->deleteMultiple($codesToDelete);
+        if (\count($codesToDelete) <= 0) {
+            return;
         }
+
+        $this->archiveRepository->archivePermits(0, $permitsToArchive);
+        $this->repository->deleteMultiple($codesToDelete);
     }
 }

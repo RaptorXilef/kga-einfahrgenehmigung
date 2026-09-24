@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Voucher\Application\UseCases\GetVoucherArchive;
 
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use DateTimeImmutable;
 use PDO;
 
 /**
@@ -28,7 +29,7 @@ final readonly class GetVoucherArchiveHandler implements QueryHandlerInterface
 
         // VSA FIX: Formatieren wir das Datum direkt im Read-Model, damit die PHTML komplett logikfrei bleibt.
         foreach ($rows as &$row) {
-            $dt = new \DateTimeImmutable($row['redeemed_at']);
+            $dt = new DateTimeImmutable($row['redeemed_at']);
             $row['redeemed_at_formatted'] = $dt->format('d.m.y');
         }
 

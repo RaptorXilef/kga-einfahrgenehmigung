@@ -234,7 +234,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         // FIX: Pfad von 'admin/pagination' auf 'partials/admin/pagination' korrigiert
         $renderPagination = function (int $total, string $tabId) use ($dto, $focus): string {
             $limit = $dto->limit;
-            $page = ($tabId === $focus) ? $dto->page : 1;
+            $page = $tabId === $focus ? $dto->page : 1;
             $totalPages = \max(1, (int) \ceil($total / $limit));
             $offset = ($page - 1) * $limit;
 
@@ -251,7 +251,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         // Paginierung für den Finance Tab (Der Handler lädt alle offenen, wir slicen hier für die View)
         $totalUnpaid = \count($financePermitsDto);
-        $finPage = ($focus === 'tab-finance') ? $dto->page : 1;
+        $finPage = $focus === 'tab-finance' ? $dto->page : 1;
         $finTotalPages = \max(1, (int) \ceil($totalUnpaid / $dto->limit));
         $finPage = \min($finPage, $finTotalPages);
         $finOffset = ($finPage - 1) * $dto->limit;

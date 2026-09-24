@@ -99,8 +99,8 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
             } else {
                 $diff = $now->diff($bis);
                 $remaining = (int) $diff->format('%r%a');
-                $countdownText = ($remaining === 0) ? 'Läuft heute ab' : "Noch {$remaining} Tage";
-                $countdownBadgeClass = ($remaining <= 1) ? 'c-badge--danger' : 'c-badge--primary';
+                $countdownText = $remaining === 0 ? 'Läuft heute ab' : "Noch {$remaining} Tage";
+                $countdownBadgeClass = $remaining <= 1 ? 'c-badge--danger' : 'c-badge--primary';
             }
 
             $statusText = \strtoupper((string) $row['status']);

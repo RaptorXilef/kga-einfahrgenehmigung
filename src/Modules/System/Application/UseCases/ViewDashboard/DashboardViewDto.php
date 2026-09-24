@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Application\UseCases\ViewDashboard;
 
+use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitDto;
+use App\Modules\Permit\Application\UseCases\GetFinanceList\FinancePermitDto;
+
 /**
  * Der allumfassende Read-Model-Container für das Admin-Dashboard.
  * Enthält keinerlei Logik, nur fertig aufbereitete Strings, Booleans und Sub-DTOs.
@@ -22,23 +25,23 @@ final readonly class DashboardViewDto
          */
         public array $collectiveTransfers,
         /**
-         * @var \App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitDto[]
+         * @var DashboardPermitDto[]
          */
         public array $activePermitsDto,
         /**
-         * @var \App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitDto[]
+         * @var DashboardPermitDto[]
          */
         public array $futurePermitsDto,
         /**
-         * @var \App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitDto[]
+         * @var DashboardPermitDto[]
          */
         public array $expiredPermitsDto,
         /**
-         * @var \App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitDto[]
+         * @var DashboardPermitDto[]
          */
         public array $cancelledPermitsDto,
         /**
-         * @var \App\Modules\Permit\Application\UseCases\GetFinanceList\FinancePermitDto[]
+         * @var FinancePermitDto[]
          */
         public array $financePermitsDto,
         public int $totalActive,

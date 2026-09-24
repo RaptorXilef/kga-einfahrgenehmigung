@@ -16,6 +16,7 @@ use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailab
 use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailableVouchersQuery;
 use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\GetVoucherPrefillHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\GetVoucherPrefillQuery;
+use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\VoucherPrefillDto;
 
 #[Route('GET', '/')]
 final readonly class PermitRenderAction implements ViewActionInterface
@@ -56,7 +57,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
 
         // Formulardaten vereinen
         $formData = $this->sessionManager->getFormData();
-        $prefillData = $prefillDto ? $prefillDto->data : [];
+        $prefillData = $prefillDto instanceof VoucherPrefillDto ? $prefillDto->data : [];
 
         $permitTemplates = $this->config->get('permit_templates', []);
         $publicTemplates = \array_filter($permitTemplates, fn (array $t): bool => ($t['public'] ?? false) === true);
@@ -120,9 +121,9 @@ final readonly class PermitRenderAction implements ViewActionInterface
             datumBis: (string) ($formData['datum_bis'] ?? $prefillData['datum_bis'] ?? ''),
             isDatumBisLocked: !empty($prefillData['datum_bis']),
             voucherInput: (string) ($formData['voucher'] ?? $request->get['voucher'] ?? ''),
-            voucherCode: $prefillDto ? $prefillDto->code : '',
-            voucherReason: $prefillDto ? $prefillDto->reason : '',
-            hasActiveVoucher: $prefillDto !== null,
+            voucherCode: $prefillDto instanceof VoucherPrefillDto ? $prefillDto->code : '',
+            voucherReason: $prefillDto instanceof VoucherPrefillDto ? $prefillDto->reason : '',
+            hasActiveVoucher: $prefillDto instanceof VoucherPrefillDto,
             agreementsChecked: (array) ($formData['agreements'] ?? []),
             templateOptions: $templateOptions,
             vehicleOptions: $vehicleOptions,
