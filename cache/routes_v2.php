@@ -98,6 +98,11 @@
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CreateManualPermit\\PermitCreateManualAction',
         'auth' => false,
       ),
+      '/export_permits' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\ExportPermits\\ExportPermitsAction',
+        'auth' => false,
+      ),
       '/success' => 
       array (
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\FinalizePermit\\SuccessAction',
@@ -389,6 +394,11 @@
       '/create_manual' => 
       array (
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\CreateManualPermit\\PermitCreateManualAction',
+        'auth' => false,
+      ),
+      '/export_permits' => 
+      array (
+        'class' => 'App\\Modules\\Permit\\Application\\UseCases\\ExportPermits\\ExportPermitsAction',
         'auth' => false,
       ),
       '/api/capture' => 

@@ -49,7 +49,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private RoleRepositoryInterface $roleRepository,
         private ImageStorageInterface $imageStorage,
         private MailLogInterface $mailLog,
-        private SystemInfoInterface $systemInfo, // <--- VSA FIX
+        private SystemInfoInterface $systemInfo,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
@@ -202,6 +202,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         foreach ($paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250] as $l) {
             $limitOptions[] = new LimitOptionDto($l, $dto->limit === $l ? 'selected' : '');
         }
+
         $controlBar = new ControlBarViewDto(
             startValue: $dto->start,
             endValue: $dto->end,
@@ -230,9 +231,10 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         }
 
         // Pagination HTML Generierung (Befreit die PHTML-Dateien von den Includes)
-        $renderPagination = function (int $total, string $tabId) use ($dto): string {
+        // FIX: Sichere Übergabe von $focus, um direkten $_GET Zugriff zu vermeiden!
+        $renderPagination = function (int $total, string $tabId) use ($dto, $focus): string {
             $limit = $dto->limit;
-            $page = ($tabId === $_GET['focus'] ?? 'tab-active') ? $dto->page : 1;
+            $page = ($tabId === $focus) ? $dto->page : 1;
             $totalPages = \max(1, (int) \ceil($total / $limit));
             $offset = ($page - 1) * $limit;
 
