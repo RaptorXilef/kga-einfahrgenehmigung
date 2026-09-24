@@ -5,11 +5,12 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Backups & Restoration
- * VSA FIX: 100% Dumme View - Konsumiert nur noch das Dumb-View DTO.
+ * VSA FIX: 100% Dumme View - Konsumiert nur noch das Dumb-View DTO und `$csrfToken`.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
  * @var array $settings
+ * @var string $csrfToken
  */
 if ($viewDto->permissions->canManageBackups) { ?>
 <div class="c-tab-content-container">
@@ -76,7 +77,7 @@ if ($viewDto->permissions->canManageBackups) { ?>
                         <input
                             type="hidden"
                             name="csrf_token"
-                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                            value="<?php echo $csrfToken; ?>"
                         >
                         <label
                             for="backupTargetSelect"
@@ -122,7 +123,7 @@ if ($viewDto->permissions->canManageBackups) { ?>
                         <input
                             type="hidden"
                             name="csrf_token"
-                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                            value="<?php echo $csrfToken; ?>"
                         >
                         <label
                             for="truncateTargetSelect"
@@ -136,9 +137,9 @@ if ($viewDto->permissions->canManageBackups) { ?>
                         >
                             <option value="">Tabelle auswählen...</option>
                             <?php foreach ($viewDto->backups->targetOptions as $opt) {
-                                    if ($opt['value'] === 'all') {
-                                        continue;
-                                    } ?>
+                                if ($opt['value'] === 'all') {
+                                    continue;
+                                } ?>
                             <option value="<?php echo $opt['value']; ?>"><?php echo $opt['label']; ?></option>
                             <?php } ?>
                         </select>
@@ -219,7 +220,7 @@ if ($viewDto->permissions->canManageBackups) { ?>
                         <input
                             type="hidden"
                             name="csrf_token"
-                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                            value="<?php echo $csrfToken; ?>"
                         >
                         <input
                             type="hidden"

@@ -9,6 +9,7 @@ use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\Utils\ClockInterface;
 use Exception;
+use Override;
 use PDO;
 use PDOException;
 use RuntimeException;
@@ -24,6 +25,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
     ) {
     }
 
+    #[Override]
     public function runAllPending(): array
     {
         if (!$this->pdo instanceof PDO) {
@@ -104,7 +106,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
         try {
             $stmt = $this->pdo->query("SELECT `version` FROM `{$cfg['table']}`");
 
-            return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+            return $stmt ? ($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []) : [];
         } catch (PDOException) {
             return [];
         }
@@ -119,9 +121,10 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
 
         $now = $this->clock->now()->format('Y-m-d H:i:s');
         $stmt = $this->pdo->prepare("INSERT IGNORE INTO `{$cfg['table']}` (`id`, `version`, `executed_at`) VALUES (?, ?, ?)");
-        $stmt->execute([\uniqid('mig_', true), $version, $now]);
+        $stmt->execute(['mig_' . \bin2hex(\random_bytes(8)), $version, $now]);
     }
 
+    #[Override]
     public function import(array $data): void
     {
         $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;

@@ -6,6 +6,7 @@ namespace App\Modules\System\Infrastructure\System;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\RouteCacheInterface;
+use Override;
 
 final readonly class FileRouteCache implements RouteCacheInterface
 {
@@ -28,6 +29,7 @@ final readonly class FileRouteCache implements RouteCacheInterface
         return $rootPath . '/cache/routes.php';
     }
 
+    #[Override]
     public function load(): ?array
     {
         $cacheFile = $this->getCacheFilePath();
@@ -41,6 +43,7 @@ final readonly class FileRouteCache implements RouteCacheInterface
         return null;
     }
 
+    #[Override]
     public function save(array $routes): void
     {
         $cacheFile = $this->getCacheFilePath();
@@ -53,6 +56,7 @@ final readonly class FileRouteCache implements RouteCacheInterface
         \file_put_contents($cacheFile, '<?php return ' . \var_export($routes, true) . ';', \LOCK_EX);
     }
 
+    #[Override]
     public function clearOld(): void
     {
         $oldCache = $this->getOldCacheFilePath();
@@ -63,6 +67,7 @@ final readonly class FileRouteCache implements RouteCacheInterface
         @\unlink($oldCache);
     }
 
+    #[Override]
     public function clearAll(): void
     {
         $this->clearOld();

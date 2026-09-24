@@ -5,11 +5,12 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Mail Logs
- * VSA FIX: 100% Dumme View - Nutzt native DB-Paginierung um Memory-Leaks zu verhindern!
+ * VSA FIX: 100% Dumme View - Nutzt native DB-Paginierung und `$csrfToken`.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
  * @var array $settings
+ * @var string $csrfToken
  */
 if ($viewDto->permissions->canViewLogs) { ?>
 <div class="c-tab-content-container">
@@ -139,7 +140,7 @@ if ($viewDto->permissions->canViewLogs) { ?>
                                     <input
                                         type="hidden"
                                         name="csrf_token"
-                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                        value="<?php echo $csrfToken; ?>"
                                     >
                                     <input
                                         type="hidden"

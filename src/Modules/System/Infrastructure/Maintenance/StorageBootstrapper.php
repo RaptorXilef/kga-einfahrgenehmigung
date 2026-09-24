@@ -11,6 +11,7 @@ use App\Modules\Identity\Domain\Role;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
+use Override;
 use PDO;
 use PDOException;
 use Throwable;
@@ -26,6 +27,7 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
     ) {
     }
 
+    #[Override]
     public function bootstrap(): void
     {
         if ($this->pdo instanceof PDO) {
@@ -185,7 +187,6 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
                 'vouchers.delete',
                 'vouchers.suspend',
                 'vouchers.view',
-                // NEUE BERECHTIGUNGEN STANDARDMÄßIG IN DIE FINANZ-ROLLE LEGEN
                 'permits.export.active',
                 'permits.export.future',
                 'permits.export.expired',
@@ -213,7 +214,6 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
                 'vouchers.create',
                 'vouchers.suspend',
                 'vouchers.view',
-                // SACHBEARBEITER DÜRFEN AUCH LISTEN ZIEHEN
                 'permits.export.active',
                 'permits.export.future',
                 'permits.export.active_future',

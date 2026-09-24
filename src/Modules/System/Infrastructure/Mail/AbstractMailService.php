@@ -11,7 +11,9 @@ use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\System\Domain\MailLogEntry;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
+use DateTimeImmutable;
 use Exception;
+use Override;
 use PDO;
 use RuntimeException;
 
@@ -28,6 +30,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
     ) {
     }
 
+    #[Override]
     public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50, array $attachments = []): bool|string
     {
         if (\in_array(\trim($recipient), ['', '0'], true)) {
@@ -86,6 +89,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         return $status;
     }
 
+    #[Override]
     public function saveLogs(array $logs, bool $forceSql = false): void
     {
         $cfg = $this->config->get('storage_config')['mail_log'];
@@ -99,12 +103,18 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
             $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id,timestamp,recipient,reply_to,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
             foreach ($logs as $log) {
-                $stmt->execute([$log->id,
-                    $log->timestamp->format('Y-m-d H:i:s'), $log->recipient,
-                    $log->replyTo, $log->subject,
-                    $log->template->value, $log->status,
-                    \json_encode($log->data, \JSON_UNESCAPED_UNICODE),                 ]);
-            }$this->pdo->commit();
+                $stmt->execute([
+                    $log->id,
+                    $log->timestamp->format('Y-m-d H:i:s'),
+                    $log->recipient,
+                    $log->replyTo,
+                    $log->subject,
+                    $log->template->value,
+                    $log->status,
+                    \json_encode($log->data, \JSON_UNESCAPED_UNICODE),
+                ]);
+            }
+            $this->pdo->commit();
         } catch (Exception $e) {
             $this->pdo->rollBack();
 
@@ -112,6 +122,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         }
     }
 
+    #[Override]
     public function loadLogs(): array
     {
         $cfg = $this->config->get('storage_config')['mail_log'];
@@ -120,10 +131,10 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         if ($this->pdo instanceof PDO) {
             $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC");
             if ($stmt) {
-                foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     $logs[] = new MailLogEntry(
                         (string) $r['id'],
-                        $this->clock->now()->setTimestamp(\strtotime($r['timestamp'])),
+                        new DateTimeImmutable((string) $r['timestamp']),
                         $r['recipient'] ?? '',
                         $r['reply_to'] ?? null,
                         $r['subject'] ?? '',
@@ -138,6 +149,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         return $logs;
     }
 
+    #[Override]
     public function getDebugMailContent(string $filename): ?string
     {
         if (!\preg_match('/^[a-zA-Z0-9_]+\.html$/', $filename)) {
@@ -154,9 +166,10 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         return $content !== false ? $content : null;
     }
 
+    #[Override]
     public function processQueue(int $limit = 5): int
     {
-        return 0; // Interface-Stub
+        return 0;
     }
 
     abstract protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null, array $attachments = []): bool|string;
@@ -191,7 +204,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
 
         $entry = new MailLogEntry(
-            \uniqid('ml_'),
+            'ml_' . \bin2hex(\random_bytes(8)),
             $this->clock->now(),
             $recipient,
             $replyTo,

@@ -76,6 +76,7 @@ final readonly class TemplateRenderer
             'asset' => $this->assetHelper,
             'settings' => $this->getGlobalSettings(),
             'logoUrl' => $this->resolveLogoUrl($appRoot),
+            'queryParams' => $this->request->get,
             'cspNonce' => \defined('CSP_NONCE') ? CSP_NONCE : '',
             'csrfToken' => $this->sessionManager->getCsrfToken(),
             'currentRoute' => $currentRoute,
@@ -154,6 +155,8 @@ final readonly class TemplateRenderer
             'vehicle_types' => $this->config->get('vehicle_types'),
             'vereins_name' => $this->config->get('vereins_name'),
             'debug_mode' => $this->config->get('debug_mode', false), // Wird vom Footer für Metriken genutzt
+            'consent' => $this->config->getArray('consent'),
+            'ga4_server_side' => $this->config->getArray('ga4_server_side'),
         ];
     }
 }

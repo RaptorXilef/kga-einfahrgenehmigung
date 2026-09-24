@@ -2,38 +2,39 @@
 
 /**
  * Partial: Generic Pagination Component
+ * VSA FIX: Nutzt das vom TemplateRenderer injizierte `$queryParams` anstelle von `$_GET`.
  *
- * Erwartet folgende Variablen im Scope:
  * @var int $page             Aktuelle Seite
  * @var int $totalPages       Gesamtanzahl der Seiten
  * @var int $totalCount       Gesamtanzahl der Datensätze
  * @var int $limit            Einträge pro Seite
  * @var int $offset           Aktueller Offset
+ * @var array<string, mixed> $queryParams Bereitgestellt durch TemplateRenderer ($request->get)
  * @var string $paginationParam Der GET-Parameter für die Seite (Standard: 'page', bei Audit-Log z.B. 'audit_page')
  * @var string|null $tabFocusId Die explizite Tab-ID (z.B. 'tab-active'), um URL-Leaks zu verhindern
  */
 $paginationParam ??= 'page';
 
 if ($totalPages > 1) {
-    $queryParams = $_GET;
+    $params = $queryParams ?? [];
 
     // ARCHITEKTUR-FIX: Verhindert "Parameter Leakage" und kryptische URLs.
     // 1. Wir löschen pauschal alle bekannten Paginierungs-Parameter aus der URL-Basis
-    unset($queryParams['page'], $queryParams['audit_page']);
+    unset($params['page'], $params['audit_page']);
 
     // 2. Wenn wir nicht in einem Tab sind, der das Archiv nutzt, werfen wir das auch raus
     if (isset($tabFocusId) && !\in_array($tabFocusId, ['tab-expired', 'tab-stats'], true)) {
-        unset($queryParams['archive_depth']);
+        unset($params['archive_depth']);
     }
 
     // 3. Jeder Paginierungs-Link bekommt zwingend die ID seines eigenen Tabs aufgestempelt.
     if (isset($tabFocusId)) {
-        $queryParams['focus'] = $tabFocusId;
+        $params['focus'] = $tabFocusId;
     } else {
-        unset($queryParams['focus']);
+        unset($params['focus']);
     }
 
-    $baseUrlStr = '?' . \http_build_query($queryParams) . '&' . $paginationParam . '=';
+    $baseUrlStr = '?' . \http_build_query($params) . '&' . $paginationParam . '=';
 
     $adjacents = 2;
     $pagesToShow = [];
@@ -84,7 +85,7 @@ if ($totalPages > 1) {
         <?php } ?>
 
         <?php foreach ($pagesToShow as $pageNum) {
-                if ($pageNum === '...') { ?>
+            if ($pageNum === '...') { ?>
         <span class="u-color-muted u-padding-inline-s">&hellip;</span>
         <?php } elseif ($pageNum === $page) { ?>
         <span
@@ -97,7 +98,7 @@ if ($totalPages > 1) {
             class="c-button c-button--secondary"
         ><?php echo $pageNum; ?></a>
         <?php }
-                } ?>
+            } ?>
 
         <?php if ($page < $totalPages) { ?>
         <a

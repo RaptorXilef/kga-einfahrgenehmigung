@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\System\SystemInfoInterface;
 use Exception;
+use Override;
 
 final readonly class SystemInfoService implements SystemInfoInterface
 {
@@ -17,6 +18,7 @@ final readonly class SystemInfoService implements SystemInfoInterface
     ) {
     }
 
+    #[Override]
     public function getChangelog(): string
     {
         $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/CHANGELOG.md';
@@ -24,9 +26,10 @@ final readonly class SystemInfoService implements SystemInfoInterface
             $path = \str_replace('.md', '.MD', $path);
         }
 
-        return \file_exists($path) ? \file_get_contents($path) : 'Kein Changelog gefunden.';
+        return \file_exists($path) ? (string) \file_get_contents($path) : 'Kein Changelog gefunden.';
     }
 
+    #[Override]
     public function getCurrentVersion(): string
     {
         $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/package.json';
@@ -43,11 +46,13 @@ final readonly class SystemInfoService implements SystemInfoInterface
         return 'v0.0.0';
     }
 
+    #[Override]
     public function getAllReleaseNotes(): array
     {
         return $this->parseNotesFromDir(null);
     }
 
+    #[Override]
     public function getUnreadReleaseNotes(string $lastSeenVersion): array
     {
         return $this->parseNotesFromDir($lastSeenVersion);

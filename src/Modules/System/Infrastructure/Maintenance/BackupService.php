@@ -7,6 +7,7 @@ namespace App\Modules\System\Infrastructure\Maintenance;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Utils\ClockInterface;
+use Override;
 use PDO;
 use RuntimeException;
 use Throwable;
@@ -37,11 +38,13 @@ final readonly class BackupService implements BackupServiceInterface
         \file_put_contents($htaccessPath, "Order allow,deny\nDeny from all\n");
     }
 
+    #[Override]
     public function runCronBackup(): void
     {
         $this->createBackup('all');
     }
 
+    #[Override]
     public function createBackup(string $target = 'all'): string
     {
         $storageConfig = $this->config->get('storage_config', []);
@@ -127,6 +130,7 @@ final readonly class BackupService implements BackupServiceInterface
         return $filename;
     }
 
+    #[Override]
     public function restoreBackup(string $filename, int $mode, string $target = 'all'): void
     {
         $filepath = $this->backupDir . '/' . \basename($filename);
@@ -152,7 +156,7 @@ final readonly class BackupService implements BackupServiceInterface
         }
 
         $data = \json_decode($json, true);
-        if (!isset($data['tables']) | !\is_array($data['tables'])) {
+        if (!isset($data['tables']) || !\is_array($data['tables'])) {
             throw new RuntimeException('Ungültiges Backup-Format.');
         }
 
@@ -205,7 +209,7 @@ final readonly class BackupService implements BackupServiceInterface
                     $this->pdo->exec("TRUNCATE TABLE `$table`");
                 }
             } else {
-                $this->pdo->exec("TRUNCATE TABLE `$table`"); // Fallback
+                $this->pdo->exec("TRUNCATE TABLE `$table`");
             }
         }
 
@@ -233,6 +237,7 @@ final readonly class BackupService implements BackupServiceInterface
         return $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
     }
 
+    #[Override]
     public function listBackups(): array
     {
         if (!\is_dir($this->backupDir)) {
@@ -294,11 +299,11 @@ final readonly class BackupService implements BackupServiceInterface
         }
 
         $timeout = 60;
-        $connId = $ftpCfg['ssl'] ?? false
+        $connId = ($ftpCfg['ssl'] ?? false)
             ? @\ftp_ssl_connect($ftpCfg['host'], (int) $ftpCfg['port'], $timeout)
             : @\ftp_connect($ftpCfg['host'], (int) $ftpCfg['port'], $timeout);
 
-        if (!$connId | !@\ftp_login($connId, $ftpCfg['user'], $ftpCfg['pass'])) {
+        if (!$connId || !@\ftp_login($connId, $ftpCfg['user'], $ftpCfg['pass'])) {
             \error_log('Off-Site Backup fehlgeschlagen: FTP Login-Fehler.');
 
             return;
@@ -317,7 +322,6 @@ final readonly class BackupService implements BackupServiceInterface
 
         if (!@\ftp_put($connId, $filename, $filepath, \FTP_BINARY)) {
             \error_log('Off-Site Backup fehlgeschlagen: Upload verweigert.');
-        }
-        \ftp_close($connId);
+        }         \ftp_close($connId);
     }
 }

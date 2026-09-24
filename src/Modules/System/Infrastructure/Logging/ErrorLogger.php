@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Infrastructure\Storage\SafeJsonWriterTrait;
+use Override;
 use RuntimeException;
 use Throwable;
 
@@ -21,6 +22,7 @@ final readonly class ErrorLogger implements ErrorLoggerInterface
     ) {
     }
 
+    #[Override]
     public function logThrowable(Throwable $throwable): void
     {
         $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');

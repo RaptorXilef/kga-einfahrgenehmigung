@@ -10,6 +10,7 @@ use App\Modules\System\Domain\AuditLogRepositoryInterface;
 use App\SharedKernel\Domain\ValueObject\IpAddress;
 use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 final readonly class PdoAuditLogRepository implements AuditLogRepositoryInterface
@@ -22,6 +23,7 @@ final readonly class PdoAuditLogRepository implements AuditLogRepositoryInterfac
     ) {
     }
 
+    #[Override]
     public function save(AuditLog $log): void
     {
         $table = $this->config->get('storage_config')['audit_logs']['table'] ?? 'audit_logs';
@@ -40,6 +42,7 @@ final readonly class PdoAuditLogRepository implements AuditLogRepositoryInterfac
         $this->pdo->prepare($sql)->execute($data);
     }
 
+    #[Override]
     public function getPaginated(int $page, int $limit, string $actionFilter = ''): array
     {
         $table = $this->config->get('storage_config')['audit_logs']['table'] ?? 'audit_logs';
@@ -58,21 +61,20 @@ final readonly class PdoAuditLogRepository implements AuditLogRepositoryInterfac
         $stmtCount->execute($params);
         $total = (int) $stmtCount->fetchColumn();
 
-        // FIX: Sichere Kapselung der int-Variablen, um "OFFSET0" Syntax-Fehler zu vermeiden
         $sql = "SELECT * FROM `{$table}` {$where} ORDER BY created_at DESC LIMIT {$limit} OFFSET {$offset}";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
 
         $items = [];
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $items[] = new AuditLog(
-                $r['id'],
-                $r['user_id'],
-                $r['username'],
-                $r['action'],
-                $r['details'],
-                new IpAddress(!empty($r['ip_address']) && $r['ip_address'] !== 'unknown' ? $r['ip_address'] : '0.0.0.0'),
-                new DateTimeImmutable($r['created_at']),
+                (string) $r['id'],
+                (string) $r['user_id'],
+                (string) $r['username'],
+                (string) $r['action'],
+                (string) $r['details'],
+                new IpAddress(!empty($r['ip_address']) && $r['ip_address'] !== 'unknown' ? (string) $r['ip_address'] : '0.0.0.0'),
+                new DateTimeImmutable((string) $r['created_at']),
             );
         }
 

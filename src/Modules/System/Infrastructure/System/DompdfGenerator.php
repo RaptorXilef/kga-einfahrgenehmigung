@@ -7,9 +7,11 @@ namespace App\Modules\System\Infrastructure\System;
 use App\Contracts\System\PdfGeneratorInterface;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use Override;
 
 final class DompdfGenerator implements PdfGeneratorInterface
 {
+    #[Override]
     public function generateFromHtml(string $html): string
     {
         $options = new Options();

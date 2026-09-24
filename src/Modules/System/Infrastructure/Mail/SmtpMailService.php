@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Infrastructure\Mail;
 
+use Override;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\PHPMailer;
 
 final class SmtpMailService extends AbstractMailService
 {
+    #[Override]
     protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null, array $attachments = []): bool|string
     {
         $mail = new PHPMailer(true);

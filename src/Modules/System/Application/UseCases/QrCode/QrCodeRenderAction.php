@@ -8,6 +8,7 @@ use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\BinaryResponse;
 use App\Application\Response\EmptyResponse;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
@@ -42,13 +43,12 @@ final readonly class QrCodeRenderAction implements ActionInterface
             $writer = new PngWriter();
             $result = $writer->write($qrCode);
 
-            if (!\headers_sent()) {
-                \header('Content-Type: ' . $result->getMimeType());
-                \header('Cache-Control: public, max-age=31536000');
-            }
-
-            echo $result->getString();
-            exit;
+            return new BinaryResponse(
+                content: $result->getString(),
+                contentType: $result->getMimeType(),
+                statusCode: 200,
+                headers: ['Cache-Control' => 'public, max-age=31536000'],
+            );
         } catch (Exception $e) {
             \error_log('QR-Code Generierung fehlgeschlagen: ' . $e->getMessage());
 

@@ -6,10 +6,12 @@ namespace App\Modules\System\Infrastructure\Storage;
 
 use App\Contracts\System\JsonHelperInterface;
 use JsonException;
+use Override;
 use RuntimeException;
 
 final class JsonHelper implements JsonHelperInterface
 {
+    #[Override]
     public function decode(string $json): array
     {
         if (\trim($json) === '') {
@@ -33,6 +35,7 @@ final class JsonHelper implements JsonHelperInterface
         }
     }
 
+    #[Override]
     public function read(string $path): array
     {
         if (!\file_exists($path) || \is_dir($path)) {

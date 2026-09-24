@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\System\Infrastructure\System;
 
 use App\Contracts\System\IpResolverInterface;
+use Override;
 
 /**
  * Physische Implementierung der IP-Auflösung via Superglobal $_SERVER.
@@ -13,6 +14,7 @@ use App\Contracts\System\IpResolverInterface;
  */
 final class ServerIpResolver implements IpResolverInterface
 {
+    #[Override]
     public function getIp(): string
     {
         $keys = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR'];

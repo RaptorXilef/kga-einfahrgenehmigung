@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Infrastructure\Mail;
 
+use Override;
 use TheNetworg\OAuth2\Client\Provider\Azure;
 use Throwable;
 
 final class MicrosoftGraphMailService extends AbstractMailService
 {
+    #[Override]
     protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null, array $attachments = []): bool|string
     {
         try {

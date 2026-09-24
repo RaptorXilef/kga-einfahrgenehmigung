@@ -7,11 +7,12 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
  * Partial: Dashboard Control Bar
  *
  * Suchleiste und Zeitraum-/Typen-Filter.
- * VSA CQRS Fix: Vollständig auf DTOs umgestellt (keine Logik mehr im Template).
+ * VSA CQRS Fix: Vollständig auf DTOs und `$csrfToken` umgestellt.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
  * @var array $settings
+ * @var string $csrfToken
  */
 ?>
 <div class="c-control-bar-wrapper">
@@ -25,7 +26,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
             <input
                 type="hidden"
                 name="csrf_token"
-                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                value="<?php echo $csrfToken; ?>"
             >
             <input
                 type="hidden"

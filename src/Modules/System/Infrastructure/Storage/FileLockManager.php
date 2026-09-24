@@ -6,6 +6,7 @@ namespace App\Modules\System\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\LockManagerInterface;
+use Override;
 
 final readonly class FileLockManager implements LockManagerInterface
 {
@@ -13,6 +14,7 @@ final readonly class FileLockManager implements LockManagerInterface
     {
     }
 
+    #[Override]
     public function executeWithLock(string $lockName, callable $operation): mixed
     {
         $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');

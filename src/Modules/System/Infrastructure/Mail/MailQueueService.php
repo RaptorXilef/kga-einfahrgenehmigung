@@ -10,6 +10,7 @@ use App\Modules\System\Domain\MailJob;
 use App\Modules\System\Domain\MailQueueRepositoryInterface;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use Exception;
+use Override;
 
 /**
  * Service für die asynchrone E-Mail-Verarbeitung über eine Warteschlange.
@@ -23,6 +24,7 @@ final readonly class MailQueueService implements MailServiceInterface
     ) {
     }
 
+    #[Override]
     public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50, array $attachments = []): bool
     {
         if ($attachments !== []) {
@@ -38,7 +40,7 @@ final readonly class MailQueueService implements MailServiceInterface
         }
 
         $job = new MailJob(
-            \uniqid('mq_'),
+            'mq_' . \bin2hex(\random_bytes(8)),
             $recipient,
             $replyTo,
             $subject,
@@ -53,6 +55,7 @@ final readonly class MailQueueService implements MailServiceInterface
         return true;
     }
 
+    #[Override]
     public function processQueue(int $limit = 5): int
     {
         return $this->repository->processBatch($limit, function (string $rec, string $sub, string $tpl, array $dat, ?string $replyTo): void {

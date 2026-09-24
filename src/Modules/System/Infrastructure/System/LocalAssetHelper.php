@@ -6,6 +6,7 @@ namespace App\Modules\System\Infrastructure\System;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
+use Override;
 
 final class LocalAssetHelper implements AssetHelperInterface
 {
@@ -20,6 +21,7 @@ final class LocalAssetHelper implements AssetHelperInterface
     {
     }
 
+    #[Override]
     public function url(string $assetPath): string
     {
         $assetPath = \ltrim($assetPath, '/');
