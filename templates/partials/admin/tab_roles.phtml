@@ -1,10 +1,8 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Infrastructure\Config\Config;
-use App\Infrastructure\Storage\ImageStorageService;
 use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\Modules\Identity\Application\UseCases\GetUserManagementData\UserManagementViewDto;
 
 /**
  * Partial: Group & Permissions Matrix
@@ -13,86 +11,10 @@ use App\Modules\Identity\Domain\RoleRepositoryInterface;
  *
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
- * @var Config $config
- * @var ImageStorageService $imageStorage
- * @var RoleRepositoryInterface $roleRepository
- * @var array $roles
+ * @var UserManagementViewDto $viewDto
  * @var array $settings
- * @var array $structure
  */
-if ($auth->hasPermission('system.roles.manage')) {
-    $structure ??= $config->get('structure', []);
-
-    /**
-     * Rekursive Funktion zum Rendern des Permission-Baums
-     */
-    if (!\function_exists('renderPermissionNode')) {
-        // Wir übergeben den $asset Helper, um die Icons laden zu können
-        function renderPermissionNode(array $nodes, array $rolePerms, int $depth = 0, ?AssetHelperInterface $asset = null): void
-        {
-            foreach ($nodes as $id => $node) {
-                $key = $node['key'] ?? null;
-                $isAllowed = $key ? \in_array($key, $rolePerms, true) : false;
-                $hasChildren = !empty($node['children']);
-                $permissionLabel = \htmlspecialchars((string) ($node['label'] ?? $id));
-                ?>
-<div
-    class="c-tree-node"
-    style="--depth: <?php echo $depth; ?>;"
-    data-key="<?php echo $key ?? $id; ?>"
->
-    <div
-        class="c-tree-item <?php echo $depth === 0 ? 'c-tree-item--root' : ''; ?> <?php echo !$key ? 'c-tree-item--category' : ''; ?>">
-        <div class="c-tree-item__label-wrapper u-flex u-flex-column">
-            <span class="c-tree-item__label <?php echo $depth === 0 ? 'c-tree-item__label--root' : ''; ?>">
-                <?php if (isset($node['icon']) && $asset !== null) { ?>
-                <img
-                    src="<?php echo $asset->url('assets/img/icons/' . $node['icon']); ?>"
-                    class="c-icon c-icon--inline u-margin-inline-end-xs"
-                    loading="lazy"
-                    alt=""
-                >
-                <?php } ?>
-                <?php echo $permissionLabel; ?>
-            </span>
-            <?php if ($key) { ?>
-            <span class="c-tree-item__sublabel"><?php echo \htmlspecialchars((string) $key); ?></span>
-            <?php } else { ?>
-            <span class="c-tree-item__sublabel c-tree-item__sublabel--category">
-                Kategorie
-            </span>
-            <?php } ?>
-        </div>
-        <div class="p-controls">
-            <?php if ($key) { ?>
-            <label class="c-switch">
-                <input
-                    type="checkbox"
-                    name="perms[]"
-                    value="<?php echo \htmlspecialchars((string) $key); ?>"
-                    data-perm-check="true"
-                    class="c-switch__input"
-                    aria-label="Berechtigung: <?php echo $permissionLabel; ?>"
-                    <?php echo $isAllowed ? 'checked' : ''; ?>
-                >
-                <span
-                    class="c-switch__label"
-                    aria-hidden="true"
-                    data-on="ALLOW"
-                    data-off="NONE"
-                ></span>
-            </label>
-            <?php } ?>
-        </div>
-    </div>
-    <?php if ($hasChildren) {
-                        \renderPermissionNode($node['children'], $rolePerms, $depth + 1, $asset);
-                    } ?>
-</div>
-<?php
-            }
-        }
-    } ?>
+if ($auth->hasPermission('system.roles.manage')) { ?>
 
 <div
     id="roles-tab-wrapper"
@@ -148,8 +70,9 @@ if ($auth->hasPermission('system.roles.manage')) {
                         autocomplete="off"
                     >
                         <option value="">(Keine Vorlage)</option>
-                        <?php foreach ($roles as $id => $r) { ?>
-                        <option value="<?php echo $id; ?>">Kopie von: <?php echo \htmlspecialchars($r->name); ?>
+                        <?php foreach ($viewDto->globalRoleOptions as $opt) { ?>
+                        <option value="<?php echo \htmlspecialchars($opt['value']); ?>">Kopie von:
+                            <?php echo \htmlspecialchars($opt['label']); ?>
                         </option>
                         <?php } ?>
                     </select>
@@ -163,31 +86,29 @@ if ($auth->hasPermission('system.roles.manage')) {
     </section>
 
     <div class="u-flex u-flex-column u-gap-m">
-        <?php foreach ($roles as $roleId => $rData) {
-                $roleImage = $imageStorage->getImageUrl('role', $roleId, 'shield.webp');
-                ?>
+        <?php foreach ($viewDto->roles as $r) { ?>
         <div
             class="c-category-card is-closed"
-            id="card-<?php echo $roleId; ?>"
+            id="card-<?php echo $r->id; ?>"
         >
             <header class="c-category-card__header u-flex u-justify-between u-align-center">
                 <div
                     class="u-flex u-align-center u-gap-m js-toggle-parent u-cursor-pointer u-flex-grow-1"
-                    aria-controls="card-body-<?php echo $roleId; ?>"
+                    aria-controls="card-body-<?php echo $r->id; ?>"
                 >
                     <img
-                        src="<?php echo $roleImage; ?>"
+                        src="<?php echo $r->iconUrl; ?>"
                         class="c-avatar c-avatar--sm c-avatar--role"
                         loading="lazy"
                         alt=""
                     >
                     <div>
-                        <strong class="u-text-lg"><?php echo \htmlspecialchars($rData->name); ?></strong>
+                        <strong class="u-text-lg"><?php echo \htmlspecialchars($r->name); ?></strong>
                         <div class="u-text-xs u-color-muted u-font-mono u-opacity-75">System-ID:
-                            <?php echo \htmlspecialchars((string) $roleId, \ENT_QUOTES, 'UTF-8'); ?></div>
+                            <?php echo \htmlspecialchars($r->id, \ENT_QUOTES, 'UTF-8'); ?></div>
                     </div>
                 </div>
-                <?php if ($roleId !== 'admin') { ?>
+                <?php if ($r->canBeDeleted) { ?>
                 <form
                     method="POST"
                     action="delete_role"
@@ -202,13 +123,13 @@ if ($auth->hasPermission('system.roles.manage')) {
                     <input
                         type="hidden"
                         name="group_id"
-                        value="<?php echo $roleId; ?>"
+                        value="<?php echo $r->id; ?>"
                     >
                     <button
                         type="submit"
                         class="c-button c-button--danger c-button--icon-only"
                         title="Rolle löschen"
-                        aria-label="Rolle <?php echo \htmlspecialchars($rData->name); ?> löschen"
+                        aria-label="Rolle <?php echo \htmlspecialchars($r->name); ?> löschen"
                     >
                         <img
                             src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
@@ -223,13 +144,13 @@ if ($auth->hasPermission('system.roles.manage')) {
 
             <div
                 class="c-category-card__body"
-                id="card-body-<?php echo $roleId; ?>"
+                id="card-body-<?php echo $r->id; ?>"
             >
 
-                <!-- Avatar / Icon Dropzone analog zu Benutzerverwaltung -->
+                <!-- Avatar / Icon Dropzone -->
                 <form
                     method="POST"
-                    id="uploadRoleImageForm_<?php echo $roleId; ?>"
+                    id="uploadRoleImageForm_<?php echo $r->id; ?>"
                     action="upload_role_image"
                     enctype="multipart/form-data"
                     class="u-text-center c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit c-box c-box--dashed u-padding-around-s u-border-radius-m u-margin-block-end-l"
@@ -237,7 +158,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                     <label class="c-form-label u-justify-center">Rollen-Icon / Bild</label>
                     <div class="u-position-relative u-display-inline-block">
                         <img
-                            src="<?php echo $roleImage; ?>"
+                            src="<?php echo $r->iconUrl; ?>"
                             class="c-avatar c-avatar--lg c-avatar--role u-margin-block-end-s js-preview-img"
                             loading="lazy"
                             alt=""
@@ -253,30 +174,30 @@ if ($auth->hasPermission('system.roles.manage')) {
                     <input
                         type="hidden"
                         name="group_id"
-                        value="<?php echo $roleId; ?>"
+                        value="<?php echo $r->id; ?>"
                     >
                     <label
-                        for="file-role-<?php echo \md5($roleId); ?>"
+                        for="file-role-<?php echo $r->idHash; ?>"
                         class="u-visually-hidden"
                     >Bild auswählen</label>
                     <input
                         type="file"
                         name="avatar"
                         class="u-hidden"
-                        id="file-role-<?php echo \md5($roleId); ?>"
+                        id="file-role-<?php echo $r->idHash; ?>"
                         accept="image/*"
                     >
                     <button
                         type="button"
                         class="c-button c-button--secondary c-button--small u-inline-size-100 js-trigger-click"
-                        data-target="#file-role-<?php echo \md5($roleId); ?>"
+                        data-target="#file-role-<?php echo $r->idHash; ?>"
                     >Bild ändern</button>
                 </form>
 
                 <div class="u-margin-block-end-l">
                     <form
                         method="POST"
-                        id="renameRoleForm_<?php echo $roleId; ?>"
+                        id="renameRoleForm_<?php echo $r->id; ?>"
                         action="rename_role"
                         class="u-flex u-gap-s u-align-end"
                     >
@@ -288,19 +209,19 @@ if ($auth->hasPermission('system.roles.manage')) {
                         <input
                             type="hidden"
                             name="group_id"
-                            value="<?php echo $roleId; ?>"
+                            value="<?php echo $r->id; ?>"
                         >
                         <div class="c-form-group u-flex-grow-1">
                             <label
                                 class="c-form-label"
-                                for="new_group_name_<?php echo $roleId; ?>"
+                                for="new_group_name_<?php echo $r->id; ?>"
                             >Anzeigename ändern</label>
                             <input
                                 type="text"
-                                id="new_group_name_<?php echo $roleId; ?>"
+                                id="new_group_name_<?php echo $r->id; ?>"
                                 name="new_group_name"
                                 class="c-form-input"
-                                value="<?php echo \htmlspecialchars($rData->name); ?>"
+                                value="<?php echo \htmlspecialchars($r->name); ?>"
                                 autocomplete="off"
                             >
                         </div>
@@ -315,7 +236,7 @@ if ($auth->hasPermission('system.roles.manage')) {
 
                 <form
                     method="POST"
-                    id="saveRoleForm_<?php echo $roleId; ?>"
+                    id="saveRoleForm_<?php echo $r->id; ?>"
                     action="save_role"
                     class="js-permission-form"
                 >
@@ -327,12 +248,12 @@ if ($auth->hasPermission('system.roles.manage')) {
                     <input
                         type="hidden"
                         name="group_id"
-                        value="<?php echo $roleId; ?>"
+                        value="<?php echo $r->id; ?>"
                     >
                     <input
                         type="hidden"
                         name="group_name"
-                        value="<?php echo \htmlspecialchars($rData->name, \ENT_QUOTES, 'UTF-8'); ?>"
+                        value="<?php echo \htmlspecialchars($r->name, \ENT_QUOTES, 'UTF-8'); ?>"
                     >
 
                     <?php if ($auth->hasPermission('*')) { ?>
@@ -361,7 +282,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                                 data-master-toggle="true"
                                 class="c-switch__input"
                                 aria-label="Vollständigen System-Zugriff für diese Rolle aktivieren"
-                                <?php echo \in_array('*', $rData->permissions, true) ? 'checked' : ''; ?>
+                                <?php echo $r->masterCheckboxAttr; ?>
                             >
                             <span
                                 class="c-switch__label"
@@ -380,9 +301,8 @@ if ($auth->hasPermission('system.roles.manage')) {
                         </div>
                     </div>
 
-                    <div
-                        class="c-tree-wrapper <?php echo \in_array('*', $rData->permissions, true) ? 'is-master-active' : ''; ?>">
-                        <?php \renderPermissionNode($structure, $rData->permissions, 0, $asset); ?>
+                    <div class="c-tree-wrapper <?php echo $r->treeWrapperClass; ?>">
+                        <?php echo $r->treeHtml; ?>
                     </div>
 
                     <div class="u-margin-block-start-xl">
@@ -395,7 +315,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                                 class="c-icon c-button__icon"
                                 loading="lazy"
                                 alt=""
-                            > RECHTE FÜR <?php echo \strtoupper($rData->name); ?> SPEICHERN
+                            > RECHTE FÜR <?php echo \mb_strtoupper($r->name); ?> SPEICHERN
                         </button>
                     </div>
                 </form>

@@ -1,8 +1,8 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Infrastructure\Config\Config;
 use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\Identity\Application\UseCases\GetUserManagementData\UserManagementViewDto;
 
 /**
  * Page: User & Role Management Wrapper
@@ -14,10 +14,8 @@ use App\Modules\Identity\Application\Services\AuthService;
  *
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
- * @var Config $config
- * @var array $roles
+ * @var UserManagementViewDto $viewDto
  * @var array $settings
- * @var array $users
  * @var string $appRoot
  * @var string $cspNonce
  */

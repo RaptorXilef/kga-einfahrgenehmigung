@@ -10,11 +10,9 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\View\TemplateRenderer;
-use App\Contracts\Config\ConfigInterface;
-use App\Contracts\System\ImageStorageInterface;
 use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\Identity\Domain\RoleRepositoryInterface;
-use App\Modules\Identity\Domain\UserRepositoryInterface;
+use App\Modules\Identity\Application\UseCases\GetUserManagementData\GetUserManagementDataHandler;
+use App\Modules\Identity\Application\UseCases\GetUserManagementData\GetUserManagementDataQuery;
 
 #[Route('GET', '/users')]
 #[RequiresAuth]
@@ -22,25 +20,18 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
 {
     public function __construct(
         private AuthService $auth,
-        private ConfigInterface $config,
-        private RoleRepositoryInterface $roleRepository,
-        private ImageStorageInterface $imageStorage,
         private TemplateRenderer $renderer,
-        private UserRepositoryInterface $userRepository,
+        private GetUserManagementDataHandler $dataHandler,
     ) {
     }
 
     public function execute(ServerRequest $request): mixed
     {
+        $viewDto = $this->dataHandler->handle(new GetUserManagementDataQuery());
+
         $html = $this->renderer->render('admin/users', [
             'auth' => $this->auth,
-            'roleRepository' => $this->roleRepository,
-            'roles' => $this->roleRepository->loadAll(),
-            'imageStorage' => $this->imageStorage,
-            'permissions' => $this->config->get('permissions', []),
-            'structure' => $this->config->get('structure', []),
-            'userRepository' => $this->userRepository,
-            'users' => $this->userRepository->loadAll(),
+            'viewDto' => $viewDto,
         ]);
 
         return new HtmlResponse($html);
