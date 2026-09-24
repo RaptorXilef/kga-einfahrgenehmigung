@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.79.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.0...v0.79.1) (2026-09-24)
+
+### ⚙️ Refactoring
+
+* **cqrs:** enforce strict void return types for workflow command handlers ([c11c3f7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c11c3f7ae93f8180a1ebc8cb626b3d842f13012c))
+* **dashboard:** enforce strict CQRS for tools, backups and mail logs ([08e9a00](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/08e9a00cb217db9d1820ffdcd5a140b668710e81))
+* **identity:** enforce strict CQRS and dumb views for user management ([e17bf6f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e17bf6fe9aea04b4ff56fd68d0a964d01f331e75))
+* **performance:** replace fetchAll with memory-safe generators for mass data processing ([24324b9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/24324b925f680ecfc6108d39a30e169af4a14eb1))
+* **permit:** replace forbidden native time functions with ClockInterface and DateTimeImmutable ([31b91f8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/31b91f80fab4a07b2fb1ddd651aedeb196c60596))
+* **security:** purge all superglobals and business logic from views and middlewares ([83101c7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/83101c7324fa0409efe180a723a63b821e88ac80))
+
 ## [0.79.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.78.4...v0.79.0) (2026-09-24)
 
 ### 🚀 Features
