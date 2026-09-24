@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.79.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.2...v0.79.3) (2026-09-24)
+
+### ⚙️ Refactoring
+
+* **core:** harden framework layers, enforce #[Override] & remove remaining native time/ID calls ([3bf4faa](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3bf4faa917ea738efed561d82164591bb19028f7))
+* **finance,voucher:** optimize Finance and Voucher slices, enforce ClockInterface, ... ([3dda75c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3dda75c1daca263047833f818b74c7370a49cd67))
+* **identity:** clean up Identity bounded context, enforce #[Override], remove $_SESSION ([b6fd1a0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b6fd1a00eeacf0dcb52fecdc9f931f7b441fcccf))
+* **permit:** harden Permit bounded context, enforce ClockInterface, #[Override] & dumb views ([c4717dd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c4717ddad6d924721f821ab6d0a4ae62b6d3067a))
+* **qa,system:** lock down phpstan architecture rules and align Backup VSA slices ([19be116](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/19be11658b44f1f0fd429c8923ca00583da540e5))
+* **system:** harden System infrastructure, encapsulate binary responses and remove all I/O ... ([bea8250](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bea82506f8edd281956b677efbfcc8133a502294))
+
 ## [0.79.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.1...v0.79.2) (2026-09-24)
 
 ### 🐛 Bug Fixes
