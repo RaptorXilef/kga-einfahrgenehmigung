@@ -11,6 +11,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Storage\LockManagerInterface;
 use Override;
 
 #[Route('GET', '/api/process_mail_queue')]
@@ -20,6 +21,7 @@ final readonly class ProcessMailQueueAction implements ViewActionInterface
     public function __construct(
         private ConfigInterface $config,
         private MailServiceInterface $mailService,
+        private LockManagerInterface $lockManager,
     ) {
     }
 
@@ -36,17 +38,8 @@ final readonly class ProcessMailQueueAction implements ViewActionInterface
             return JsonResponse::error('Unautorisierter Zugriff.', 401);
         }
 
-        $lockFile = \sys_get_temp_dir() . '/kga_mail_queue.lock';
-        $lockHandle = \fopen($lockFile, 'w+');
-
-        if (!$lockHandle || !\flock($lockHandle, \LOCK_EX | \LOCK_NB)) {
-            return JsonResponse::success([
-                'status' => 'skipped',
-                'message' => 'Ein anderer Prozess arbeitet die Queue bereits ab.',
-            ]);
-        }
-
-        try {
+        // Wir nutzen nun den sauberen LockManager statt nativer I/O-Funktionen!
+        return $this->lockManager->executeWithLock('kga_mail_queue', function () use ($isCron) {
             $limit = $isCron ? 20 : 3;
             $processed = $this->mailService->processQueue($limit);
 
@@ -55,9 +48,6 @@ final readonly class ProcessMailQueueAction implements ViewActionInterface
                 'processed' => $processed,
                 'trigger' => $isCron ? 'cron' : 'frontend',
             ]);
-        } finally {
-            \flock($lockHandle, \LOCK_UN);
-            \fclose($lockHandle);
-        }
+        });
     }
 }
