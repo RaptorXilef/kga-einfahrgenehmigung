@@ -6,6 +6,7 @@ namespace App\Modules\Permit\Domain;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
+use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 
 /**
@@ -18,6 +19,25 @@ final readonly class PermitFinancialCalculator
         private ConfigInterface $config,
         private ClockInterface $clock,
     ) {
+    }
+
+    /**
+     * Ermittelt den Basispreis eines Templates für einen bestimmten Fahrzeugtyp.
+     */
+    public function calculateBasePrice(TemplateKey $templateKey, string $vehicleType): float
+    {
+        $templates = (array) $this->config->get('permit_templates', []);
+        $template = $templates[$templateKey->value] ?? null;
+        if ($template === null) {
+            return 0.0;
+        }
+
+        $vehicleTypes = (array) $this->config->get('vehicle_types', []);
+        $defaultType = empty($vehicleTypes) ? 'pkw' : (string) \array_key_first($vehicleTypes);
+
+        $typeToUse = isset($template['prices'][$vehicleType]) ? $vehicleType : $defaultType;
+
+        return (float) ($template['prices'][$typeToUse] ?? 0.0);
     }
 
     public function calculatePaymentDueDate(Permit $permit): DateTimeImmutable

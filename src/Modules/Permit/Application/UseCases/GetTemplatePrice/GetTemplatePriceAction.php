@@ -10,8 +10,10 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Modules\Permit\Domain\PermitFinancialCalculator;
 use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountHandler;
 use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountQuery;
+use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use Throwable;
 
 #[Route('POST', '/api/get_template_price')]
@@ -21,6 +23,7 @@ final readonly class GetTemplatePriceAction implements ViewActionInterface
         private ConfigInterface $config,
         private RateLimiterInterface $rateLimiter,
         private CalculateVoucherDiscountHandler $discountHandler,
+        private PermitFinancialCalculator $financialCalculator,
     ) {
     }
 
@@ -32,10 +35,8 @@ final readonly class GetTemplatePriceAction implements ViewActionInterface
 
             $dto = ApiTemplatePriceRequest::fromArray($request->input, $defaultType);
 
-            $templates = $this->config->get('permit_templates', []);
-            $template = $templates[$dto->key] ?? $templates['std_7'];
-
-            $originalPrice = (float) ($template['prices'][$dto->typ] ?? 0.0);
+            $templateKey = new TemplateKey($dto->key);
+            $originalPrice = $this->financialCalculator->calculateBasePrice($templateKey, $dto->typ);
             $finalPrice = $originalPrice;
             $discountText = '';
 

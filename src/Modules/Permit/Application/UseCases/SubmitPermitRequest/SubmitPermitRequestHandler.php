@@ -10,6 +10,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\DateRangeHelper;
 use App\Modules\Permit\Domain\Events\VerificationRequestedEvent;
 use App\Modules\Permit\Domain\Exceptions\PermitCollisionException;
+use App\Modules\Permit\Domain\PermitFinancialCalculator;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
@@ -17,6 +18,7 @@ use App\Modules\Permit\Domain\VerificationRequest;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use App\SharedKernel\Application\Security\Sanitizer;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
+use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use App\SharedKernel\Domain\ValueObject\VoucherCode;
 use DateTimeImmutable;
 use InvalidArgumentException;
@@ -32,6 +34,7 @@ final readonly class SubmitPermitRequestHandler implements CommandHandlerInterfa
         private VerificationRepositoryInterface $verificationRepository,
         private PermitRepositoryInterface $permitRepository,
         private EventDispatcherInterface $eventDispatcher,
+        private PermitFinancialCalculator $financialCalculator,
     ) {
     }
 
@@ -61,15 +64,9 @@ final readonly class SubmitPermitRequestHandler implements CommandHandlerInterfa
             if ($oldData !== null && Sanitizer::normalizeEmail((string) $command->email) === Sanitizer::normalizeEmail($command->sessionEmail)) {
                 $merged = \array_merge($oldData, $rawDataArray);
 
-                $tKey = $merged['template_key'];
-                $templates = (array) $this->config->get('permit_templates', []);
-                $template = $templates[$tKey] ?? $templates['std_7'] ?? ['prices' => []];
-
-                $vehicleTypes = (array) $this->config->get('vehicle_types', []);
-                $defaultType = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
-                $typ = $merged['typ'] ?? $defaultType;
-
-                $merged['preis'] = (float) ($template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0));
+                $typ = $merged['typ'] ?? 'pkw';
+                // VSA FIX: Preisfindung durch Domain Service anstatt nackter Array-Suche
+                $merged['preis'] = $this->financialCalculator->calculateBasePrice(new TemplateKey($merged['template_key']), $typ);
                 $merged['status'] = PermitStatus::Offen->value;
 
                 $expires = $allVerified[$command->editToken]->expiresAt ?? $this->clock->now()->modify('+48 hours');
@@ -100,15 +97,8 @@ final readonly class SubmitPermitRequestHandler implements CommandHandlerInterfa
 
     private function createNewPendingRequest(array $data): string
     {
-        $tKey = $data['template_key'];
-        $templates = (array) $this->config->get('permit_templates', []);
-        $template = $templates[$tKey] ?? $templates['std_7'] ?? ['prices' => []];
-
-        $vehicleTypes = (array) $this->config->get('vehicle_types', []);
-        $defaultType = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
-        $typ = $data['typ'] ?? $defaultType;
-
-        $data['preis'] = (float) ($template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0));
+        $typ = $data['typ'] ?? 'pkw';
+        $data['preis'] = $this->financialCalculator->calculateBasePrice(new TemplateKey($data['template_key']), $typ);
 
         $token = \bin2hex(\random_bytes(32));
         $shortCode = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
