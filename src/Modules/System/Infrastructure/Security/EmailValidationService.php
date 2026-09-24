@@ -2,30 +2,33 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\System\Application\Services;
+namespace App\Modules\System\Infrastructure\Security;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\Utils\ClockInterface;
+use App\Modules\System\Application\Contracts\EmailValidationServiceInterface;
 use Exception;
 use InvalidArgumentException;
+use Override;
 
 /**
- * Service für tiefe E-Mail-Validierung.
- * Blockiert Wegwerf-E-Mails (via dynamischer JSON) und prüft die physische Erreichbarkeit der Domain via DNS/MX.
+ * Physische Implementierung der E-Mail-Validierung.
+ * Kommuniziert via DNS (MX-Records) und HTTP (GitHub).
+ * Darf native I/O Funktionen nutzen, da sie sich nun im Infrastructure-Layer befindet.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class EmailValidationService
+final readonly class EmailValidationService implements EmailValidationServiceInterface
 {
     public function __construct(
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
+        private ClockInterface $clock,
     ) {
     }
 
-    /**
-     * @throws InvalidArgumentException Wenn die E-Mail ungültig, eine Trash-Mail oder unerreichbar ist.
-     */
+    #[Override]
     public function validate(string $email): void
     {
         $email = \trim($email);
@@ -37,8 +40,6 @@ final readonly class EmailValidationService
             throw new InvalidArgumentException('Die eingegebene E-Mail-Adresse ist ungültig.');
         }
 
-        // Strikte Regex für den lokalen Teil (vor dem @) - Verhindert unübliche Sonderzeichen wie #, ! etc.
-        // Erlaubt weiterhin saubere Adressen wie test.zwei@ oder test+newsletter@
         if (!\preg_match('/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/', $email)) {
             throw new InvalidArgumentException('Die E-Mail-Adresse enthält ungültige Sonderzeichen.');
         }
@@ -57,23 +58,19 @@ final readonly class EmailValidationService
         }
 
         // 2. DNS / MX Check (Physische Existenz)
-        // WICHTIG: Wir prüfen absichtlich NUR auf MX. Eine Domain ohne MX-Record kann keine sauberen Mails empfangen!
-        /* && !\checkdnsrr($domainLower, 'A') */
         if (!\checkdnsrr($domainLower, 'MX')) {
             throw new InvalidArgumentException('Die E-Mail-Domain existiert nicht oder besitzt keinen gültigen Posteingangsserver.');
         }
     }
 
-    /**
-     * Aktualisiert die Anti-Spam-Liste automatisch von GitHub.
-     * Wird über den isolierten Cronjob angetriggert.
-     */
+    #[Override]
     public function syncDisposableDomains(): void
     {
         $path = $this->config->getStoragePath('disposable_email.json');
+        $now = $this->clock->now()->getTimestamp();
 
         // Nur updaten, wenn die Datei älter als 7 Tage ist (604800 Sekunden)
-        if (\file_exists($path) && (\time() - \filemtime($path)) < 604800) {
+        if (\file_exists($path) && ($now - \filemtime($path)) < 604800) {
             return;
         }
 
@@ -89,12 +86,6 @@ final readonly class EmailValidationService
         @\file_put_contents($path, $json, \LOCK_EX);
     }
 
-    /**
-     * Lädt die dynamische Liste, verknüpft sie mit der eigenen Custom-Blacklist
-     * oder fällt auf einen harten Kern zurück.
-     *
-     * @return array<int, string>
-     */
     private function getDisposableDomains(): array
     {
         $path = $this->config->getStoragePath('disposable_email.json');
@@ -127,7 +118,6 @@ final readonly class EmailValidationService
             }
         }
 
-        // 3. Alle Domains in Kleinschreibung umwandeln für absolut sicheren Abgleich
         return \array_map(strtolower(...), $domains);
     }
 }

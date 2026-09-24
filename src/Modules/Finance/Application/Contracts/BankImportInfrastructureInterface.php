@@ -13,6 +13,8 @@ use League\Csv\Reader;
  */
 interface BankImportInfrastructureInterface
 {
+    public function storeTempFile(string $tmpName): string;
+
     public function normalizeAndOpenCsv(string $filePath): ?Reader;
 
     public function writeLog(string $message, array &$runLogs): void;

@@ -10,7 +10,7 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
-use App\Modules\System\Application\Services\EmailValidationService;
+use App\Modules\System\Application\Contracts\EmailValidationServiceInterface;
 use Override;
 
 #[Route('GET', '/api/cron/spam_sync')]
@@ -18,7 +18,7 @@ use Override;
 final readonly class SpamSyncCronAction implements ViewActionInterface
 {
     public function __construct(
-        private EmailValidationService $emailValidation,
+        private EmailValidationServiceInterface $emailValidation,
         private ConfigInterface $config,
     ) {
     }

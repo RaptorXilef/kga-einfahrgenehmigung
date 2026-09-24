@@ -12,8 +12,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\Exceptions\PermitCollisionException;
+use App\Modules\System\Application\Contracts\EmailValidationServiceInterface;
 use App\Modules\System\Application\Services\BotProtectionService;
-use App\Modules\System\Application\Services\EmailValidationService;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use App\SharedKernel\Domain\ValueObject\LicensePlate;
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
@@ -34,7 +34,7 @@ final readonly class SubmitPermitAction implements ViewActionInterface
         private SubmitPermitRequestHandler $submitHandler,
         private SessionManager $sessionManager,
         private BotProtectionService $botProtection,
-        private EmailValidationService $emailValidation,
+        private EmailValidationServiceInterface $emailValidation,
         private ClockInterface $clock,
     ) {
     }

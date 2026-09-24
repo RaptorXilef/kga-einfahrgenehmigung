@@ -55,6 +55,7 @@ use App\Modules\Permit\Infrastructure\PdoCancelledPermitRepository;
 use App\Modules\Permit\Infrastructure\PdoPermitArchiveRepository;
 use App\Modules\Permit\Infrastructure\PdoPermitRepository;
 use App\Modules\Permit\Infrastructure\PdoVerificationRepository;
+use App\Modules\System\Application\Contracts\EmailValidationServiceInterface;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
 use App\Modules\System\Domain\MailQueueRepositoryInterface;
 use App\Modules\System\Infrastructure\Logging\ErrorLogger;
@@ -67,6 +68,7 @@ use App\Modules\System\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Modules\System\Infrastructure\Maintenance\UpdateMigrationService;
 use App\Modules\System\Infrastructure\PdoAuditLogRepository;
 use App\Modules\System\Infrastructure\PdoMailQueueRepository;
+use App\Modules\System\Infrastructure\Security\EmailValidationService;
 use App\Modules\System\Infrastructure\Storage\FileLockManager;
 use App\Modules\System\Infrastructure\Storage\ImageStorageService;
 use App\Modules\System\Infrastructure\Storage\JsonHelper;
@@ -225,6 +227,11 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(AuthSessionInterface::class, fn (): object => clone $container->get(SessionManager::class));
         $container->bind(RateLimiterInterface::class, fn (): mixed => $container->get(RateLimiter::class));
         $container->bind(AuthorizationInterface::class, fn (): mixed => $container->get(AuthService::class));
+        $container->bind(EmailValidationServiceInterface::class, fn (): EmailValidationService => new EmailValidationService(
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
+            $container->get(ClockInterface::class),
+        ));
 
         // --- SYSTEM ---
         $container->bind(IpResolverInterface::class, fn (): ServerIpResolver => new ServerIpResolver());

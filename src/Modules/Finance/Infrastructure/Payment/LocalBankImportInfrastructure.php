@@ -10,6 +10,7 @@ use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
 use Exception;
 use League\Csv\Reader;
 use Override;
+use RuntimeException;
 use ZipArchive;
 
 /**
@@ -24,6 +25,17 @@ final readonly class LocalBankImportInfrastructure implements BankImportInfrastr
         private ConfigInterface $config,
         private ClockInterface $clock,
     ) {
+    }
+
+    #[Override]
+    public function storeTempFile(string $tmpName): string
+    {
+        $tempPath = \sys_get_temp_dir() . '/kga_bank_' . \bin2hex(\random_bytes(8)) . '.csv';
+        if (!@\move_uploaded_file($tmpName, $tempPath)) {
+            throw new RuntimeException('Datei konnte nicht verarbeitet oder verschoben werden.');
+        }
+
+        return $tempPath;
     }
 
     #[Override]
@@ -83,9 +95,11 @@ final readonly class LocalBankImportInfrastructure implements BankImportInfrastr
         }
 
         $delimiters = [
-            ';' => \substr_count($firstLine, ';'),             ',' => \substr_count($firstLine, ','),
+            ';' => \substr_count($firstLine, ';'),
+            ',' => \substr_count($firstLine, ','),
             "\t" => \substr_count($firstLine, "\t"),
-            '|' => \substr_count($firstLine, '|'),         ];
+            '|' => \substr_count($firstLine, '|'),
+        ];
         \arsort($delimiters);
 
         return (string) \array_key_first($delimiters);

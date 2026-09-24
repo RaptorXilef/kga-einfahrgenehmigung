@@ -12,9 +12,11 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
 use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportAction;
 use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportHandler;
 use Override;
+use Throwable;
 
 #[Route('GET', '/bank_import_analyze')]
 #[Route('POST', '/bank_import_analyze')]
@@ -25,6 +27,7 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
         private SessionManager $sessionManager,
         private AnalyzeBankImportHandler $analyzeHandler,
         private ProcessBankImportHandler $processHandler,
+        private BankImportInfrastructureInterface $infrastructure,
     ) {
     }
 
@@ -44,8 +47,9 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
             return new RedirectResponse('admin');
         }
 
-        $tempPath = \sys_get_temp_dir() . '/kga_bank_' . \uniqid('', true) . '.csv';
-        if (!\move_uploaded_file($file['tmp_name'], $tempPath)) {
+        try {
+            $tempPath = $this->infrastructure->storeTempFile($file['tmp_name']);
+        } catch (Throwable) {
             $this->sessionManager->addFlash('error', 'Datei konnte nicht verarbeitet werden.');
 
             return new RedirectResponse('admin');
