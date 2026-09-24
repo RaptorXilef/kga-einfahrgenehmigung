@@ -27,7 +27,9 @@ use App\Contracts\System\RouteCacheInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
+use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
 use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
+use App\Modules\Finance\Infrastructure\Payment\LocalBankImportInfrastructure;
 use App\Modules\Finance\Infrastructure\Payment\PayPalService;
 use App\Modules\Finance\Infrastructure\PdoUnpaidPermitProvider;
 use App\Modules\Identity\Application\Services\AuthService;
@@ -127,10 +129,13 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
         ));
+
+        // VSA FIX: ClockInterface wird jetzt injiziert!
         $container->bind(PermitArchiveRepositoryInterface::class, fn (): PdoPermitArchiveRepository => new PdoPermitArchiveRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
+            $container->get(ClockInterface::class),
         ));
 
         // --- VOUCHER DDD REPOSITORY BINDINGS ---
@@ -160,6 +165,9 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(UnpaidPermitProviderInterface::class, fn (): PdoUnpaidPermitProvider => new PdoUnpaidPermitProvider(
             $container->get(PDO::class),
         ));
+        $container->bind(BankImportInfrastructureInterface::class, fn (): LocalBankImportInfrastructure => new LocalBankImportInfrastructure(
+            $container->get(ConfigInterface::class),
+        )); // <--- NEU
 
         // --- NETWORK & THIRD-PARTY SERVICES ---
         $container->bind(PaymentProviderInterface::class, fn (): mixed => $container->get(PayPalService::class));

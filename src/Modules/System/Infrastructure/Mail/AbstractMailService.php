@@ -143,6 +143,22 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         return $logs;
     }
 
+    public function getDebugMailContent(string $filename): ?string
+    {
+        if (!\preg_match('/^[a-zA-Z0-9_]+\.html$/', $filename)) {
+            return null;
+        }
+
+        $path = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/storage/debug_mails/' . $filename;
+        if (!\file_exists($path)) {
+            return null;
+        }
+
+        $content = \file_get_contents($path);
+
+        return $content !== false ? $content : null;
+    }
+
     public function processQueue(int $limit = 5): int
     {
         return 0; // Interface-Stub
@@ -179,6 +195,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         $statusStr = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
         $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
 
+        // Wir nutzen hier ausnahmsweise noch APP_REQUEST_TIME_STR für den synchronen Zeitstempel
         $entry = new MailLogEntry(
             \uniqid('ml_'),
             new DateTimeImmutable(APP_REQUEST_TIME_STR),

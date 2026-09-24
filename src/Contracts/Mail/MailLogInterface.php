@@ -17,4 +17,9 @@ interface MailLogInterface
      * @param MailLogEntry[] $logs
      */
     public function saveLogs(array $logs, bool $forceSql = false): void;
+
+    /**
+     * Gibt den rohen HTML-Inhalt einer Debug-E-Mail sicher zurück (ohne direkten File-Zugriff im Frontend).
+     */
+    public function getDebugMailContent(string $filename): ?string;
 }

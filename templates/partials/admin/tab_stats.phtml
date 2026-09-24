@@ -6,6 +6,7 @@ use App\Modules\Permit\Application\UseCases\GetDashboardStats\DashboardStatsDto;
 
 /**
  * Partial: Dashboard Tab - Statistics & Charts
+ * VSA FIX: Nutzt komplett aufbereitete View-Daten ohne \strtotime Logik.
  *
  * Chart.js Integration und Kennzahlen-Auswertung (Umsatz, Fahrzeuge).
  *
@@ -36,8 +37,7 @@ $yearlyStats = $statsDto->yearlyStats;
             <div>
                 <span class="c-date-indicator__label">Berichtszeitraum</span>
                 <strong class="c-date-indicator__value">
-                    <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> -
-                    <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
+                    <?php echo $statsDto->filterStartFormatted; ?> - <?php echo $statsDto->filterEndFormatted; ?>
                 </strong>
             </div>
         </div>
@@ -199,12 +199,12 @@ $yearlyStats = $statsDto->yearlyStats;
                     <div class="u-text-xs u-color-muted u-flex u-justify-center u-gap-s u-flex-wrap u-align-center">
                         <?php
                                     $typeItems = [];
-                foreach ($statsDto->yearlyVehicleStats[$year] ?? [] as $vStat) {
-                    $imgHtml = $vStat['icon'] ? '<img src="' . $settings['base_url'] . $vStat['icon'] . '" alt="" class="c-icon c-icon--inline u-margin-inline-end-xs">' : '';
-                    $typeItems[] = '<span>' . $imgHtml . ' ' . $vStat['count'] . ' ' . \htmlspecialchars($vStat['label']) . '</span>';
-                }
-                echo \implode(' <span class="u-opacity-50">|</span> ', $typeItems);
-                ?>
+        foreach ($statsDto->yearlyVehicleStats[$year] ?? [] as $vStat) {
+            $imgHtml = $vStat['icon'] ? '<img src="' . $settings['base_url'] . $vStat['icon'] . '" alt="" class="c-icon c-icon--inline u-margin-inline-end-xs">' : '';
+            $typeItems[] = '<span>' . $imgHtml . ' ' . $vStat['count'] . ' ' . \htmlspecialchars($vStat['label']) . '</span>';
+        }
+        echo \implode(' <span class="u-opacity-50">|</span> ', $typeItems);
+        ?>
                     </div>
                 </div>
             </div>
@@ -222,13 +222,13 @@ $yearlyStats = $statsDto->yearlyStats;
     <!-- Button zum Nachladen von alten Jahren! -->
     <div class="u-text-center u-margin-block-start-l">
         <?php
-                $queryParams = $_GET;
-            // Verhindere, dass Paginierungen beim Laden von Archiven mitgenommen werden
-            unset($queryParams['page'], $queryParams['audit_page']);
-            $queryParams['archive_depth'] = $minArchiveYear - 1;
-            $queryParams['focus'] = 'tab-stats'; // Zwingt den Tab nach dem Laden wieder auf Statistiken
-            $loadUrl = '?' . \http_build_query($queryParams);
-            ?>
+        $queryParams = $_GET;
+        // Verhindere, dass Paginierungen beim Laden von Archiven mitgenommen werden
+        unset($queryParams['page'], $queryParams['audit_page']);
+        $queryParams['archive_depth'] = $minArchiveYear - 1;
+        $queryParams['focus'] = 'tab-stats'; // Zwingt den Tab nach dem Laden wieder auf Statistiken
+        $loadUrl = '?' . \http_build_query($queryParams);
+        ?>
         <a
             href="<?php echo $loadUrl; ?>"
             class="c-button c-button--secondary"

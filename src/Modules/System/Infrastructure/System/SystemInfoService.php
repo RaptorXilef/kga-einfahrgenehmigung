@@ -42,4 +42,53 @@ final readonly class SystemInfoService implements SystemInfoInterface
 
         return 'v0.0.0';
     }
+
+    public function getAllReleaseNotes(): array
+    {
+        return $this->parseNotesFromDir(null);
+    }
+
+    public function getUnreadReleaseNotes(string $lastSeenVersion): array
+    {
+        return $this->parseNotesFromDir($lastSeenVersion);
+    }
+
+    private function parseNotesFromDir(?string $lastSeenVersion): array
+    {
+        $dir = \rtrim((string) $this->config->get('root_path'), '/\\') . '/release_notes';
+        if (!\is_dir($dir)) {
+            return [];
+        }
+
+        $filesMd = (array) \glob($dir . '/*.md');
+        $filesMD = (array) \glob($dir . '/*.MD');
+        $files = \array_values(\array_unique(\array_filter(\array_merge($filesMd, $filesMD))));
+
+        if ($files === []) {
+            return [];
+        }
+
+        $notes = [];
+        $cleanUserVer = $lastSeenVersion !== null ? \ltrim($lastSeenVersion, 'vV') : null;
+
+        foreach ($files as $file) {
+            $ver = \basename($file, '.md');
+            $ver = \basename($ver, '.MD');
+            $cleanFileVer = \ltrim($ver, 'vV');
+
+            if ($cleanUserVer !== null && !\version_compare($cleanFileVer, $cleanUserVer, '>')) {
+                continue;
+            }
+
+            $notes[] = [
+                'version' => $ver,
+                'content' => \file_get_contents($file) ?: '',
+                'clean_version' => $cleanFileVer,
+            ];
+        }
+
+        \usort($notes, fn (array $a, array $b): int => \version_compare($b['clean_version'], $a['clean_version']));
+
+        return $notes;
+    }
 }

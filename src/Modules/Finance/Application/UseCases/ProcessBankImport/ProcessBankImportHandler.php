@@ -6,13 +6,12 @@ namespace App\Modules\Finance\Application\UseCases\ProcessBankImport;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
+use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
 use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
 use App\SharedKernel\Domain\Event\BankPaymentAssignedEvent;
 use DateTimeImmutable;
 use DomainException;
-use Exception;
 use League\Csv\Reader;
-use ZipArchive;
 
 /**
  * Orchestriert den Bank-Import. Da wir ein ResultDTO zurückgeben, implementiert
@@ -24,6 +23,7 @@ final readonly class ProcessBankImportHandler
         private UnpaidPermitProviderInterface $unpaidPermitProvider,
         private ConfigInterface $config,
         private EventDispatcherInterface $eventDispatcher,
+        private BankImportInfrastructureInterface $infrastructure, // <--- Injiziert
     ) {
     }
 
@@ -34,30 +34,15 @@ final readonly class ProcessBankImportHandler
      */
     public function handle(ProcessBankImportCommand $command): BankImportResultDto
     {
-        $runLogs = []; // Zustand wandert in die Methode, Klasse bleibt readonly!
+        $runLogs = [];
 
-        if (!\file_exists($command->tempFile)) {
-            $this->writeLog("Fehler: Die Datei '{$command->tempFile}' konnte nicht gefunden werden.", $runLogs);
+        $this->infrastructure->writeLog('Starte Dateireinigung und Verarbeitung der CSV...', $runLogs);
+        $csv = $this->infrastructure->normalizeAndOpenCsv($command->tempFile);
 
-            return new BankImportResultDto(false, 'Datei konnte nicht gefunden werden.');
-        }
+        if (!$csv instanceof Reader) {
+            $this->infrastructure->writeLog("Fehler: Die Datei '{$command->tempFile}' ist ungültig oder konnte nicht geöffnet werden.", $runLogs);
 
-        $this->writeLog('Starte Dateireinigung und Verarbeitung der CSV via League/Csv...', $runLogs);
-        $this->prepareAndNormalizeFile($command->tempFile);
-
-        try {
-            $stream = \fopen($command->tempFile, 'r');
-            if ($stream === false) {
-                return new BankImportResultDto(false, 'Datei konnte nicht zum Lesen geöffnet werden.');
-            }
-
-            $csv = Reader::from($stream);
-            $csv->setDelimiter($this->detectDelimiter($command->tempFile));
-            $csv->setHeaderOffset(null);
-        } catch (Exception $e) {
-            $this->writeLog('Fehler beim Initialisieren des CSV Readers: ' . $e->getMessage(), $runLogs);
-
-            return new BankImportResultDto(false, 'CSV Format ist ungültig oder beschädigt.');
+            return new BankImportResultDto(false, 'Datei konnte nicht gefunden oder gelesen werden.');
         }
 
         // --- DECOUPLED DATA FETCH ---
@@ -96,7 +81,7 @@ final readonly class ProcessBankImportHandler
             if (!isset($row[$command->idColumn], $row[$command->amountColumn], $row[$command->dateColumn])) {
                 $colCount = \count($row);
                 $errorMsg = "Zeile {$rowNumber} (Spalten fehlen, nur {$colCount} vorhanden)";
-                $this->writeLog("[Zeile {$rowNumber}] Fehler: Benötigte Spalten fehlen. Verfügbare Spalten: {$colCount}.", $runLogs);
+                $this->infrastructure->writeLog("[Zeile {$rowNumber}] Fehler: Benötigte Spalten fehlen. Verfügbare Spalten: {$colCount}.", $runLogs);
                 $unlesbareZeilenDetails[] = $errorMsg;
                 continue;
             }
@@ -180,7 +165,7 @@ final readonly class ProcessBankImportHandler
             }
 
             if ($gefundeneCodes === [] && $gefundeneKennzeichen === []) {
-                $this->writeLog("[Zeile {$rowNumber}] Info: Kein System-Code und kein Kennzeichen gefunden. Rohdaten Zweck: '{$verwendungszweck}'", $runLogs);
+                $this->infrastructure->writeLog("[Zeile {$rowNumber}] Info: Kein System-Code und kein Kennzeichen gefunden. Rohdaten Zweck: '{$verwendungszweck}'", $runLogs);
                 continue;
             }
 
@@ -189,7 +174,7 @@ final readonly class ProcessBankImportHandler
                 $codesStr = \implode(', ', $matchedCodes);
                 $platesStr = \implode(', ', \array_values($gefundeneKennzeichen));
 
-                $this->writeLog("[Zeile {$rowNumber}] HINWEIS: Kein Code, aber Kennzeichen [{$platesStr}] für Codes [{$codesStr}] gefunden. Ausgesteuert zur manuellen Prüfung.", $runLogs);
+                $this->infrastructure->writeLog("[Zeile {$rowNumber}] HINWEIS: Kein Code, aber Kennzeichen [{$platesStr}] für Codes [{$codesStr}] gefunden. Ausgesteuert zur manuellen Prüfung.", $runLogs);
 
                 $sammelTransfers[] = [
                     'id' => $anomalyId,
@@ -211,7 +196,7 @@ final readonly class ProcessBankImportHandler
 
             if (\count($gefundeneCodes) > 1) {
                 $codesStr = \implode(', ', $gefundeneCodes);
-                $this->writeLog("[Zeile {$rowNumber}] FEHLER: Mehrere Codes in einer Überweisung gefunden [{$codesStr}]. Wird zur manuellen Prüfung ausgesteuert.", $runLogs);
+                $this->infrastructure->writeLog("[Zeile {$rowNumber}] FEHLER: Mehrere Codes in einer Überweisung gefunden [{$codesStr}]. Wird zur manuellen Prüfung ausgesteuert.", $runLogs);
 
                 $sammelTransfers[] = [
                     'id' => $anomalyId,
@@ -231,7 +216,7 @@ final readonly class ProcessBankImportHandler
             $codesStr = \implode(', ', $gefundeneCodes);
             $methodStr = \implode(' & ', $matchMethodsForLine);
 
-            $this->writeLog("[Zeile {$rowNumber}] Info: Code(s) erkannt: [{$codesStr}] via {$methodStr}. Lese Betrag: {$ueberwiesenerBetrag} €", $runLogs);
+            $this->infrastructure->writeLog("[Zeile {$rowNumber}] Info: Code(s) erkannt: [{$codesStr}] via {$methodStr}. Lese Betrag: {$ueberwiesenerBetrag} €", $runLogs);
 
             foreach ($gefundeneCodes as $permitIdStr) {
                 $aggregierteZahlungen[$permitIdStr] ??= 0.0;
@@ -243,17 +228,17 @@ final readonly class ProcessBankImportHandler
         }
 
         foreach ($missingUnpaidCodes as $missingCode => $ownerName) {
-            $this->writeLog("[Code {$missingCode}] Fehlt in CSV: Unbezahlte Genehmigung für '{$ownerName}' wurde nicht gefunden.", $runLogs);
+            $this->infrastructure->writeLog("[Code {$missingCode}] Fehlt in CSV: Unbezahlte Genehmigung für '{$ownerName}' wurde nicht gefunden.", $runLogs);
             $skippedNotInCsv[] = "{$missingCode} ({$ownerName})";
         }
 
-        $this->writeLog('Dateidurchlauf beendet. Starte Datenbank-Abgleich...', $runLogs);
+        $this->infrastructure->writeLog('Dateidurchlauf beendet. Starte Datenbank-Abgleich...', $runLogs);
 
         foreach ($aggregierteZahlungen as $permitId => $gesamtsumme) {
             $method = $methodenPerPermit[$permitId] ?? 'Unbekannt';
 
             if (!isset($allCodes[$permitId])) {
-                $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank (Erkannt via: {$method}).", $runLogs);
+                $this->infrastructure->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank (Erkannt via: {$method}).", $runLogs);
                 $skippedNotInDb[] = $permitId;
                 continue;
             }
@@ -261,7 +246,7 @@ final readonly class ProcessBankImportHandler
             $ownerName = $unpaidCodes[$permitId] ?? 'Unbekannt (Bereits bezahlt)';
 
             if (!isset($unpaidCodes[$permitId])) {
-                $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert (Erkannt via: {$method}).", $runLogs);
+                $this->infrastructure->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert (Erkannt via: {$method}).", $runLogs);
                 $skippedAlreadyPaid[] = "{$permitId} ({$ownerName})";
                 continue;
             }
@@ -280,16 +265,15 @@ final readonly class ProcessBankImportHandler
                 try {
                     // Domain-Kommunikation! Das Finance-Modul feuert nun ein Event.
                     $this->eventDispatcher->dispatch(new BankPaymentAssignedEvent($permitId, $grund, $formatierterTag));
-
-                    $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).", $runLogs);
+                    $this->infrastructure->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).", $runLogs);
                     $erfolgreichDetails[] = "{$permitId} ({$ownerName})";
                 } catch (DomainException) {
                     // Das Permit Modul hat das Event abgelehnt (z.B. weil das Permit nicht mehr existiert)
-                    $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).", $runLogs);
+                    $this->infrastructure->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).", $runLogs);
                     $fehlerhaftStorage[] = "{$permitId} ({$ownerName})";
                 }
             } else {
-                $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €) (Erkannt via: {$method}).", $runLogs);
+                $this->infrastructure->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €) (Erkannt via: {$method}).", $runLogs);
                 $fehlerhaftPartial[] = "{$permitId} ({$ownerName}: {$istFormatted} statt {$sollFormatted})";
             }
         }
@@ -329,13 +313,13 @@ final readonly class ProcessBankImportHandler
         $uebCount = \count($skippedNotInCsv) + \count($skippedAlreadyPaid) + \count($skippedNotInDb);
         $fehlCount = \count($fehlerhaftPartial) + \count($fehlerhaftStorage) + \count($unlesbareZeilenDetails) + \count($sammelTransfers);
 
-        $this->writeLog("Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}\n---", $runLogs);
+        $this->infrastructure->writeLog("Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}\n---", $runLogs);
 
         if ((bool) $this->config->get('bank_import_archive_enabled', false)) {
-            $this->createArchiveZip($command->tempFile, $runLogs);
+            $this->infrastructure->createArchiveZip($command->tempFile, $runLogs);
         }
 
-        @\unlink($command->tempFile);
+        $this->infrastructure->cleanupTempFile($command->tempFile);
 
         return new BankImportResultDto(
             success: true,
@@ -348,94 +332,6 @@ final readonly class ProcessBankImportHandler
             errorDetails: $fehlerhaftDetails,
             collectiveTransfers: $sammelTransfers,
         );
-    }
-
-    private function writeLog(string $message, array &$runLogs): void
-    {
-        $logDir = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/logs';
-        if (!\is_dir($logDir)) {
-            @\mkdir($logDir, 0o755, true);
-        }
-        $logFile = $logDir . '/bank_import.log';
-        $timestamp = \date('d-M-Y H:i:s e');
-        $formattedMessage = "[$timestamp] BankImport: $message\n";
-        @\file_put_contents($logFile, $formattedMessage, \FILE_APPEND | \LOCK_EX);
-
-        $runLogs[] = $formattedMessage;
-    }
-
-    private function createArchiveZip(string $csvFilePath, array $logs): void
-    {
-        $root = \rtrim((string) $this->config->get('root_path', ''), '/\\');
-        $archiveDir = $root . '/storage/bank_imports';
-        if (!\is_dir($archiveDir)) {
-            @\mkdir($archiveDir, 0o755, true);
-        }
-        $htaccessPath = $archiveDir . '/.htaccess';
-        if (!\file_exists($htaccessPath)) {
-            @\file_put_contents($htaccessPath, "Order allow,deny\nDeny from all\n");
-        }
-
-        $timestamp = \date('Ymd_His');
-        $uniq = \uniqid();
-        $zipFilename = $archiveDir . '/import_' . $timestamp . '_' . $uniq . '.zip';
-        $zip = new ZipArchive();
-        if ($zip->open($zipFilename, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            return;
-        }
-
-        $zip->addFile($csvFilePath, 'import_' . $timestamp . '.csv');
-        $zip->addFromString('import_' . $timestamp . '.log', \implode('', $logs));
-        $password = (string) $this->config->get('bank_import_zip_password', '');
-        if ($password !== '') {
-            $zip->setPassword($password);
-            $zip->setEncryptionName('import_' . $timestamp . '.csv', ZipArchive::EM_AES_256);
-            $zip->setEncryptionName('import_' . $timestamp . '.log', ZipArchive::EM_AES_256);
-        }
-        $zip->close();
-    }
-
-    private function prepareAndNormalizeFile(string $filePath): void
-    {
-        $content = \file_get_contents($filePath);
-        if (!\is_string($content) || $content === '') {
-            return;
-        }
-        if (\str_starts_with($content, "\xEF\xBB\xBF")) {
-            $content = \substr($content, 3);
-        }
-
-        $encoding = \mb_detect_encoding($content, ['UTF-8', 'Windows-1252', 'ISO-8859-15', 'ISO-8859-1', 'ASCII'], true);
-        if ($encoding && $encoding !== 'UTF-8') {
-            $content = \mb_convert_encoding($content, 'UTF-8', $encoding);
-        } elseif (!$encoding) {
-            $content = \mb_convert_encoding($content, 'UTF-8', 'Windows-1252');
-        }
-        $content = \str_replace(["\r\n", "\r"], "\n", $content);
-        \file_put_contents($filePath, $content);
-    }
-
-    private function detectDelimiter(string $filePath): string
-    {
-        $handle = \fopen($filePath, 'r');
-        if ($handle === false) {
-            return ';';
-        }
-        $firstLine = \fgets($handle);
-        \fclose($handle);
-        if ($firstLine === false) {
-            return ';';
-        }
-
-        $delimiters = [
-            ';' => \substr_count($firstLine, ';'),
-            ',' => \substr_count($firstLine, ','),
-            "\t" => \substr_count($firstLine, "\t"),
-            '|' => \substr_count($firstLine, '|'),
-        ];
-        \arsort($delimiters);
-
-        return (string) \array_key_first($delimiters);
     }
 
     private function parseDate(string $rawDate): string

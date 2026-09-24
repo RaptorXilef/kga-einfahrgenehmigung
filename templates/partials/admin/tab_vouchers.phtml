@@ -61,8 +61,8 @@ use App\Modules\Voucher\Application\UseCases\GetVoucherList\VoucherListDto;
                         </tr>
                         <?php } else { ?>
                         <?php foreach ($vouchers as $v) {
-                                    $url = \rtrim((string) $config->getBaseUrl(), '/') . '/index?voucher=' . $v->code;
-                                    ?>
+                            $url = \rtrim((string) $config->getBaseUrl(), '/') . '/index?voucher=' . $v->code;
+                            ?>
                         <tr class="u-hover-fade <?php echo $v->rowClass; ?>">
                             <td class="c-table__data-cell">
                                 <div class="u-text-center">
@@ -116,8 +116,8 @@ use App\Modules\Voucher\Application\UseCases\GetVoucherList\VoucherListDto;
                                     (Parz: <?php echo $v->prefilledPlot ?: '?'; ?>)<br>
                                     <?php } ?>
                                     <?php if ($v->expiresText) {
-                                                    echo $v->expiresText;
-                                                } ?>
+                                        echo $v->expiresText;
+                                    } ?>
                                 </div>
 
                                 <div class="u-margin-block-start-s">
@@ -250,15 +250,14 @@ use App\Modules\Voucher\Application\UseCases\GetVoucherList\VoucherListDto;
                             <td
                                 colspan="3"
                                 class="c-table__data-cell u-text-center u-padding-around-l u-color-muted"
-                            >Noch
-                                keine Einlösungen dokumentiert.</td>
+                            >Noch keine Einlösungen dokumentiert.</td>
                         </tr>
                         <?php } else { ?>
                         <?php foreach ($archive as $arc) { ?>
                         <tr class="u-hover-fade">
                             <td class="c-table__data-cell u-text-nowrap u-padding-inline-m">
                                 <small
-                                    class="u-font-bold u-color-muted"><?php echo \date('d.m.y', \strtotime($arc['redeemed_at'])); ?></small>
+                                    class="u-font-bold u-color-muted"><?php echo $arc['redeemed_at_formatted']; ?></small>
                             </td>
                             <td class="c-table__data-cell">
                                 <div class="u-line-height-tight">

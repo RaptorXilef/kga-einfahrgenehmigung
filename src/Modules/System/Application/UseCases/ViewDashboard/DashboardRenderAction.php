@@ -15,6 +15,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\System\ImageStorageInterface;
+use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
@@ -26,12 +27,12 @@ use App\Modules\Permit\Application\UseCases\GetDashboardStats\GetDashboardStatsH
 use App\Modules\Permit\Application\UseCases\GetDashboardStats\GetDashboardStatsQuery;
 use App\Modules\Permit\Application\UseCases\GetFinanceList\GetFinanceListHandler;
 use App\Modules\Permit\Application\UseCases\GetFinanceList\GetFinanceListQuery;
-use App\Modules\System\Application\Services\ReleaseNotesService;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
 use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveQuery;
 use App\Modules\Voucher\Application\UseCases\GetVoucherList\GetVoucherListHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherList\GetVoucherListQuery;
+use DateTimeImmutable;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -48,7 +49,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private RoleRepositoryInterface $roleRepository,
         private ImageStorageInterface $imageStorage,
         private MailLogInterface $mailLog,
-        private ReleaseNotesService $releaseNotesService,
+        private SystemInfoInterface $systemInfo, // <--- VSA FIX
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
@@ -99,12 +100,13 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $auditData = $this->auditLogRepository->getPaginated($dto->page, $dto->limit, $auditFilter);
 
         $unreadReleaseNotes = [];
-        $allReleaseNotes = $this->releaseNotesService->getAllNotes();
+        $allReleaseNotes = $this->systemInfo->getAllReleaseNotes();
+
         $userId = $this->auth->getUserId();
         if (!\str_starts_with($userId, 'sys_')) {
             $user = $this->userRepository->findById($userId);
             if ($user instanceof User) {
-                $unreadReleaseNotes = $this->releaseNotesService->getUnreadNotes($user->getLastSeenChangelog());
+                $unreadReleaseNotes = $this->systemInfo->getUnreadReleaseNotes($user->getLastSeenChangelog());
             }
         }
 
@@ -191,6 +193,10 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         }
 
         // Control Bar DTO
+        // VSA FIX: Datums-Formatierung direkt ins View DTO packen (Befreit PHTML von \strtotime)
+        $dtStart = new DateTimeImmutable($dto->start);
+        $dtEnd = new DateTimeImmutable($dto->end);
+
         $limitOptions = [];
         $paginationCfg = $this->config->get('pagination', []);
         foreach ($paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250] as $l) {
@@ -199,6 +205,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $controlBar = new ControlBarViewDto(
             startValue: $dto->start,
             endValue: $dto->end,
+            startValueFormatted: $dtStart->format('d.m.Y'),
+            endValueFormatted: $dtEnd->format('d.m.Y'),
             typeSelectAll: $dto->type === 'all' ? 'selected' : '',
             typeSelectStandard: $dto->type === 'standard' ? 'selected' : '',
             typeSelectPermanent: $dto->type === 'permanent' ? 'selected' : '',

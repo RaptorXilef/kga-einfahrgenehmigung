@@ -12,6 +12,8 @@ final readonly class ControlBarViewDto
     public function __construct(
         public string $startValue,
         public string $endValue,
+        public string $startValueFormatted,
+        public string $endValueFormatted,
         public string $typeSelectAll,       // 'selected' oder ''
         public string $typeSelectStandard,  // 'selected' oder ''
         public string $typeSelectPermanent, // 'selected' oder ''

@@ -6,6 +6,7 @@ namespace App\Modules\Permit\Infrastructure;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
@@ -20,6 +21,7 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
         private PDO $pdo,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
+        private ClockInterface $clock, // <--- Injiziert
     ) {
     }
 
@@ -73,8 +75,9 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
     public function anonymizeOldRecords(int $yearsThreshold = 10): int
     {
         $table = $this->config->get('storage_config')['permits_archive']['table'];
-        $now = \defined('APP_REQUEST_TIME') ? APP_REQUEST_TIME : \time();
-        $cutoffDate = \date('Y-m-d H:i:s', \strtotime("-{$yearsThreshold} years", $now));
+
+        // VSA FIX: Entfernung von \time() und \date(), Nutzung des testbaren ClockInterface!
+        $cutoffDate = $this->clock->now()->modify("-{$yearsThreshold} years")->format('Y-m-d H:i:s');
 
         $sql = "UPDATE `{$table}` SET name = '[ANONYMISIERT]', email = '', kennzeichen = 'XXX-XX 9999', parzelle = 0, is_anonymized = 1 WHERE erstellt <= ? AND is_anonymized = 0";
         $stmt = $this->pdo->prepare($sql);

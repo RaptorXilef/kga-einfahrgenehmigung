@@ -12,6 +12,8 @@ final readonly class DashboardStatsDto
         public array $chartDataPayload,
         public array $periodVehicleStats, // Vollständig aufbereitete Fahrzeug-Auswertung für die View
         public array $yearlyVehicleStats, // Array-Map (Jahr => Fahrzeug-Auswertung)
+        public string $filterStartFormatted,
+        public string $filterEndFormatted,
     ) {
     }
 }

@@ -12,6 +12,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Response\TextResponse;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Mail\MailLogInterface;
 
 #[Route('GET', '/debug_mail')]
 #[RequiresAuth]
@@ -19,6 +20,7 @@ final readonly class ViewDebugMailAction implements ViewActionInterface, Require
 {
     public function __construct(
         private ConfigInterface $config,
+        private MailLogInterface $mailLog, // <--- Injiziert
     ) {
     }
 
@@ -35,16 +37,17 @@ final readonly class ViewDebugMailAction implements ViewActionInterface, Require
 
         $file = $request->get['file'] ?? '';
 
-        if ($file === '' || !\preg_match('/^[a-zA-Z0-9_]+\.html$/', $file)) {
+        if ($file === '') {
             return new TextResponse('Ungueltiger oder fehlender Dateiname.', 400);
         }
 
-        $path = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/storage/debug_mails/' . $file;
+        // VSA FIX: I/O Operation (file_exists / file_get_contents) wurde in die Infrastruktur verlagert
+        $content = $this->mailLog->getDebugMailContent($file);
 
-        if (!\file_exists($path)) {
-            return new TextResponse('E-Mail-Spool-Datei nicht gefunden. Eventuell wurde sie geloescht.', 404);
+        if ($content === null) {
+            return new TextResponse('E-Mail-Spool-Datei nicht gefunden oder ungueltig. Eventuell wurde sie geloescht.', 404);
         }
 
-        return new HtmlResponse(\file_get_contents($path));
+        return new HtmlResponse($content);
     }
 }

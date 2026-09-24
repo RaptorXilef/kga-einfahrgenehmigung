@@ -12,7 +12,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
  * @var DashboardViewDto $viewDto
  * @var array $settings
  */
-$hasAnyPermitExport =$viewDto->permissions->canExportPermitsActive
+$hasAnyPermitExport = $viewDto->permissions->canExportPermitsActive
     || $viewDto->permissions->canExportPermitsFuture
     || $viewDto->permissions->canExportPermitsExpired
     || $viewDto->permissions->canExportPermitsActiveFuture
@@ -214,8 +214,8 @@ $hasAnyPermitExport =$viewDto->permissions->canExportPermitsActive
             <div class="c-box c-box--dashed u-margin-block-start-l u-text-center">
                 <span class="u-color-muted">Gefilterter Zeitraum:</span><br>
                 <strong class="u-color-primary">
-                    <?php echo \date('d.m.Y', \strtotime($viewDto->controlBar->startValue)); ?> bis
-                    <?php echo \date('d.m.Y', \strtotime($viewDto->controlBar->endValue)); ?>
+                    <?php echo $viewDto->controlBar->startValueFormatted; ?> bis
+                    <?php echo $viewDto->controlBar->endValueFormatted; ?>
                 </strong>
             </div>
         </div>

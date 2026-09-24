@@ -6,6 +6,7 @@ namespace App\Modules\Permit\Application\UseCases\GetDashboardStats;
 
 use App\Contracts\Config\ConfigInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use DateTimeImmutable;
 use PDO;
 
 /**
@@ -175,6 +176,17 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
             $yearlyVehicleStats[$year] = $statsForYear;
         }
 
-        return new DashboardStatsDto($periodStats, $yearlyStats, $chartDataPayload, $periodVehicleStats, $yearlyVehicleStats);
+        $dtStart = new DateTimeImmutable($query->filterStart);
+        $dtEnd = new DateTimeImmutable($query->filterEnd);
+
+        return new DashboardStatsDto(
+            $periodStats ?? [],
+            $yearlyStats ?? [],
+            $chartDataPayload ?? [],
+            $periodVehicleStats ?? [],
+            $yearlyVehicleStats ?? [],
+            $dtStart->format('d.m.Y'),
+            $dtEnd->format('d.m.Y'),
+        );
     }
 }
