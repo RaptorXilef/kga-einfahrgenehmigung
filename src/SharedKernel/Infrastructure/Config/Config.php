@@ -87,7 +87,7 @@ final readonly class Config implements ConfigInterface
         $mail = $this->getArray($this->isTestMode() ? 'mail-test' : 'mail');
 
         if ($mail === []) {
-            $mail = $this->getArray('mail');
+            return $this->getArray('mail');
         }
 
         return $mail;

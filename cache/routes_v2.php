@@ -158,6 +158,11 @@
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\TogglePermitSuspension\\TogglePermitSuspensionAction',
         'auth' => false,
       ),
+      '/api/cron/backup' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\BackupCronAction',
+        'auth' => false,
+      ),
       '/anonymize_archive' => 
       array (
         'class' => 'App\\Modules\\System\\Application\\UseCases\\Maintenance\\AnonymizeArchiveAction',
@@ -171,21 +176,6 @@
       '/api/system_update' => 
       array (
         'class' => 'App\\Modules\\System\\Application\\UseCases\\Maintenance\\SystemUpdateAction',
-        'auth' => false,
-      ),
-      '/api/cron/backup' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\BackupCronAction',
-        'auth' => false,
-      ),
-      '/create_backup' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\CreateBackupAction',
-        'auth' => false,
-      ),
-      '/truncate_target' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\TruncateTargetAction',
         'auth' => false,
       ),
       '/api/process_mail_queue' => 
@@ -476,6 +466,26 @@
         'class' => 'App\\Modules\\Permit\\Application\\UseCases\\TogglePermitSuspension\\TogglePermitSuspensionAction',
         'auth' => false,
       ),
+      '/api/cron/backup' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\BackupCronAction',
+        'auth' => false,
+      ),
+      '/create_backup' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\CreateBackupAction',
+        'auth' => true,
+      ),
+      '/restore_data' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\RestoreDataAction',
+        'auth' => false,
+      ),
+      '/truncate_target' => 
+      array (
+        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\TruncateTargetAction',
+        'auth' => true,
+      ),
       '/anonymize_archive' => 
       array (
         'class' => 'App\\Modules\\System\\Application\\UseCases\\Maintenance\\AnonymizeArchiveAction',
@@ -494,26 +504,6 @@
       '/api/system_update' => 
       array (
         'class' => 'App\\Modules\\System\\Application\\UseCases\\Maintenance\\SystemUpdateAction',
-        'auth' => false,
-      ),
-      '/api/cron/backup' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\BackupCronAction',
-        'auth' => false,
-      ),
-      '/create_backup' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\CreateBackupAction',
-        'auth' => false,
-      ),
-      '/restore_data' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\RestoreDataAction',
-        'auth' => false,
-      ),
-      '/truncate_target' => 
-      array (
-        'class' => 'App\\Modules\\System\\Application\\UseCases\\ManageBackups\\TruncateTargetAction',
         'auth' => false,
       ),
       '/api/process_mail_queue' => 

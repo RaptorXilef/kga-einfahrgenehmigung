@@ -81,7 +81,7 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
 
         if ($query->searchQuery !== '') {
             $whereParts[] = "CONCAT_WS(' ', code, name, IFNULL(email, ''), kennzeichen, LPAD(parzelle, 4, '0'), zweck) LIKE ?";
-            $binds[] = '\%' . \strtolower(\trim($query->searchQuery)) . '%';
+            $binds[] = '%' . \strtolower(\trim($query->searchQuery)) . '%';
         }
 
         $whereStr = empty($whereParts) ? '1=1' : \implode(' AND ', $whereParts);

@@ -33,7 +33,7 @@ final readonly class GetTemplatePriceAction implements ViewActionInterface
     {
         try {
             $vehicleTypes = $this->config->getArray('vehicle_types');
-            $defaultType = empty($vehicleTypes) ? 'pkw' : \array_key_first($vehicleTypes);
+            $defaultType = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
 
             $dto = ApiTemplatePriceRequest::fromArray($request->input, (string) $defaultType);
 

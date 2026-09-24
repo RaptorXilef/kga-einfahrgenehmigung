@@ -106,7 +106,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
         try {
             $stmt = $this->pdo->query("SELECT `version` FROM `{$cfg['table']}`");
 
-            return $stmt ? ($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []) : [];
+            return $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
         } catch (PDOException) {
             return [];
         }

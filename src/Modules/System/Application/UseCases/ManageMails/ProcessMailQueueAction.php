@@ -39,7 +39,7 @@ final readonly class ProcessMailQueueAction implements ViewActionInterface
         }
 
         // Wir nutzen nun den sauberen LockManager statt nativer I/O-Funktionen!
-        return $this->lockManager->executeWithLock('kga_mail_queue', function () use ($isCron) {
+        return $this->lockManager->executeWithLock('kga_mail_queue', function () use ($isCron): JsonResponse {
             $limit = $isCron ? 20 : 3;
             $processed = $this->mailService->processQueue($limit);
 

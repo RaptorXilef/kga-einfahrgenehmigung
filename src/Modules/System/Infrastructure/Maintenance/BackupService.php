@@ -299,7 +299,7 @@ final readonly class BackupService implements BackupServiceInterface
         }
 
         $timeout = 60;
-        $connId = ($ftpCfg['ssl'] ?? false)
+        $connId = $ftpCfg['ssl'] ?? false
             ? @\ftp_ssl_connect($ftpCfg['host'], (int) $ftpCfg['port'], $timeout)
             : @\ftp_connect($ftpCfg['host'], (int) $ftpCfg['port'], $timeout);
 

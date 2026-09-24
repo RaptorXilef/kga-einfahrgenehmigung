@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Application\Contracts\ResponseInterface;
 use App\Application\FrontendController;
 use App\Application\Http\ServerRequest;
 use App\Bootstrap\Container;
@@ -22,6 +21,4 @@ $controller = $container->get(FrontendController::class);
 \assert($controller instanceof FrontendController);
 
 $response = $controller->handleRequest($req);
-if ($response instanceof ResponseInterface) {
-    $response->send();
-}
+$response->send();

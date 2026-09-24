@@ -6,6 +6,9 @@ namespace App\Modules\System\Application\UseCases\GetBackupsData;
 
 use App\SharedKernel\Application\Query\QueryInterface;
 
+/**
+ * Query zum Abrufen aller verfügbaren System-Backups und Tabellen-Ziele für das Dashboard.
+ */
 final readonly class GetBackupsDataQuery implements QueryInterface
 {
 }

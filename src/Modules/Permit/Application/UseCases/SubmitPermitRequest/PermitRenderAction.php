@@ -12,12 +12,9 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Integration\VoucherIntegrationInterface;
+use App\Contracts\Integration\VoucherPrefillResult;
 use App\Contracts\Utils\ClockInterface;
-use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailableVouchersHandler;
-use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailableVouchersQuery;
-use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\GetVoucherPrefillHandler;
-use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\GetVoucherPrefillQuery;
-use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\VoucherPrefillDto;
 use Override;
 
 #[Route('GET', '/')]
@@ -27,8 +24,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
         private ConfigInterface $config,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
-        private CheckAvailableVouchersHandler $checkVouchersHandler,
-        private GetVoucherPrefillHandler $prefillHandler,
+        private VoucherIntegrationInterface $voucherIntegration,
         private ClockInterface $clock,
     ) {
     }
@@ -51,16 +47,16 @@ final readonly class PermitRenderAction implements ViewActionInterface
             $this->sessionManager->setFormStartTime($this->clock->now()->getTimestamp());
         }
 
-        // Gutschein-Daten über CQRS Schnittstelle auflösen
+        // Gutschein-Daten über das modulsichere VoucherIntegrationInterface auflösen (Deptrac-konform)
         $voucherCode = \trim((string) ($request->get['voucher'] ?? ''));
         $prefillDto = null;
         if ($voucherCode !== '') {
-            $prefillDto = $this->prefillHandler->handle(new GetVoucherPrefillQuery($voucherCode));
+            $prefillDto = $this->voucherIntegration->getVoucherPrefill($voucherCode);
         }
 
         // Formulardaten vereinen
         $formData = $this->sessionManager->getFormData();
-        $prefillData = $prefillDto instanceof VoucherPrefillDto ? $prefillDto->data : [];
+        $prefillData = $prefillDto instanceof VoucherPrefillResult ? $prefillDto->data : [];
 
         $permitTemplates = $this->config->getArray('permit_templates');
         $publicTemplates = \array_filter($permitTemplates, fn (array $t): bool => ($t['public'] ?? false) === true);
@@ -128,9 +124,9 @@ final readonly class PermitRenderAction implements ViewActionInterface
             datumBis: (string) ($formData['datum_bis'] ?? $prefillData['datum_bis'] ?? ''),
             isDatumBisLocked: !empty($prefillData['datum_bis']),
             voucherInput: (string) ($formData['voucher'] ?? $request->get['voucher'] ?? ''),
-            voucherCode: $prefillDto instanceof VoucherPrefillDto ? $prefillDto->code : '',
-            voucherReason: $prefillDto instanceof VoucherPrefillDto ? $prefillDto->reason : '',
-            hasActiveVoucher: $prefillDto instanceof VoucherPrefillDto,
+            voucherCode: $prefillDto instanceof VoucherPrefillResult ? $prefillDto->code : '',
+            voucherReason: $prefillDto instanceof VoucherPrefillResult ? $prefillDto->reason : '',
+            hasActiveVoucher: $prefillDto instanceof VoucherPrefillResult,
             agreementsChecked: (array) ($formData['agreements'] ?? []),
             templateOptions: $templateOptions,
             vehicleOptions: $vehicleOptions,
@@ -141,7 +137,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
 
         $html = $this->renderer->render('frontend/formular', [
             'viewDto' => $viewDto,
-            'hasActiveVouchers' => $this->checkVouchersHandler->handle(new CheckAvailableVouchersQuery()),
+            'hasActiveVouchers' => $this->voucherIntegration->hasAvailableVouchers(),
             'success' => $dto->isSuccess,
             'message' => $successMessage,
             'flashes' => $flashes,

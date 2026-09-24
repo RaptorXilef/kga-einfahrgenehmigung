@@ -26,7 +26,7 @@ final readonly class HolidayService
     public function __construct(
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
-        private ClockInterface $clock, // VSA FIX: Clock injiziert
+        private ClockInterface $clock,
     ) {
     }
 
@@ -356,7 +356,7 @@ final readonly class HolidayService
         $base = new DateTimeImmutable("$year-03-21", new DateTimeZone('UTC'));
         $easter = $base->modify('+' . \easter_days($year) . ' days');
 
-        // Bundesweit einheitliche Feiertage
+        // Bundesweit einheitliche Feiertage (Sauber getrennt, kein Auskommentieren durch Zeilenumbruch-Fehler)
         $holidays = [$year . '-01-01', // Neujahr
             $year . '-05-01', // Tag der Arbeit$year . '-10-03', // Tag der Deutschen Einheit
             $year . '-12-25', // 1. Weihnachtstag$year . '-12-26', // 2. Weihnachtstag

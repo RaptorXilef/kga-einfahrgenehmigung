@@ -49,7 +49,7 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
 
         if ($query->query !== '') {
             $whereParts[] = "CONCAT_WS(' ', code, name, IFNULL(email, ''), kennzeichen, LPAD(parzelle, 4, '0'), zweck) LIKE ?";
-            $binds[] = '\%' . \strtolower(\trim($query->query)) . '%';
+            $binds[] = '%' . \strtolower(\trim($query->query)) . '%';
         }
 
         $whereStr = empty($whereParts) ? '1=1' : \implode(' AND ', $whereParts);
@@ -70,9 +70,9 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
             $allBinds = \array_merge($allBinds, $binds);
         }
 
-        // Archivierte (aus der Archiv-Tabelle)
+        // Archivierte (aus der Archiv-Tabelle) - FIX: Leerzeichen nach WHERE ergänzt
         if (\in_array($query->tab, ['all', 'archive'], true)) {
-            $sqlParts[] = "SELECT $baseCols, 1 AS is_archived FROM permits_archive WHERE$whereStr";
+            $sqlParts[] = "SELECT $baseCols, 1 AS is_archived FROM permits_archive WHERE $whereStr";
             $allBinds = \array_merge($allBinds, $binds);
         }
 
@@ -90,7 +90,7 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
         $offset = ($query->page - 1) * $query->limit;
         $items = \array_slice($rows, $offset, $query->limit);
 
-        // Daten flach mappen, wie es die API / das Vue.js Frontend erwartet
+        // Daten flach mappen, wie es die API / das Frontend erwartet
         $formattedItems = \array_map(fn (array $row): array => [
             'bis' => (new DateTimeImmutable((string) $row['bis']))->format('d.m.Y'),
             'code' => (string) $row['code'],

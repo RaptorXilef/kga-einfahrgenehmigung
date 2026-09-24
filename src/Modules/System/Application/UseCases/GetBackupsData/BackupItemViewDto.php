@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\System\Application\UseCases\GetBackupsData;
 
 /**
- * 100% logikfreies DTO für ein einzelnes ZIP-Backup-Archiv im Dashboard.
+ * 100% logikfreies View-DTO für ein einzelnes ZIP-Backup im Admin-Dashboard.
  */
 final readonly class BackupItemViewDto
 {

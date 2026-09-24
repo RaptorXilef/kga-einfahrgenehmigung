@@ -33,7 +33,7 @@ final readonly class PermitFinancialCalculator
         }
 
         $vehicleTypes = (array) $this->config->get('vehicle_types', []);
-        $defaultType = empty($vehicleTypes) ? 'pkw' : (string) \array_key_first($vehicleTypes);
+        $defaultType = $vehicleTypes === [] ? 'pkw' : (string) \array_key_first($vehicleTypes);
 
         $typeToUse = isset($template['prices'][$vehicleType]) ? $vehicleType : $defaultType;
 

@@ -28,9 +28,12 @@ $packageJsonPath = $root . '/package.json';
 
 if (\file_exists($packageJsonPath)) {
     try {
-        $pkgData = \json_decode(\file_get_contents($packageJsonPath), true, 512, \JSON_THROW_ON_ERROR);
-        if (\is_array($pkgData) && isset($pkgData['version'])) {
-            $version = 'v' . $pkgData['version'];
+        $rawPkg = \file_get_contents($packageJsonPath);
+        if (\is_string($rawPkg)) {
+            $pkgData = \json_decode($rawPkg, true, 512, \JSON_THROW_ON_ERROR);
+            if (\is_array($pkgData) && isset($pkgData['version'])) {
+                $version = 'v' . $pkgData['version'];
+            }
         }
     } catch (\Throwable) {
         // Fallback bleibt v0.0.0
@@ -44,9 +47,7 @@ if (\file_exists($packageJsonPath)) {
  * - API & Admin: STRICTLY Network Only (Bypass Cache).
  */
 
-const CACHE_VERSION = '<?php echo \htmlspecialchars($version, \ENT_QUOTES, ';
-UTF - 8;
-('); ?>');
+const CACHE_VERSION = '<?php echo \htmlspecialchars($version, \ENT_QUOTES, 'UTF-8'); ?>';
 const STATIC_CACHE = `kga-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `kga-dynamic-${CACHE_VERSION}`;
 

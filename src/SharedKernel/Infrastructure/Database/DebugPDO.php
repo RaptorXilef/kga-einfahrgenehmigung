@@ -23,7 +23,7 @@ class DebugPDO extends PDO
         ?string $username = null,
         ?string $password = null,
         ?array $options = null,
-        private ?ClockInterface $clock = null,
+        private readonly ?ClockInterface $clock = null,
     ) {
         parent::__construct($dsn, $username, $password, $options);
         $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, [DebugPDOStatement::class, [$this]]);

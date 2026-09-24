@@ -15,7 +15,7 @@ use Override;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final class SessionManager implements AuthSessionInterface
+final readonly class SessionManager implements AuthSessionInterface
 {
     private const int MAX_LIFETIME = 43200; // 12 Stunden absolutes Maximum
     // private const int IDLE_TIMEOUT = 7200;  // 2 Stunden Inaktivität führt zum Logout
@@ -23,7 +23,7 @@ final class SessionManager implements AuthSessionInterface
     private const int IDLE_TIMEOUT = 1800;  // 30 Minuten Inaktivität
 
     public function __construct(
-        private readonly ClockInterface $clock = new SystemClock(),
+        private ClockInterface $clock = new SystemClock(),
     ) {
         if (\session_status() === \PHP_SESSION_NONE) {
             \session_start();

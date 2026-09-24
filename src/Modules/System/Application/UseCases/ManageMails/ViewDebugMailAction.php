@@ -35,7 +35,7 @@ final readonly class ViewDebugMailAction implements ViewActionInterface, Require
     #[Override]
     public function execute(ServerRequest $request): ResponseInterface
     {
-        if ($this->config->getBool('debug_mode', false) !== true) {
+        if (!$this->config->getBool('debug_mode', false)) {
             return new TextResponse('Der Debug-Modus ist nicht aktiv.', 403);
         }
 
