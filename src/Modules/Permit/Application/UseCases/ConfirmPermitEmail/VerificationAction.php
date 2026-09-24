@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Security\RateLimiterInterface;
+use DomainException;
 
 #[Route('GET', '/verify')]
 #[Route('POST', '/verify')]
@@ -37,30 +38,23 @@ final readonly class VerificationAction implements ViewActionInterface
 
         $ip = $request->getIp();
 
-        $command = new ConfirmPermitEmailCommand($token);
-        $this->confirmHandler->handle($command);
-        $result = $command->context;
+        try {
+            $command = new ConfirmPermitEmailCommand($token, $ip);
+            $resultTokenOrCode = $this->confirmHandler->handle($command);
 
-        if (!$result->isSuccess) {
+            $this->rateLimiter->clearAttempts($ip);
+
+            // Flow Control: Ein Checkout-Token (via random_bytes) hat 64 Zeichen. Ein Permit-Code ist viel kürzer.
+            if (\strlen($resultTokenOrCode) > 32) {
+                return new RedirectResponse('checkout?token=' . $resultTokenOrCode . '&verified=1');
+            }
+
+            return new RedirectResponse('check?code=' . $resultTokenOrCode . '&verified=1');
+        } catch (DomainException $e) {
             $this->rateLimiter->recordFailedAttempt($ip);
-            $this->sessionManager->addFlash('error', 'Code ungültig oder abgelaufen.');
+            $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('verify?error=1');
         }
-
-        $this->rateLimiter->clearAttempts($ip);
-
-        // VSA CQRS FIX: Prüfung jetzt gegen string statt Entity
-        if (\is_string($result->finalisedPermitCode)) {
-            return new RedirectResponse('check?code=' . $result->finalisedPermitCode . '&verified=1');
-        }
-
-        if ($result->checkoutToken !== null) {
-            return new RedirectResponse('checkout?token=' . $result->checkoutToken . '&verified=1');
-        }
-
-        $this->sessionManager->addFlash('error', 'Fehler bei der Verifizierung.');
-
-        return new RedirectResponse('verify?error=1');
     }
 }

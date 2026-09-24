@@ -28,7 +28,6 @@ final readonly class SubmitPermitRequestCommand implements CommandInterface
         public ?VoucherCode $voucher,
         public ?string $editToken = null,
         public ?string $sessionEmail = null,
-        public SubmitPermitContext $context = new SubmitPermitContext(),
     ) {
     }
 }

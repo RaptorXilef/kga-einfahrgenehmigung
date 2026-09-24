@@ -15,7 +15,6 @@ use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
-use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use App\SharedKernel\Application\Security\Sanitizer;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
@@ -24,9 +23,10 @@ use DateTimeImmutable;
 use InvalidArgumentException;
 
 /**
- * @implements CommandHandlerInterface<SubmitPermitRequestCommand>
+ * Da der Handler den generierten Token-String (ID) für den Controller-Flow zurückgeben muss,
+ * verzichten wir pragmatisch auf das strikte (void) CommandHandlerInterface.
  */
-final readonly class SubmitPermitRequestHandler implements CommandHandlerInterface
+final readonly class SubmitPermitRequestHandler
 {
     public function __construct(
         private ConfigInterface $config,
@@ -38,10 +38,7 @@ final readonly class SubmitPermitRequestHandler implements CommandHandlerInterfa
     ) {
     }
 
-    /**
-     * @param SubmitPermitRequestCommand $command
-     */
-    public function handle(mixed $command): void
+    public function handle(SubmitPermitRequestCommand $command): string
     {
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
 
@@ -60,12 +57,11 @@ final readonly class SubmitPermitRequestHandler implements CommandHandlerInterfa
             $allVerified = $this->verificationRepository->loadVerified();
             $oldData = isset($allVerified[$command->editToken]) ? $allVerified[$command->editToken]->data : null;
 
-            // Wenn die E-Mail NICHT geändert wurde -> Nur Daten updaten & direkt zurück zum Checkout!
+            // Wenn die E-Mail NICHT geändert wurde -> Nur Daten updaten & Token für Checkout zurückgeben
             if ($oldData !== null && Sanitizer::normalizeEmail((string) $command->email) === Sanitizer::normalizeEmail($command->sessionEmail)) {
                 $merged = \array_merge($oldData, $rawDataArray);
 
                 $typ = $merged['typ'] ?? 'pkw';
-                // VSA FIX: Preisfindung durch Domain Service anstatt nackter Array-Suche
                 $merged['preis'] = $this->financialCalculator->calculateBasePrice(new TemplateKey($merged['template_key']), $typ);
                 $merged['status'] = PermitStatus::Offen->value;
 
@@ -74,10 +70,7 @@ final readonly class SubmitPermitRequestHandler implements CommandHandlerInterfa
 
                 $this->verificationRepository->saveVerified($allVerified);
 
-                $command->context->redirectAction = 'redirect_checkout';
-                $command->context->token = $command->editToken;
-
-                return;
+                return $command->editToken;
             }
 
             // Falls die E-Mail geändert WURDE, löschen wir das alte Token,
@@ -89,10 +82,7 @@ final readonly class SubmitPermitRequestHandler implements CommandHandlerInterfa
         }
 
         // --- NEUANLAGE MODUS ---
-        $token = $this->createNewPendingRequest($rawDataArray);
-
-        $command->context->redirectAction = 'redirect_verify';
-        $command->context->token = $token;
+        return $this->createNewPendingRequest($rawDataArray);
     }
 
     private function createNewPendingRequest(array $data): string

@@ -8,19 +8,15 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
 use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
-use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use App\SharedKernel\Domain\Event\BankPaymentAssignedEvent;
 use DateTimeImmutable;
 use DomainException;
 use League\Csv\Reader;
 
 /**
- * Orchestriert den Bank-Import. Da wir ein ResultDTO zurückgeben, implementiert
- * dieser Use-Case ganz pragmatisch NICHT das strenge CommandHandlerInterface (void).
- *
- * @implements CommandHandlerInterface<ProcessBankImportCommand>
+ * Orchestriert den Bank-Import als Application Service und gibt direkt das Report-DTO zurück.
  */
-final readonly class ProcessBankImportHandler implements CommandHandlerInterface
+final readonly class ProcessBankImportHandler
 {
     public function __construct(
         private UnpaidPermitProviderInterface $unpaidPermitProvider,
@@ -30,14 +26,7 @@ final readonly class ProcessBankImportHandler implements CommandHandlerInterface
     ) {
     }
 
-    /**
-     * Da Handler per Interface void zurückgeben, nutzen wir ein lokales State-Feld oder werfen Exceptions.
-     * Da die Architektur aber ein Result-Array im Controller erwartet hat, nutzen wir einen Trick:
-     * Wir geben hier ausnahmsweise das DTO zurück, da es ein Workflow-Orchestrator ist.
-     *
-     * @param ProcessBankImportCommand $command
-     */
-    public function handle(mixed $command): void
+    public function handle(ProcessBankImportCommand $command): BankImportResultDto
     {
         $runLogs = [];
 
@@ -47,10 +36,7 @@ final readonly class ProcessBankImportHandler implements CommandHandlerInterface
         if (!$csv instanceof Reader) {
             $this->infrastructure->writeLog("Fehler: Die Datei '{$command->tempFile}' ist ungültig oder konnte nicht geöffnet werden.", $runLogs);
 
-            $command->context->success = false;
-            $command->context->message = 'Datei konnte nicht gefunden oder gelesen werden.';
-
-            return;
+            return new BankImportResultDto(false, 'Datei konnte nicht gefunden oder gelesen werden.');
         }
 
         // --- DECOUPLED DATA FETCH ---
@@ -326,15 +312,17 @@ final readonly class ProcessBankImportHandler implements CommandHandlerInterface
 
         $this->infrastructure->cleanupTempFile($command->tempFile);
 
-        $command->context->success = true;
-        $command->context->message = 'Import abgeschlossen.';
-        $command->context->successCount = $erfCount;
-        $command->context->skippedCount = $uebCount;
-        $command->context->errorCount = $fehlCount;
-        $command->context->successDetails = $erfolgreichDetails;
-        $command->context->skippedDetails = $uebersprungenDetails;
-        $command->context->errorDetails = $fehlerhaftDetails;
-        $command->context->collectiveTransfers = $sammelTransfers;
+        return new BankImportResultDto(
+            success: true,
+            message: 'Import abgeschlossen.',
+            successCount: $erfCount,
+            skippedCount: $uebCount,
+            errorCount: $fehlCount,
+            successDetails: $erfolgreichDetails,
+            skippedDetails: $uebersprungenDetails,
+            errorDetails: $fehlerhaftDetails,
+            collectiveTransfers: $sammelTransfers,
+        );
     }
 
     private function parseDate(string $rawDate): string

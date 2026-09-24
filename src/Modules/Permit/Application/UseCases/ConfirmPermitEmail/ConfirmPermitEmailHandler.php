@@ -15,12 +15,12 @@ use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateV
 use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountQuery;
 use App\Modules\Voucher\Application\UseCases\RedeemVoucher\RedeemVoucherCommand;
 use App\Modules\Voucher\Application\UseCases\RedeemVoucher\RedeemVoucherHandler;
-use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use DomainException;
 
 /**
- * @implements CommandHandlerInterface<ConfirmPermitEmailCommand>
+ * Orchestriert die Bestätigung und gibt den resultierenden Identifikator (Token oder Code) zurück.
  */
-final readonly class ConfirmPermitEmailHandler implements CommandHandlerInterface
+final readonly class ConfirmPermitEmailHandler
 {
     public function __construct(
         private VerificationRepositoryInterface $verificationRepository,
@@ -33,9 +33,10 @@ final readonly class ConfirmPermitEmailHandler implements CommandHandlerInterfac
     }
 
     /**
-     * @param ConfirmPermitEmailCommand $command
+     * @return string Gibt entweder den Checkout-Token oder (bei sofortiger Freischaltung) den Genehmigungscode zurück.
+     * @throws DomainException Wenn der Code ungültig ist.
      */
-    public function handle(mixed $command): void
+    public function handle(ConfirmPermitEmailCommand $command): string
     {
         $allPending = $this->verificationRepository->loadPending();
         $input = \strtoupper(\trim($command->tokenOrCode));
@@ -54,17 +55,11 @@ final readonly class ConfirmPermitEmailHandler implements CommandHandlerInterfac
             foreach ($allVerified as $t => $req) {
                 $strToken = (string) $t;
                 if (\strtoupper($strToken) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
-                    $command->context->isSuccess = true;
-                    $command->context->checkoutToken = $strToken;
-                    $command->context->verifiedData = $req->data;
-
-                    return;
+                    return $strToken; // Bereits verifiziert, Checkout Token zurückgeben
                 }
             }
 
-            $command->context->isSuccess = false;
-
-            return;
+            throw new DomainException('Sitzung abgelaufen oder Bestätigungscode ungültig.');
         }
 
         $token = $matchedToken;
@@ -99,13 +94,8 @@ final readonly class ConfirmPermitEmailHandler implements CommandHandlerInterfac
                     $allVerified[$token] = new VerificationRequest($token, $expires, $data);
                     $this->verificationRepository->saveVerified($allVerified);
 
-                    // Auto-Finalize (VSA CQRS FIX)
-                    $permitCode = $this->finalizePermitHandler->handle(new FinalizePermitCommand($token, PermitStatus::Bezahlt, 'Gutschein (Voll-Rabatt): ' . $voucherCodeStr));
-
-                    $command->context->isSuccess = true;
-                    $command->context->finalisedPermitCode = $permitCode;
-
-                    return;
+                    // Auto-Finalize durchführen
+                    return $this->finalizePermitHandler->handle(new FinalizePermitCommand($token, PermitStatus::Bezahlt, 'Gutschein (Voll-Rabatt): ' . $voucherCodeStr));
                 }
 
                 $data['preis'] = $finalPrice;
@@ -120,8 +110,6 @@ final readonly class ConfirmPermitEmailHandler implements CommandHandlerInterfac
 
         $data['actual_token'] = $token;
 
-        $command->context->isSuccess = true;
-        $command->context->checkoutToken = $token;
-        $command->context->verifiedData = $data;
+        return $token;
     }
 }

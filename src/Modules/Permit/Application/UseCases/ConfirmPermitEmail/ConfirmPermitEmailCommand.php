@@ -10,7 +10,7 @@ final readonly class ConfirmPermitEmailCommand implements CommandInterface
 {
     public function __construct(
         public string $tokenOrCode,
-        public ConfirmPermitEmailContext $context = new ConfirmPermitEmailContext(),
+        public string $ipAddress,
     ) {
     }
 }

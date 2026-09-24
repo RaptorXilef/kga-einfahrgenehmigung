@@ -57,7 +57,10 @@ final readonly class SubmitPermitAction implements ViewActionInterface
                 $this->emailValidation->validate($dto->email);
             }
 
-            // 4. Instanziierung des Domain-Commands mit sicheren Value Objects
+            $editToken = $this->sessionManager->getEditToken();
+            $sessionEmail = $this->sessionManager->getVerifiedEmail();
+
+            // 5. Instanziierung des Domain-Commands
             $command = new SubmitPermitRequestCommand(
                 name: $dto->name,
                 email: $dto->email !== '' ? new EmailAddress($dto->email) : null,
@@ -71,12 +74,11 @@ final readonly class SubmitPermitAction implements ViewActionInterface
                 datumBis: $dto->datumBis,
                 agreements: $dto->agreements,
                 voucher: $dto->voucher !== '' ? new VoucherCode($dto->voucher) : null,
-                editToken: $this->sessionManager->getEditToken(),
-                sessionEmail: $this->sessionManager->getVerifiedEmail(),
+                editToken: $editToken,
+                sessionEmail: $sessionEmail,
             );
 
-            $this->submitHandler->handle($command);
-            $result = $command->context;
+            $token = $this->submitHandler->handle($command);
 
             $this->sessionManager->clearFormData();
             $this->sessionManager->clearEditState();
@@ -85,11 +87,13 @@ final readonly class SubmitPermitAction implements ViewActionInterface
             // Strike registrieren: Begrenzt auch erfolgreiche Anträge auf x pro 15 Min
             $this->botProtection->recordStrike($ip);
 
-            if ($result->redirectAction === 'redirect_checkout') {
-                return new RedirectResponse('checkout?token=' . $result->token);
-            }
+            // 6. Routing Logik direkt im Controller
+            if ($editToken !== null && $sessionEmail !== null) {
+                // Wenn die E-Mail nicht geändert wurde, geht es direkt zurück zum Checkout
+                if (\strtolower(\trim($dto->email)) === \strtolower(\trim($sessionEmail))) {
+                    return new RedirectResponse('checkout?token=' . $token);
+                }
 
-            if ($this->sessionManager->getVerifiedEmail() !== null) {
                 $this->sessionManager->addFlash(
                     'success',
                     'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Bitte E-Mail erneut bestätigen.',

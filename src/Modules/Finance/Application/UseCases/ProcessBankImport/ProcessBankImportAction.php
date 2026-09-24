@@ -42,8 +42,7 @@ final readonly class ProcessBankImportAction implements ActionInterface, Require
                 $dto->dateColumn,
             );
 
-            $this->processHandler->handle($command);
-            $result = $command->context;
+            $result = $this->processHandler->handle($command);
 
             if ($result->success) {
                 foreach ($result->collectiveTransfers as $transfer) {
