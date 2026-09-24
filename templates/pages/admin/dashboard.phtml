@@ -11,7 +11,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
  * @var array $settings
  * @var string $appRoot
  * @var string $cspNonce
- * @var array $allReleaseNotes
+ * @var array $allReleaseNotes (Gepflegt via TemplateRenderer)
  */
 $layout = 'admin';
 $focus = $viewDto->focus;
@@ -585,7 +585,7 @@ $focus = $viewDto->focus;
     class="js-release-notes-all-data"
     nonce="<?php echo $cspNonce; ?>"
 >
-<?php echo \json_encode($viewDto->allReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+<?php echo \json_encode($allReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
 </script>
 <?php } ?>
