@@ -9,7 +9,6 @@ namespace App\Contracts\Config;
  *
  * Definiert Methoden für den Zugriff auf geschachtelte Konfigurations-Arrays,
  * die System-URLs, Testmodi sowie spezifische Preis- und Mail-Einstellungen.
- * Kontext: Abstraktionsschicht für das zentrale Konfigurationsmanagement.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -25,6 +24,14 @@ interface ConfigInterface
      * @return mixed Der konfigurierte Wert oder das übergebene Default.
      */
     public function get(string $key, mixed $default = null): mixed;
+
+    public function getString(string $key, string $default = ''): string;
+
+    public function getInt(string $key, int $default = 0): int;
+
+    public function getBool(string $key, bool $default = false): bool;
+
+    public function getArray(string $key, array $default = []): array;
 
     /**
      * Liefert die vollständig qualifizierte Basis-URL der Anwendung.

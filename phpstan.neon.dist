@@ -1,5 +1,5 @@
 # =============================================================================
-# PHPStan Konfiguration für High-End Code-Qualität (Phase 5 - Final)
+# PHPStan Konfiguration für High-End Code-Qualität (Phase 7 - Final)
 # =============================================================================
 # Hinweis: Einfach in YAML formatieren :D
 
@@ -63,11 +63,11 @@ parameters:
     # wenn es um native Funktionen geht, die false liefern können.
     treatPhpDocTypesAsCertain: false
 
-    # Ignoriere strikte Format-Regeln, die nichts mit der Architektur zu tun haben
+    # Bewusste Ausnahmen, die für unsere Architektur notwendig sind
     ignoreErrors:
         # #Construct empty\(\) is not allowed...#: Strict-Rules hassen empty($array).
         # Sie zwingen dich, if ($array === [] || $array === null) zu schreiben.
-        - '#Construct empty\(\) is not allowed. Use more strict comparison.#'
+        #- '#Construct empty\(\) is not allowed. Use more strict comparison.#'
 
         # #Dynamic call to static method#: Erlaubt dynamische Aufrufe statischer Methoden,
         # was oft in Testing-Frameworks (Pest) oder bei dynamischen Factories vorkommt.
@@ -75,7 +75,7 @@ parameters:
 
         # #Cannot cast mixed to int.#: PHPStan warnt, wenn man einen unbekannten Typ (mixed)
         # hart zu einem Integer castet (z.B. bei Array-Daten aus der DB). Wir erzwingen das aber oft bewusst zur Typ-Sicherheit.
-        - '#Cannot cast mixed to int.#'
+        #- '#Cannot cast mixed to int.#'
 
         # #Variable \$[a-zA-Z0-9_]+ might not be defined.#: In deinen PHTML-Dateien nutzen wir extract($data).
         # PHPStan kann nicht wissen, dass dadurch plötzlich Variablen wie $vereinsName existieren und
@@ -102,7 +102,7 @@ parameters:
 
         # #Only booleans are allowed in.*#: Strict-Rules verbieten if ($string) oder if ($array).
         # Du müsstest stattdessen zwingend if ($string !== '') schreiben. Das ignorieren wir für bessere Lesbarkeit.
-        - '#Only booleans are allowed in.*#'
+        #- '#Only booleans are allowed in.*#'
 
         # #Call to function array_filter\(\) requires parameter \#2#: PHPStan möchte, dass man bei array_filter
         # immer eine Callback-Funktion angibt. Wir nutzen es oft ohne, um einfach Leerwerte (null, false, '') aus Arrays zu filtern.
@@ -136,7 +136,7 @@ parameters:
           allowIn:
               - src/SharedKernel/Infrastructure/*
               - src/Modules/*/Infrastructure/*
-              - src/Modules/*/Application/UseCases/* # Erlaubt pragmatisches CQRS Read-Model Fetching
+              - src/Modules/*/Application/UseCases/*
               - src/Bootstrap/*
 
     # =========================================================================
@@ -160,9 +160,9 @@ parameters:
           allowIn:
               - src/SharedKernel/Infrastructure/*
               - src/Modules/*/Infrastructure/*
-              - src/Modules/*/Application/UseCases/* # Für Temp-Files und PDF Generierung
-              - src/Modules/*/Application/Listeners/* # Für Dateibereinigungen nach Events
-              - src/Modules/System/Application/Services/* # Z.B. ReleaseNotes und MailValidation
+              - src/Modules/*/Application/UseCases/*
+              - src/Modules/*/Application/Listeners/*
+              - src/Modules/System/Application/Services/*
               - src/Application/Middleware/JsonBodyParserMiddleware.php
               - src/Bootstrap/*
               - public/*
@@ -183,7 +183,7 @@ parameters:
           allowIn:
               - src/SharedKernel/Infrastructure/*
               - src/Modules/*/Infrastructure/*
-              - src/Application/Middleware/AnalyticsMiddleware.php # Server-Side GA4 Tracking
+              - src/Application/Middleware/AnalyticsMiddleware.php
 
         # 3. Bildverarbeitung (GD Library)
         - function:
@@ -218,7 +218,7 @@ parameters:
               - src/Application/Exception/GlobalExceptionHandler.php
               - src/Application/FrontendController.php
               - src/Bootstrap/*
-              - src/Modules/System/Application/UseCases/QrCode/QrCodeRenderAction.php # header() für Bildausgabe
+              - src/Modules/System/Application/UseCases/QrCode/QrCodeRenderAction.php
               - public/*
 
         # 5. Verbot von Debug- und Kill-Funktionen
@@ -235,7 +235,7 @@ parameters:
               - src/Application/Response/*
               - src/Application/Exception/GlobalExceptionHandler.php
               - src/Application/FrontendController.php
-              - src/Modules/System/Application/UseCases/QrCode/QrCodeRenderAction.php # Bild-Stream Abschluss
+              - src/Modules/System/Application/UseCases/QrCode/QrCodeRenderAction.php
 
         # 6. Verbot von System/Exec Funktionen (Sicherheitsrisiko)
         - function:
@@ -275,8 +275,8 @@ parameters:
           allowIn:
               - src/SharedKernel/Infrastructure/*
               - src/Modules/*/Infrastructure/*
-              - src/Modules/*/Application/UseCases/* # Temporäre DTO Transformationen
-              - src/Modules/*/Application/Services/* # HolidayService & Co
+              - src/Modules/*/Application/UseCases/*
+              - src/Modules/*/Application/Services/*
               - src/Modules/*/Presentation/*
               - src/Bootstrap/*
               - src/Application/Session/SessionManager.php
