@@ -27,6 +27,12 @@ final readonly class DashboardPermissionsDto
         public bool $canManageBackups,
         public bool $showPrivacyEmails,
         public bool $showPrivacyFinance,
+        // --- Granulare Export-Rechte ---
+        public bool $canExportPermitsActive,
+        public bool $canExportPermitsFuture,
+        public bool $canExportPermitsExpired,
+        public bool $canExportPermitsActiveFuture,
+        public bool $canExportPermitsAll,
     ) {
     }
 }

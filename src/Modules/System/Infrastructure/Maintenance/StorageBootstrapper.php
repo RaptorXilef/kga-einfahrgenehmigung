@@ -185,6 +185,12 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
                 'vouchers.delete',
                 'vouchers.suspend',
                 'vouchers.view',
+                // NEUE BERECHTIGUNGEN STANDARDMÄßIG IN DIE FINANZ-ROLLE LEGEN
+                'permits.export.active',
+                'permits.export.future',
+                'permits.export.expired',
+                'permits.export.active_future',
+                'permits.export.all',
             ]),
             'role_support' => new Role('role_support', 'Sachbearbeitung', [
                 'admin.access',
@@ -207,6 +213,10 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
                 'vouchers.create',
                 'vouchers.suspend',
                 'vouchers.view',
+                // SACHBEARBEITER DÜRFEN AUCH LISTEN ZIEHEN
+                'permits.export.active',
+                'permits.export.future',
+                'permits.export.active_future',
             ]),
             'role_inspector' => new Role('role_inspector', 'Prüfer vor Ort', [
                 'admin.access',

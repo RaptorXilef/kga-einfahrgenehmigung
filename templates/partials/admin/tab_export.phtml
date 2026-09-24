@@ -1,22 +1,26 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Data Export
  *
- * CSV und JSON Export-Schnittstellen für Buchhaltungs-Software.
+ * CSV und JSON Export-Schnittstellen für Buchhaltungs-Software und Listen.
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
+ * @var DashboardViewDto $viewDto
  * @var array $settings
- * @var string $filterEnd
- * @var string $filterStart
  */
+$hasAnyPermitExport =$viewDto->permissions->canExportPermitsActive
+    || $viewDto->permissions->canExportPermitsFuture
+    || $viewDto->permissions->canExportPermitsExpired
+    || $viewDto->permissions->canExportPermitsActiveFuture
+    || $viewDto->permissions->canExportPermitsAll;
 ?>
-<?php if ($auth->hasPermission('finance.export')) { ?>
+
 <div class="c-tab-content-container">
+    <?php if ($viewDto->permissions->canExport || $hasAnyPermitExport) { ?>
     <section class="c-card">
         <header class="c-card__header u-text-center">
             <h3 class="u-margin-block-none">
@@ -25,17 +29,22 @@ use App\Modules\Identity\Application\Services\AuthService;
                     class="c-icon c-icon--md"
                     loading="lazy"
                     alt=""
-                > Daten-Export
+                >
+                Daten-Export
             </h3>
-            <p class="u-color-muted u-margin-block-start-s">Laden Sie die Finanz-Daten für den oben eingestellten
-                Zeitraum herunter.</p>
+            <p class="u-color-muted u-margin-block-start-s">Laden Sie die Daten für den oben eingestellten Zeitraum
+                herunter.</p>
         </header>
+
         <div class="c-card__body">
-            <!-- Modernes Action-Grid für Export -->
-            <div class="c-action-grid">
+
+            <?php if ($viewDto->permissions->canExport) { ?>
+            <h4 class="u-margin-block-start-none u-margin-block-end-m u-text-uppercase u-color-muted u-text-sm">Finanz-
+                & Buchhaltungsdaten</h4>
+            <div class="c-action-grid u-margin-block-end-xl">
                 <!-- CSV Export Card (Transaktionen) -->
                 <a
-                    href="<?php echo $settings['base_url']; ?>dashboard_export?format=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
+                    href="<?php echo $settings['base_url']; ?>dashboard_export?format=csv&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>"
                     class="c-action-card c-action-card--csv"
                 >
                     <div class="c-action-card__icon">
@@ -54,7 +63,7 @@ use App\Modules\Identity\Application\Services\AuthService;
 
                 <!-- CSV Export Card (Statistiken) -->
                 <a
-                    href="<?php echo $settings['base_url']; ?>dashboard_export?format=csv_stats&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
+                    href="<?php echo $settings['base_url']; ?>dashboard_export?format=csv_stats&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>"
                     class="c-action-card c-action-card--csv"
                 >
                     <div class="c-action-card__icon">
@@ -73,7 +82,7 @@ use App\Modules\Identity\Application\Services\AuthService;
 
                 <!-- JSON Export Card -->
                 <a
-                    href="<?php echo $settings['base_url']; ?>dashboard_export?format=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
+                    href="<?php echo $settings['base_url']; ?>dashboard_export?format=json&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>"
                     class="c-action-card c-action-card--json"
                 >
                     <div class="c-action-card__icon">
@@ -90,16 +99,126 @@ use App\Modules\Identity\Application\Services\AuthService;
                     </div>
                 </a>
             </div>
+            <?php } ?>
+
+            <?php if ($hasAnyPermitExport) { ?>
+            <h4 class="u-margin-block-start-none u-margin-block-end-m u-text-uppercase u-color-muted u-text-sm">
+                Genehmigungs-Listen (Tabelle)</h4>
+            <div class="c-action-grid">
+
+                <?php if ($viewDto->permissions->canExportPermitsActive) { ?>
+                <a
+                    href="<?php echo $settings['base_url']; ?>export_permits?state=active&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->typeSelectStandard !== '' ? 'standard' : ($viewDto->controlBar->typeSelectPermanent !== '' ? 'permanent' : 'all'); ?>"
+                    class="c-action-card c-action-card--csv"
+                >
+                    <div class="c-action-card__icon">
+                        <img
+                            src="<?php echo $asset->url('assets/img/icons/active.webp'); ?>"
+                            class="c-icon"
+                            alt=""
+                            loading="lazy"
+                        >
+                    </div>
+                    <div>
+                        <span class="c-action-card__title">Aktive Permits</span>
+                        <span class="c-action-card__desc">Laufende Genehmigungen.</span>
+                    </div>
+                </a>
+                <?php } ?>
+
+                <?php if ($viewDto->permissions->canExportPermitsFuture) { ?>
+                <a
+                    href="<?php echo $settings['base_url']; ?>export_permits?state=future&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->typeSelectStandard !== '' ? 'standard' : ($viewDto->controlBar->typeSelectPermanent !== '' ? 'permanent' : 'all'); ?>"
+                    class="c-action-card c-action-card--csv"
+                >
+                    <div class="c-action-card__icon">
+                        <img
+                            src="<?php echo $asset->url('assets/img/icons/calendar-future.webp'); ?>"
+                            class="c-icon"
+                            alt=""
+                            loading="lazy"
+                        >
+                    </div>
+                    <div>
+                        <span class="c-action-card__title">Zukünftige Permits</span>
+                        <span class="c-action-card__desc">Noch nicht gestartete Genehmigungen.</span>
+                    </div>
+                </a>
+                <?php } ?>
+
+                <?php if ($viewDto->permissions->canExportPermitsActiveFuture) { ?>
+                <a
+                    href="<?php echo $settings['base_url']; ?>export_permits?state=active_future&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->typeSelectStandard !== '' ? 'standard' : ($viewDto->controlBar->typeSelectPermanent !== '' ? 'permanent' : 'all'); ?>"
+                    class="c-action-card c-action-card--csv"
+                >
+                    <div class="c-action-card__icon">
+                        <img
+                            src="<?php echo $asset->url('assets/img/icons/calendar.webp'); ?>"
+                            class="c-icon"
+                            alt=""
+                            loading="lazy"
+                        >
+                    </div>
+                    <div>
+                        <span class="c-action-card__title">Aktive & Zukünftige</span>
+                        <span class="c-action-card__desc">Alle relevanten Permits für Kontrollen. Sortiert nach
+                            Datum.</span>
+                    </div>
+                </a>
+                <?php } ?>
+
+                <?php if ($viewDto->permissions->canExportPermitsExpired) { ?>
+                <a
+                    href="<?php echo $settings['base_url']; ?>export_permits?state=expired&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->typeSelectStandard !== '' ? 'standard' : ($viewDto->controlBar->typeSelectPermanent !== '' ? 'permanent' : 'all'); ?>"
+                    class="c-action-card c-action-card--csv"
+                >
+                    <div class="c-action-card__icon">
+                        <img
+                            src="<?php echo $asset->url('assets/img/icons/expired.webp'); ?>"
+                            class="c-icon u-grayscale u-opacity-50"
+                            alt=""
+                            loading="lazy"
+                        >
+                    </div>
+                    <div>
+                        <span class="c-action-card__title">Abgelaufene Permits</span>
+                        <span class="c-action-card__desc">Archivierte und beendete Genehmigungen.</span>
+                    </div>
+                </a>
+                <?php } ?>
+
+                <?php if ($viewDto->permissions->canExportPermitsAll) { ?>
+                <a
+                    href="<?php echo $settings['base_url']; ?>export_permits?state=all&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->typeSelectStandard !== '' ? 'standard' : ($viewDto->controlBar->typeSelectPermanent !== '' ? 'permanent' : 'all'); ?>"
+                    class="c-action-card c-action-card--csv"
+                >
+                    <div class="c-action-card__icon">
+                        <img
+                            src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
+                            class="c-icon"
+                            alt=""
+                            loading="lazy"
+                        >
+                    </div>
+                    <div>
+                        <span class="c-action-card__title">Alle Permits</span>
+                        <span class="c-action-card__desc">Gesamter Datenbestand (Ohne Zeitfilter).</span>
+                    </div>
+                </a>
+                <?php } ?>
+
+            </div>
+            <?php } ?>
 
             <!-- Zeitraum-Info-Box -->
             <div class="c-box c-box--dashed u-margin-block-start-l u-text-center">
                 <span class="u-color-muted">Gefilterter Zeitraum:</span><br>
                 <strong class="u-color-primary">
-                    <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> bis
-                    <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
+                    <?php echo \date('d.m.Y', \strtotime($viewDto->controlBar->startValue)); ?> bis
+                    <?php echo \date('d.m.Y', \strtotime($viewDto->controlBar->endValue)); ?>
                 </strong>
             </div>
         </div>
     </section>
+    <?php } ?>
 </div>
-<?php } ?>

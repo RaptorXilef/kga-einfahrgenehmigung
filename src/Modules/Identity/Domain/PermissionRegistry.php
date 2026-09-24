@@ -31,6 +31,12 @@ final class PermissionRegistry
                     'create' => ['label' => 'Manuell ausstellen', 'key' => 'permits.create'],
                     'suspend' => ['label' => 'Sperren & Entsperren', 'key' => 'permits.suspend'],
                     'print' => ['label' => 'Drucken & PDF', 'key' => 'permits.print'],
+                    // --- Granulare Export-Rechte für Listen ---
+                    'export_active' => ['label' => 'Export: Aktive Genehmigungen', 'key' => 'permits.export.active'],
+                    'export_future' => ['label' => 'Export: Zukünftige Genehmigungen', 'key' => 'permits.export.future'],
+                    'export_active_future' => ['label' => 'Export: Aktive & Zukünftige (Sortiert)', 'key' => 'permits.export.active_future'],
+                    'export_expired' => ['label' => 'Export: Abgelaufene Genehmigungen', 'key' => 'permits.export.expired'],
+                    'export_all' => ['label' => 'Export: Alle Genehmigungen (Ohne Zeitfilter)', 'key' => 'permits.export.all'],
                 ],
             ],
             'finance' => [
@@ -41,7 +47,7 @@ final class PermissionRegistry
                     'view' => ['label' => 'Zahlungsübersicht ansehen', 'key' => 'finance.view'],
                     'mark_paid' => ['label' => 'Zahlungen manuell bestätigen', 'key' => 'finance.mark_paid'],
                     'bank_import' => ['label' => 'CSV-Bankimport ausführen', 'key' => 'finance.bank_import'],
-                    'export' => ['label' => 'Finanzdaten exportieren (CSV/JSON)', 'key' => 'finance.export'],
+                    'export' => ['label' => 'Finanzdaten exportieren (Kasse)', 'key' => 'finance.export'],
                 ],
             ],
             'vouchers' => [

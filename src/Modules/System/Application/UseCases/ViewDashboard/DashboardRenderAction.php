@@ -57,7 +57,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private GetFinanceListHandler $financeListHandler,
         private GetDashboardStatsHandler $statsHandler,
         private GetDashboardPermitsHandler $getDashboardPermitsHandler,
-        private ClockInterface $clock, // <--- Injiziert
+        private ClockInterface $clock,
     ) {
     }
 
@@ -70,7 +70,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $this->sessionManager->clearAdminFilters();
         }
 
-        $filterStartYear = (int) \date('Y', \strtotime($dto->start)); // Formatierung aus String ist okay
+        $filterStartYear = (int) \date('Y', \strtotime($dto->start));
         $requestedDepth = (int) ($request->get['archive_depth'] ?? $filterStartYear);
         $minArchiveYear = \min($filterStartYear, $requestedDepth);
         $focus = $request->get['focus'] ?? 'tab-active';
@@ -169,6 +169,12 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             canManageBackups: $this->auth->hasPermission('system.backup.manage'),
             showPrivacyEmails: $this->auth->hasPermission('privacy.emails.view'),
             showPrivacyFinance: $this->auth->hasPermission('privacy.finance.view'),
+            // --- Export Buttons laden ---
+            canExportPermitsActive: $this->auth->hasPermission('permits.export.active'),
+            canExportPermitsFuture: $this->auth->hasPermission('permits.export.future'),
+            canExportPermitsExpired: $this->auth->hasPermission('permits.export.expired'),
+            canExportPermitsActiveFuture: $this->auth->hasPermission('permits.export.active_future'),
+            canExportPermitsAll: $this->auth->hasPermission('permits.export.all'),
         );
 
         // Tab States (Aktive CSS Klassen ohne if-Logik im PHTML)
