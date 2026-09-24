@@ -12,6 +12,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Middleware\ApiCsrfMiddleware;
 use App\Application\Middleware\AuthMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
+use App\Application\Middleware\FormExceptionHandlerMiddleware;
 use App\Application\Middleware\JsonBodyParserMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\SecurityHeadersMiddleware;
@@ -36,6 +37,7 @@ final readonly class FrontendController
         private AuthorizationInterface $authService,
         private JsonBodyParserMiddleware $jsonBodyParser,
         private ApiCsrfMiddleware $apiCsrf,
+        private FormExceptionHandlerMiddleware $formExceptionHandler, // VSA FIX: Neue Middleware injiziert
     ) {
     }
 
@@ -70,8 +72,6 @@ final readonly class FrontendController
     private function checkMaintenanceStatus(string $relativePath): array
     {
         // Ausnahmeliste für essentielle Background-Prozesse, die selbst bei globaler Sperre laufen.
-        // ARCHITEKTUR-FIX: Wir matchen gegen die Route, nicht gegen die Modul-Klasse,
-        // damit das globale Framework komplett "dumm" bleibt!
         if ($relativePath === '/admin_login') {
             return ['active' => false, 'message' => ''];
         }
@@ -205,6 +205,9 @@ final readonly class FrontendController
 
         $pipeline->add($this->securityHeaders);
         $pipeline->add($this->jsonBodyParser);
+
+        // VSA FIX: Die neue FormExceptionHandlerMiddleware zieht alle Form-State-Rescues an sich
+        $pipeline->add($this->formExceptionHandler);
 
         $path = $this->resolveRelativePath($request);
 

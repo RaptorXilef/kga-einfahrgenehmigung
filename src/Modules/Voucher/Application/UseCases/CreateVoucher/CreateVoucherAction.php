@@ -7,16 +7,12 @@ namespace App\Modules\Voucher\Application\UseCases\CreateVoucher;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
-use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\System\Application\Services\AuditLoggerService;
-use DomainException;
-use InvalidArgumentException;
-use Throwable;
 
 /**
  * Action zum Erstellen eines neuen Gutscheins (VSA).
@@ -41,53 +37,32 @@ final readonly class CreateVoucherAction implements ActionInterface, RequiresPer
 
     public function execute(ServerRequest $request): mixed
     {
-        try {
-            $maxPlot = (int) $this->config->get('max_plot_number', 9999);
-            $dto = VoucherCreateRequest::fromArray($request->post, $maxPlot);
-        } catch (ValidationException|InvalidArgumentException $e) {
-            $postData = $request->post;
-            unset($postData['csrf_token']);
-            $this->sessionManager->setFormData($postData);
-            $this->sessionManager->addFlash('error', $e->getMessage());
-
+        if ($request->getMethod() === 'GET') {
             return new RedirectResponse('admin?focus=tab-tools');
         }
 
-        try {
-            $command = new CreateVoucherCommand(
-                $dto->reason,
-                $this->auth->getUserId(),
-                $dto->templateKey,
-                $dto->prefillData,
-                $dto->type,
-                $dto->value,
-                $dto->isMultiUse,
-                $dto->maxUses,
-                $dto->customCode,
-                $dto->expiresAt,
-                $dto->dateMode,
-            );
+        $maxPlot = (int) $this->config->get('max_plot_number', 9999);
+        $dto = VoucherCreateRequest::fromArray($request->post, $maxPlot);
 
-            $this->createHandler->handle($command);
+        $command = new CreateVoucherCommand(
+            $dto->reason,
+            $this->auth->getUserId(),
+            $dto->templateKey,
+            $dto->prefillData,
+            $dto->type,
+            $dto->value,
+            $dto->isMultiUse,
+            $dto->maxUses,
+            $dto->customCode,
+            $dto->expiresAt,
+            $dto->dateMode,
+        );
 
-            $this->auditLogger->log('VOUCHER_CREATE', "Gutscheincode verarbeitet. Grund/Notiz: {$dto->reason}");
-            $this->sessionManager->addFlash('success', 'Gutschein wurde erfolgreich generiert!');
+        $this->createHandler->handle($command);
 
-            return new RedirectResponse('admin?focus=tab-vouchers');
-        } catch (DomainException $e) {
-            $postData = $request->post;
-            unset($postData['csrf_token']);
-            $this->sessionManager->setFormData($postData);
-            $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
+        $this->auditLogger->log('VOUCHER_CREATE', "Gutscheincode verarbeitet. Grund/Notiz: {$dto->reason}");
+        $this->sessionManager->addFlash('success', 'Gutschein wurde erfolgreich generiert!');
 
-            return new RedirectResponse('admin?focus=tab-tools');
-        } catch (Throwable $e) {
-            $postData = $request->post;
-            unset($postData['csrf_token']);
-            $this->sessionManager->setFormData($postData);
-            $this->sessionManager->addFlash('error', 'Kritischer Fehler: ' . $e->getMessage());
-
-            return new RedirectResponse('admin?focus=tab-tools');
-        }
+        return new RedirectResponse('admin?focus=tab-vouchers');
     }
 }

@@ -6,18 +6,14 @@ namespace App\Modules\Identity\Application\UseCases\AuthenticateAdmin;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
-use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
-use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
-use DomainException;
-use RuntimeException;
 
 #[Route('GET', '/admin_login')]
 #[Route('POST', '/admin_login')]
@@ -27,7 +23,6 @@ final readonly class AdminLoginAction implements ActionInterface
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
         private RoleRepositoryInterface $roleRepository,
-        private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
         private AuthenticateAdminHandler $loginHandler,
@@ -36,52 +31,29 @@ final readonly class AdminLoginAction implements ActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        // FIX: Auslesen des Code-Parameters sauber in die Action verlagern anstatt im PHTML über $_GET!
-        $redirectCode = (string) ($request->get['code'] ?? '');
+        $redirectCode = (string) ($request->get['code'] ?? $request->post['code'] ?? '');
 
+        // VSA FIX: Die Middleware kümmert sich um POST Fehler und leitet auf GET zurück!
         if ($request->getMethod() === 'GET') {
-            return $this->renderForm('', $redirectCode);
+            return $this->renderForm($redirectCode);
         }
 
-        try {
-            $dto = AdminLoginRequest::fromArray($request->post);
-        } catch (ValidationException $e) {
-            $this->rescueFormData($request);
+        $dto = AdminLoginRequest::fromArray($request->post);
 
-            return $this->renderForm($e->getMessage(), $redirectCode);
+        $command = new AuthenticateAdminCommand($dto->username, $dto->password, $request->getIp());
+        $this->loginHandler->handle($command);
+
+        $this->auditLogger->log('LOGIN', 'Erfolgreicher Login in den Adminbereich.');
+
+        if ($dto->redirectCode !== '') {
+            return new RedirectResponse('check?code=' . \urlencode($dto->redirectCode));
         }
 
-        try {
-            $command = new AuthenticateAdminCommand($dto->username, $dto->password, $request->getIp());
-            $this->loginHandler->handle($command);
-
-            $this->auditLogger->log('LOGIN', 'Erfolgreicher Login in den Adminbereich.');
-
-            if ($dto->redirectCode !== '') {
-                return new RedirectResponse('check?code=' . \urlencode($dto->redirectCode));
-            }
-
-            return new RedirectResponse('admin');
-        } catch (DomainException|RuntimeException $e) {
-            $this->rescueFormData($request);
-
-            return $this->renderForm($e->getMessage(), $redirectCode);
-        }
+        return new RedirectResponse('admin');
     }
 
-    private function rescueFormData(ServerRequest $request): void
+    private function renderForm(string $redirectCode): HtmlResponse
     {
-        $postData = $request->post;
-        unset($postData['csrf_token'], $postData['action'], $postData['code']);
-        $this->sessionManager->setFormData($postData);
-    }
-
-    private function renderForm(string $message, string $redirectCode): HtmlResponse
-    {
-        if ($message !== '') {
-            $this->sessionManager->addFlash('error', $message);
-        }
-
         $html = $this->renderer->render('admin/login', [
             'auth' => $this->auth,
             'roleRepository' => $this->roleRepository,

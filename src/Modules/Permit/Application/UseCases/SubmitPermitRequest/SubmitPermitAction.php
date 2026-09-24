@@ -6,7 +6,6 @@ namespace App\Modules\Permit\Application\UseCases\SubmitPermitRequest;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
-use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
@@ -19,6 +18,7 @@ use App\SharedKernel\Domain\ValueObject\LicensePlate;
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use App\SharedKernel\Domain\ValueObject\VoucherCode;
+use DomainException;
 use InvalidArgumentException;
 use Throwable;
 
@@ -56,19 +56,8 @@ final readonly class SubmitPermitAction implements ViewActionInterface
             if ($dto->email !== '') {
                 $this->emailValidation->validate($dto->email);
             }
-        } catch (ValidationException|InvalidArgumentException $e) {
-            // Strike registrieren: Auch bei fehlerhaften Spam-Versuchen das Limit belasten
-            $this->botProtection->recordStrike($ip);
 
-            // Formulardaten für die Korrektur retten
-            $this->rescueFormData($request);
-            $this->sessionManager->addFlash('error', $e->getMessage());
-
-            return new RedirectResponse('index');
-        }
-
-        try {
-            // 5. Instanziierung des Domain-Commands mit sicheren Value Objects
+            // 4. Instanziierung des Domain-Commands mit sicheren Value Objects
             $command = new SubmitPermitRequestCommand(
                 name: $dto->name,
                 email: $dto->email !== '' ? new EmailAddress($dto->email) : null,
@@ -92,7 +81,9 @@ final readonly class SubmitPermitAction implements ViewActionInterface
             $this->sessionManager->clearFormData();
             $this->sessionManager->clearEditState();
             $this->sessionManager->clearFormStartTime();
-            $this->botProtection->recordStrike($ip); // Begrenzt auch erfolgreiche Anträge auf x pro 15 Min
+
+            // Strike registrieren: Begrenzt auch erfolgreiche Anträge auf x pro 15 Min
+            $this->botProtection->recordStrike($ip);
 
             if ($result->redirectAction === 'redirect_checkout') {
                 return new RedirectResponse('checkout?token=' . $result->token);
@@ -106,42 +97,21 @@ final readonly class SubmitPermitAction implements ViewActionInterface
             }
 
             return new RedirectResponse('?sent=1');
-        } catch (PermitCollisionException $exception) {
-            \error_log('Permit Collision: ' . $exception->getMessage());
 
-            $this->rescueFormData($request);
-            $this->sessionManager->addFlash(
-                'error',
-                'Überschneidung: Für diese Parzelle liegt in dem gewählten Zeitraum bereits eine Anfrage oder Genehmigung vor.',
-            );
+        } catch (DomainException|InvalidArgumentException $e) {
+            $this->botProtection->recordStrike($ip);
 
-            return new RedirectResponse('index');
-        } catch (InvalidArgumentException $exception) {
-            // Validierungsmeldungen aus der Domain-Schicht (Value Objects) dem Nutzer anzeigen
-            $this->rescueFormData($request);
-            $this->sessionManager->addFlash('error', $exception->getMessage());
+            // Kollisionstexte abfangen und für die Middleware mit lesbarem Text weiterwerfen
+            if ($e instanceof PermitCollisionException) {
+                throw new DomainException('Überschneidung: Für diese Parzelle liegt in dem gewählten Zeitraum bereits eine Anfrage oder Genehmigung vor.');
+            }
 
-            return new RedirectResponse('index');
-        } catch (Throwable $exception) {
-            \error_log('Permit Creation Error: ' . $exception->getMessage() . "\n" . $exception->getTraceAsString());
+            throw $e;
 
-            $this->rescueFormData($request);
-            $this->sessionManager->addFlash(
-                'error',
-                'Ein unerwarteter Systemfehler ist aufgetreten. Bitte versuchen Sie es erneut.',
-            );
+        } catch (Throwable $e) {
+            \error_log('Permit Creation Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
 
-            return new RedirectResponse('index');
+            throw new DomainException('Ein unerwarteter Systemfehler ist aufgetreten. Bitte versuchen Sie es erneut.');
         }
-    }
-
-    /**
-     * Sichert die POST-Daten für das Sticky-Form, bereinigt aber sicherheitsrelevante Felder.
-     */
-    private function rescueFormData(ServerRequest $request): void
-    {
-        $postData = $request->post;
-        unset($postData['csrf_token'], $postData['hp_contact_website']);
-        $this->sessionManager->setFormData($postData);
     }
 }
