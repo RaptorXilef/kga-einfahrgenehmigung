@@ -9,6 +9,7 @@ use App\Contracts\System\JsonHelperInterface;
 use App\Modules\Permit\Domain\CancelledPermitRepositoryInterface;
 use App\Modules\Permit\Domain\Permit;
 use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
+use Override;
 use PDO;
 
 final readonly class PdoCancelledPermitRepository implements CancelledPermitRepositoryInterface
@@ -23,6 +24,7 @@ final readonly class PdoCancelledPermitRepository implements CancelledPermitRepo
     ) {
     }
 
+    #[Override]
     public function findByHash(string $hash): ?Permit
     {
         $hash = \strtoupper(\trim($hash));
@@ -46,6 +48,7 @@ final readonly class PdoCancelledPermitRepository implements CancelledPermitRepo
         return $row ? $this->mapToEntity($row) : null;
     }
 
+    #[Override]
     public function saveCancelled(Permit $permit): void
     {
         $table = $this->config->get('storage_config')['permits_cancelled']['table'];
@@ -58,6 +61,7 @@ final readonly class PdoCancelledPermitRepository implements CancelledPermitRepo
         $this->pdo->prepare($sql)->execute($item);
     }
 
+    #[Override]
     public function isCodeCancelled(string $code): bool
     {
         $table = $this->config->get('storage_config')['permits_cancelled']['table'];
@@ -67,11 +71,17 @@ final readonly class PdoCancelledPermitRepository implements CancelledPermitRepo
         return (bool) $stmt->fetch();
     }
 
+    #[Override]
     public function loadAll(): array
     {
         $table = $this->config->get('storage_config')['permits_cancelled']['table'];
         $stmt = $this->pdo->query("SELECT * FROM `{$table}` ORDER BY erstellt DESC");
 
-        return \array_map($this->mapToEntity(...), $stmt->fetchAll(PDO::FETCH_ASSOC));
+        $permits = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $permits[] = $this->mapToEntity($row);
+        }
+
+        return $permits;
     }
 }

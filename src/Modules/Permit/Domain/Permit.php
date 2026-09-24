@@ -67,9 +67,9 @@ final class Permit
 
     // --- Domain Validation ---
 
-    public function isValid(bool $requirePayment = false): bool
+    public function isValid(bool $requirePayment = false, ?DateTimeImmutable $now = null): bool
     {
-        $now = new DateTimeImmutable();
+        $now ??= new DateTimeImmutable();
 
         if ($this->status->is_suspended) {
             return false;
@@ -165,7 +165,6 @@ final class Permit
         return $this->validity->zweck;
     }
 
-    // FIX: Price nutzt ->amount, nicht ->value!
     public function getPrice(): float
     {
         return $this->validity->preis->amount;
@@ -186,7 +185,6 @@ final class Permit
         return $this->erstellt;
     }
 
-    // FIX: matchesSearch ist zurück (für das Legacy Tab Filtering)
     public function matchesSearch(string $queryLower): bool
     {
         if ($queryLower === '') {

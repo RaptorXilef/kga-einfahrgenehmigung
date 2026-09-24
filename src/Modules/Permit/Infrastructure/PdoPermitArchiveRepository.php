@@ -10,6 +10,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
+use Override;
 use PDO;
 
 final readonly class PdoPermitArchiveRepository implements PermitArchiveRepositoryInterface
@@ -21,10 +22,11 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
         private PDO $pdo,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
-        private ClockInterface $clock, // <--- Injiziert
+        private ClockInterface $clock,
     ) {
     }
 
+    #[Override]
     public function findByHash(string $hash): ?Permit
     {
         $hash = \strtoupper(\trim($hash));
@@ -48,6 +50,7 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
         return $row ? $this->mapToEntity($row) : null;
     }
 
+    #[Override]
     public function isCodeInArchive(string $code): bool
     {
         $table = $this->config->get('storage_config')['permits_archive']['table'];
@@ -57,6 +60,7 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
         return (bool) $stmt->fetch();
     }
 
+    #[Override]
     public function archivePermits(int $year, array $permitsToArchive): void
     {
         if ($permitsToArchive === []) {
@@ -72,11 +76,10 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
         }
     }
 
+    #[Override]
     public function anonymizeOldRecords(int $yearsThreshold = 10): int
     {
         $table = $this->config->get('storage_config')['permits_archive']['table'];
-
-        // VSA FIX: Entfernung von \time() und \date(), Nutzung des testbaren ClockInterface!
         $cutoffDate = $this->clock->now()->modify("-{$yearsThreshold} years")->format('Y-m-d H:i:s');
 
         $sql = "UPDATE `{$table}` SET name = '[ANONYMISIERT]', email = '', kennzeichen = 'XXX-XX 9999', parzelle = 0, is_anonymized = 1 WHERE erstellt <= ? AND is_anonymized = 0";
@@ -86,17 +89,18 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
         return $stmt->rowCount();
     }
 
+    #[Override]
     public function getArchivedPermits(int $minYear): array
     {
         $table = $this->config->get('storage_config')['permits_archive']['table'];
         $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE YEAR(erstellt) >= ? OR YEAR(von) >= ?");
         $stmt->execute([$minYear, $minYear]);
 
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if (!\is_array($rows)) {
-            return [];
+        $permits = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $permits[] = $this->mapToEntity($row);
         }
 
-        return \array_map($this->mapToEntity(...), $rows);
+        return $permits;
     }
 }

@@ -7,11 +7,12 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
  * Partial: Dashboard Tab - Future Permits
  *
  * Übersicht aller noch nicht gestarteten, anstehenden Genehmigungen.
- * VSA FIX: 100% Dumme View - Konsumiert nur noch das View-DTO.
+ * VSA FIX: 100% Dumme View - Konsumiert nur noch das View-DTO und `$csrfToken`.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
  * @var array $settings
+ * @var string $csrfToken
  */
 ?>
 <section class="c-card c-card--primary">
@@ -120,12 +121,14 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                             </div>
                         </div>
                     </td>
+
                     <td
                         class="c-table__data-cell u-text-center"
                         data-sort-val="<?php echo $permit->statusSortValue; ?>"
                     >
                         <?php echo $permit->statusBadgeHtml; ?>
                     </td>
+
                     <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                         <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                             <?php if ($viewDto->permissions->canPrintPermits) { ?>
@@ -169,7 +172,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                                 <input
                                     type="hidden"
                                     name="csrf_token"
-                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                    value="<?php echo $csrfToken; ?>"
                                 >
                                 <input
                                     type="hidden"
@@ -217,7 +220,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                                 <input
                                     type="hidden"
                                     name="csrf_token"
-                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                    value="<?php echo $csrfToken; ?>"
                                 >
                                 <input
                                     type="hidden"

@@ -20,28 +20,21 @@ use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\PermitFormViewDt
  * @var bool $success  True, wenn der Vorab-Antrag erfolgreich ausgelöst wurde.
  * @var string $appRoot  System-Root-Pfad.
  * @var string $cspNonce
+ * @var string $csrfToken
+ * @var string|null $logoUrl Bereitgestellt durch TemplateRenderer.
  * @var string $message  Erfolgs- oder Fehlermeldungen nach dem Absenden.
  */
 $layout = 'public';
 $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
-
-// Suche nach dem Logo mit verschiedenen Endungen
-$logoFile = null;
-foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
-    if (\file_exists("assets/img/logo/kga.$ext")) {
-        $logoFile = "assets/img/logo/kga.$ext";
-        break;
-    }
-}
 ?>
 
 <div class="c-tab-content-container o-container o-container--large u-padding-block-l">
     <div class="c-card c-card--primary u-margin-inline-auto js-permit-form">
         <header class="c-card__header u-text-center">
-            <?php if ($logoFile) { ?>
+            <?php if (!empty($logoUrl)) { ?>
             <div class="u-margin-block-end-m u-flex u-justify-center">
                 <img
-                    src="<?php echo $settings['base_url'] . $logoFile; ?>"
+                    src="<?php echo $logoUrl; ?>"
                     alt="<?php echo \htmlspecialchars($settings['vereins_name'] ?? ''); ?>"
                     loading="lazy"
                     class="c-logo"
@@ -85,6 +78,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 </div>
             </div>
 
+            // TODO ggf. in JS-Dateien auslagern
             <script nonce="<?php echo $cspNonce; ?>">
             // 60 Sekunden Countdown
             let seconds = 60; // redirect Zeit
@@ -193,7 +187,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <input
                     type="hidden"
                     name="csrf_token"
-                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                    value="<?php echo $csrfToken; ?>"
                 >
                 <input
                     type="hidden"

@@ -5,12 +5,13 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Ausstellung (Werkzeuge & Generatoren)
- * VSA FIX: 100% Dumme View - Konsumiert nur noch das GeneratorToolsViewDto.
+ * VSA FIX: 100% Dumme View - Konsumiert nur noch das GeneratorToolsViewDto und `$csrfToken`.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
  * @var array<string, mixed> $settings
  * @var string $cspNonce
+ * @var string $csrfToken
  */
 ?>
 
@@ -38,9 +39,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
     <!-- SAUBERE TRENNUNG IN ZWEI KARTEN -->
     <div class="o-grid o-grid--auto-fit-lg u-align-start">
 
-        <!-- ========================================== -->
-        <!-- KARTE 1: MANUELLE GENEHMIGUNG AUSSTELLEN   -->
-        <!-- ========================================== -->
+        <!-- KARTE 1: MANUELLE GENEHMIGUNG AUSSTELLEN -->
         <?php if ($viewDto->permissions->canCreatePermits) { ?>
         <section class="c-card c-card--success u-margin-block-none">
             <header class="c-card__header u-bg-light">
@@ -66,7 +65,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                     <input
                         type="hidden"
                         name="csrf_token"
-                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                        value="<?php echo $csrfToken; ?>"
                     >
                     <!-- Dummy für API (verhindert undefined JS Fehler) -->
                     <input
@@ -362,9 +361,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
         </section>
         <?php } ?>
 
-        <!-- ========================================== -->
-        <!-- KARTE 2: GUTSCHEIN GENERIEREN              -->
-        <!-- ========================================== -->
+        <!-- KARTE 2: GUTSCHEIN GENERIEREN -->
         <?php if ($viewDto->permissions->canManageVouchers) { ?>
         <section class="c-card c-card--voucher u-margin-block-none u-flex-grow-1">
             <header class="c-card__header u-bg-light">
@@ -380,7 +377,6 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                     Erstellt Rabattcodes für das öffentliche Portal.</p>
             </header>
             <div class="c-card__body">
-                <!-- Die Klasse js-permit-form wird hier ebenfalls genutzt für die Synchronisierung -->
                 <form
                     id="voucherCreateForm"
                     method="POST"
@@ -390,7 +386,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                     <input
                         type="hidden"
                         name="csrf_token"
-                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                        value="<?php echo $csrfToken; ?>"
                     >
 
                     <div class="c-form-group u-margin-block-end-m">

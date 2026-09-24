@@ -12,19 +12,8 @@ use App\Modules\Permit\Application\UseCases\CheckPermit\PermitCheckDetailsDto;
  * @var AssetHelperInterface $asset
  * @var PermitCheckDetailsDto|null $details Das DTO aus dem CQRS Read-Model.
  * @var array $settings Globale UI- und App-Einstellungen.
- * @var string $appRoot Absoluter Pfad zum Installationsverzeichnis.
+ * @var string|null $logoUrl Bereitgestellt durch TemplateRenderer.
  */
-
-// 1. Logo-Logik
-$logoFile = null;
-foreach (['webp', 'png', 'jpg', 'jpeg'] as $ext) {
-    $serverPath = \rtrim($appRoot, '/\\') . '/public/assets/img/logo/kga.' . $ext;
-    if (\file_exists($serverPath)) {
-        $logoFile = 'assets/img/logo/kga.' . $ext;
-        break;
-    }
-}
-
 $pageStateClass = $details ? $details->pageStateClass : 'is-state-error';
 $layout = 'public';
 $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
@@ -34,9 +23,9 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
     <div class="c-card c-card--primary u-margin-inline-auto u-shadow-highlight">
 
         <header class="c-card__header u-text-center">
-            <?php if ($logoFile) { ?>
+            <?php if (!empty($logoUrl)) { ?>
             <img
-                src="<?php echo $settings['base_url'] . $logoFile; ?>"
+                src="<?php echo $logoUrl; ?>"
                 loading="lazy"
                 alt="Logo"
                 class="c-logo"
@@ -76,7 +65,6 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
                 <?php echo $details->statusSubTextHtml; ?>
 
                 <?php if ($details->statusHeadline === 'GENEHMIGUNG GÜLTIG' || $details->statusHeadline === 'AKTUELL RUHEZEIT') { ?>
-                <!-- Details laden wir jetzt auch direkt aus dem DTO anstatt include partial -->
                 <div class="u-margin-block-start-l">
                     <div class="c-box c-box--highlight u-text-start u-margin-block-end-m">
                         <p class="u-margin-none">Gültig bis einschließlich:</p>

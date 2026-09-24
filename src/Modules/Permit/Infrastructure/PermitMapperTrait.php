@@ -46,7 +46,7 @@ trait PermitMapperTrait
 
         $codeStr = \trim((string) ($item['code'] ?? ''));
         if ($codeStr === '') {
-            $codeStr = 'LEGACY-' . \uniqid();
+            $codeStr = 'LEGACY-' . \strtoupper(\bin2hex(\random_bytes(4)));
         }
 
         $name = (string) ($item['name'] ?? 'Unbekannt');

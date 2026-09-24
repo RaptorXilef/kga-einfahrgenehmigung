@@ -5,13 +5,14 @@ use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\CheckoutSummaryVi
 
 /**
  * Page: Checkout Summary & Payment Gateway
- * VSA FIX: 100% Dumme View - Konsumiert nur noch das CheckoutSummaryViewDto.
+ * VSA FIX: 100% Dumme View - Konsumiert nur noch das CheckoutSummaryViewDto und `$csrfToken`.
  *
  * @var AssetHelperInterface $asset
  * @var CheckoutSummaryViewDto $viewDto
  * @var array $settings      Layout-Einstellungen.
  * @var string $appRoot      Absoluter Systempfad.
  * @var string $cspNonce
+ * @var string $csrfToken
  */
 $layout = 'public';
 $pageTitle = 'Zusammenfassung - ' . ($settings['vereins_name'] ?? '');
@@ -34,7 +35,7 @@ $pageTitle = 'Zusammenfassung - ' . ($settings['vereins_name'] ?? '');
     >
     <?php echo \json_encode([
         'token' => $viewDto->token,
-        'csrfToken' => $_SESSION['csrf_token'] ?? '',
+        'csrfToken' => $csrfToken,
         'isPayPalEnabled' => $viewDto->isPayPalEnabled,
     ], \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 

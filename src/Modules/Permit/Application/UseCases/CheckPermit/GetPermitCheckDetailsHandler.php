@@ -60,9 +60,9 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
             }
         }
 
-        // 3. Status & Zeiten berechnen
+        // 3. Status & Zeiten berechnen (inkl. ClockInterface-Injection)
         $requirePayment = $this->config->getBool('require_payment_for_validity', false);
-        $isDateValid = $permit->isValid($requirePayment);
+        $isDateValid = $permit->isValid($requirePayment, $now);
         $isTimeAllowed = $this->holidayService->isTimeAllowedNow();
 
         $pageStateClass = 'is-state-error';

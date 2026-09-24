@@ -7,10 +7,12 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
  * Partial: Dashboard Tab - Active Permits
  *
  * Übersicht aller aktuell laufenden Genehmigungen.
+ * VSA FIX: Nutzt `$csrfToken` statt `$_SESSION['csrf_token']`.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
  * @var array $settings
+ * @var string $csrfToken
  */
 ?>
 <section class="c-card">
@@ -177,7 +179,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                                 <input
                                     type="hidden"
                                     name="csrf_token"
-                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                    value="<?php echo $csrfToken; ?>"
                                 >
                                 <input
                                     type="hidden"
@@ -228,7 +230,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                                 <input
                                     type="hidden"
                                     name="csrf_token"
-                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                    value="<?php echo $csrfToken; ?>"
                                 >
                                 <input
                                     type="hidden"

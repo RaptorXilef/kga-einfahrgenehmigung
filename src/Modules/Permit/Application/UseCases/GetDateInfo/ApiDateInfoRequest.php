@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\GetDateInfo;
 
+use App\Contracts\Utils\ClockInterface;
 use DateTimeImmutable;
 use Exception;
 
@@ -13,21 +14,22 @@ final readonly class ApiDateInfoRequest
     {
     }
 
-    public static function fromArray(array $input): self
+    public static function fromArray(array $input, ClockInterface $clock): self
     {
-        $vonStr = (string) ($input['von'] ?? 'today');
-        $bisStr = (string) ($input['bis'] ?? 'today');
+        $today = $clock->now()->setTime(0, 0, 0);
+        $vonStr = (string) ($input['von'] ?? '');
+        $bisStr = (string) ($input['bis'] ?? '');
 
         try {
-            $von = new DateTimeImmutable($vonStr);
+            $von = $vonStr !== '' ? new DateTimeImmutable($vonStr) : $today;
         } catch (Exception) {
-            $von = new DateTimeImmutable('today');
+            $von = $today;
         }
 
         try {
-            $bis = new DateTimeImmutable($bisStr);
+            $bis = $bisStr !== '' ? new DateTimeImmutable($bisStr) : $today;
         } catch (Exception) {
-            $bis = new DateTimeImmutable('today');
+            $bis = $today;
         }
 
         return new self($von, $bis);

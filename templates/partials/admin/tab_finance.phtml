@@ -7,10 +7,12 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
  * Partial: Dashboard Tab - Finance Monitoring
  *
  * Zahlungsüberwachung für offene und überfällige Überweisungen mit Bulk-Processing.
+ * VSA FIX: Kein \strtotime() und kein $_SESSION mehr im PHTML.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
  * @var array $settings
+ * @var string $csrfToken
  */
 ?>
 <section class="c-card c-card--warning">
@@ -113,7 +115,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                                 <input
                                     type="hidden"
                                     name="csrf_token"
-                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                    value="<?php echo $csrfToken; ?>"
                                 >
                                 <input
                                     type="hidden"
@@ -144,7 +146,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
             <input
                 type="hidden"
                 name="csrf_token"
-                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                value="<?php echo $csrfToken; ?>"
             >
             <table class="c-table js-sort-table u-inline-size-100">
                 <thead>
@@ -267,7 +269,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                         <!-- 4. Mahnstatus & Zähler -->
                         <td
                             class="c-table__data-cell u-text-center"
-                            data-sort-val="<?php echo \strtotime($permit->deadlineDate); ?>"
+                            data-sort-val="<?php echo $permit->deadlineTimestamp; ?>"
                         >
                             <span class="c-badge <?php echo $permit->deadlineBadgeClass; ?> u-text-nowrap">
                                 <?php if ($permit->deadlineIcon) { ?>
@@ -417,7 +419,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
             <input
                 type="hidden"
                 name="csrf_token"
-                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                value="<?php echo $csrfToken; ?>"
             >
             <input
                 type="hidden"
@@ -434,7 +436,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
             <input
                 type="hidden"
                 name="csrf_token"
-                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                value="<?php echo $csrfToken; ?>"
             >
             <input
                 type="hidden"
@@ -454,7 +456,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
             <input
                 type="hidden"
                 name="csrf_token"
-                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                value="<?php echo $csrfToken; ?>"
             >
             <input
                 type="hidden"
@@ -477,7 +479,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
             <input
                 type="hidden"
                 name="csrf_token"
-                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                value="<?php echo $csrfToken; ?>"
             >
             <input
                 type="hidden"

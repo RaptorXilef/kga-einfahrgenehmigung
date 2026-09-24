@@ -18,6 +18,7 @@ use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use App\SharedKernel\Domain\ValueObject\Price;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 final readonly class PdoPermitRepository implements PermitRepositoryInterface
@@ -26,6 +27,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
     {
     }
 
+    #[Override]
     public function save(Permit $permit): void
     {
         $sql = 'INSERT INTO permits (
@@ -72,6 +74,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         ]);
     }
 
+    #[Override]
     public function findByCode(string $code): ?Permit
     {
         $stmt = $this->pdo->prepare('SELECT * FROM permits WHERE code = :code LIMIT 1');
@@ -85,6 +88,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         return $this->mapRowToEntity($row);
     }
 
+    #[Override]
     public function findByLicensePlate(string $plate): ?Permit
     {
         $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($plate));
@@ -97,13 +101,15 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
             "SELECT * FROM `permits` WHERE REPLACE(REPLACE(kennzeichen, ' ', ''), '-', '') = ?",
         );
         $stmt->execute([$searchPlate]);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (!$rows) {
-            return null;
+        $candidates = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $candidates[] = $this->mapRowToEntity($row);
         }
 
-        $candidates = \array_map($this->mapRowToEntity(...), $rows);
+        if ($candidates === []) {
+            return null;
+        }
 
         // Sortierung: 1. Aktive Genehmigungen zuerst, 2. nach dem Enddatum (neueste zuerst)
         \usort($candidates, function (Permit $a, Permit $b): int {
@@ -123,6 +129,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         return $candidates[0];
     }
 
+    #[Override]
     public function yieldAllWithEmail(): iterable
     {
         $stmt = $this->pdo->query("SELECT * FROM permits WHERE email IS NOT NULL AND email != '' AND email != '0'");
@@ -132,6 +139,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         }
     }
 
+    #[Override]
     public function yieldExpired(DateTimeImmutable $cutoffDate): iterable
     {
         $stmt = $this->pdo->prepare("SELECT * FROM permits WHERE bis < :cutoff AND status IN ('bezahlt', 'storniert')");
@@ -142,6 +150,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         }
     }
 
+    #[Override]
     public function yieldUnpaid(): iterable
     {
         $stmt = $this->pdo->query("SELECT * FROM permits WHERE status = 'offen' AND is_suspended = 0");
@@ -151,11 +160,13 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         }
     }
 
+    #[Override]
     public function delete(string $code): void
     {
         $this->pdo->prepare('DELETE FROM permits WHERE code = :code')->execute(['code' => $code]);
     }
 
+    #[Override]
     public function deleteMultiple(array $codes): int
     {
         if ($codes === []) {
@@ -169,6 +180,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         return $stmt->rowCount();
     }
 
+    #[Override]
     public function hasCollision(int $plotNumber, DateTimeImmutable $start, DateTimeImmutable $end, string $licensePlate, ?string $company): bool
     {
         $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($licensePlate));
@@ -203,6 +215,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         return (bool) $stmt->fetchColumn();
     }
 
+    #[Override]
     public function isCodeUnique(string $code): bool
     {
         $stmt = $this->pdo->prepare('

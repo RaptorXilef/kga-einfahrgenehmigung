@@ -9,6 +9,7 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\Services\HolidayService;
 use Override;
 use Throwable;
@@ -18,6 +19,7 @@ final readonly class GetDateInfoAction implements ViewActionInterface
 {
     public function __construct(
         private HolidayService $holidayService,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -25,7 +27,7 @@ final readonly class GetDateInfoAction implements ViewActionInterface
     public function execute(ServerRequest $request): ResponseInterface
     {
         try {
-            $dto = ApiDateInfoRequest::fromArray($request->input);
+            $dto = ApiDateInfoRequest::fromArray($request->input, $this->clock);
 
             $holidays = $this->holidayService->getHolidaysInRange($dto->von, $dto->bis);
             $openingData = $this->holidayService->getOpeningHoursDataForDateRange($dto->von, $dto->bis);

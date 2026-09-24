@@ -21,15 +21,16 @@ final readonly class FinancePermitDto
         public string $priceFormatted,
         public string $rowClass,
         public string $deadlineDate,
+        public int $deadlineTimestamp,
         public string $deadlineBadgeClass,
         public ?string $deadlineIcon,
         public string $deadlineText,
         public ?string $reminderClass,
         public ?string $reminderText,
-        public string $reminderButtonClass, // NEU: CQRS Styling
-        public string $reminderButtonTitle, // NEU: CQRS String
-        public string $sortSuspendedValue,  // NEU: CQRS Sorting
-        public bool $isOnCooldown, // Wird für die Button-Sperre in der View benötigt
+        public string $reminderButtonClass,
+        public string $reminderButtonTitle,
+        public string $sortSuspendedValue,
+        public bool $isOnCooldown,
         public bool $isSuspended,
         public ?string $suspensionReason,
     ) {

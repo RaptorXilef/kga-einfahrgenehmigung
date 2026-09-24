@@ -21,6 +21,7 @@ use App\Modules\Permit\Application\UseCases\GetPermitHistory\HistoryPermitViewDt
  * @var int $lastYear
  * @var string $appRoot
  * @var string $cspNonce
+ * @var string $csrfToken
  * @var string $email
  */
 $layout = 'public';
@@ -188,7 +189,7 @@ $pageTitle = 'Meine Genehmigungen - ' . ($settings['vereins_name'] ?? '');
                                     <input
                                         type="hidden"
                                         name="csrf_token"
-                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                        value="<?php echo $csrfToken; ?>"
                                     >
                                     <input
                                         type="hidden"

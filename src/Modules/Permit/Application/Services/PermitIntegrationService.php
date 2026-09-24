@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\Services;
 use App\Contracts\Integration\PermitIntegrationInterface;
 use App\Modules\Permit\Application\UseCases\GetPermitHistory\GetPermitHistoryHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitHistory\GetPermitHistoryQuery;
+use Override;
 
 /**
  * Adapter-Implementierung für externe Bounded Contexts.
@@ -18,6 +19,7 @@ final readonly class PermitIntegrationService implements PermitIntegrationInterf
     ) {
     }
 
+    #[Override]
     public function hasPermits(string $email): bool
     {
         $permits = $this->historyHandler->handle(new GetPermitHistoryQuery($email));

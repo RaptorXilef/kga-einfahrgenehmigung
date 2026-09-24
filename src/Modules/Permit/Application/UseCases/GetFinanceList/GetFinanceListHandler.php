@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\GetFinanceList;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
 use Override;
@@ -18,6 +19,7 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
     public function __construct(
         private PDO $pdo,
         private ConfigInterface $config,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -31,7 +33,7 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
     {
         $stmt = $this->pdo->query("SELECT * FROM permits WHERE status = 'offen'");
 
-        $now = new DateTimeImmutable('today');
+        $now = $this->clock->now()->setTime(0, 0, 0);
         $dueDaysCfg = $this->config->getInt('payment_due_days', 14);
         $daysBeforeValidity = $this->config->getInt('payment_due_days_before_validity', 2);
         $notifyDays = $this->config->getInt('payment_due_days_notify', 2);
@@ -52,7 +54,8 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
             $dynamicDueDate = $validFrom->modify("-{$daysBeforeValidity} days")->setTime(23, 59, 59);
             $deadline = $dynamicDueDate > $fallbackDueDate ? $dynamicDueDate : $fallbackDueDate;
 
-            $sortDeadlines[] = $deadline->getTimestamp();
+            $deadlineTimestamp = $deadline->getTimestamp();
+            $sortDeadlines[] = $deadlineTimestamp;
 
             // 2. Overdue Level berechnen
             $overdueLevel = 0;
@@ -106,7 +109,7 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
                 $safeMail = \htmlspecialchars($row['email'], \ENT_QUOTES, 'UTF-8');
                 $wbrMail = \str_replace('@', '<wbr>@', $safeMail);
                 $emailHtml = <<<HTML
-                        <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
+                    <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
                     HTML;
             }
 
@@ -127,6 +130,7 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
                 priceFormatted: \number_format((float) $row['preis'], 2, ',', '.') . ' €',
                 rowClass: $rowClass,
                 deadlineDate: $deadline->format('d.m.Y'),
+                deadlineTimestamp: $deadlineTimestamp,
                 deadlineBadgeClass: $deadlineBadgeClass,
                 deadlineIcon: $deadlineIcon,
                 deadlineText: $deadlineText,

@@ -6,11 +6,14 @@ namespace App\Modules\Permit\Infrastructure;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
 use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
+use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use DateTimeImmutable;
 use Exception;
+use Override;
 use PDO;
 
 final readonly class PdoVerificationRepository implements VerificationRepositoryInterface
@@ -21,30 +24,35 @@ final readonly class PdoVerificationRepository implements VerificationRepository
         private PDO $pdo,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
+        private ClockInterface $clock = new SystemClock(),
     ) {
     }
 
+    #[Override]
     public function loadPending(): array
     {
         $data = $this->loadSql('pending_verification');
-        $now = new DateTimeImmutable();
+        $now = $this->clock->now();
 
         return \array_filter($data, fn (VerificationRequest $req): bool => !$req->isExpired($now));
     }
 
+    #[Override]
     public function savePending(array $data, bool $forceSql = false): void
     {
         $this->saveSql('pending_verification', $data);
     }
 
+    #[Override]
     public function loadVerified(): array
     {
         $data = $this->loadSql('verified_pending');
-        $now = new DateTimeImmutable();
+        $now = $this->clock->now();
 
         return \array_filter($data, fn (VerificationRequest $req): bool => !$req->isExpired($now));
     }
 
+    #[Override]
     public function saveVerified(array $data, bool $forceSql = false): void
     {
         $this->saveSql('verified_pending', $data);
@@ -55,10 +63,10 @@ final readonly class PdoVerificationRepository implements VerificationRepository
         $cfg = $this->config->get('storage_config')[$targetKey];
         $data = [];
         $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $payload = \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : [];
             $exp = $r['expires'];
-            $dt = \is_numeric($exp) ? (new DateTimeImmutable())->setTimestamp((int) $exp) : new DateTimeImmutable($exp);
+            $dt = \is_numeric($exp) ? $this->clock->now()->setTimestamp((int) $exp) : new DateTimeImmutable($exp);
             $data[$r['token']] = new VerificationRequest($r['token'], $dt, $payload);
         }
 

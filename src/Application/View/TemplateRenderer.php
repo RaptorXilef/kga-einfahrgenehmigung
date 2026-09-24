@@ -75,6 +75,7 @@ final readonly class TemplateRenderer
             'jsonHelper' => $this->jsonHelper,
             'asset' => $this->assetHelper,
             'settings' => $this->getGlobalSettings(),
+            'logoUrl' => $this->resolveLogoUrl($appRoot),
             'cspNonce' => \defined('CSP_NONCE') ? CSP_NONCE : '',
             'csrfToken' => $this->sessionManager->getCsrfToken(),
             'currentRoute' => $currentRoute,
@@ -121,6 +122,18 @@ final readonly class TemplateRenderer
         }
 
         return $content ?: '';
+    }
+
+    private function resolveLogoUrl(string $appRoot): ?string
+    {
+        foreach (['webp', 'png', 'jpg', 'jpeg'] as $ext) {
+            $serverPath = $appRoot . '/public/assets/img/logo/kga.' . $ext;
+            if (\file_exists($serverPath)) {
+                return $this->assetHelper->url('assets/img/logo/kga.' . $ext);
+            }
+        }
+
+        return null;
     }
 
     private function getGlobalSettings(): array
