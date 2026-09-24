@@ -8,9 +8,9 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\System\Domain\MailLogEntry;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
-use DateTimeImmutable;
 use Exception;
 use PDO;
 use RuntimeException;
@@ -24,6 +24,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         protected ?PDO $pdo,
         protected ConfigInterface $config,
         protected JsonHelperInterface $jsonHelper,
+        protected ClockInterface $clock,
     ) {
     }
 
@@ -53,7 +54,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
                 @\mkdir($spoolDir, 0o755, true);
             }
 
-            $fileNameOnly = \date('Ymd_His') . '_' . \uniqid() . '.html';
+            $fileNameOnly = $this->clock->now()->format('Ymd_His') . '_' . \bin2hex(\random_bytes(8)) . '.html';
             $filename = $spoolDir . '/' . $fileNameOnly;
 
             $debugHeader = "<div style=\"background: #f8d7da; color: #721c24; padding: 15px; margin-bottom: 20px; font-family: sans-serif; border: 1px solid #f5c6cb; border-radius: 5px;\">\n";
@@ -98,18 +99,12 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
             $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id,timestamp,recipient,reply_to,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
             foreach ($logs as $log) {
-                $stmt->execute([
-                    $log->id,
-                    $log->timestamp->format('Y-m-d H:i:s'),
-                    $log->recipient,
-                    $log->replyTo,
-                    $log->subject,
-                    $log->template->value,
-                    $log->status,
-                    \json_encode($log->data, \JSON_UNESCAPED_UNICODE),
-                ]);
-            }
-            $this->pdo->commit();
+                $stmt->execute([$log->id,
+                    $log->timestamp->format('Y-m-d H:i:s'), $log->recipient,
+                    $log->replyTo, $log->subject,
+                    $log->template->value, $log->status,
+                    \json_encode($log->data, \JSON_UNESCAPED_UNICODE),                 ]);
+            }$this->pdo->commit();
         } catch (Exception $e) {
             $this->pdo->rollBack();
 
@@ -128,7 +123,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
                 foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
                     $logs[] = new MailLogEntry(
                         (string) $r['id'],
-                        new DateTimeImmutable($r['timestamp']),
+                        $this->clock->now()->setTimestamp(\strtotime($r['timestamp'])),
                         $r['recipient'] ?? '',
                         $r['reply_to'] ?? null,
                         $r['subject'] ?? '',
@@ -195,10 +190,9 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         $statusStr = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
         $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
 
-        // Wir nutzen hier ausnahmsweise noch APP_REQUEST_TIME_STR für den synchronen Zeitstempel
         $entry = new MailLogEntry(
             \uniqid('ml_'),
-            new DateTimeImmutable(APP_REQUEST_TIME_STR),
+            $this->clock->now(),
             $recipient,
             $replyTo,
             $subject,

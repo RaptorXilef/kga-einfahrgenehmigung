@@ -6,10 +6,9 @@ namespace App\Modules\Permit\Application\Listeners;
 
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Integration\FinanceIntegrationInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\System\PdfGeneratorInterface;
-use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrHandler;
-use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrQuery;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Domain\Events\PermitCreatedEvent;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
@@ -26,7 +25,7 @@ use Endroid\QrCode\Writer\PngWriter;
 final readonly class SendPermitMailListener
 {
     public function __construct(
-        private GenerateEpcQrHandler $qrHandler,
+        private FinanceIntegrationInterface $financeIntegration,
         private ConfigInterface $config,
         private HolidayService $holidayService,
         private MailServiceInterface $mailService,
@@ -114,7 +113,7 @@ final readonly class SendPermitMailListener
         // --- 2. ZAHLUNGSAUFFORDERUNG ---
         if ($permit->getStatus() !== PermitStatus::Bezahlt) {
             $usage = $this->financialCalculator->generateUsageText($permit);
-            $epcQrData = $this->qrHandler->handle(new GenerateEpcQrQuery($permit->getPrice(), $usage));
+            $epcQrData = $this->financeIntegration->generateEpcQrData($permit->getPrice(), $usage);
 
             $this->mailService->sendTemplate(
                 $permit->getOwnerEmail(),

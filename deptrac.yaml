@@ -61,10 +61,6 @@ deptrac:
             - Contracts
             - Application
             - Vendor
-            - Finance # Benötigt GenerateEpcQrHandler für EPC-Code in E-Mails
-            - Voucher # Benötigt CalculateVoucherDiscountHandler für Antrags-Kalkulation
-            - System # Benötigt AuditLogger und MailService
-            - Identity # Benötigt AuthService für Berechtigungs-Checks in Actions/Middlewares
 
         Finance:
             - SharedKernel
@@ -79,14 +75,12 @@ deptrac:
             - Application
             - Vendor
             - System # Benötigt den AuditLoggerService
-            - Identity # Benötigt AuthService für Actions/Middlewares
 
         Identity:
             - SharedKernel
             - Contracts
             - Application
             - Vendor
-            - Permit # Benötigt GetPermitHistoryHandler für das Pächter-Login (History)
             - System # Benötigt den AuditLoggerService
 
         System:
@@ -105,7 +99,7 @@ deptrac:
         # ---------------------------------------------------------
         SharedKernel:
             - Vendor
-            - Contracts # Infrastruktur (wie der PdoFactory/SystemClock) implementiert die globalen Contracts
+            - Contracts # Infrastruktur implementiert die globalen Contracts
 
         Contracts:
             - SharedKernel

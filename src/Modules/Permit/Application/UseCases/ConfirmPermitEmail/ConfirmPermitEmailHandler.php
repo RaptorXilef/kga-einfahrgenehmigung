@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\ConfirmPermitEmail;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Integration\VoucherIntegrationInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitCommand;
 use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitHandler;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
-use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountHandler;
-use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountQuery;
-use App\Modules\Voucher\Application\UseCases\RedeemVoucher\RedeemVoucherCommand;
-use App\Modules\Voucher\Application\UseCases\RedeemVoucher\RedeemVoucherHandler;
 use DomainException;
 
 /**
@@ -26,8 +23,7 @@ final readonly class ConfirmPermitEmailHandler
         private VerificationRepositoryInterface $verificationRepository,
         private ConfigInterface $config,
         private ClockInterface $clock,
-        private CalculateVoucherDiscountHandler $calculateDiscountHandler,
-        private RedeemVoucherHandler $redeemVoucherHandler,
+        private VoucherIntegrationInterface $voucherIntegration,
         private FinalizePermitHandler $finalizePermitHandler,
     ) {
     }
@@ -73,18 +69,16 @@ final readonly class ConfirmPermitEmailHandler
         $expires = $this->clock->now()->modify("+{$hours} hours");
         $data['verified_at'] = $this->clock->nowAsString();
 
-        // Voucher Orchestration
+        // Voucher Orchestration via Integration Service
         $voucherCodeStr = \strtoupper(\trim((string) ($data['voucher'] ?? '')));
         if ($voucherCodeStr !== '') {
-            $discountQuery = new CalculateVoucherDiscountQuery($voucherCodeStr, (float) $data['preis']);
-            $discountDto = $this->calculateDiscountHandler->handle($discountQuery);
+            $discountResult = $this->voucherIntegration->calculateDiscount($voucherCodeStr, (float) $data['preis']);
 
-            if ($discountDto->isValid) {
+            if ($discountResult->isValid) {
                 // Einlösen!
-                $redeemCmd = new RedeemVoucherCommand($voucherCodeStr, $data['name'] ?? 'Unbekannt', (string) ($data['parzelle'] ?? '0'));
-                $this->redeemVoucherHandler->handle($redeemCmd);
+                $this->voucherIntegration->redeemVoucher($voucherCodeStr, $data['name'] ?? 'Unbekannt', (string) ($data['parzelle'] ?? '0'));
 
-                $finalPrice = $discountDto->finalPrice;
+                $finalPrice = $discountResult->finalPrice;
 
                 if ($finalPrice <= 0.0) {
                     $data['preis'] = 0.0;
@@ -100,7 +94,7 @@ final readonly class ConfirmPermitEmailHandler
 
                 $data['preis'] = $finalPrice;
                 $data['voucher_applied'] = $voucherCodeStr;
-                $data['voucher_details'] = ['type' => 'discount', 'value' => $discountDto->discountText];
+                $data['voucher_details'] = ['type' => 'discount', 'value' => $discountResult->discountText];
             }
         }
 

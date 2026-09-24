@@ -10,16 +10,15 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Integration\PermitIntegrationInterface;
 use App\Contracts\Security\RateLimiterInterface;
-use App\Modules\Permit\Application\UseCases\GetPermitHistory\GetPermitHistoryHandler;
-use App\Modules\Permit\Application\UseCases\GetPermitHistory\GetPermitHistoryQuery;
 
 #[Route('GET', '/history_request_link')]
 #[Route('POST', '/history_request_link')]
 final readonly class HistoryRequestLinkAction implements ViewActionInterface
 {
     public function __construct(
-        private GetPermitHistoryHandler $historyHandler, // CQRS
+        private PermitIntegrationInterface $permitIntegration, // CQRS Modul-Entkopplung
         private RateLimiterInterface $rateLimiter,
         private SessionManager $sessionManager,
         private RequestMagicLinkHandler $requestHandler,
@@ -37,9 +36,7 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
         }
 
         // Cross-Module Check: Hat die E-Mail überhaupt Genehmigungen?
-        $permits = $this->historyHandler->handle(new GetPermitHistoryQuery($dto->email));
-
-        if ($permits === []) {
+        if (!$this->permitIntegration->hasPermits($dto->email)) {
             $this->rateLimiter->recordFailedAttempt($dto->ip);
         } else {
             $this->rateLimiter->clearAttempts($dto->ip);

@@ -11,8 +11,7 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrHandler;
-use App\Modules\Finance\Application\UseCases\GenerateEpcQr\GenerateEpcQrQuery;
+use App\Contracts\Integration\FinanceIntegrationInterface;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
 use App\Modules\Permit\Domain\Permit;
@@ -28,7 +27,7 @@ final readonly class SuccessAction implements ViewActionInterface
         private GetPermitByCodeHandler $getPermitByCodeHandler,
         private PermitFinancialCalculator $financialCalculator,
         private TemplateRenderer $renderer,
-        private GenerateEpcQrHandler $qrHandler,
+        private FinanceIntegrationInterface $financeIntegration,
     ) {
     }
 
@@ -47,7 +46,7 @@ final readonly class SuccessAction implements ViewActionInterface
 
         if ($dto->method === 'wire' && !$isPaid) {
             $usage = $this->financialCalculator->generateUsageText($permit);
-            $epcData = $this->qrHandler->handle(new GenerateEpcQrQuery($permit->getPrice(), $usage));
+            $epcData = $this->financeIntegration->generateEpcQrData($permit->getPrice(), $usage);
         }
 
         $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);

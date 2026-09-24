@@ -9,10 +9,9 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Integration\VoucherIntegrationInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
-use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountHandler;
-use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountQuery;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use Throwable;
 
@@ -22,7 +21,7 @@ final readonly class GetTemplatePriceAction implements ViewActionInterface
     public function __construct(
         private ConfigInterface $config,
         private RateLimiterInterface $rateLimiter,
-        private CalculateVoucherDiscountHandler $discountHandler,
+        private VoucherIntegrationInterface $voucherIntegration,
         private PermitFinancialCalculator $financialCalculator,
     ) {
     }
@@ -41,16 +40,15 @@ final readonly class GetTemplatePriceAction implements ViewActionInterface
             $discountText = '';
 
             if ($dto->voucherCode !== '') {
-                $query = new CalculateVoucherDiscountQuery($dto->voucherCode, $originalPrice);
-                $discountDto = $this->discountHandler->handle($query);
+                $discountResult = $this->voucherIntegration->calculateDiscount($dto->voucherCode, $originalPrice);
 
-                if ($discountDto->isValid) {
+                if ($discountResult->isValid) {
                     $this->rateLimiter->clearAttempts($request->getIp());
-                    $finalPrice = $discountDto->finalPrice;
-                    $discountText = $discountDto->discountText;
+                    $finalPrice = $discountResult->finalPrice;
+                    $discountText = $discountResult->discountText;
                 } else {
                     $this->rateLimiter->recordFailedAttempt($request->getIp());
-                    $discountText = $discountDto->errorMessage;
+                    $discountText = $discountResult->errorMessage;
                 }
             }
 

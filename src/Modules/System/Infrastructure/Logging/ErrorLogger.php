@@ -6,6 +6,7 @@ namespace App\Modules\System\Infrastructure\Logging;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\ErrorLoggerInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Infrastructure\Storage\SafeJsonWriterTrait;
 use RuntimeException;
 use Throwable;
@@ -14,8 +15,10 @@ final readonly class ErrorLogger implements ErrorLoggerInterface
 {
     use SafeJsonWriterTrait;
 
-    public function __construct(private ConfigInterface $config)
-    {
+    public function __construct(
+        private ConfigInterface $config,
+        private ClockInterface $clock,
+    ) {
     }
 
     public function logThrowable(Throwable $throwable): void
@@ -28,7 +31,7 @@ final readonly class ErrorLogger implements ErrorLoggerInterface
         }
 
         $logFile = $logDir . '/system_error.log';
-        $timestamp = APP_REQUEST_TIME_STR;
+        $timestamp = $this->clock->nowAsString();
 
         $message = \sprintf(
             "[%s] [%s] %s in %s:%d\nStack Trace:\n%s\n%s\n",

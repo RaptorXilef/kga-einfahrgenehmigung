@@ -8,6 +8,9 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Bootstrap\ServiceProviderInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\DependencyInjection\ContainerInterface;
+use App\Contracts\Integration\FinanceIntegrationInterface;
+use App\Contracts\Integration\PermitIntegrationInterface;
+use App\Contracts\Integration\VoucherIntegrationInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
@@ -29,6 +32,7 @@ use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
 use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
+use App\Modules\Finance\Application\Services\FinanceIntegrationService;
 use App\Modules\Finance\Infrastructure\Payment\LocalBankImportInfrastructure;
 use App\Modules\Finance\Infrastructure\Payment\PayPalService;
 use App\Modules\Finance\Infrastructure\PdoUnpaidPermitProvider;
@@ -42,6 +46,7 @@ use App\Modules\Identity\Infrastructure\PdoMagicLinkRepository;
 use App\Modules\Identity\Infrastructure\PdoRoleRepository;
 use App\Modules\Identity\Infrastructure\PdoUserRepository as IdentityPdoUserRepository;
 use App\Modules\Identity\Infrastructure\Security\RateLimiter;
+use App\Modules\Permit\Application\Services\PermitIntegrationService;
 use App\Modules\Permit\Domain\CancelledPermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
@@ -70,6 +75,7 @@ use App\Modules\System\Infrastructure\System\FileRouteCache;
 use App\Modules\System\Infrastructure\System\LocalAssetHelper;
 use App\Modules\System\Infrastructure\System\ServerIpResolver;
 use App\Modules\System\Infrastructure\System\SystemInfoService;
+use App\Modules\Voucher\Application\Services\VoucherIntegrationService;
 use App\Modules\Voucher\Domain\VoucherArchiveRepositoryInterface;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface as NewVoucherRepositoryInterface;
 use App\Modules\Voucher\Infrastructure\PdoVoucherArchiveRepository;
@@ -167,12 +173,16 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         ));
         $container->bind(BankImportInfrastructureInterface::class, fn (): LocalBankImportInfrastructure => new LocalBankImportInfrastructure(
             $container->get(ConfigInterface::class),
-        )); // <--- NEU
+        ));
+
+        // --- INTEGRATION SERVICES (CROSS-MODULE PORTS) ---
+        $container->bind(FinanceIntegrationInterface::class, fn (): FinanceIntegrationService => $container->get(FinanceIntegrationService::class));
+        $container->bind(PermitIntegrationInterface::class, fn (): PermitIntegrationService => $container->get(PermitIntegrationService::class));
+        $container->bind(VoucherIntegrationInterface::class, fn (): VoucherIntegrationService => $container->get(VoucherIntegrationService::class));
 
         // --- NETWORK & THIRD-PARTY SERVICES ---
         $container->bind(PaymentProviderInterface::class, fn (): mixed => $container->get(PayPalService::class));
 
-        // Dynamische Mail-Transport Auflösung (Strategy Pattern)
         $container->bind('mail.transport', function () use ($container): MicrosoftGraphMailService|OAuthSmtpMailService|SmtpMailService {
             $config = $container->get(ConfigInterface::class);
             $default = $config->get('mail', [])['default'] ?? 'smtp';
@@ -182,6 +192,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                     $container->get(PDO::class),
                     $config,
                     $container->get(JsonHelperInterface::class),
+                    $container->get(ClockInterface::class),
                 );
             }
             if ($default === 'oauth') {
@@ -189,6 +200,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                     $container->get(PDO::class),
                     $config,
                     $container->get(JsonHelperInterface::class),
+                    $container->get(ClockInterface::class),
                 );
             }
 
@@ -197,6 +209,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                 $container->get(PDO::class),
                 $config,
                 $container->get(JsonHelperInterface::class),
+                $container->get(ClockInterface::class),
             );
         });
 
@@ -207,6 +220,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(MailServiceInterface::class, fn (): MailQueueService => new MailQueueService(
             $container->get(MailQueueRepositoryInterface::class),
             $container->get('mail.transport'),
+            $container->get(ClockInterface::class),
         ));
 
         // --- SECURITY ---

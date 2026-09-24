@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\System\Infrastructure\Mail;
 
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\System\Domain\MailJob;
 use App\Modules\System\Domain\MailQueueRepositoryInterface;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
-use DateTimeImmutable;
 use Exception;
 
 /**
@@ -19,6 +19,7 @@ final readonly class MailQueueService implements MailServiceInterface
     public function __construct(
         private MailQueueRepositoryInterface $repository,
         private MailServiceInterface $realMailService,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -44,7 +45,7 @@ final readonly class MailQueueService implements MailServiceInterface
             new TemplateKey($template),
             $data,
             0,
-            new DateTimeImmutable(),
+            $this->clock->now(),
             $priority,
         );
         $this->repository->enqueue($job);
