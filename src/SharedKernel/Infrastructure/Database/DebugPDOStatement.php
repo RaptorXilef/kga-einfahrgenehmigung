@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\SharedKernel\Infrastructure\Database;
 
+use Override;
 use PDOStatement;
 
 /**
@@ -18,6 +19,7 @@ class DebugPDOStatement extends PDOStatement
     {
     }
 
+    #[Override]
     public function execute(?array $params = null): bool
     {
         $start = \microtime(true);

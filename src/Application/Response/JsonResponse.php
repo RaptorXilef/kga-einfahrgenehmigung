@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Response;
 
 use App\Application\Contracts\ResponseInterface;
+use Override;
 
 /**
  * Standardisierte JSON-Antwort.
@@ -23,6 +24,7 @@ final readonly class JsonResponse implements ResponseInterface
     /**
      * Sendet eine generische JSON-Antwort und beendet den Request.
      */
+    #[Override]
     public function send(): void
     {
         \http_response_code($this->statusCode);
@@ -34,7 +36,9 @@ final readonly class JsonResponse implements ResponseInterface
         exit;
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Erstellt eine neue JsonResponse mit beliebigem Payload und Status-Code.
+     */
     public static function sendPayload(array $data, int $statusCode = 200): self
     {
         return new self($data, $statusCode);

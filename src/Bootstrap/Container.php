@@ -10,6 +10,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\DependencyInjection\ContainerInterface;
 use App\SharedKernel\Infrastructure\Config\Config;
 use Closure;
+use Override;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
@@ -81,6 +82,7 @@ class Container implements ContainerInterface
      * @param string $id Der Identifikator (Klassenname oder Interface).
      * @param Closure $resolver Die Factory-Funktion zur Erstellung der Instanz.
      */
+    #[Override]
     public function bind(string $id, Closure $resolver): void
     {
         $this->services[$id] = $resolver;
@@ -95,6 +97,7 @@ class Container implements ContainerInterface
      *
      * @return mixed Die instanziierte Service- oder Controller-Komponente.
      */
+    #[Override]
     public function get(string $id): mixed
     {
         // 1. Haben wir schon eine fertige Instanz? (Singleton-Verhalten)

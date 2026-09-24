@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Application\Response;
 
 use App\Application\Contracts\ResponseInterface;
+use Override;
 
 /**
- * TODO DOCBLOCK
+ * Repräsentiert eine einfache Klartext-HTTP-Antwort (text/plain).
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -17,6 +18,7 @@ final readonly class TextResponse implements ResponseInterface
     {
     }
 
+    #[Override]
     public function send(): void
     {
         \http_response_code($this->status);

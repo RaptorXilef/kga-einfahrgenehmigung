@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Bootstrap\Providers;
 
+use App\Contracts\Bootstrap\ServiceProviderInterface;
 use App\Contracts\DependencyInjection\ContainerInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Modules\Identity\Application\Listeners\DeleteGroupImageListener;
@@ -21,14 +22,16 @@ use App\Modules\Permit\Domain\Events\PermitCreatedEvent;
 use App\Modules\Permit\Domain\Events\VerificationRequestedEvent;
 use App\SharedKernel\Domain\Event\BankPaymentAssignedEvent;
 use App\SharedKernel\Infrastructure\Event\EventDispatcher;
+use Override;
 
 /**
  * Zentraler Event-Verteiler-Provider. Verknüpft alle Domain-Events mit ihren Listenern.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final class EventServiceProvider
+final class EventServiceProvider implements ServiceProviderInterface
 {
+    #[Override]
     public function register(ContainerInterface $container): void
     {
         // Wir binden nur das Interface

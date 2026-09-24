@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\SharedKernel\Infrastructure\Database;
 
 use App\Contracts\Utils\ClockInterface;
+use DateTimeImmutable;
 use Override;
 use PDO;
 use PDOStatement;
@@ -12,8 +13,6 @@ use PDOStatement;
 /**
  * Debugging-Wrapper für PDO.
  * Loggt alle ausgeführten SQL-Statements inkl. der Bindungs-Parameter und der Ausführungsdauer.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 class DebugPDO extends PDO
 {
@@ -46,11 +45,14 @@ class DebugPDO extends PDO
             @\mkdir($logDir, 0o755, true);
         }
 
-        $timestampStr = $this->clock ? $this->clock->now()->format('Y-m-d H:i:s') : \date('Y-m-d H:i:s');
+        $timestampStr = $this->clock instanceof ClockInterface
+            ? $this->clock->now()->format('Y-m-d H:i:s')
+            : (new DateTimeImmutable())->format('Y-m-d H:i:s');
+
         // microtime is kept specifically for ms duration profiling
         $timestamp = $timestampStr . '.' . \sprintf('%03d', \fmod(\microtime(true), 1) * 1000);
         $durStr = $durationMs !== null ? \sprintf('[%.2f ms] ', $durationMs) : '[N/A ms] ';
-        $paramString = $params !== [] ? ' \vert{} Params: ' . \json_encode($params, \JSON_UNESCAPED_UNICODE) : '';
+        $paramString = $params !== [] ? ' | Params: ' . \json_encode($params, \JSON_UNESCAPED_UNICODE) : '';
 
         $msg = "[$timestamp]$durStr$sql$paramString\n";
 

@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\SharedKernel\Infrastructure\Event;
 
 use App\Contracts\Event\EventDispatcherInterface;
+use Override;
 
 /**
  * Magiefreier, synchroner Event Dispatcher.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final class EventDispatcher implements EventDispatcherInterface
 {
@@ -18,11 +17,13 @@ final class EventDispatcher implements EventDispatcherInterface
      */
     private array $listeners = [];
 
+    #[Override]
     public function addListener(string $eventClass, callable $listener): void
     {
         $this->listeners[$eventClass][] = $listener;
     }
 
+    #[Override]
     public function dispatch(object $event): void
     {
         $eventClass = $event::class;

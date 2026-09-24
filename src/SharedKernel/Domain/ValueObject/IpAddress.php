@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\SharedKernel\Domain\ValueObject;
 
 use InvalidArgumentException;
+use Override;
 use Stringable;
 
 /**
@@ -39,6 +40,7 @@ final readonly class IpAddress implements Stringable
         $this->value = $value;
     }
 
+    #[Override]
     public function __toString(): string
     {
         return $this->value;

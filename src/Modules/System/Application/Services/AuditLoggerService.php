@@ -22,7 +22,7 @@ final readonly class AuditLoggerService
         private ClockInterface $clock,
         private AuditLogRepositoryInterface $repository,
         private ConfigInterface $config,
-        private IpResolverInterface $ipResolver, // <--- Injiziert
+        private IpResolverInterface $ipResolver,
     ) {
     }
 
@@ -36,8 +36,6 @@ final readonly class AuditLoggerService
     {
         $userId = $this->session->getUserId();
 
-        // BUGFIX: Stealth Mode (Unsichtbarkeit) über Config steuerbar machen!
-        // Standardmäßig auf "false" setzen, damit Superadmins im Log auftauchen.
         $stealthMode = (bool) $this->config->get('stealth_superadmins', false);
         if ($stealthMode && \str_starts_with($userId, 'sys_')) {
             return;
@@ -61,7 +59,7 @@ final readonly class AuditLoggerService
         $ipStr = $this->ipResolver->getIp();
 
         $logEntry = new AuditLog(
-            \uniqid('al_'),
+            'al_' . \bin2hex(\random_bytes(8)),
             $userId,
             $username,
             $action,

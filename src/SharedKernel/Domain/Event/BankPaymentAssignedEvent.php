@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\SharedKernel\Domain\Event;
 
 use DateTimeImmutable;
+use Override;
 
 /**
  * Event: Wird vom Finance-Modul geworfen, wenn ein Zahlungseingang via CSV
@@ -20,6 +21,7 @@ final readonly class BankPaymentAssignedEvent implements DomainEventInterface
     ) {
     }
 
+    #[Override]
     public function getOccurredOn(): DateTimeImmutable
     {
         return $this->occurredOn;

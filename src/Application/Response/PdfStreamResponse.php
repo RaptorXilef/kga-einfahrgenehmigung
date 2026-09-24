@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Response;
 
 use App\Application\Contracts\ResponseInterface;
+use Override;
 
 /**
  * Streamt ein binäres PDF-Dokument direkt in den Browser.
@@ -20,6 +21,7 @@ final readonly class PdfStreamResponse implements ResponseInterface
     ) {
     }
 
+    #[Override]
     public function send(): void
     {
         \http_response_code(200);

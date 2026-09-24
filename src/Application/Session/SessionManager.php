@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Application\Session;
 
 use App\Contracts\Security\AuthSessionInterface;
+use App\Contracts\Utils\ClockInterface;
+use App\SharedKernel\Infrastructure\Utils\SystemClock;
+use Override;
 
 /**
  * Kapselt alle Zugriffe auf den globalen $_SESSION State.
@@ -19,8 +22,9 @@ final class SessionManager implements AuthSessionInterface
     // ÄNDERUNG: Reduziert auf 30 Min. (Bietet 10 Min Puffer für den 20-Minuten JS-Timer)
     private const int IDLE_TIMEOUT = 1800;  // 30 Minuten Inaktivität
 
-    public function __construct()
-    {
+    public function __construct(
+        private readonly ClockInterface $clock = new SystemClock(),
+    ) {
         if (\session_status() === \PHP_SESSION_NONE) {
             \session_start();
         }
@@ -33,7 +37,7 @@ final class SessionManager implements AuthSessionInterface
      */
     private function enforceServerSideTimeout(): void
     {
-        $now = \time();
+        $now = $this->clock->now()->getTimestamp();
 
         if (!isset($_SESSION['session_created'])) {
             $_SESSION['session_created'] = $now;
@@ -123,16 +127,19 @@ final class SessionManager implements AuthSessionInterface
         unset($_SESSION['admin_filters']);
     }
 
+    #[Override]
     public function setHistoryEmail(string $email): void
     {
         $_SESSION['user_history_email'] = $email;
     }
 
+    #[Override]
     public function getHistoryEmail(): ?string
     {
         return $_SESSION['user_history_email'] ?? null;
     }
 
+    #[Override]
     public function clearHistoryEmail(): void
     {
         unset($_SESSION['user_history_email']);
@@ -143,7 +150,7 @@ final class SessionManager implements AuthSessionInterface
         $_SESSION['admin_user'] = $newName;
     }
 
-    // --- NEU: AUFGABEN-SPEICHER FÜR SAMMELÜBERWEISUNGEN ---
+    // --- AUFGABEN-SPEICHER FÜR SAMMELÜBERWEISUNGEN ---
     public function addCollectiveTransfer(array $transfer): void
     {
         $_SESSION['collective_transfers'][$transfer['id']] = $transfer;
@@ -158,24 +165,36 @@ final class SessionManager implements AuthSessionInterface
     {
         unset($_SESSION['collective_transfers'][$id]);
     }
-    // -------------------------------------------------------
 
     // --- AUTH & SECURITY ---
+    #[Override]
     public function regenerate(): void
     {
         \session_regenerate_id(true);
     }
 
+    #[Override]
     public function destroy(): void
     {
         $_SESSION = [];
         if (\ini_get('session.use_cookies')) {
             $p = \session_get_cookie_params();
-            \setcookie(\session_name(), '', ['expires' => \time() - 42000, 'path' => $p['path'], 'domain' => $p['domain'], 'secure' => $p['secure'], 'httponly' => $p['httponly']]);
+            \setcookie(
+                \session_name(),
+                '',
+                [
+                    'expires' => $this->clock->now()->getTimestamp() - 42000,
+                    'path' => $p['path'],
+                    'domain' => $p['domain'],
+                    'secure' => $p['secure'],
+                    'httponly' => $p['httponly'],
+                ],
+            );
         }
         \session_destroy();
     }
 
+    #[Override]
     public function setAuthSession(string $userId, string $groupId, string $label, ?string $hash = null): void
     {
         $_SESSION['user_id'] = $userId;
@@ -188,31 +207,37 @@ final class SessionManager implements AuthSessionInterface
         $_SESSION['auth_hash'] = $hash;
     }
 
+    #[Override]
     public function getAuthHash(): ?string
     {
         return $_SESSION['auth_hash'] ?? null;
     }
 
+    #[Override]
     public function setPermissions(array $perms): void
     {
         $_SESSION['compiled_permissions'] = $perms;
     }
 
+    #[Override]
     public function getPermissions(): array
     {
         return $_SESSION['compiled_permissions'] ?? [];
     }
 
+    #[Override]
     public function getUserId(): string
     {
         return (string) ($_SESSION['user_id'] ?? '');
     }
 
+    #[Override]
     public function getAdminGroup(): string
     {
         return (string) ($_SESSION['admin_group'] ?? 'guest');
     }
 
+    #[Override]
     public function getAdminUser(): string
     {
         return (string) ($_SESSION['admin_user'] ?? 'Unbekannt');
@@ -256,6 +281,7 @@ final class SessionManager implements AuthSessionInterface
     /**
      * Rotiert das CSRF-Token (wichtig bei Authentifizierungs-Wechseln).
      */
+    #[Override]
     public function rotateCsrfToken(): void
     {
         $_SESSION['csrf_token'] = \bin2hex(\random_bytes(32));

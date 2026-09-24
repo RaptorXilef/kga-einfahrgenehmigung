@@ -84,6 +84,7 @@ use App\Modules\Voucher\Infrastructure\PdoVoucherArchiveRepository;
 use App\Modules\Voucher\Infrastructure\PdoVoucherRepository;
 use App\SharedKernel\Infrastructure\Database\PdoFactory;
 use App\SharedKernel\Infrastructure\Utils\SystemClock;
+use Override;
 use PDO;
 
 /**
@@ -102,6 +103,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
      *
      * @param ContainerInterface $container Der Dependency Injection Container der Applikation.
      */
+    #[Override]
     public function register(ContainerInterface $container): void
     {
         // 1. ZUERST CLOCK INITIALISIEREN (Wird von PdoFactory benötigt)

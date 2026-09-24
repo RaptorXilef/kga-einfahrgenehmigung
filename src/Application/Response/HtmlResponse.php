@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Response;
 
 use App\Application\Contracts\ResponseInterface;
+use Override;
 
 final readonly class HtmlResponse implements ResponseInterface
 {
@@ -17,6 +18,7 @@ final readonly class HtmlResponse implements ResponseInterface
     /**
      * @SuppressWarnings("PHPMD.ExitExpression")
      */
+    #[Override]
     public function send(): void
     {
         \http_response_code($this->statusCode);

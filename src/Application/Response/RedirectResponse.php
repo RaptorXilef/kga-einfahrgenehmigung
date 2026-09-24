@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Response;
 
 use App\Application\Contracts\ResponseInterface;
+use Override;
 
 /**
  * Repräsentiert eine HTTP-Weiterleitung.
@@ -18,6 +19,7 @@ final readonly class RedirectResponse implements ResponseInterface
     {
     }
 
+    #[Override]
     public function send(): void
     {
         \header('Location: ' . $this->url);

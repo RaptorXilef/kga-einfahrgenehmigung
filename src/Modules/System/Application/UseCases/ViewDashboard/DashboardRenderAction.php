@@ -78,7 +78,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $this->sessionManager->clearAdminFilters();
         }
 
-        $filterStartYear = (int) \date('Y', \strtotime($dto->start));
+        $filterStartYear = (int) (new DateTimeImmutable($dto->start))->format('Y');
         $requestedDepth = (int) ($request->get['archive_depth'] ?? $filterStartYear);
         $minArchiveYear = \min($filterStartYear, $requestedDepth);
         $focus = $request->get['focus'] ?? 'tab-active';
@@ -210,9 +210,9 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         }
 
         // Pagination HTML Generierung
-        $renderPagination = function (int $total, string $tabId, string $pageParam = 'page') use ($dto, $focus): string {
+        $renderPagination = function (int $total, string $tabId, string $pageParam = 'page') use ($dto, $focus, $request): string {
             $limit = $dto->limit;
-            $page = $tabId === $focus ? (int) ($this->request->get[$pageParam] ?? $dto->page) : 1;
+            $page = $tabId === $focus ? (int) ($request->get[$pageParam] ?? $dto->page) : 1;
             $totalPages = \max(1, (int) \ceil($total / $limit));
             $offset = ($page - 1) * $limit;
 
