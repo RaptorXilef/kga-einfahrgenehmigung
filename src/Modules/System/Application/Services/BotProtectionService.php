@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\System\Application\Services;
 
 use App\Contracts\Security\RateLimiterInterface;
+use App\Contracts\Utils\ClockInterface;
 use InvalidArgumentException;
 
 /**
@@ -14,6 +15,7 @@ final readonly class BotProtectionService
 {
     public function __construct(
         private RateLimiterInterface $rateLimiter,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -48,7 +50,7 @@ final readonly class BotProtectionService
             throw new InvalidArgumentException('Sicherheits-Token abgelaufen: Die Seite wurde zur Sicherheit neu geladen. Bitte senden Sie den Antrag über die Schaltfläche unten erneut ab.');
         }
 
-        $duration = \time() - $startTime;
+        $duration = $this->clock->now()->getTimestamp() - $startTime;
         if ($duration < $minSeconds) {
             throw new InvalidArgumentException('Das Formular wurde zu schnell ausgefüllt (Bot-Verdacht). Ein Mensch benötigt dafür normalerweise mehr Zeit.');
         }
