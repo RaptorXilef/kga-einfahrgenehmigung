@@ -31,6 +31,7 @@ use App\Modules\System\Application\UseCases\GetBackupsData\GetBackupsDataHandler
 use App\Modules\System\Application\UseCases\GetBackupsData\GetBackupsDataQuery;
 use App\Modules\System\Application\UseCases\GetMailLogsData\GetMailLogsDataHandler;
 use App\Modules\System\Application\UseCases\GetMailLogsData\GetMailLogsDataQuery;
+use App\Modules\System\Application\UseCases\GetMailLogsData\MailLogsResultDto;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
 use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveQuery;
@@ -278,7 +279,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             ? $this->backupsHandler->handle(new GetBackupsDataQuery())
             : null;
 
-        $paginationHtmlLogs = $mailLogsDto ? $renderPagination($mailLogsDto->total, 'tab-logs') : '';
+        $paginationHtmlLogs = $mailLogsDto instanceof MailLogsResultDto ? $renderPagination($mailLogsDto->total, 'tab-logs') : '';
 
         // Archiv URL
         $queryParams = $request->get;

@@ -4,18 +4,14 @@ use App\Contracts\System\AssetHelperInterface;
 
 /**
  * Component: Public Header Navigation
+ * VSA FIX: PHTML ist jetzt 100% dumm. Nutzt `$currentRoute`.
  *
  * Navigation für Pächter (Antrag, Verlauf, Prüfen, Login).
  *
  * @var AssetHelperInterface $asset
  * @var array $settings
+ * @var string $currentRoute
  */
-
-// Wir lesen die URL aus, da PHP_SELF in der neuen Architektur immer "index.php" ist!
-$requestUri = $_SERVER['REQUEST_URI'] ?? '/';
-$path = \parse_url($requestUri, \PHP_URL_PATH);
-$path = \trim((string) $path, '/');
-$currentPage = $path === '' ? 'index' : $path;
 ?>
 <nav class="c-header-nav">
     <div class="c-tab-content-container">
@@ -68,7 +64,7 @@ $currentPage = $path === '' ? 'index' : $path;
         <div class="c-header-nav__bottom">
             <a
                 href="index"
-                class="c-tabs__btn <?php echo $currentPage === 'index' ? 'is-active' : ''; ?>"
+                class="c-tabs__btn <?php echo $currentRoute === 'index' ? 'is-active' : ''; ?>"
             >
                 <img
                     src="<?php echo $asset->url('assets/img/icons/memo.webp'); ?>"
@@ -79,7 +75,7 @@ $currentPage = $path === '' ? 'index' : $path;
             </a>
             <a
                 href="history"
-                class="c-tabs__btn <?php echo $currentPage === 'history' ? 'is-active' : ''; ?>"
+                class="c-tabs__btn <?php echo $currentRoute === 'history' ? 'is-active' : ''; ?>"
             >
                 <img
                     src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
@@ -90,7 +86,7 @@ $currentPage = $path === '' ? 'index' : $path;
             </a>
             <a
                 href="check"
-                class="c-tabs__btn u-margin-inline-start-auto <?php echo $currentPage === 'check' ? 'is-active' : ''; ?>"
+                class="c-tabs__btn u-margin-inline-start-auto <?php echo $currentRoute === 'check' ? 'is-active' : ''; ?>"
             >
                 <img
                     src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>"

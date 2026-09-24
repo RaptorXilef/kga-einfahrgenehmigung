@@ -48,9 +48,11 @@ final readonly class GetGeneratorToolsDataHandler implements QueryHandlerInterfa
 
         foreach ($dbPurposes as $z) {
             // Die DB speichert die Labels. Wir filtern jene aus, die nicht in den Standard-Labels auftauchen.
-            if (!\in_array($z, $standardPurposes, true)) {
-                $customPurposes[] = $z;
+            if (\in_array($z, $standardPurposes, true)) {
+                continue;
             }
+
+            $customPurposes[] = $z;
         }         \sort($customPurposes);
 
         $standardPurposesOptions = [];
@@ -61,15 +63,17 @@ final readonly class GetGeneratorToolsDataHandler implements QueryHandlerInterfa
         // 3. Fahrzeugtypen
         $vehicleOptions = [];
         foreach ($this->config->get('vehicle_types', []) as $val => $vData) {
-            if ($vData['active'] ?? true) {
-                $vehicleOptions[] = ['value' => $val, 'label' => $vData['label']];
+            if (!($vData['active'] ?? true)) {
+                continue;
             }
+
+            $vehicleOptions[] = ['value' => $val, 'label' => $vData['label']];
         }
 
         $reasons = $this->config->get('internal_reasons', ['Barzahlung vor Ort', 'Vorstandsbeschluss']);
 
         return new GeneratorToolsViewDto(
-            hasAnyTemplate: !empty($allowedTemplates),
+            hasAnyTemplate: $allowedTemplates !== [],
             allowedTemplateOptions: $allowedTemplates,
             vehicleOptions: $vehicleOptions,
             standardPurposesOptions: $standardPurposesOptions,

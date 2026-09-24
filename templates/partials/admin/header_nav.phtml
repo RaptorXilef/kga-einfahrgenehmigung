@@ -1,12 +1,13 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Infrastructure\Storage\ImageStorageService;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\Modules\System\Infrastructure\Storage\ImageStorageService;
 
 /**
  * Component: Administrative Header Navigation
+ * VSA FIX: PHTML ist jetzt 100% dumm. Nutzt `$currentRoute` und `$csrfToken`.
  *
  * Beinhaltet das Top-Menü für eingeloggte Administratoren, Profil-Shortcuts und System-Links.
  *
@@ -16,6 +17,8 @@ use App\Modules\Identity\Domain\RoleRepositoryInterface;
  * @var RoleRepositoryInterface $roleRepository
  * @var array $settings
  * @var array $allReleaseNotes
+ * @var string $currentRoute
+ * @var string $csrfToken
  */
 $roleId = $auth->getRole();
 $roleName = $roleId;
@@ -24,15 +27,6 @@ if (isset($roleRepository) && $auth->isLoggedIn()) {
     $roleName = isset($roles[$roleId]) ? $roles[$roleId]->name : $roleId;
 }
 $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user', $auth->getUserId(), 'user.webp') : '';
-
-// Ermittlung der aktiven Route für die Button-Highlights
-$requestUri = $_SERVER['REQUEST_URI'] ?? '/';
-$path = \parse_url($requestUri, \PHP_URL_PATH);
-$path = \trim((string) $path, '/');
-if (\str_ends_with($path, '.php')) {
-    $path = \substr($path, 0, -4);
-}
-$currentPage = $path === '' ? 'admin' : $path;
 ?>
 
 <nav class="c-header-nav">
@@ -70,7 +64,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                 <?php if ($auth->hasPermission('system.manage')) { ?>
                 <a
                     href="users"
-                    class="c-tabs__btn <?php echo $currentPage === 'users' ? 'is-active' : ''; ?>"
+                    class="c-tabs__btn <?php echo $currentRoute === 'users' ? 'is-active' : ''; ?>"
                 >
                     <img
                         src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>"
@@ -147,7 +141,7 @@ $currentPage = $path === '' ? 'admin' : $path;
             <?php if ($auth->hasPermission('admin.access')) { ?>
             <a
                 href="admin"
-                class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'is-active' : ''; ?>"
+                class="c-tabs__btn <?php echo $currentRoute === 'admin' ? 'is-active' : ''; ?>"
             >
                 <img
                     src="<?php echo $asset->url('assets/img/icons/stats.webp'); ?>"
@@ -212,7 +206,7 @@ $currentPage = $path === '' ? 'admin' : $path;
                 <input
                     type="hidden"
                     name="csrf_token"
-                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                    value="<?php echo $csrfToken; ?>"
                 >
                 <button
                     type="submit"

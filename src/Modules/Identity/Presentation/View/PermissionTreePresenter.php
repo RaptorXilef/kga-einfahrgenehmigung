@@ -17,7 +17,7 @@ final class PermissionTreePresenter
         $html = '';
         foreach ($nodes as $id => $node) {
             $key = $node['key'] ?? null;
-            $isAllowed = $key ? \in_array($key, $rolePerms, true) : false;
+            $isAllowed = $key && \in_array($key, $rolePerms, true);
             $hasChildren = !empty($node['children']);
             $permissionLabel = \htmlspecialchars((string) ($node['label'] ?? $id));
             $dataKey = \htmlspecialchars((string) ($key ?? $id));

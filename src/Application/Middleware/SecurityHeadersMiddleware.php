@@ -41,6 +41,7 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
             \header('Referrer-Policy: strict-origin-when-cross-origin');
             \header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()');
 
+            // Saubere Nutzung des gekapselten ServerRequests anstelle von $_SERVER
             $hostRaw = $request->server['HTTP_HOST'] ?? '';
             $host = \is_string($hostRaw) ? $hostRaw : '';
 
@@ -49,7 +50,9 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
                 || $host === '127.0.0.1'
                 || \php_sapi_name() === 'cli';
 
-            $cspHeader = $this->buildCspHeader($isLocal);
+            $protocol = isset($request->server['HTTPS']) && $request->server['HTTPS'] === 'on' ? 'https://' : 'http://';
+
+            $cspHeader = $this->buildCspHeader($isLocal, $host, $protocol);
             \header('Content-Security-Policy: ' . $cspHeader);
 
             // HSTS nur erzwingen, wenn wir NICHT in der lokalen Entwicklung sind
@@ -61,7 +64,7 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
         return $next($request);
     }
 
-    private function buildCspHeader(bool $isLocal): string
+    private function buildCspHeader(bool $isLocal, string $host, string $protocol): string
     {
         // Hochsichere CSP Definition (Strict Nonce-Based)
         $csp = [
@@ -114,9 +117,8 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
         // Lokale Dev-Umgebungen dynamisch zu den Arrays hinzufügen
         if ($isLocal) {
             $localHosts = ['http://localhost'];
-            if (isset($_SERVER['HTTP_HOST'])) {
-                $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-                $localHosts[] = $protocol . $_SERVER['HTTP_HOST'];
+            if ($host !== '') {
+                $localHosts[] = $protocol . $host;
             }
 
             foreach (['default-src', 'script-src', 'style-src', 'font-src', 'img-src', 'connect-src', 'frame-src'] as $directive) {

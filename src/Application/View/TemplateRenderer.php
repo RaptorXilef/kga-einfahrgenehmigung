@@ -9,6 +9,8 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\System\SystemInfoInterface;
+use App\Contracts\Utils\ClockInterface;
 
 /**
  * Zentraler Service für das Rendering von PHTML-Templates.
@@ -21,6 +23,8 @@ final readonly class TemplateRenderer
         private JsonHelperInterface $jsonHelper,
         private SessionManager $sessionManager,
         private AssetHelperInterface $assetHelper,
+        private SystemInfoInterface $systemInfo, // NEU: Für Versions-Auslesung
+        private ClockInterface $clock, // NEU: Für Zeit-Checks
     ) {
     }
 
@@ -31,7 +35,26 @@ final readonly class TemplateRenderer
     {
         $appRoot = \rtrim((string) $this->config->get('root_path'), '/\\');
 
-        // 1. Systemvariablen bereitstellen
+        // 1. Sichere Routen-Ermittlung ohne direkte $_SERVER Nutzung im Template
+        $requestUri = (string) \filter_input(\INPUT_SERVER, 'REQUEST_URI');
+        $path = \parse_url($requestUri, \PHP_URL_PATH);
+        $path = \trim((string) $path, '/');
+        if (\str_ends_with($path, '.php')) {
+            $path = \substr($path, 0, -4);
+        }
+        $currentRoute = $path === '' ? 'index' : $path;
+
+        // 2. Metriken für den Footer vorbereiten (Logik aus PHTML entfernt)
+        $debugMetrics = null;
+        if ($this->config->get('debug_mode', false)) {
+            $reqTimeRaw = \filter_input(\INPUT_SERVER, 'REQUEST_TIME_FLOAT');
+            $requestTime = \is_numeric($reqTimeRaw) ? (float) $reqTimeRaw : (float) (\defined('APP_REQUEST_TIME') ? APP_REQUEST_TIME : \microtime(true));
+            $timeMs = \round((\microtime(true) - $requestTime) * 1000, 2);
+            $memoryMb = \round(\memory_get_peak_usage() / 1024 / 1024, 2);
+            $debugMetrics = ['timeMs' => $timeMs, 'memoryMb' => $memoryMb];
+        }
+
+        // 3. Systemvariablen bereitstellen
         $systemVars = [
             'appRoot' => $appRoot,
             'config' => $this->config,
@@ -40,6 +63,11 @@ final readonly class TemplateRenderer
             'asset' => $this->assetHelper,
             'settings' => $this->getGlobalSettings(),
             'cspNonce' => \defined('CSP_NONCE') ? CSP_NONCE : '',
+            'csrfToken' => $this->sessionManager->getCsrfToken(), // GLOBALES SICHERES TOKEN
+            'currentRoute' => $currentRoute,
+            'appVersion' => $this->systemInfo->getCurrentVersion(),
+            'currentYear' => $this->clock->now()->format('Y'),
+            'debugMetrics' => $debugMetrics,
         ];
 
         // Lade alle Flashes automatisch in die View-Daten!

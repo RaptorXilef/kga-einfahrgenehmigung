@@ -1,47 +1,27 @@
 <?php
 
-use App\Contracts\System\JsonHelperInterface;
-
 /**
  * Component: Global Dynamic Footer
+ * VSA FIX: PHTML ist jetzt 100% Dumm. Nutzt bereitgestellte System-Variablen!
  *
- * Liest die Version aus der package.json und zeigt Urheberrechts- und GitHub-Informationen.
- *
- * @var JsonHelperInterface $jsonHelper
  * @var array $settings
+ * @var string $appVersion   Bereitgestellt durch TemplateRenderer
+ * @var string $currentYear  Bereitgestellt durch TemplateRenderer
+ * @var array|null $debugMetrics Bereitgestellt durch TemplateRenderer
  * @var string|null $appRoot (optional, wird berechnet falls nicht vorhanden)
  */
 
-// 1. App-Root Fallback (falls die Variable mal nicht übergeben wird)
-$root = $appRoot ?? \dirname(__DIR__, 2);
-
-// 2. Versionsnummer aus der package.json auslesen
-$version = 'v0.0.0';
-$packageJsonPath = $root . '/package.json';
-
-if (\file_exists($packageJsonPath) && isset($jsonHelper)) {
-    try {
-        $pkgData = $jsonHelper->read($packageJsonPath);
-        if (\is_array($pkgData) && isset($pkgData['version'])) {
-            $version = 'v' . $pkgData['version'];
-        }
-    } catch (\RuntimeException $e) {
-        // Fallback
-    }
-}
-
-// 3. Copyright-Jahr Logik (Zeigt "2026" oder "2026 - 2027")
+// 1. Copyright-Jahr Logik (Zeigt "2026" oder "2026 - 2027")
 $startYear = 2026;
-$currentYear = (int) \date('Y');
-$yearDisplay = $currentYear > $startYear ? "{$startYear} - {$currentYear}" : (string) $startYear;
+$yearDisplay = (int) $currentYear > $startYear ? "{$startYear} - {$currentYear}" : (string) $startYear;
 
-// 4. Software Details
-$developerName = 'Felix Maywald';
+// TODO URL und Name in Config festlegen
+// 2. Software Details
 $softwareName = 'KGA-Einfahrts-Manager';
 $githubUrl = 'https://github.com/RaptorXilef/kga-einfahrgenehmigung';
 $issuesUrl = $githubUrl . '/issues';
 
-// 5. Rechtliche Links berechnen
+// 3. Rechtliche Links berechnen
 $baseUrl = $settings['base_url'] ?? '/';
 $impressumUrl = \rtrim($baseUrl, '/') . '/impressum';
 $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
@@ -58,18 +38,16 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
                 class="c-footer__version c-footer__version--admin"
                 title="Versionshistorie / Changelog ansehen"
             >
-                <?php echo \htmlspecialchars($version); ?>
+                <?php echo \htmlspecialchars($appVersion); ?>
             </a>
             <?php } else { ?>
             <span class="c-footer__version">
-                <?php echo \htmlspecialchars($version); ?>
+                <?php echo \htmlspecialchars($appVersion); ?>
             </span>
             <?php } ?>
         </div>
 
-        <?php
-        // Bug-Report-Link nur für eingeloggte Admins mit Dashboard-Rechten sichtbar machen
-        if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('admin.access')) { ?>
+        <?php if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('admin.access')) { ?>
         <div class="u-margin-block-start-xs">
             <a
                 href="<?php echo \htmlspecialchars($issuesUrl); ?>"
@@ -94,15 +72,10 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
             >Datenschutzerklärung</a>
         </div>
 
-        <?php
-        // PERFORMANCE METRICS FÜR DEBUG MODE (NEU)
-        if (($settings['debug_mode'] ?? false) === true) {
-            $requestTime = $_SERVER['REQUEST_TIME_FLOAT'] ?? \microtime(true);
-            $timeMs = \round((\microtime(true) - $requestTime) * 1000, 2);
-            $memoryMb = \round(\memory_get_peak_usage() / 1024 / 1024, 2);
-            ?>
+        <?php if ($debugMetrics !== null) { ?>
         <div class="u-text-center u-margin-block-start-m u-color-muted u-text-xs u-font-mono u-opacity-50">
-            ⏱️ <?php echo $timeMs; ?> ms &nbsp;|&nbsp; 💾 <?php echo $memoryMb; ?> MB RAM
+            ⏱️ <?php echo $debugMetrics['timeMs']; ?> ms &nbsp;|&nbsp; 💾 <?php echo $debugMetrics['memoryMb']; ?> MB
+            RAM
         </div>
         <?php } ?>
     </div>

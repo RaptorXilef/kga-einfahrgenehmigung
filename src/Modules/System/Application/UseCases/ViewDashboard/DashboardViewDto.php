@@ -63,7 +63,6 @@ final readonly class DashboardViewDto
         public bool $showBankWizard,
         public int $minArchiveYear,
         public string $expiredLoadArchiveUrl,
-
         // --- Die neuen Dumb View DTOs für die System-Tabs ---
         public ?GeneratorToolsViewDto $generatorTools,
         public ?MailLogsResultDto $mailLogs,

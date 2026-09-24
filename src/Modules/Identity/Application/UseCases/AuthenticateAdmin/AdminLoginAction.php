@@ -36,8 +36,11 @@ final readonly class AdminLoginAction implements ActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
+        // FIX: Auslesen des Code-Parameters sauber in die Action verlagern anstatt im PHTML über $_GET!
+        $redirectCode = (string) ($request->get['code'] ?? '');
+
         if ($request->getMethod() === 'GET') {
-            return $this->renderForm('');
+            return $this->renderForm('', $redirectCode);
         }
 
         try {
@@ -45,7 +48,7 @@ final readonly class AdminLoginAction implements ActionInterface
         } catch (ValidationException $e) {
             $this->rescueFormData($request);
 
-            return $this->renderForm($e->getMessage());
+            return $this->renderForm($e->getMessage(), $redirectCode);
         }
 
         try {
@@ -62,7 +65,7 @@ final readonly class AdminLoginAction implements ActionInterface
         } catch (DomainException|RuntimeException $e) {
             $this->rescueFormData($request);
 
-            return $this->renderForm($e->getMessage());
+            return $this->renderForm($e->getMessage(), $redirectCode);
         }
     }
 
@@ -70,10 +73,10 @@ final readonly class AdminLoginAction implements ActionInterface
     {
         $postData = $request->post;
         unset($postData['csrf_token'], $postData['action'], $postData['code']);
-        $this->sessionManager->setFormData($postData); // STRICT: Encapsulated via SessionManager
+        $this->sessionManager->setFormData($postData);
     }
 
-    private function renderForm(string $message): HtmlResponse
+    private function renderForm(string $message, string $redirectCode): HtmlResponse
     {
         if ($message !== '') {
             $this->sessionManager->addFlash('error', $message);
@@ -83,6 +86,7 @@ final readonly class AdminLoginAction implements ActionInterface
             'auth' => $this->auth,
             'roleRepository' => $this->roleRepository,
             'userRepository' => $this->userRepository,
+            'redirectCode' => $redirectCode,
         ]);
 
         return new HtmlResponse($html);

@@ -1,15 +1,19 @@
 <?php
 
+
 use App\Contracts\System\AssetHelperInterface;
-use App\Infrastructure\Storage\ImageStorageService;
 use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
+use App\Modules\System\Infrastructure\Storage\ImageStorageService;
 
 /**
  * Partial: Dashboard Tab - Audit Log
+ * VSA FIX: PHTML ist jetzt 100% dumm. Keine $_GET Fallbacks mehr.
  *
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
  * @var ImageStorageService $imageStorage
+ * @var DashboardViewDto $viewDto
  * @var array $settings
  * @var string $appRoot
  */
@@ -19,14 +23,13 @@ $auditFilter ??= '';
 
 // Paginierungs-Logik: Schützt vor Parameter-Bleeding aus anderen Tabs
 $limit = $itemsPerPage ?? 25;
-$focus = $_GET['focus'] ?? 'tab-active';
+$focus = $viewDto->focus;
 $requestedPage = ($focus === 'tab-audit-log') ? ($currentPage ?? 1) : 1;
 
 $auditTotalPages = \max(1, (int) \ceil($auditTotal / $limit));
 $page = \min($requestedPage, $auditTotalPages);
 $offset = ($page - 1) * $limit;
 
-// BUGFIX: USER_HISTORY_LOGOUT wurde zur Liste hinzugefügt
 $filterOptions = [
     '' => 'Alle Aktionen',
     'LOGIN' => 'Erfolgreiche Logins (Admin)',
@@ -141,8 +144,8 @@ if ($auth->hasPermission('system.logs.view')) {
                     </tr>
                     <?php } else { ?>
                     <?php foreach ($auditLogs as $log) {
-                        $avatar = $imageStorage->getImageUrl('user', $log->userId, 'user.webp');
-                        ?>
+                                $avatar = $imageStorage->getImageUrl('user', $log->userId, 'user.webp');
+                                ?>
                     <tr class="u-hover-fade">
                         <td class="c-table__data-cell u-text-nowrap">
                             <div class="u-flex u-flex-column">
