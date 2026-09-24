@@ -1,8 +1,8 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\Permit\Application\UseCases\GetDashboardStats\DashboardStatsDto;
+use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
+
 
 /**
  * Partial: Dashboard Tab - Statistics & Charts
@@ -11,19 +11,15 @@ use App\Modules\Permit\Application\UseCases\GetDashboardStats\DashboardStatsDto;
  * Chart.js Integration und Kennzahlen-Auswertung (Umsatz, Fahrzeuge).
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
- * @var DashboardStatsDto $statsDto
+ * @var DashboardViewDto $viewDto
  * @var array $settings
- * @var int $minArchiveYear
  * @var string $cspNonce
- * @var string $filterEnd
- * @var string $filterStart
  */
-$periodStats = $statsDto->periodStats;
-$yearlyStats = $statsDto->yearlyStats;
+$periodStats = $viewDto->stats->periodStats ?? [];
+$yearlyStats = $viewDto->stats->yearlyStats ?? [];
 ?>
 
-<?php if ($auth->hasPermission('stats.view')) { ?>
+<?php if ($viewDto->permissions->canViewStats) { ?>
 <div class="c-tab-content-container">
 
     <div class="u-flex u-align-center u-gap-s u-margin-block-end-m">
@@ -37,13 +33,14 @@ $yearlyStats = $statsDto->yearlyStats;
             <div>
                 <span class="c-date-indicator__label">Berichtszeitraum</span>
                 <strong class="c-date-indicator__value">
-                    <?php echo $statsDto->filterStartFormatted; ?> - <?php echo $statsDto->filterEndFormatted; ?>
+                    <?php echo $viewDto->stats->filterStartFormatted; ?> -
+                    <?php echo $viewDto->stats->filterEndFormatted; ?>
                 </strong>
             </div>
         </div>
     </div>
 
-    <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
+    <?php if ($viewDto->permissions->showPrivacyFinance) { ?>
     <div class="o-grid o-grid--auto-fit u-gap-m u-margin-block-end-l">
         <div class="c-card c-card--success u-margin-block-none">
             <div class="c-stat-card c-card__body u-padding-around-m">
@@ -71,7 +68,7 @@ $yearlyStats = $statsDto->yearlyStats;
                 </div>
 
                 <div class="c-stat-card__footer">
-                    <?php foreach ($statsDto->periodVehicleStats as $vStat) { ?>
+                    <?php foreach ($viewDto->stats->periodVehicleStats as $vStat) { ?>
                     <div class="c-badge c-badge--success u-font-bold u-text-xs">
                         <?php if ($vStat['icon']) { ?>
                         <img
@@ -102,7 +99,7 @@ $yearlyStats = $statsDto->yearlyStats;
     </div>
     <?php } ?>
 
-    <?php if ($auth->hasPermission('stats.charts') && $auth->hasPermission('privacy.finance.view')) { ?>
+    <?php if ($viewDto->permissions->canViewCharts && $viewDto->permissions->showPrivacyFinance) { ?>
     <!-- JSON Daten Container für das DashboardStats.js Modul -->
     <script
         type="application/json"
@@ -110,7 +107,7 @@ $yearlyStats = $statsDto->yearlyStats;
         class="js-chart-data"
         nonce="<?php echo $cspNonce; ?>"
     >
-    <?php echo \json_encode($statsDto->chartDataPayload, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+    <?php echo \json_encode($viewDto->stats->chartDataPayload, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
     </script>
 
@@ -150,7 +147,7 @@ $yearlyStats = $statsDto->yearlyStats;
     </section>
     <?php } ?>
 
-    <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
+    <?php if ($viewDto->permissions->showPrivacyFinance) { ?>
     <h3 class="u-margin-block-end-m u-flex u-align-center u-gap-s">
         <img
             src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
@@ -199,12 +196,12 @@ $yearlyStats = $statsDto->yearlyStats;
                     <div class="u-text-xs u-color-muted u-flex u-justify-center u-gap-s u-flex-wrap u-align-center">
                         <?php
                                     $typeItems = [];
-        foreach ($statsDto->yearlyVehicleStats[$year] ?? [] as $vStat) {
-            $imgHtml = $vStat['icon'] ? '<img src="' . $settings['base_url'] . $vStat['icon'] . '" alt="" class="c-icon c-icon--inline u-margin-inline-end-xs">' : '';
-            $typeItems[] = '<span>' . $imgHtml . ' ' . $vStat['count'] . ' ' . \htmlspecialchars($vStat['label']) . '</span>';
-        }
-        echo \implode(' <span class="u-opacity-50">|</span> ', $typeItems);
-        ?>
+                foreach ($viewDto->stats->yearlyVehicleStats[$year] ?? [] as $vStat) {
+                    $imgHtml = $vStat['icon'] ? '<img src="' . $settings['base_url'] . $vStat['icon'] . '" alt="" class="c-icon c-icon--inline u-margin-inline-end-xs">' : '';
+                    $typeItems[] = '<span>' . $imgHtml . ' ' . $vStat['count'] . ' ' . \htmlspecialchars($vStat['label']) . '</span>';
+                }
+                echo \implode(' <span class="u-opacity-50">|</span> ', $typeItems);
+                ?>
                     </div>
                 </div>
             </div>
@@ -221,16 +218,8 @@ $yearlyStats = $statsDto->yearlyStats;
 
     <!-- Button zum Nachladen von alten Jahren! -->
     <div class="u-text-center u-margin-block-start-l">
-        <?php
-        $queryParams = $_GET;
-        // Verhindere, dass Paginierungen beim Laden von Archiven mitgenommen werden
-        unset($queryParams['page'], $queryParams['audit_page']);
-        $queryParams['archive_depth'] = $minArchiveYear - 1;
-        $queryParams['focus'] = 'tab-stats'; // Zwingt den Tab nach dem Laden wieder auf Statistiken
-        $loadUrl = '?' . \http_build_query($queryParams);
-        ?>
         <a
-            href="<?php echo $loadUrl; ?>"
+            href="<?php echo $viewDto->expiredLoadArchiveUrl; ?>"
             class="c-button c-button--secondary"
         >
             <img
@@ -239,14 +228,13 @@ $yearlyStats = $statsDto->yearlyStats;
                 loading="lazy"
                 alt=""
             >
-            &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
+            &nbsp; Statistiken aus dem Jahr <?php echo $viewDto->minArchiveYear - 1; ?> dazuladen
         </a>
     </div>
     <?php } ?>
 </div>
 
 <!-- https://cdnjs.com/libraries/Chart.js -->
-<?php /* <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script> */ ?>
 <script
     src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"
     integrity="sha512-WoViKhKD4qI2WruSZqv9+kvM4WfFhUMQCLN4QlDTt5aU56fLQy2gYoxWIqlEnXqJy/+Ac5q/hk1oWfqnMDhwMA=="

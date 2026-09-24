@@ -97,21 +97,19 @@ final readonly class SubmitPermitAction implements ViewActionInterface
             }
 
             return new RedirectResponse('?sent=1');
-
         } catch (DomainException|InvalidArgumentException $e) {
             $this->botProtection->recordStrike($ip);
 
             // Kollisionstexte abfangen und für die Middleware mit lesbarem Text weiterwerfen
             if ($e instanceof PermitCollisionException) {
-                throw new DomainException('Überschneidung: Für diese Parzelle liegt in dem gewählten Zeitraum bereits eine Anfrage oder Genehmigung vor.');
+                throw new DomainException('Überschneidung: Für diese Parzelle liegt in dem gewählten Zeitraum bereits eine Anfrage oder Genehmigung vor.', $e->getCode(), $e);
             }
 
             throw $e;
-
         } catch (Throwable $e) {
             \error_log('Permit Creation Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
 
-            throw new DomainException('Ein unerwarteter Systemfehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+            throw new DomainException('Ein unerwarteter Systemfehler ist aufgetreten. Bitte versuchen Sie es erneut.', $e->getCode(), $e);
         }
     }
 }

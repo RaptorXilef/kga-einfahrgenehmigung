@@ -1,7 +1,6 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
@@ -12,10 +11,6 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
  * @var array $settings
  * @var string $appRoot
  * @var string $cspNonce
- *
- * -- Legacy Variables for non-refactored tabs --
- * @var AuthService $auth
- * @var array $unreadReleaseNotes
  * @var array $allReleaseNotes
  */
 $layout = 'admin';
@@ -376,8 +371,7 @@ $focus = $viewDto->focus;
             </div>
             <?php } ?>
 
-            <!-- LEGACY TABS WEITERHIN LADEN -->
-            <?php if ($auth->hasPermission('stats.ranking')) { ?>
+            <?php if ($viewDto->permissions->canViewRanking) { ?>
             <div
                 id="tab-ranking"
                 role="tabpanel"
@@ -401,7 +395,7 @@ $focus = $viewDto->focus;
             </div>
             <?php } ?>
 
-            <?php if ($auth->hasPermission('stats.view')) { ?>
+            <?php if ($viewDto->permissions->canViewStats) { ?>
             <div
                 id="tab-stats"
                 role="tabpanel"
@@ -413,7 +407,7 @@ $focus = $viewDto->focus;
             </div>
             <?php } ?>
 
-            <?php if ($auth->hasPermission('finance.bank_import')) { ?>
+            <?php if ($viewDto->permissions->canBankImport) { ?>
             <div
                 id="tab-bank-import"
                 role="tabpanel"
@@ -425,7 +419,7 @@ $focus = $viewDto->focus;
             </div>
             <?php } ?>
 
-            <?php if ($auth->hasPermission('finance.export')) { ?>
+            <?php if ($viewDto->permissions->canExport) { ?>
             <div
                 id="tab-export"
                 role="tabpanel"
@@ -437,7 +431,7 @@ $focus = $viewDto->focus;
             </div>
             <?php } ?>
 
-            <?php if ($auth->hasPermission('permits.create') || $auth->hasPermission('vouchers.create')) { ?>
+            <?php if ($viewDto->permissions->canCreatePermits || $viewDto->permissions->canManageVouchers) { ?>
             <div
                 id="tab-tools"
                 role="tabpanel"
@@ -449,7 +443,7 @@ $focus = $viewDto->focus;
             </div>
             <?php } ?>
 
-            <?php if ($auth->hasPermission('vouchers.view')) { ?>
+            <?php if ($viewDto->permissions->canViewVouchers) { ?>
             <div
                 id="tab-vouchers"
                 role="tabpanel"
@@ -461,7 +455,7 @@ $focus = $viewDto->focus;
             </div>
             <?php } ?>
 
-            <?php if ($auth->hasPermission('system.logs.view')) { ?>
+            <?php if ($viewDto->permissions->canViewLogs) { ?>
             <div
                 id="tab-logs"
                 role="tabpanel"
@@ -482,7 +476,7 @@ $focus = $viewDto->focus;
             </div>
             <?php } ?>
 
-            <?php if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('system.update.execute')) { ?>
+            <?php if ($viewDto->permissions->canManageSystem) { ?>
             <div
                 id="tab-system"
                 role="tabpanel"
@@ -494,7 +488,7 @@ $focus = $viewDto->focus;
             </div>
             <?php } ?>
 
-            <?php if ($auth->hasPermission('system.backup.manage')) { ?>
+            <?php if ($viewDto->permissions->canManageBackups) { ?>
             <div
                 id="tab-backup"
                 role="tabpanel"
@@ -582,7 +576,7 @@ $focus = $viewDto->focus;
     class="js-release-notes-unread-data"
     nonce="<?php echo $cspNonce; ?>"
 >
-<?php echo \json_encode($unreadReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+<?php echo \json_encode($viewDto->unreadReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
 </script>
 <script
@@ -591,7 +585,7 @@ $focus = $viewDto->focus;
     class="js-release-notes-all-data"
     nonce="<?php echo $cspNonce; ?>"
 >
-<?php echo \json_encode($allReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
+<?php echo \json_encode($viewDto->allReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
 </script>
 <?php } ?>

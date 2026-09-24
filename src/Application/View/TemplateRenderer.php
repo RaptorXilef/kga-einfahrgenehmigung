@@ -26,7 +26,7 @@ final readonly class TemplateRenderer
         private AssetHelperInterface $assetHelper,
         private SystemInfoInterface $systemInfo,
         private ClockInterface $clock,
-        private ServerRequest $request, // VSA FIX: Injiziert! Keine Superglobals mehr!
+        private ServerRequest $request,
     ) {
     }
 
@@ -56,6 +56,12 @@ final readonly class TemplateRenderer
             $debugMetrics = ['timeMs' => $timeMs, 'memoryMb' => $memoryMb];
         }
 
+        // VSA FIX: Globale Layout-Variablen auflösen, um HeaderNav & Footer logikfrei zu machen
+        $adminUserId = $this->sessionManager->getUserId();
+        $adminRoleRaw = $this->sessionManager->getAdminGroup();
+        $adminRoleName = \ucfirst(\str_replace('role_', '', $adminRoleRaw));
+        $adminAvatarUrl = $adminUserId !== '' ? $this->imageStorage->getImageUrl('user', $adminUserId, 'user.webp') : '';
+
         // 3. Systemvariablen bereitstellen
         $systemVars = [
             'appRoot' => $appRoot,
@@ -70,6 +76,13 @@ final readonly class TemplateRenderer
             'appVersion' => $this->systemInfo->getCurrentVersion(),
             'currentYear' => $this->clock->now()->format('Y'),
             'debugMetrics' => $debugMetrics,
+            // Globale Admin Layout Variablen
+            'adminUserId' => $adminUserId,
+            'adminUserName' => $this->sessionManager->getAdminUser(),
+            'adminRoleName' => $adminRoleName,
+            'adminAvatarUrl' => $adminAvatarUrl,
+            'globalPermissions' => $this->sessionManager->getPermissions(),
+            'allReleaseNotes' => $this->systemInfo->getAllReleaseNotes(),
         ];
 
         // Lade alle Flashes automatisch in die View-Daten!

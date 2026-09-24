@@ -1,24 +1,21 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 use App\Modules\Voucher\Application\UseCases\GetVoucherList\VoucherListDto;
-use App\SharedKernel\Infrastructure\Config\Config;
 
 /**
  * Partial: Dashboard Tab - Voucher Management
  *
  * Aktivierungscodes und Gutschein-Archiv verwalten.
+ * VSA FIX: Nutzt jetzt exklusiv das View-DTO (Dumb View).
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
- * @var Config $config
+ * @var DashboardViewDto $viewDto
  * @var array $settings
- * @var array $voucherArchive
- * @var VoucherListDto[] $vouchers
  */
 ?>
-<?php if ($auth->hasPermission('vouchers.view')) { ?>
+<?php if ($viewDto->permissions->canViewVouchers) { ?>
 <div class="c-tab-content-container">
     <div class="o-grid o-grid--sidebar u-align-start">
 
@@ -47,7 +44,7 @@ use App\SharedKernel\Infrastructure\Config\Config;
                     </thead>
                     <tbody>
                         <?php
-                            $activeVouchers = \array_filter($vouchers ?? [], fn (VoucherListDto $v) => !$v->isInvalid);
+                            $activeVouchers = \array_filter($viewDto->vouchers ?? [], fn (VoucherListDto $v) => !$v->isInvalid);
 
     if (empty($activeVouchers)) {
         ?>
@@ -60,9 +57,9 @@ use App\SharedKernel\Infrastructure\Config\Config;
                             </td>
                         </tr>
                         <?php } else { ?>
-                        <?php foreach ($vouchers as $v) {
-                            $url = \rtrim((string) $config->getBaseUrl(), '/') . '/index?voucher=' . $v->code;
-                            ?>
+                        <?php foreach ($viewDto->vouchers as $v) {
+                            $url = \rtrim((string) ($settings['base_url'] ?? ''), '/') . '/index?voucher=' . $v->code;
+                        ?>
                         <tr class="u-hover-fade <?php echo $v->rowClass; ?>">
                             <td class="c-table__data-cell">
                                 <div class="u-text-center">
@@ -82,14 +79,13 @@ use App\SharedKernel\Infrastructure\Config\Config;
                                         > QR
                                     </button>
                                     <code class="u-display-block u-margin-block-start-s u-text-xs u-font-bold">
-                                            <?php echo $v->code; ?>
-                                        </code>
+                                        <?php echo $v->code; ?>
+                                    </code>
                                 </div>
                             </td>
                             <td class="c-table__data-cell">
                                 <strong class="u-display-block u-text-md u-color-dark">
-                                    <?php echo $v->reason; // HTML is safe/prepared in DTO
-                                    ?>
+                                    <?php echo $v->reason; ?>
                                 </strong>
                                 <div class="u-margin-block-start-xs u-flex u-gap-s u-flex-wrap">
                                     <span class="c-badge <?php echo $v->discountBadgeClass; ?>">
@@ -116,8 +112,8 @@ use App\SharedKernel\Infrastructure\Config\Config;
                                     (Parz: <?php echo $v->prefilledPlot ?: '?'; ?>)<br>
                                     <?php } ?>
                                     <?php if ($v->expiresText) {
-                                        echo $v->expiresText;
-                                    } ?>
+                                                    echo $v->expiresText;
+                                                } ?>
                                 </div>
 
                                 <div class="u-margin-block-start-s">
@@ -139,7 +135,7 @@ use App\SharedKernel\Infrastructure\Config\Config;
                             </td>
                             <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                                 <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
-                                    <?php if ($auth->hasPermission('vouchers.suspend')) { ?>
+                                    <?php if ($viewDto->permissions->canManageVouchers) { ?>
                                     <form
                                         method="POST"
                                         action="<?php echo $settings['base_url'] . $v->toggleActionUrl; ?>"
@@ -177,7 +173,7 @@ use App\SharedKernel\Infrastructure\Config\Config;
                                     </form>
                                     <?php } ?>
 
-                                    <?php if ($auth->hasPermission('vouchers.delete')) { ?>
+                                    <?php if ($viewDto->permissions->canManageVouchers) { // Delete falls under the same or specific permission?>
                                     <form
                                         method="POST"
                                         action="<?php echo $settings['base_url']; ?>delete_voucher"
@@ -244,7 +240,7 @@ use App\SharedKernel\Infrastructure\Config\Config;
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $archive = $voucherArchive ?? [];
+                        <?php $archive = $viewDto->voucherArchive ?? [];
     if (empty($archive)) { ?>
                         <tr>
                             <td
@@ -293,7 +289,7 @@ use App\SharedKernel\Infrastructure\Config\Config;
             class="c-modal__title u-margin-block-end-s"
         >QR-Code scannen</h4>
         <code id="qrModalCode"
-                  class="c-license-plate u-margin-block-end-m c-voucher-qr-code js-qr-modal-code"></code>
+                class="c-license-plate u-margin-block-end-m c-voucher-qr-code js-qr-modal-code"></code>
         <div class="c-box u-margin-block-none u-flex u-align-center u-justify-center c-voucher-qr-box js-qr-box">
             <!-- Dynamisches Image wird durch VoucherManager hier eingefügt -->
             <div

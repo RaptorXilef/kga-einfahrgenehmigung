@@ -1,32 +1,26 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\Identity\Domain\RoleRepositoryInterface;
-use App\Modules\System\Infrastructure\Storage\ImageStorageService;
 
 /**
  * Component: Administrative Header Navigation
- * VSA FIX: PHTML ist jetzt 100% dumm. Nutzt `$currentRoute` und `$csrfToken`.
+ * VSA FIX: PHTML ist jetzt 100% dumm. Bezieht alle User-Daten vom TemplateRenderer.
  *
  * Beinhaltet das Top-Menü für eingeloggte Administratoren, Profil-Shortcuts und System-Links.
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
- * @var ImageStorageService $imageStorage
- * @var RoleRepositoryInterface $roleRepository
  * @var array $settings
  * @var array $allReleaseNotes
+ * @var array $globalPermissions
  * @var string $currentRoute
  * @var string $csrfToken
+ * @var string $adminUserId
+ * @var string $adminUserName
+ * @var string $adminRoleName
+ * @var string $adminAvatarUrl
  */
-$roleId = $auth->getRole();
-$roleName = $roleId;
-if (isset($roleRepository) && $auth->isLoggedIn()) {
-    $roles = $roleRepository->loadAll();
-    $roleName = isset($roles[$roleId]) ? $roles[$roleId]->name : $roleId;
-}
-$userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user', $auth->getUserId(), 'user.webp') : '';
+$canManageSystem = ($globalPermissions['system.manage'] ?? false) || ($globalPermissions['*'] ?? false) || \str_starts_with($adminUserId, 'sys_');
+$canAccessAdmin = ($globalPermissions['admin.access'] ?? false) || ($globalPermissions['*'] ?? false) || \str_starts_with($adminUserId, 'sys_');
 ?>
 
 <nav class="c-header-nav">
@@ -37,17 +31,19 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user', $auth->g
             <div class="c-header-nav__brand">
                 <div class="c-user-pill">
                     <span class="u-font-bold u-text-sm u-flex u-align-center u-gap-s">
+                        <?php if ($adminAvatarUrl !== '') { ?>
                         <img
-                            src="<?php echo $userImgUrl; ?>"
+                            src="<?php echo $adminAvatarUrl; ?>"
                             class="c-avatar c-avatar--xs"
                             alt="User Avatar"
                         >
+                        <?php } ?>
                         <a
                             href="profile"
                             class="c-user-pill__link"
                             title="Zum Profil"
                         >
-                            <?php echo \htmlspecialchars($auth->getUsername()); ?>
+                            <?php echo \htmlspecialchars($adminUserName); ?>
                         </a>
                     </span>
                     <div class="c-group-badge">
@@ -57,11 +53,11 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user', $auth->g
                             loading="lazy"
                             alt="Role Icon"
                         >
-                        <span class="c-group-badge__label"><?php echo \htmlspecialchars($roleName); ?></span>
+                        <span class="c-group-badge__label"><?php echo \htmlspecialchars($adminRoleName); ?></span>
                     </div>
                 </div>
 
-                <?php if ($auth->hasPermission('system.manage')) { ?>
+                <?php if ($canManageSystem) { ?>
                 <a
                     href="users"
                     class="c-tabs__btn <?php echo $currentRoute === 'users' ? 'is-active' : ''; ?>"
@@ -138,7 +134,7 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user', $auth->g
 
         <!-- ZEILE 2: Haupt-Navigation der App -->
         <div class="c-header-nav__bottom">
-            <?php if ($auth->hasPermission('admin.access')) { ?>
+            <?php if ($canAccessAdmin) { ?>
             <a
                 href="admin"
                 class="c-tabs__btn <?php echo $currentRoute === 'admin' ? 'is-active' : ''; ?>"

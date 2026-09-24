@@ -12,11 +12,9 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\GetDashboardPermitsHandler;
@@ -46,12 +44,12 @@ use DateTimeImmutable;
 #[RequiresAuth]
 final readonly class DashboardRenderAction implements ViewActionInterface
 {
+    public $request;
+
     public function __construct(
         private AuditLogRepositoryInterface $auditLogRepository,
         private AuthService $auth,
         private ConfigInterface $config,
-        private RoleRepositoryInterface $roleRepository,
-        private ImageStorageInterface $imageStorage,
         private SystemInfoInterface $systemInfo,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
@@ -93,54 +91,19 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $dto->page,
             $dto->limit,
         ));
-        $financePermitsDto = $this->financeListHandler->handle(new GetFinanceListQuery());
-        $statsDto = $this->statsHandler->handle(new GetDashboardStatsQuery($dto->start, $dto->end, $dto->type, $dto->query, $minArchiveYear));
 
-        // 2. View-Model für das Dashboard aufbauen (RBAC & Dumme View Integration)
-        $dashboardViewDto = $this->buildDashboardViewDto($dto, $focus, $minArchiveYear, $permitsResult, $financePermitsDto, $request);
+        $financePermitsDto = $this->auth->hasPermission('finance.view') ? $this->financeListHandler->handle(new GetFinanceListQuery()) : [];
+        $statsDto = $this->auth->hasPermission('stats.view') || $this->auth->hasPermission('stats.ranking')
+            ? $this->statsHandler->handle(new GetDashboardStatsQuery($dto->start, $dto->end, $dto->type, $dto->query, $minArchiveYear))
+            : null;
 
-        // 3. Fallback: Wir laden auch die alten Variablen für die noch nicht refaktorierten Tabs.
-        $vouchers = $this->getVoucherListHandler->handle(new GetVoucherListQuery());
-        $voucherArchive = $this->getVoucherArchiveHandler->handle(new GetVoucherArchiveQuery());
-        $auditFilter = (string) ($request->get['audit_filter'] ?? '');
-        $auditData = $this->auditLogRepository->getPaginated($dto->page, $dto->limit, $auditFilter);
+        // 2. View-Model für das Dashboard aufbauen
+        $dashboardViewDto = $this->buildDashboardViewDto($dto, $focus, $minArchiveYear, $permitsResult, $financePermitsDto, $statsDto, $request);
 
-        $unreadReleaseNotes = [];
-        $allReleaseNotes = $this->systemInfo->getAllReleaseNotes();
-
-        $userId = $this->auth->getUserId();
-        if (!\str_starts_with($userId, 'sys_')) {
-            $user = $this->userRepository->findById($userId);
-            if ($user instanceof User) {
-                $unreadReleaseNotes = $this->systemInfo->getUnreadReleaseNotes($user->getLastSeenChangelog());
-            }
-        }
-
+        // VSA FIX: Die View konsumiert nun ausschließlich das fertige DTO!
         $html = $this->renderer->render('admin/dashboard', [
             'viewDto' => $dashboardViewDto,
-            // Legacy Variables für un-refaktorierte Tabs (Stats, Vouchers, System)
-            'allowedLimits' => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
-            'allReleaseNotes' => $allReleaseNotes,
-            'auditFilter' => $auditFilter,
-            'auditLogs' => $auditData['items'],
-            'auditTotal' => $auditData['total'],
-            'auth' => $this->auth,
-            'statsDto' => $statsDto,
-            'currentPage' => $dto->page,
-            'filterEnd' => $dto->end,
-            'filterQuery' => $dto->query,
-            'filterStart' => $dto->start,
-            'filterType' => $dto->type,
             'formData' => $this->sessionManager->getFormData() ?? [],
-            'roleRepository' => $this->roleRepository,
-            'imageStorage' => $this->imageStorage,
-            'itemsPerPage' => $dto->limit,
-            'minArchiveYear' => $minArchiveYear,
-            'structure' => $this->config->get('structure', []),
-            'unreadReleaseNotes' => $unreadReleaseNotes,
-            'userRepository' => $this->userRepository,
-            'voucherArchive' => $voucherArchive,
-            'vouchers' => $vouchers,
         ]);
 
         $this->sessionManager->clearFormData();
@@ -154,6 +117,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         int $minArchiveYear,
         object $permitsResult,
         array $financePermitsDto,
+        ?object $statsDto,
         ServerRequest $request,
     ): DashboardViewDto {
 
@@ -176,9 +140,12 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             canManageVouchers: $this->auth->hasPermission('vouchers.create') || $this->auth->hasPermission('vouchers.suspend'),
             canViewVouchers: $this->auth->hasPermission('vouchers.view'),
             canViewStats: $this->auth->hasPermission('stats.view'),
+            canViewCharts: $this->auth->hasPermission('stats.charts'),
             canViewRanking: $this->auth->hasPermission('stats.ranking'),
             canViewLogs: $this->auth->hasPermission('system.logs.view'),
             canManageSystem: $this->auth->hasPermission('system.maintenance.execute') || $this->auth->hasPermission('system.update.execute'),
+            canExecuteMaintenance: $this->auth->hasPermission('system.maintenance.execute'),
+            canExecuteUpdates: $this->auth->hasPermission('system.update.execute'),
             canManageBackups: $this->auth->hasPermission('system.backup.manage'),
             showPrivacyEmails: $this->auth->hasPermission('privacy.emails.view'),
             showPrivacyFinance: $this->auth->hasPermission('privacy.finance.view'),
@@ -241,9 +208,9 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         }
 
         // Pagination HTML Generierung
-        $renderPagination = function (int $total, string $tabId) use ($dto, $focus): string {
+        $renderPagination = function (int $total, string $tabId, string $pageParam = 'page') use ($dto, $focus): string {
             $limit = $dto->limit;
-            $page = $tabId === $focus ? $dto->page : 1;
+            $page = $tabId === $focus ? (int) ($this->request->get[$pageParam] ?? $dto->page) : 1;
             $totalPages = \max(1, (int) \ceil($total / $limit));
             $offset = ($page - 1) * $limit;
 
@@ -253,7 +220,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
                 'totalCount' => $total,
                 'limit' => $limit,
                 'offset' => $offset,
-                'paginationParam' => 'page',
+                'paginationParam' => $pageParam,
                 'tabFocusId' => $tabId,
             ]);
         };
@@ -267,19 +234,37 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $slicedFinancePermits = \array_slice($financePermitsDto, $finOffset, $dto->limit);
 
         // Daten für die neuen Dumb View Handler
-        $generatorToolsDto = $this->auth->hasPermission('permits.create') || $this->auth->hasPermission('vouchers.create')
+        $generatorToolsDto = $permissions->canCreatePermits || $permissions->canManageVouchers
             ? $this->generatorToolsHandler->handle(new GetGeneratorToolsDataQuery($this->auth))
             : null;
 
-        $mailLogsDto = $this->auth->hasPermission('system.logs.view')
+        $mailLogsDto = $permissions->canViewLogs
             ? $this->mailLogsHandler->handle(new GetMailLogsDataQuery($dto->page, $dto->limit))
             : null;
 
-        $backupsDto = $this->auth->hasPermission('system.backup.manage')
+        $backupsDto = $permissions->canManageBackups
             ? $this->backupsHandler->handle(new GetBackupsDataQuery())
             : null;
 
         $paginationHtmlLogs = $mailLogsDto instanceof MailLogsResultDto ? $renderPagination($mailLogsDto->total, 'tab-logs') : '';
+
+        // VSA FIX: Legacy Daten laden und ins DTO verfrachten
+        $vouchers = $permissions->canViewVouchers ? $this->getVoucherListHandler->handle(new GetVoucherListQuery()) : null;
+        $voucherArchive = $permissions->canViewVouchers ? $this->getVoucherArchiveHandler->handle(new GetVoucherArchiveQuery()) : null;
+
+        $auditFilter = (string) ($request->get['audit_filter'] ?? '');
+        $auditPage = (int) ($request->get['audit_page'] ?? 1);
+        $auditData = $permissions->canViewLogs ? $this->auditLogRepository->getPaginated($auditPage, $dto->limit, $auditFilter) : ['items' => [], 'total' => 0];
+        $paginationHtmlAudit = $permissions->canViewLogs ? $renderPagination($auditData['total'], 'tab-audit-log', 'audit_page') : '';
+
+        $unreadReleaseNotes = [];
+        $userId = $this->auth->getUserId();
+        if (!\str_starts_with($userId, 'sys_')) {
+            $user = $this->userRepository->findById($userId);
+            if ($user instanceof User) {
+                $unreadReleaseNotes = $this->systemInfo->getUnreadReleaseNotes($user->getLastSeenChangelog());
+            }
+        }
 
         // Archiv URL
         $queryParams = $request->get;
@@ -318,14 +303,24 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             paginationHtmlCancelled: $renderPagination($permitsResult->countCancelled, 'tab-cancelled'),
             paginationHtmlFinance: $renderPagination($totalUnpaid, 'tab-finance'),
             paginationHtmlLogs: $paginationHtmlLogs,
+            paginationHtmlAudit: $paginationHtmlAudit,
             financeTableColspan: $financeTableColspan,
             focus: $focus,
             showBankWizard: $showBankWizard,
             minArchiveYear: $minArchiveYear,
             expiredLoadArchiveUrl: '?' . \http_build_query($queryParams),
+            stats: $statsDto,
             generatorTools: $generatorToolsDto,
             mailLogs: $mailLogsDto,
             backups: $backupsDto,
+            vouchers: $vouchers,
+            voucherArchive: $voucherArchive,
+            auditLogs: $auditData['items'],
+            auditTotal: $auditData['total'],
+            auditFilter: $auditFilter,
+            unreadReleaseNotes: $unreadReleaseNotes,
+            bankImportMode: (string) $this->config->get('bank_import_mode', 'simple'),
+            cronSecret: (string) $this->config->get('cron_secret', ''),
         );
     }
 }

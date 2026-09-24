@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\System\Application\UseCases\ViewDashboard;
 
 /**
- * 100% logikfreies DTO für die View. Ersetzt alle $auth->hasPermission() Aufrufe in den PHTMLs.
+ * 100% logikfreies DTO für die View. Ersetzt alle $auth->hasPermission() Aufrufe im Dashboard.
  */
 final readonly class DashboardPermissionsDto
 {
@@ -21,9 +21,12 @@ final readonly class DashboardPermissionsDto
         public bool $canManageVouchers,
         public bool $canViewVouchers,
         public bool $canViewStats,
+        public bool $canViewCharts,
         public bool $canViewRanking,
         public bool $canViewLogs,
         public bool $canManageSystem,
+        public bool $canExecuteMaintenance,
+        public bool $canExecuteUpdates,
         public bool $canManageBackups,
         public bool $showPrivacyEmails,
         public bool $showPrivacyFinance,

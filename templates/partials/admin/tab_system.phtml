@@ -1,18 +1,16 @@
 <?php
 
-use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - System Maintenance & Cronjobs
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
- * @var ConfigInterface $config
+ * @var DashboardViewDto $viewDto
  * @var array $settings
  */
-$cronSecret = (string) $config->get('cron_secret', '');
+$cronSecret = $viewDto->cronSecret;
 $baseUrl = \rtrim($settings['base_url'] ?? '', '/');
 
 $crons = [
@@ -55,7 +53,7 @@ $crons = [
 ?>
 
 <div class="c-tab-content-container">
-    <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
+    <?php if ($viewDto->permissions->canExecuteMaintenance) { ?>
     <div class="u-margin-block-end-l">
         <header class="u-margin-block-end-m u-flex u-align-center u-gap-s">
             <span class="u-text-xl">
@@ -144,7 +142,7 @@ $crons = [
     </div>
     <?php } ?>
 
-    <?php if ($auth->hasPermission('system.update.execute')) { ?>
+    <?php if ($viewDto->permissions->canExecuteUpdates) { ?>
     <div class="u-margin-block-end-l">
         <header class="u-margin-block-end-m u-flex u-align-center u-gap-s">
             <span class="u-text-xl">
@@ -191,7 +189,7 @@ $crons = [
     </div>
     <?php } ?>
 
-    <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
+    <?php if ($viewDto->permissions->canExecuteMaintenance) { ?>
     <div class="u-margin-block-start-xl">
         <header class="u-margin-block-end-m u-flex u-align-center u-gap-s">
             <span class="u-text-xl">

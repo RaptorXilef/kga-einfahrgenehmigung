@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\System\Application\UseCases\ViewDashboard;
 
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitDto;
+use App\Modules\Permit\Application\UseCases\GetDashboardStats\DashboardStatsDto;
 use App\Modules\Permit\Application\UseCases\GetFinanceList\FinancePermitDto;
 use App\Modules\Permit\Application\UseCases\GetGeneratorToolsData\GeneratorToolsViewDto;
 use App\Modules\System\Application\UseCases\GetBackupsData\BackupsResultDto;
@@ -58,15 +59,26 @@ final readonly class DashboardViewDto
         public string $paginationHtmlCancelled,
         public string $paginationHtmlFinance,
         public string $paginationHtmlLogs,
+        public string $paginationHtmlAudit,
         public int $financeTableColspan,
         public string $focus,
         public bool $showBankWizard,
         public int $minArchiveYear,
         public string $expiredLoadArchiveUrl,
-        // --- Die neuen Dumb View DTOs für die System-Tabs ---
+        // --- Komplexe DTOs für die anderen Tabs ---
+        public ?DashboardStatsDto $stats,
         public ?GeneratorToolsViewDto $generatorTools,
         public ?MailLogsResultDto $mailLogs,
         public ?BackupsResultDto $backups,
+        // --- VSA FIX: Legacy Variablen als reine Arrays/Strings ins DTO gehoben ---
+        public ?array $vouchers,
+        public ?array $voucherArchive,
+        public ?array $auditLogs,
+        public int $auditTotal,
+        public string $auditFilter,
+        public array $unreadReleaseNotes,
+        public string $bankImportMode,
+        public string $cronSecret,
     ) {
     }
 }

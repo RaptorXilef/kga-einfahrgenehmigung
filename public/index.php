@@ -16,7 +16,7 @@ $req = new ServerRequest($_GET, $_POST, $_FILES, $_SERVER, [], $_COOKIE ?? []);
 
 // VSA FIX: Binde den Request in den Container, damit Middlewares und der TemplateRenderer
 // ihn via Dependency Injection erhalten können, ohne auf $_SERVER zugreifen zu müssen!
-$container->bind(ServerRequest::class, fn () => $req);
+$container->bind(ServerRequest::class, fn (): ServerRequest => $req);
 
 $controller = $container->get(FrontendController::class);
 \assert($controller instanceof FrontendController);
