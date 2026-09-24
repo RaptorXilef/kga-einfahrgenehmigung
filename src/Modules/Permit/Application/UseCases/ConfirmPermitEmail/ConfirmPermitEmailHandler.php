@@ -99,11 +99,11 @@ final readonly class ConfirmPermitEmailHandler implements CommandHandlerInterfac
                     $allVerified[$token] = new VerificationRequest($token, $expires, $data);
                     $this->verificationRepository->saveVerified($allVerified);
 
-                    // Auto-Finalize
-                    $permit = $this->finalizePermitHandler->handle(new FinalizePermitCommand($token, PermitStatus::Bezahlt, 'Gutschein (Voll-Rabatt): ' . $voucherCodeStr));
+                    // Auto-Finalize (VSA CQRS FIX)
+                    $permitCode = $this->finalizePermitHandler->handle(new FinalizePermitCommand($token, PermitStatus::Bezahlt, 'Gutschein (Voll-Rabatt): ' . $voucherCodeStr));
 
                     $command->context->isSuccess = true;
-                    $command->context->finalisedPermit = $permit;
+                    $command->context->finalisedPermitCode = $permitCode;
 
                     return;
                 }

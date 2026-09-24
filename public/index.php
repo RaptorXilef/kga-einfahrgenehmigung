@@ -14,6 +14,10 @@ $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
 // Falls deine Klasse Cookies noch nicht unterstützt, können wir das gleich nachrüsten.
 $req = new ServerRequest($_GET, $_POST, $_FILES, $_SERVER, [], $_COOKIE ?? []);
 
+// VSA FIX: Binde den Request in den Container, damit Middlewares und der TemplateRenderer
+// ihn via Dependency Injection erhalten können, ohne auf $_SERVER zugreifen zu müssen!
+$container->bind(ServerRequest::class, fn () => $req);
+
 $controller = $container->get(FrontendController::class);
 \assert($controller instanceof FrontendController);
 

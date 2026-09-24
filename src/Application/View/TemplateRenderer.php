@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\View;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
@@ -23,8 +24,9 @@ final readonly class TemplateRenderer
         private JsonHelperInterface $jsonHelper,
         private SessionManager $sessionManager,
         private AssetHelperInterface $assetHelper,
-        private SystemInfoInterface $systemInfo, // NEU: Für Versions-Auslesung
-        private ClockInterface $clock, // NEU: Für Zeit-Checks
+        private SystemInfoInterface $systemInfo,
+        private ClockInterface $clock,
+        private ServerRequest $request, // VSA FIX: Injiziert! Keine Superglobals mehr!
     ) {
     }
 
@@ -35,8 +37,8 @@ final readonly class TemplateRenderer
     {
         $appRoot = \rtrim((string) $this->config->get('root_path'), '/\\');
 
-        // 1. Sichere Routen-Ermittlung ohne direkte $_SERVER Nutzung im Template
-        $requestUri = (string) \filter_input(\INPUT_SERVER, 'REQUEST_URI');
+        // 1. Sichere Routen-Ermittlung aus dem gekapselten ServerRequest
+        $requestUri = (string) ($this->request->server['REQUEST_URI'] ?? '/');
         $path = \parse_url($requestUri, \PHP_URL_PATH);
         $path = \trim((string) $path, '/');
         if (\str_ends_with($path, '.php')) {
@@ -47,7 +49,7 @@ final readonly class TemplateRenderer
         // 2. Metriken für den Footer vorbereiten (Logik aus PHTML entfernt)
         $debugMetrics = null;
         if ($this->config->get('debug_mode', false)) {
-            $reqTimeRaw = \filter_input(\INPUT_SERVER, 'REQUEST_TIME_FLOAT');
+            $reqTimeRaw = $this->request->server['REQUEST_TIME_FLOAT'] ?? null;
             $requestTime = \is_numeric($reqTimeRaw) ? (float) $reqTimeRaw : (float) (\defined('APP_REQUEST_TIME') ? APP_REQUEST_TIME : \microtime(true));
             $timeMs = \round((\microtime(true) - $requestTime) * 1000, 2);
             $memoryMb = \round(\memory_get_peak_usage() / 1024 / 1024, 2);
@@ -63,7 +65,7 @@ final readonly class TemplateRenderer
             'asset' => $this->assetHelper,
             'settings' => $this->getGlobalSettings(),
             'cspNonce' => \defined('CSP_NONCE') ? CSP_NONCE : '',
-            'csrfToken' => $this->sessionManager->getCsrfToken(), // GLOBALES SICHERES TOKEN
+            'csrfToken' => $this->sessionManager->getCsrfToken(),
             'currentRoute' => $currentRoute,
             'appVersion' => $this->systemInfo->getCurrentVersion(),
             'currentYear' => $this->clock->now()->format('Y'),
@@ -77,7 +79,7 @@ final readonly class TemplateRenderer
         \extract($systemVars);
         \extract($data); // OHNE EXTR_SKIP, damit Templates lokale Variablen setzen können!
 
-        // Intelligente Pfad-Auflösung (Verhindert den "Failed to open stream" Fehler)
+        // Intelligente Pfad-Auflösung
         $fullPath = $appRoot . "/templates/pages/{$templatePath}.phtml";
         if (!\file_exists($fullPath)) {
             // Fallback auf den Basis-Ordner (Wichtig für /emails/ und /partials/)

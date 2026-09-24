@@ -37,9 +37,12 @@ final readonly class FinalizePermitHandler
     ) {
     }
 
-    public function handle(FinalizePermitCommand $command): Permit
+    /**
+     * VSA CQRS FIX: Gibt nur noch die ID (den Code) als String zurück, nicht die Entity.
+     */
+    public function handle(FinalizePermitCommand $command): string
     {
-        return $this->lockManager->executeWithLock('checkout', function () use ($command): Permit {
+        return $this->lockManager->executeWithLock('checkout', function () use ($command): string {
             $allVerified = $this->verificationRepository->loadVerified();
 
             if (!isset($allVerified[$command->token])) {
@@ -101,7 +104,7 @@ final readonly class FinalizePermitHandler
             // Mails feuern!
             $this->eventDispatcher->dispatch(new PermitCreatedEvent($permit, $randomId));
 
-            return $permit;
+            return $permit->code->value;
         });
     }
 

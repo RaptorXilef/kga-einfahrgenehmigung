@@ -42,13 +42,14 @@ final readonly class FinalizeWireAction implements ViewActionInterface
             $targetStatus = $price <= 0.0 ? PermitStatus::Bezahlt : PermitStatus::Offen;
             $comment = $price <= 0.0 ? 'Kostenlos / Gebührenfrei' : 'Zahlung per Überweisung gewählt';
 
-            $permit = $this->finalizeHandler->handle(new FinalizePermitCommand(
+            // VSA CQRS FIX: Nimmt nur den String-Code entgegen
+            $permitCode = $this->finalizeHandler->handle(new FinalizePermitCommand(
                 $dto->token,
                 $targetStatus,
                 $comment,
             ));
 
-            return JsonResponse::success(['code' => $permit->code->value]);
+            return JsonResponse::success(['code' => $permitCode]);
         } catch (Throwable $e) {
             return JsonResponse::error($e->getMessage());
         }
