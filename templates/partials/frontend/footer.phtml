@@ -8,6 +8,7 @@
  * @var string $appVersion   Bereitgestellt durch TemplateRenderer
  * @var string $currentYear  Bereitgestellt durch TemplateRenderer
  * @var array|null $debugMetrics Bereitgestellt durch TemplateRenderer
+ * @var bool $canAccessAdmin Bereitgestellt durch TemplateRenderer
  * @var string|null $appRoot (optional, wird berechnet falls nicht vorhanden)
  */
 
@@ -25,6 +26,7 @@ $issuesUrl = $githubUrl . '/issues';
 $baseUrl = $settings['base_url'] ?? '/';
 $impressumUrl = \rtrim($baseUrl, '/') . '/impressum';
 $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
+$isAdmin = $canAccessAdmin ?? false;
 ?>
 
 <footer class="c-footer">
@@ -32,7 +34,7 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
         <div class="c-footer__copyright">
             &copy; <?php echo $yearDisplay; ?> <?php echo \htmlspecialchars($softwareName); ?>
 
-            <?php if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('admin.access')) { ?>
+            <?php if ($isAdmin) { ?>
             <a
                 href="<?php echo \htmlspecialchars($baseUrl); ?>changelog"
                 class="c-footer__version c-footer__version--admin"
@@ -47,7 +49,7 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
             <?php } ?>
         </div>
 
-        <?php if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('admin.access')) { ?>
+        <?php if ($isAdmin) { ?>
         <div class="u-margin-block-start-xs">
             <a
                 href="<?php echo \htmlspecialchars($issuesUrl); ?>"
