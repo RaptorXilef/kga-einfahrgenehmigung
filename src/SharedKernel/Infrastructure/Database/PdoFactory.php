@@ -24,7 +24,7 @@ final class PdoFactory
      */
     public static function create(ConfigInterface $config, ?ClockInterface $clock = null): ?PDO
     {
-        $db = $config->get('database', []);
+        $db = $config->getArray('database');
 
         if (!isset($db['enabled']) || $db['enabled'] === false) {
             return null;
@@ -34,21 +34,23 @@ final class PdoFactory
         $dsnWithDb = "mysql:host={$db['host']}{$portStr};dbname={$db['dbname']};charset={$db['charset']}";
 
         // Dynamischer Switch zwischen echtem PDO und dem Logging-Wrapper
-        $isDebugMode = $config->get('debug_mode', false) === true;
-        $pdoClass = $isDebugMode ? DebugPDO::class : PDO::class;
+        $isDebugMode = $config->getBool('debug_mode', false);
         $pdo = null;
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::ATTR_TIMEOUT => 2,
+        ];
 
         try {
-            $pdo = new $pdoClass($dsnWithDb, $db['user'], $db['pass'], [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-                PDO::ATTR_TIMEOUT => 2,
-            ], $clock);
-
-            if ($pdo instanceof DebugPDO) {
-                $logPath = \rtrim((string) $config->get('root_path', ''), '/\\') . '/logs/sql_debug.log';
+            // Nur dem DebugPDO das 5. Argument übergeben!
+            if ($isDebugMode) {
+                $pdo = new DebugPDO($dsnWithDb, $db['user'], $db['pass'], $options, $clock);
+                $logPath = \rtrim($config->getString('root_path'), '/\\') . '/logs/sql_debug.log';
                 $pdo->setLogFile($logPath);
+            } else {
+                $pdo = new PDO($dsnWithDb, $db['user'], $db['pass'], $options);
             }
         } catch (PDOException $e) {
             $mysqlErrorCode = $e->errorInfo[1] ?? null;
@@ -62,16 +64,18 @@ final class PdoFactory
             $dsnWithoutDb = "mysql:host={$db['host']}{$portStr};charset={$db['charset']}";
 
             try {
-                $pdo = new $pdoClass($dsnWithoutDb, $db['user'], $db['pass'], [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false,
-                    PDO::ATTR_TIMEOUT => 2,
-                ], $clock);
-
-                if ($pdo instanceof DebugPDO) {
-                    $logPath = \rtrim((string) $config->get('root_path', ''), '/\\') . '/logs/sql_debug.log';
+                if ($isDebugMode) {
+                    $pdo = new DebugPDO(
+                        $dsnWithoutDb,
+                        $db['user'],
+                        $db['pass'],
+                        $options,
+                        $clock,
+                    );
+                    $logPath = \rtrim($config->getString('root_path'), '/\\') . '/logs/sql_debug.log';
                     $pdo->setLogFile($logPath);
+                } else {
+                    $pdo = new PDO($dsnWithoutDb, $db['user'], $db['pass'], $options);
                 }
 
                 $sql = "CREATE DATABASE IF NOT EXISTS `{$db['dbname']}` " .
