@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Finance\Infrastructure\Payment;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
 use Exception;
 use League\Csv\Reader;
+use Override;
 use ZipArchive;
 
 /**
@@ -20,9 +22,11 @@ final readonly class LocalBankImportInfrastructure implements BankImportInfrastr
 {
     public function __construct(
         private ConfigInterface $config,
+        private ClockInterface $clock,
     ) {
     }
 
+    #[Override]
     public function normalizeAndOpenCsv(string $filePath): ?Reader
     {
         if (!\file_exists($filePath)) {
@@ -79,16 +83,15 @@ final readonly class LocalBankImportInfrastructure implements BankImportInfrastr
         }
 
         $delimiters = [
-            ';' => \substr_count($firstLine, ';'),
-            ',' => \substr_count($firstLine, ','),
+            ';' => \substr_count($firstLine, ';'),             ',' => \substr_count($firstLine, ','),
             "\t" => \substr_count($firstLine, "\t"),
-            '|' => \substr_count($firstLine, '|'),
-        ];
+            '|' => \substr_count($firstLine, '|'),         ];
         \arsort($delimiters);
 
         return (string) \array_key_first($delimiters);
     }
 
+    #[Override]
     public function writeLog(string $message, array &$runLogs): void
     {
         $logDir = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/logs';
@@ -97,13 +100,14 @@ final readonly class LocalBankImportInfrastructure implements BankImportInfrastr
         }
 
         $logFile = $logDir . '/bank_import.log';
-        $timestamp = \date('d-M-Y H:i:s e');
-        $formattedMessage = "[$timestamp] BankImport: $message\n";
+        $timestamp = $this->clock->now()->format('d-M-Y H:i:s e');
+        $formattedMessage = "[$timestamp] BankImport:$message\n";
 
         @\file_put_contents($logFile, $formattedMessage, \FILE_APPEND | \LOCK_EX);
         $runLogs[] = $formattedMessage;
     }
 
+    #[Override]
     public function createArchiveZip(string $csvFilePath, array $logs): void
     {
         $root = \rtrim((string) $this->config->get('root_path', ''), '/\\');
@@ -118,8 +122,8 @@ final readonly class LocalBankImportInfrastructure implements BankImportInfrastr
             @\file_put_contents($htaccessPath, "Order allow,deny\nDeny from all\n");
         }
 
-        $timestamp = \date('Ymd_His');
-        $zipFilename = $archiveDir . '/import_' . $timestamp . '_' . \uniqid('', true) . '.zip';
+        $timestamp = $this->clock->now()->format('Ymd_His');
+        $zipFilename = $archiveDir . '/import_' . $timestamp . '_' . \bin2hex(\random_bytes(8)) . '.zip';
         $zip = new ZipArchive();
 
         if ($zip->open($zipFilename, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
@@ -139,6 +143,7 @@ final readonly class LocalBankImportInfrastructure implements BankImportInfrastr
         $zip->close();
     }
 
+    #[Override]
     public function cleanupTempFile(string $filePath): void
     {
         @\unlink($filePath);

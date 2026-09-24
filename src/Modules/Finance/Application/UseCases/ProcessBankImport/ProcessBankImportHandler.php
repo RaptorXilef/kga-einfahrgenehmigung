@@ -39,12 +39,12 @@ final readonly class ProcessBankImportHandler
             return new BankImportResultDto(false, 'Datei konnte nicht gefunden oder gelesen werden.');
         }
 
-        // --- DECOUPLED DATA FETCH ---
+        // --- DECOUPLED DATA FETCH VIA DTO ---
         $permitData = $this->unpaidPermitProvider->getPermitDataForImport();
-        $allCodes = $permitData['allCodes'];
-        $unpaidCodes = $permitData['unpaidCodes'];
-        $unpaidPlates = $permitData['unpaidPlates'];
-        $prices = $permitData['prices'];
+        $allCodes = $permitData->allCodes;
+        $unpaidCodes = $permitData->unpaidCodes;
+        $unpaidPlates = $permitData->unpaidPlates;
+        $prices = $permitData->prices;
         // -----------------------------
 
         $aggregierteZahlungen = [];

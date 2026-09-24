@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\SharedKernel\Infrastructure\Database;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use PDO;
 use PDOException;
 
@@ -20,12 +21,8 @@ final class PdoFactory
 {
     /**
      * Erstellt und konfiguriert die PDO-Instanz.
-     *
-     * @param ConfigInterface $config Die Systemkonfiguration.
-     *
-     * @return PDO|null Die aktive Verbindung oder null, wenn MySQL deaktiviert ist oder fehlschlägt.
      */
-    public static function create(ConfigInterface $config): ?PDO
+    public static function create(ConfigInterface $config, ?ClockInterface $clock = null): ?PDO
     {
         $db = $config->get('database', []);
 
@@ -47,7 +44,7 @@ final class PdoFactory
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
                 PDO::ATTR_TIMEOUT => 2,
-            ]);
+            ], $clock);
 
             if ($pdo instanceof DebugPDO) {
                 $logPath = \rtrim((string) $config->get('root_path', ''), '/\\') . '/logs/sql_debug.log';
@@ -70,7 +67,7 @@ final class PdoFactory
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                     PDO::ATTR_EMULATE_PREPARES => false,
                     PDO::ATTR_TIMEOUT => 2,
-                ]);
+                ], $clock);
 
                 if ($pdo instanceof DebugPDO) {
                     $logPath = \rtrim((string) $config->get('root_path', ''), '/\\') . '/logs/sql_debug.log';

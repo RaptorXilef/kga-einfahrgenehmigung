@@ -6,10 +6,12 @@ namespace App\Modules\System\Infrastructure;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\System\Domain\MailJob;
 use App\Modules\System\Domain\MailQueueRepositoryInterface;
 use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
 use App\SharedKernel\Infrastructure\Storage\EntityHydratorTrait;
+use Override;
 use PDO;
 use Throwable;
 
@@ -22,9 +24,11 @@ final readonly class PdoMailQueueRepository implements MailQueueRepositoryInterf
         private PDO $pdo,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
+        private ClockInterface $clock,
     ) {
     }
 
+    #[Override]
     public function enqueue(MailJob $job): void
     {
         $table = $this->config->get('storage_config')['mail_queue']['table'];
@@ -34,6 +38,7 @@ final readonly class PdoMailQueueRepository implements MailQueueRepositoryInterf
         $this->executeUpsert($table, $data, ['id']);
     }
 
+    #[Override]
     public function processBatch(int $limit, callable $processor, array $allowedTemplates = []): int
     {
         $sentCount = 0;
@@ -118,7 +123,7 @@ final readonly class PdoMailQueueRepository implements MailQueueRepositoryInterf
         } catch (Throwable $t) {
             $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');
             $logPath = $rootPath . '/logs/mail_queue_errors.log';
-            $logMsg = '[' . \date('d-M-Y H:i:s e') . "] MailQueue Error [ID {$idStr}]: " . $t->getMessage() . "\n";
+            $logMsg = '[' . $this->clock->now()->format('d-M-Y H:i:s e') . "] MailQueue Error [ID {$idStr}]: " . $t->getMessage() . "\n";
             @\file_put_contents($logPath, $logMsg, \FILE_APPEND | \LOCK_EX);
 
             $origAttempts = $attempts - 100 + 1;

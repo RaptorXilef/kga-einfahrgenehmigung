@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\SharedKernel\Infrastructure\Database;
 
+use App\Contracts\Utils\ClockInterface;
+use Override;
 use PDO;
 use PDOStatement;
 
@@ -17,10 +19,14 @@ class DebugPDO extends PDO
 {
     private string $logFile;
 
-    public function __construct(string $dsn, ?string $username = null, ?string $password = null, ?array $options = null)
-    {
+    public function __construct(
+        string $dsn,
+        ?string $username = null,
+        ?string $password = null,
+        ?array $options = null,
+        private ?ClockInterface $clock = null,
+    ) {
         parent::__construct($dsn, $username, $password, $options);
-        // Wir weisen PDO an, für Statements unsere Wrapper-Klasse zu verwenden
         $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, [DebugPDOStatement::class, [$this]]);
     }
 
@@ -40,15 +46,18 @@ class DebugPDO extends PDO
             @\mkdir($logDir, 0o755, true);
         }
 
-        $timestamp = \date('Y-m-d H:i:s') . '.' . \sprintf('%03d', \fmod(\microtime(true), 1) * 1000);
+        $timestampStr = $this->clock ? $this->clock->now()->format('Y-m-d H:i:s') : \date('Y-m-d H:i:s');
+        // microtime is kept specifically for ms duration profiling
+        $timestamp = $timestampStr . '.' . \sprintf('%03d', \fmod(\microtime(true), 1) * 1000);
         $durStr = $durationMs !== null ? \sprintf('[%.2f ms] ', $durationMs) : '[N/A ms] ';
-        $paramString = $params !== [] ? ' | Params: ' . \json_encode($params, \JSON_UNESCAPED_UNICODE) : '';
+        $paramString = $params !== [] ? ' \vert{} Params: ' . \json_encode($params, \JSON_UNESCAPED_UNICODE) : '';
 
-        $msg = "[$timestamp] $durStr$sql$paramString\n";
+        $msg = "[$timestamp]$durStr$sql$paramString\n";
 
         @\file_put_contents($this->logFile, $msg, \FILE_APPEND | \LOCK_EX);
     }
 
+    #[Override]
     public function exec(string $statement): int|false
     {
         $start = \microtime(true);
@@ -60,6 +69,7 @@ class DebugPDO extends PDO
         return $result;
     }
 
+    #[Override]
     public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
     {
         $start = \microtime(true);

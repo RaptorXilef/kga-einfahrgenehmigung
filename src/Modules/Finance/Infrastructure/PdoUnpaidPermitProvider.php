@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Finance\Infrastructure;
 
 use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
+use App\Modules\Finance\Application\DTO\UnpaidPermitsDto;
+use Override;
 use PDO;
 
 /**
  * Die Infrastruktur darf auf die Tabellen übergreifend zugreifen,
- * aber liefert der Application-Schicht nur saubere Arrays.
+ * aber liefert der Application-Schicht nur saubere DTOs.
  */
 final readonly class PdoUnpaidPermitProvider implements UnpaidPermitProviderInterface
 {
@@ -17,7 +19,8 @@ final readonly class PdoUnpaidPermitProvider implements UnpaidPermitProviderInte
     {
     }
 
-    public function getPermitDataForImport(): array
+    #[Override]
+    public function getPermitDataForImport(): UnpaidPermitsDto
     {
         $stmt = $this->pdo->query('SELECT code, name, kennzeichen, status, preis FROM permits');
         $allCodes = [];
@@ -27,7 +30,7 @@ final readonly class PdoUnpaidPermitProvider implements UnpaidPermitProviderInte
 
         // VSA FIX: Nutze fetch() statt fetchAll(), um bei vielen Pächtern den RAM zu schonen
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $c = $row['code'];
+            $c = (string) $row['code'];
             $allCodes[$c] = true;
             $prices[$c] = (float) $row['preis'];
 
@@ -35,15 +38,15 @@ final readonly class PdoUnpaidPermitProvider implements UnpaidPermitProviderInte
                 continue;
             }
 
-            $unpaidCodes[$c] = $row['name'];
-            $unpaidPlates[$c] = $row['kennzeichen'];
+            $unpaidCodes[$c] = (string) $row['name'];
+            $unpaidPlates[$c] = (string) $row['kennzeichen'];
         }
 
-        return [
-            'allCodes' => $allCodes,
-            'unpaidCodes' => $unpaidCodes,
-            'unpaidPlates' => $unpaidPlates,
-            'prices' => $prices,
-        ];
+        return new UnpaidPermitsDto(
+            allCodes: $allCodes,
+            unpaidCodes: $unpaidCodes,
+            unpaidPlates: $unpaidPlates,
+            prices: $prices,
+        );
     }
 }

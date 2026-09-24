@@ -102,13 +102,14 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
      */
     public function register(ContainerInterface $container): void
     {
-        // --- CORE SYSTEM & DATABASE ---
+        // 1. ZUERST CLOCK INITIALISIEREN (Wird von PdoFactory benötigt)
+        $container->bind(ClockInterface::class, fn (): mixed => $container->get(SystemClock::class));
+
+        // 2. CORE SYSTEM & DATABASE
         $container->bind(PDO::class, fn (): ?PDO => PdoFactory::create(
             $container->get(ConfigInterface::class),
+            $container->get(ClockInterface::class),
         ));
-
-        // Mapping des System-Clocks für testbare Zeitstempel
-        $container->bind(ClockInterface::class, fn (): mixed => $container->get(SystemClock::class));
 
         // --- SYSTEM DDD REPOSITORY BINDINGS ---
         $container->bind(AuditLogRepositoryInterface::class, fn (): PdoAuditLogRepository => new PdoAuditLogRepository(
@@ -119,6 +120,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
+            $container->get(ClockInterface::class),
         ));
 
         // --- PERMIT DDD REPOSITORY BINDINGS ---
@@ -135,8 +137,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
         ));
-
-        // VSA FIX: ClockInterface wird jetzt injiziert!
         $container->bind(PermitArchiveRepositoryInterface::class, fn (): PdoPermitArchiveRepository => new PdoPermitArchiveRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
@@ -173,6 +173,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         ));
         $container->bind(BankImportInfrastructureInterface::class, fn (): LocalBankImportInfrastructure => new LocalBankImportInfrastructure(
             $container->get(ConfigInterface::class),
+            $container->get(ClockInterface::class),
         ));
 
         // --- INTEGRATION SERVICES (CROSS-MODULE PORTS) ---
@@ -204,7 +205,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                 );
             }
 
-            // Standard Fallback
             return new SmtpMailService(
                 $container->get(PDO::class),
                 $config,
@@ -213,10 +213,8 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             );
         });
 
-        // Logger Interface an den aktiven Transport binden
         $container->bind(MailLogInterface::class, fn (): mixed => $container->get('mail.transport'));
 
-        // MailService mit dem aktiven Transport instanziieren
         $container->bind(MailServiceInterface::class, fn (): MailQueueService => new MailQueueService(
             $container->get(MailQueueRepositoryInterface::class),
             $container->get('mail.transport'),
@@ -238,11 +236,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(StorageBootstrapperInterface::class, fn (): mixed => $container->get(StorageBootstrapper::class));
         $container->bind(SystemInfoInterface::class, fn (): mixed => $container->get(SystemInfoService::class));
         $container->bind(UpdateMigrationServiceInterface::class, fn (): mixed => $container->get(UpdateMigrationService::class));
-
-        // PDF Generator binden
         $container->bind(PdfGeneratorInterface::class, fn (): DompdfGenerator => new DompdfGenerator());
-
-        // Route Cache Binding für die ActionRegistry
         $container->bind(RouteCacheInterface::class, fn (): FileRouteCache => new FileRouteCache(
             $container->get(ConfigInterface::class),
         ));
