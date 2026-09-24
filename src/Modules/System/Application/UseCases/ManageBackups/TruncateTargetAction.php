@@ -7,6 +7,7 @@ namespace App\Modules\System\Application\UseCases\ManageBackups;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -14,6 +15,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 use PDO;
 use Throwable;
 
@@ -30,12 +32,14 @@ final readonly class TruncateTargetAction implements ActionInterface, RequiresPe
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'system.backup.manage';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = TruncateTargetRequest::fromArray($request->post);
@@ -45,7 +49,7 @@ final readonly class TruncateTargetAction implements ActionInterface, RequiresPe
             $this->backupService->createBackup('all');
 
             // 2. Tabellen-Namen sicher aus der Config ermitteln
-            $cfg = $this->config->get('storage_config')[$target] ?? null;
+            $cfg = $this->config->getArray('storage_config')[$target] ?? null;
             if (!$cfg) {
                 $this->sessionManager->addFlash('error', "Fehler: Unbekannter Speicherbereich '$target'.");
 
@@ -53,7 +57,7 @@ final readonly class TruncateTargetAction implements ActionInterface, RequiresPe
             }
 
             $tableName = $cfg['table'];
-            $allowedTables = \array_column($this->config->get('storage_config'), 'table');
+            $allowedTables = \array_column($this->config->getArray('storage_config'), 'table');
 
             if (!\in_array($tableName, $allowedTables, true)) {
                 $this->sessionManager->addFlash('error', 'Sicherheitsabbruch: Tabellenname nicht autorisiert.');

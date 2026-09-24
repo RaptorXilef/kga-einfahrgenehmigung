@@ -7,11 +7,13 @@ namespace App\Modules\System\Application\UseCases\ManageBackups;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 use Throwable;
 
 #[Route('GET', '/create_backup')]
@@ -25,12 +27,14 @@ final readonly class CreateBackupAction implements ActionInterface, RequiresPerm
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'system.backup.manage';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $target = \trim((string) ($request->post['target'] ?? 'all'));
