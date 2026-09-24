@@ -26,6 +26,7 @@ final readonly class DashboardPermitDto
         public string $countdownText,
         public string $countdownBadgeClass,
         public string $statusBadgeHtml,
+        public string $statusSortValue, // NEU: Ersetzt isSuspended ? '2' : '0'
         public bool $isSuspended,
         public string $suspendIcon,
         public string $suspendTitle,

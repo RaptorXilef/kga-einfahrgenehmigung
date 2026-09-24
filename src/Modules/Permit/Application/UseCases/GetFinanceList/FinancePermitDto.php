@@ -26,6 +26,9 @@ final readonly class FinancePermitDto
         public string $deadlineText,
         public ?string $reminderClass,
         public ?string $reminderText,
+        public string $reminderButtonClass, // NEU: CQRS Styling
+        public string $reminderButtonTitle, // NEU: CQRS String
+        public string $sortSuspendedValue,  // NEU: CQRS Sorting
         public bool $isOnCooldown, // Wird für die Button-Sperre in der View benötigt
         public bool $isSuspended,
         public ?string $suspensionReason,

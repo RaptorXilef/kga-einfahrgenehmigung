@@ -1,33 +1,21 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Control Bar
  *
  * Suchleiste und Zeitraum-/Typen-Filter.
+ * VSA CQRS Fix: Vollständig auf DTOs umgestellt (keine Logik mehr im Template).
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
+ * @var DashboardViewDto $viewDto
  * @var array $settings
- * @var string $cspNonce
- * @var string $filterEnd
- * @var string $filterStart
- * @var string $filterType
  */
-$filterType ??= 'all';
-$sessionFilters = $_SESSION['admin_filters'] ?? [];
-$currentStart = $sessionFilters['start'] ?? $filterStart;
-$currentEnd = $sessionFilters['end'] ?? $filterEnd;
-$currentType = $sessionFilters['type'] ?? $filterType;
-$currentQ = $sessionFilters['q'] ?? '';
-$currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 ?>
-<?php if ($auth->hasPermission('permits.view')) { ?>
 <div class="c-control-bar-wrapper">
     <section class="c-control-bar">
-        <!-- Native ID für Formular-Targets, js-Klasse für den JS-Controller -->
         <form
             method="POST"
             id="dashboardFilterForm"
@@ -57,12 +45,11 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 >
                 ZEITRAUM:
             </label>
-            <!-- Native ID für das <label>, js-Klasse für JS-EventListener -->
             <input
                 type="date"
                 id="filter_start"
                 name="start"
-                value="<?php echo \htmlspecialchars($currentStart); ?>"
+                value="<?php echo \htmlspecialchars($viewDto->controlBar->startValue); ?>"
                 class="c-control-bar__input js-filter-start"
                 autocomplete="off"
             >
@@ -75,7 +62,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 type="date"
                 id="filter_end"
                 name="end"
-                value="<?php echo \htmlspecialchars($currentEnd); ?>"
+                value="<?php echo \htmlspecialchars($viewDto->controlBar->endValue); ?>"
                 class="c-control-bar__input js-filter-end"
                 autocomplete="off"
             >
@@ -92,15 +79,15 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
             >
                 <option
                     value="all"
-                    <?php echo $currentType === 'all' ? 'selected' : ''; ?>
+                    <?php echo $viewDto->controlBar->typeSelectAll; ?>
                 >Alle Genehmigungen</option>
                 <option
                     value="standard"
-                    <?php echo $currentType === 'standard' ? 'selected' : ''; ?>
+                    <?php echo $viewDto->controlBar->typeSelectStandard; ?>
                 >Nur Standard</option>
                 <option
                     value="permanent"
-                    <?php echo $currentType === 'permanent' ? 'selected' : ''; ?>
+                    <?php echo $viewDto->controlBar->typeSelectPermanent; ?>
                 >Nur Dauerkarten</option>
             </select>
 
@@ -114,11 +101,11 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 class="c-control-bar__input js-auto-submit-select u-cursor-pointer"
                 autocomplete="off"
             >
-                <?php foreach ($allowedLimits ?? [10, 25, 50, 100] as $l) { ?>
+                <?php foreach ($viewDto->controlBar->limitOptions as $opt) { ?>
                 <option
-                    value="<?php echo $l; ?>"
-                    <?php echo $currentLimit == $l ? 'selected' : ''; ?>
-                ><?php echo $l; ?></option>
+                    value="<?php echo $opt->value; ?>"
+                    <?php echo $opt->selectedAttr; ?>
+                ><?php echo $opt->value; ?></option>
                 <?php } ?>
             </select>
 
@@ -131,27 +118,25 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                         alt=""
                     >
                 </span>
-                <!-- Native ID entfernt da im JS refaktoriert, label wird via aria-label gelöst -->
-                <!-- name="q" und value aus PHP für Server-Side Search -->
                 <input
                     type="text"
                     name="q"
                     aria-label="Schnellsuche"
                     autocomplete="off"
-                    value="<?php echo \htmlspecialchars($currentQ); ?>"
+                    value="<?php echo \htmlspecialchars($viewDto->controlBar->searchValue); ?>"
                     placeholder="Schnellsuche..."
                     title="Suchen Sie nach Namen, KFZ oder SmartCode"
                     class="c-form-input js-admin-search"
                 >
             </div>
 
-            <?php if (!empty($sessionFilters)) { ?>
+            <?php if ($viewDto->controlBar->showResetButton) { ?>
             <a
                 href="?reset_filters=1"
                 class="c-button c-button--secondary c-button--small u-text-xs"
             >✕ Filter aufheben</a>
             <?php } ?>
-            <!-- Versteckter Button, damit Formular via Enter absendbar ist -->
+
             <button
                 type="submit"
                 class="u-visually-hidden"
@@ -160,4 +145,3 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
         </form>
     </section>
 </div>
-<?php } ?>

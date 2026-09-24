@@ -32,6 +32,9 @@ use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchive
 use App\Modules\Voucher\Application\UseCases\GetVoucherList\GetVoucherListHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherList\GetVoucherListQuery;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 #[Route('GET', '/admin')]
 #[RequiresAuth]
 final readonly class DashboardRenderAction implements ViewActionInterface
@@ -70,6 +73,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $minArchiveYear = \min($filterStartYear, $requestedDepth);
         $focus = $request->get['focus'] ?? 'tab-active';
 
+        // 1. Core-Queries abfeuern
         $permitsResult = $this->getDashboardPermitsHandler->handle(new GetDashboardPermitsQuery(
             $dto->start,
             $dto->end,
@@ -80,23 +84,21 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $dto->page,
             $dto->limit,
         ));
-
         $financePermitsDto = $this->financeListHandler->handle(new GetFinanceListQuery());
         $statsDto = $this->statsHandler->handle(new GetDashboardStatsQuery($dto->start, $dto->end, $dto->type, $dto->query, $minArchiveYear));
 
+        // 2. View-Model für das Dashboard aufbauen (RBAC & Dumme View Integration)
+        $dashboardViewDto = $this->buildDashboardViewDto($dto, $focus, $minArchiveYear, $permitsResult, $financePermitsDto, $request);
+
+        // 3. Fallback: Wir laden auch die alten Variablen für die noch nicht refaktorierten Tabs.
         $vouchers = $this->getVoucherListHandler->handle(new GetVoucherListQuery());
         $voucherArchive = $this->getVoucherArchiveHandler->handle(new GetVoucherArchiveQuery());
-
         $auditFilter = (string) ($request->get['audit_filter'] ?? '');
         $auditData = $this->auditLogRepository->getPaginated($dto->page, $dto->limit, $auditFilter);
-
-        $formData = $this->sessionManager->getFormData() ?? [];
-        $this->sessionManager->clearFormData();
 
         $unreadReleaseNotes = [];
         $allReleaseNotes = $this->releaseNotesService->getAllNotes();
         $userId = $this->auth->getUserId();
-
         if (!\str_starts_with($userId, 'sys_')) {
             $user = $this->userRepository->findById($userId);
             if ($user instanceof User) {
@@ -105,6 +107,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         }
 
         $html = $this->renderer->render('admin/dashboard', [
+            'viewDto' => $dashboardViewDto,
+            // Legacy Variables für un-refaktorierte Tabs (Stats, Export, Vouchers, Logs, System, Backups)
             'allowedLimits' => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
             'allReleaseNotes' => $allReleaseNotes,
             'auditFilter' => $auditFilter,
@@ -112,23 +116,13 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'auditTotal' => $auditData['total'],
             'auth' => $this->auth,
             'backups' => $this->auth->hasPermission('system.backup.manage') ? $this->backupService->listBackups() : [],
-            'activePermitsDto' => $permitsResult->activePermitsDto,
-            'futurePermitsDto' => $permitsResult->futurePermitsDto,
-            'expiredPermitsDto' => $permitsResult->expiredPermitsDto,
-            'cancelledPermitsDto' => $permitsResult->cancelledPermitsDto,
-            'financePermitsDto' => $financePermitsDto,
-            'totalActive' => $permitsResult->countActive,
-            'totalFuture' => $permitsResult->countFuture,
-            'totalExpired' => $permitsResult->countExpired,
-            'totalCancelled' => $permitsResult->countCancelled,
-            'totalUnpaid' => \count($financePermitsDto),
             'statsDto' => $statsDto,
             'currentPage' => $dto->page,
             'filterEnd' => $dto->end,
             'filterQuery' => $dto->query,
             'filterStart' => $dto->start,
             'filterType' => $dto->type,
-            'formData' => $formData,
+            'formData' => $this->sessionManager->getFormData() ?? [],
             'roleRepository' => $this->roleRepository,
             'imageStorage' => $this->imageStorage,
             'itemsPerPage' => $dto->limit,
@@ -139,9 +133,154 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'userRepository' => $this->userRepository,
             'voucherArchive' => $voucherArchive,
             'vouchers' => $vouchers,
-            'collectiveTransfers' => $this->sessionManager->getCollectiveTransfers(),
         ]);
 
+        $this->sessionManager->clearFormData();
+
         return new HtmlResponse($html);
+    }
+
+    private function buildDashboardViewDto(
+        DashboardViewRequest $dto,
+        string $focus,
+        int $minArchiveYear,
+        object $permitsResult,
+        array $financePermitsDto,
+        ServerRequest $request,
+    ): DashboardViewDto {
+        // Berechtigungen flachziehen
+        $permissions = new DashboardPermissionsDto(
+            canViewPermits: $this->auth->hasPermission('permits.view'),
+            canPrintPermits: $this->auth->hasPermission('permits.print'),
+            canSuspendPermits: $this->auth->hasPermission('permits.suspend'),
+            canViewFinance: $this->auth->hasPermission('finance.view'),
+            canMarkPaid: $this->auth->hasPermission('finance.mark_paid'),
+            canBankImport: $this->auth->hasPermission('finance.bank_import'),
+            canExport: $this->auth->hasPermission('finance.export'),
+            canCreatePermits: $this->auth->hasPermission('permits.create'),
+            canManageVouchers: $this->auth->hasPermission('vouchers.create') || $this->auth->hasPermission('vouchers.suspend'),
+            canViewVouchers: $this->auth->hasPermission('vouchers.view'),
+            canViewStats: $this->auth->hasPermission('stats.view'),
+            canViewRanking: $this->auth->hasPermission('stats.ranking'),
+            canViewLogs: $this->auth->hasPermission('system.logs.view'),
+            canManageSystem: $this->auth->hasPermission('system.maintenance.execute') || $this->auth->hasPermission('system.update.execute'),
+            canManageBackups: $this->auth->hasPermission('system.backup.manage'),
+            showPrivacyEmails: $this->auth->hasPermission('privacy.emails.view'),
+            showPrivacyFinance: $this->auth->hasPermission('privacy.finance.view'),
+        );
+
+        // Tab States (Aktive CSS Klassen ohne if-Logik im PHTML)
+        $tabIds = ['tab-active', 'tab-future', 'tab-expired', 'tab-cancelled', 'tab-ranking', 'tab-finance', 'tab-stats', 'tab-bank-import', 'tab-export', 'tab-tools', 'tab-vouchers', 'tab-logs', 'tab-audit-log', 'tab-system', 'tab-backup'];
+        $tabStates = [];
+        foreach ($tabIds as $tabId) {
+            $isActive = $focus === $tabId;
+            $tabStates[$tabId] = new DashboardTabStateDto(
+                isActiveClass: $isActive ? 'is-active' : '',
+                ariaSelected: $isActive ? 'true' : 'false',
+                tabIndex: $isActive ? '0' : '-1',
+                ariaHidden: $isActive ? 'false' : 'true',
+            );
+        }
+
+        // Control Bar DTO
+        $limitOptions = [];
+        $paginationCfg = $this->config->get('pagination', []);
+        foreach ($paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250] as $l) {
+            $limitOptions[] = new LimitOptionDto($l, $dto->limit === $l ? 'selected' : '');
+        }
+        $controlBar = new ControlBarViewDto(
+            startValue: $dto->start,
+            endValue: $dto->end,
+            typeSelectAll: $dto->type === 'all' ? 'selected' : '',
+            typeSelectStandard: $dto->type === 'standard' ? 'selected' : '',
+            typeSelectPermanent: $dto->type === 'permanent' ? 'selected' : '',
+            limitOptions: $limitOptions,
+            searchValue: $dto->query,
+            showResetButton: !empty($this->sessionManager->getAdminFilters()),
+        );
+
+        // Sammelüberweisungen für den Finance-Tab
+        $collectiveTransfers = [];
+        foreach ($this->sessionManager->getCollectiveTransfers() as $ct) {
+            $typeLabel = ($ct['type'] ?? 'sammel') === 'kennzeichen' ? 'Kennzeichen-Match:' : 'Mehrere Codes:';
+            $collectiveTransfers[] = new CollectiveTransferViewDto(
+                id: $ct['id'],
+                date: $ct['date'],
+                amountFormatted: \number_format((float) $ct['amount'], 2, ',', '.'),
+                purpose: $ct['purpose'],
+                typeLabel: $typeLabel,
+                codes: $ct['codes'] ?? [],
+            );
+        }
+
+        // Pagination HTML Generierung (Befreit die PHTML-Dateien von den Includes)
+        $renderPagination = function (int $total, string $tabId) use ($dto): string {
+            $limit = $dto->limit;
+            $page = ($tabId === $_GET['focus'] ?? 'tab-active') ? $dto->page : 1;
+            $totalPages = \max(1, (int) \ceil($total / $limit));
+            $offset = ($page - 1) * $limit;
+
+            return $this->renderer->render('admin/pagination', [
+                'page' => $page,
+                'totalPages' => $totalPages,
+                'totalCount' => $total,
+                'limit' => $limit,
+                'offset' => $offset,
+                'paginationParam' => 'page',
+                'tabFocusId' => $tabId,
+            ]);
+        };
+
+        // Paginierung für den Finance Tab (Der Handler lädt alle offenen, wir slicen hier für die View)
+        $totalUnpaid = \count($financePermitsDto);
+        $finPage = ($focus === 'tab-finance') ? $dto->page : 1;
+        $finTotalPages = \max(1, (int) \ceil($totalUnpaid / $dto->limit));
+        $finPage = \min($finPage, $finTotalPages);
+        $finOffset = ($finPage - 1) * $dto->limit;
+        $slicedFinancePermits = \array_slice($financePermitsDto, $finOffset, $dto->limit);
+
+        // Archiv URL
+        $queryParams = $request->get;
+        unset($queryParams['page'], $queryParams['audit_page']);
+        $queryParams['archive_depth'] = $minArchiveYear - 1;
+        $queryParams['focus'] = 'tab-expired';
+
+        // Bank Wizard
+        $formData = $this->sessionManager->getFormData() ?? [];
+        $showBankWizard = isset($formData['bank_wizard']['headers']) && !empty($formData['bank_wizard']['headers']);
+        if ($showBankWizard) {
+            $tabStates['tab-bank-import'] = new DashboardTabStateDto('is-active', 'true', '0', 'false');
+            $focus = 'tab-bank-import';
+        }
+
+        // Colspan Finance Tab
+        $financeTableColspan = 5 + ($permissions->showPrivacyEmails ? 1 : 0) + ($permissions->showPrivacyFinance ? 1 : 0) + ($permissions->canMarkPaid ? 1 : 0);
+
+        return new DashboardViewDto(
+            permissions: $permissions,
+            tabStates: $tabStates,
+            controlBar: $controlBar,
+            collectiveTransfers: $collectiveTransfers,
+            activePermitsDto: $permitsResult->activePermitsDto,
+            futurePermitsDto: $permitsResult->futurePermitsDto,
+            expiredPermitsDto: $permitsResult->expiredPermitsDto,
+            cancelledPermitsDto: $permitsResult->cancelledPermitsDto,
+            financePermitsDto: $slicedFinancePermits,
+            totalActive: $permitsResult->countActive,
+            totalFuture: $permitsResult->countFuture,
+            totalExpired: $permitsResult->countExpired,
+            totalCancelled: $permitsResult->countCancelled,
+            totalUnpaid: $totalUnpaid,
+            paginationHtmlActive: $renderPagination($permitsResult->countActive, 'tab-active'),
+            paginationHtmlFuture: $renderPagination($permitsResult->countFuture, 'tab-future'),
+            paginationHtmlExpired: $renderPagination($permitsResult->countExpired, 'tab-expired'),
+            paginationHtmlCancelled: $renderPagination($permitsResult->countCancelled, 'tab-cancelled'),
+            paginationHtmlFinance: $renderPagination($totalUnpaid, 'tab-finance'),
+            financeTableColspan: $financeTableColspan,
+            focus: $focus,
+            showBankWizard: $showBankWizard,
+            minArchiveYear: $minArchiveYear,
+            expiredLoadArchiveUrl: '?' . \http_build_query($queryParams),
+        );
     }
 }

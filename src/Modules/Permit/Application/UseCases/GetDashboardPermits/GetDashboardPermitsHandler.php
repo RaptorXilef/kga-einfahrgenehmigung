@@ -117,7 +117,6 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
         $offset = ($page - 1) * $query->limit;
         $limit = $query->limit;
 
-        // FIX: Explizite Spaltenauswahl, um UNION ALL Cardinality Exceptions zu verhindern
         $cols = 'code, template_key, name, email, kennzeichen, parzelle, typ, firma, zweck, preis, von, bis, status, is_suspended, suspension_reason, erstellt';
 
         if ($tab === 'tab-cancelled') {
@@ -187,10 +186,10 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
                 $safeMail = \htmlspecialchars($row['email'], \ENT_QUOTES, 'UTF-8');
                 $wbrMail = \str_replace('@', '<wbr>@', $safeMail);
                 $emailHtml = <<<HTML
-                    <div class="u-flex u-align-center u-gap-xs">
-                    <img src="assets/img/icons/envelope.webp" class="c-icon c-icon--inline" loading="lazy" alt="">
-                    <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
-                    </div>
+                        <div class="u-flex u-align-center u-gap-xs">
+                            <img src="assets/img/icons/envelope.webp" class="c-icon c-icon--inline" loading="lazy" alt="">
+                            <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
+                        </div>
                     HTML;
             }
 
@@ -220,6 +219,9 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
                 $statusBadgeHtml = '<span class="c-badge c-badge--danger">STORNIERT</span>';
             }
 
+            // VSA Fix: Vorher im Template per Inline-If berechnet
+            $statusSortValue = $isSuspended ? '2' : ($isFuture ? '1' : '0');
+
             $dtos[] = new DashboardPermitDto(
                 code: $row['code'],
                 ownerName: $row['name'],
@@ -237,6 +239,7 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
                 countdownText: $countdownText,
                 countdownBadgeClass: $countdownBadgeClass,
                 statusBadgeHtml: $statusBadgeHtml,
+                statusSortValue: $statusSortValue,
                 isSuspended: $isSuspended,
                 suspendIcon: $isSuspended ? 'unlock.webp' : 'denied.webp',
                 suspendTitle: $isSuspended ? 'Wieder freigeben' : 'Sperren',

@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\System\Application\UseCases\ViewDashboard;
+
+/**
+ * 100% logikfreies DTO für die View. Ersetzt alle $auth->hasPermission() Aufrufe in den PHTMLs.
+ */
+final readonly class DashboardPermissionsDto
+{
+    public function __construct(
+        public bool $canViewPermits,
+        public bool $canPrintPermits,
+        public bool $canSuspendPermits,
+        public bool $canViewFinance,
+        public bool $canMarkPaid,
+        public bool $canBankImport,
+        public bool $canExport,
+        public bool $canCreatePermits,
+        public bool $canManageVouchers,
+        public bool $canViewVouchers,
+        public bool $canViewStats,
+        public bool $canViewRanking,
+        public bool $canViewLogs,
+        public bool $canManageSystem,
+        public bool $canManageBackups,
+        public bool $showPrivacyEmails,
+        public bool $showPrivacyFinance,
+    ) {
+    }
+}

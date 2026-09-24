@@ -104,9 +104,14 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
                 $safeMail = \htmlspecialchars($row['email'], \ENT_QUOTES, 'UTF-8');
                 $wbrMail = \str_replace('@', '<wbr>@', $safeMail);
                 $emailHtml = <<<HTML
-                    <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
+                        <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
                     HTML;
             }
+
+            // VSA Fix: Logik für die PHTML-Buttons in die Domain holen
+            $reminderButtonClass = $isOnCooldown ? 'c-button--secondary' : 'c-button--danger';
+            $reminderButtonTitle = 'Zahlungserinnerung senden' . ($isOnCooldown ? ' (Cooldown aktiv)' : '');
+            $sortSuspendedValue = $isSuspended ? '1' : '0';
 
             $dtos[] = new FinancePermitDto(
                 code: (string) $row['code'],
@@ -125,6 +130,9 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
                 deadlineText: $deadlineText,
                 reminderClass: $reminderClass,
                 reminderText: $reminderText,
+                reminderButtonClass: $reminderButtonClass,
+                reminderButtonTitle: $reminderButtonTitle,
+                sortSuspendedValue: $sortSuspendedValue,
                 isOnCooldown: $isOnCooldown,
                 isSuspended: $isSuspended,
                 suspensionReason: $row['suspension_reason'] ?? null,

@@ -1,41 +1,25 @@
 <?php
 
-use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\Permit\Application\UseCases\GetDashboardStats\DashboardStatsDto;
+use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Page: Main Admin Dashboard Wrapper
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
- * @var ConfigInterface $config
- * @var DashboardStatsDto $statsDto
+ * @var DashboardViewDto $viewDto
  * @var array $settings
- * @var array $unreadReleaseNotes Die vom User ungelesenen Markdown Release-Notes.
- * @var int $totalActive
- * @var int $totalCancelled
- * @var int $totalExpired
- * @var int $totalFuture
- * @var int $totalUnpaid
  * @var string $appRoot
  * @var string $cspNonce
+ *
+ * -- Legacy Variables for non-refactored tabs --
+ * @var AuthService $auth
+ * @var array $unreadReleaseNotes
+ * @var array $allReleaseNotes
  */
 $layout = 'admin';
-
-$focus = $_GET['focus'] ?? 'tab-active';
-
-// Wenn eine Bank-Vorschau aktiv ist, erzwingen wir den Bank-Tab
-if (isset($formData['bank_wizard']['headers']) && !empty($formData['bank_wizard']['headers'])) {
-    $focus = 'tab-bank-import';
-    $bank_headers = true;
-}
-
-$isActive = fn (string $tabId): string => $focus === $tabId ? 'is-active' : '';
-$ariaSelected = fn (string $tabId): string => $focus === $tabId ? 'true' : 'false';
-$tabIndex = fn (string $tabId): string => $focus === $tabId ? '0' : '-1';
-$ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true';
+$focus = $viewDto->focus;
 ?>
 
 <main class="js-admin-dashboard c-tab-content-container u-padding-block-l">
@@ -47,12 +31,12 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 role="tablist"
                 aria-label="Dashboard Ansichten"
             >
-                <?php if ($auth->hasPermission('permits.view')) { ?>
+                <?php if ($viewDto->permissions->canViewPermits) { ?>
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-active'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-active']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-active'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-active'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-active']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-active']->tabIndex; ?>"
                     aria-controls="tab-active"
                     id="btn-tab-active"
                     data-tab-target="tab-active"
@@ -65,14 +49,14 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                     >
                     Aktiv
                     <span
-                        class="c-badge c-badge--primary c-badge--small u-margin-inline-start-xs"><?php echo $totalActive ?? 0; ?></span>
+                        class="c-badge c-badge--primary c-badge--small u-margin-inline-start-xs"><?php echo $viewDto->totalActive; ?></span>
                 </button>
 
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-future'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-future']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-future'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-future'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-future']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-future']->tabIndex; ?>"
                     aria-controls="tab-future"
                     id="btn-tab-future"
                     data-tab-target="tab-future"
@@ -85,14 +69,14 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                     >
                     Zukünftig
                     <span
-                        class="c-badge c-badge--primary c-badge--small u-margin-inline-start-xs"><?php echo $totalFuture ?? 0; ?></span>
+                        class="c-badge c-badge--primary c-badge--small u-margin-inline-start-xs"><?php echo $viewDto->totalFuture; ?></span>
                 </button>
 
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-expired'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-expired']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-expired'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-expired'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-expired']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-expired']->tabIndex; ?>"
                     aria-controls="tab-expired"
                     id="btn-tab-expired"
                     data-tab-target="tab-expired"
@@ -105,14 +89,14 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                     >
                     Abgelaufen
                     <span
-                        class="c-badge c-badge--outline c-badge--small u-margin-inline-start-xs"><?php echo $totalExpired ?? 0; ?></span>
+                        class="c-badge c-badge--outline c-badge--small u-margin-inline-start-xs"><?php echo $viewDto->totalExpired; ?></span>
                 </button>
 
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-cancelled'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-cancelled']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-cancelled'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-cancelled'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-cancelled']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-cancelled']->tabIndex; ?>"
                     aria-controls="tab-cancelled"
                     id="btn-tab-cancelled"
                     data-tab-target="tab-cancelled"
@@ -125,16 +109,16 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                     >
                     Storniert
                     <span
-                        class="c-badge c-badge--danger c-badge--small u-margin-inline-start-xs"><?php echo $totalCancelled ?? 0; ?></span>
+                        class="c-badge c-badge--danger c-badge--small u-margin-inline-start-xs"><?php echo $viewDto->totalCancelled; ?></span>
                 </button>
                 <?php } ?>
 
-                <?php if ($auth->hasPermission('stats.ranking')) { ?>
+                <?php if ($viewDto->permissions->canViewRanking) { ?>
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-ranking'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-ranking']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-ranking'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-ranking'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-ranking']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-ranking']->tabIndex; ?>"
                     aria-controls="tab-ranking"
                     id="btn-tab-ranking"
                     data-tab-target="tab-ranking"
@@ -148,12 +132,12 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 </button>
                 <?php } ?>
 
-                <?php if ($auth->hasPermission('finance.view')) { ?>
+                <?php if ($viewDto->permissions->canViewFinance) { ?>
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-finance'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-finance']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-finance'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-finance'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-finance']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-finance']->tabIndex; ?>"
                     aria-controls="tab-finance"
                     id="btn-tab-finance"
                     data-tab-target="tab-finance"
@@ -164,19 +148,19 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                         loading="lazy"
                         alt=""
                     > Finanzen
-                    <?php if (($totalUnpaid ?? 0) > 0) { ?>
+                    <?php if ($viewDto->totalUnpaid > 0) { ?>
                     <span
-                        class="c-badge c-badge--danger c-badge--small u-margin-inline-start-xs"><?php echo $totalUnpaid; ?></span>
+                        class="c-badge c-badge--danger c-badge--small u-margin-inline-start-xs"><?php echo $viewDto->totalUnpaid; ?></span>
                     <?php } ?>
                 </button>
                 <?php } ?>
 
-                <?php if ($auth->hasPermission('stats.view')) { ?>
+                <?php if ($viewDto->permissions->canViewStats) { ?>
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-stats'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-stats']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-stats'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-stats'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-stats']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-stats']->tabIndex; ?>"
                     aria-controls="tab-stats"
                     id="btn-tab-stats"
                     data-tab-target="tab-stats"
@@ -190,12 +174,12 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 </button>
                 <?php } ?>
 
-                <?php if ($auth->hasPermission('finance.bank_import')) { ?>
+                <?php if ($viewDto->permissions->canBankImport) { ?>
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-bank-import'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-bank-import']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-bank-import'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-bank-import'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-bank-import']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-bank-import']->tabIndex; ?>"
                     aria-controls="tab-bank-import"
                     id="btn-tab-bank-import"
                     data-tab-target="tab-bank-import"
@@ -209,12 +193,12 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 </button>
                 <?php } ?>
 
-                <?php if ($auth->hasPermission('finance.export')) { ?>
+                <?php if ($viewDto->permissions->canExport) { ?>
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-export'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-export']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-export'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-export'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-export']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-export']->tabIndex; ?>"
                     aria-controls="tab-export"
                     id="btn-tab-export"
                     data-tab-target="tab-export"
@@ -228,12 +212,12 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 </button>
                 <?php } ?>
 
-                <?php if ($auth->hasPermission('permits.create') || $auth->hasPermission('vouchers.create')) { ?>
+                <?php if ($viewDto->permissions->canCreatePermits || $viewDto->permissions->canManageVouchers) { ?>
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-tools'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-tools']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-tools'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-tools'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-tools']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-tools']->tabIndex; ?>"
                     aria-controls="tab-tools"
                     id="btn-tab-tools"
                     data-tab-target="tab-tools"
@@ -247,12 +231,12 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 </button>
                 <?php } ?>
 
-                <?php if ($auth->hasPermission('vouchers.view')) { ?>
+                <?php if ($viewDto->permissions->canViewVouchers) { ?>
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-vouchers'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-vouchers']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-vouchers'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-vouchers'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-vouchers']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-vouchers']->tabIndex; ?>"
                     aria-controls="tab-vouchers"
                     id="btn-tab-vouchers"
                     data-tab-target="tab-vouchers"
@@ -266,12 +250,12 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 </button>
                 <?php } ?>
 
-                <?php if ($auth->hasPermission('system.logs.view')) { ?>
+                <?php if ($viewDto->permissions->canViewLogs) { ?>
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-logs'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-logs']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-logs'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-logs'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-logs']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-logs']->tabIndex; ?>"
                     aria-controls="tab-logs"
                     id="btn-tab-logs"
                     data-tab-target="tab-logs"
@@ -284,10 +268,10 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                     > Mail Log
                 </button>
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-audit-log'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-audit-log']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-audit-log'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-audit-log'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-audit-log']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-audit-log']->tabIndex; ?>"
                     aria-controls="tab-audit-log"
                     id="btn-tab-audit-log"
                     data-tab-target="tab-audit-log"
@@ -301,12 +285,12 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 </button>
                 <?php } ?>
 
-                <?php if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('system.update.execute')) { ?>
+                <?php if ($viewDto->permissions->canManageSystem) { ?>
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-system'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-system']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-system'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-system'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-system']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-system']->tabIndex; ?>"
                     aria-controls="tab-system"
                     id="btn-tab-system"
                     data-tab-target="tab-system"
@@ -320,12 +304,12 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 </button>
                 <?php } ?>
 
-                <?php if ($auth->hasPermission('system.backup.manage')) { ?>
+                <?php if ($viewDto->permissions->canManageBackups) { ?>
                 <button
-                    class="c-tabs__btn <?php echo $isActive('tab-backup'); ?>"
+                    class="c-tabs__btn <?php echo $viewDto->tabStates['tab-backup']->isActiveClass; ?>"
                     role="tab"
-                    aria-selected="<?php echo $ariaSelected('tab-backup'); ?>"
-                    tabindex="<?php echo $tabIndex('tab-backup'); ?>"
+                    aria-selected="<?php echo $viewDto->tabStates['tab-backup']->ariaSelected; ?>"
+                    tabindex="<?php echo $viewDto->tabStates['tab-backup']->tabIndex; ?>"
                     aria-controls="tab-backup"
                     id="btn-tab-backup"
                     data-tab-target="tab-backup"
@@ -341,25 +325,25 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
             </div>
 
             <!-- 2. WERKZEUGE (FILTER) -->
-            <?php if ($auth->hasPermission('permits.view')) { ?>
+            <?php if ($viewDto->permissions->canViewPermits) { ?>
             <?php include $appRoot . '/templates/partials/admin/control_bar.phtml'; ?>
             <?php } ?>
 
             <!-- 4. ALERTS / INFOBOXEN -->
-            <?php if ($auth->hasPermission('permits.view')) { ?>
+            <?php if ($viewDto->permissions->canViewPermits) { ?>
             <div class="u-margin-inline-auto u-margin-block-end-m">
                 <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
             </div>
             <?php } ?>
 
             <!-- 5. CONTENT (TAB PANELS) -->
-            <?php if ($auth->hasPermission('permits.view')) { ?>
+            <?php if ($viewDto->permissions->canViewPermits) { ?>
             <div
                 id="tab-active"
                 role="tabpanel"
                 aria-labelledby="btn-tab-active"
-                class="c-tabs__content <?php echo $isActive('tab-active'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-active'); ?>"
+                class="c-tabs__content <?php echo $viewDto->tabStates['tab-active']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-active']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_active.phtml'; ?>
             </div>
@@ -367,8 +351,8 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 id="tab-future"
                 role="tabpanel"
                 aria-labelledby="btn-tab-future"
-                class="c-tabs__content <?php echo $isActive('tab-future'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-future'); ?>"
+                class="c-tabs__content <?php echo $viewDto->tabStates['tab-future']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-future']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_future.phtml'; ?>
             </div>
@@ -376,8 +360,8 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 id="tab-expired"
                 role="tabpanel"
                 aria-labelledby="btn-tab-expired"
-                class="c-tabs__content <?php echo $isActive('tab-expired'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-expired'); ?>"
+                class="c-tabs__content <?php echo $viewDto->tabStates['tab-expired']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-expired']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_expired.phtml'; ?>
             </div>
@@ -385,32 +369,33 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 id="tab-cancelled"
                 role="tabpanel"
                 aria-labelledby="btn-tab-cancelled"
-                class="c-tabs__content <?php echo $isActive('tab-cancelled'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-cancelled'); ?>"
+                class="c-tabs__content <?php echo $viewDto->tabStates['tab-cancelled']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-cancelled']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_cancelled.phtml'; ?>
             </div>
             <?php } ?>
 
+            <!-- LEGACY TABS WEITERHIN LADEN -->
             <?php if ($auth->hasPermission('stats.ranking')) { ?>
             <div
                 id="tab-ranking"
                 role="tabpanel"
                 aria-labelledby="btn-tab-ranking"
-                class="c-tabs__content <?php echo $isActive('tab-ranking'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-ranking'); ?>"
+                class="c-tabs__content <?php echo $viewDto->tabStates['tab-ranking']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-ranking']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_ranking.phtml'; ?>
             </div>
             <?php } ?>
 
-            <?php if ($auth->hasPermission('finance.view')) { ?>
+            <?php if ($viewDto->permissions->canViewFinance) { ?>
             <div
                 id="tab-finance"
                 role="tabpanel"
                 aria-labelledby="btn-tab-finance"
-                class="c-tabs__content <?php echo $isActive('tab-finance'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-finance'); ?>"
+                class="c-tabs__content <?php echo $viewDto->tabStates['tab-finance']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-finance']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_finance.phtml'; ?>
             </div>
@@ -421,8 +406,8 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 id="tab-stats"
                 role="tabpanel"
                 aria-labelledby="btn-tab-stats"
-                class="js-dashboard-stats c-tabs__content <?php echo $isActive('tab-stats'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-stats'); ?>"
+                class="js-dashboard-stats c-tabs__content <?php echo $viewDto->tabStates['tab-stats']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-stats']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_stats.phtml'; ?>
             </div>
@@ -433,8 +418,8 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 id="tab-bank-import"
                 role="tabpanel"
                 aria-labelledby="btn-tab-bank-import"
-                class="js-bank-import c-tabs__content <?php echo $isActive('tab-bank-import'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-bank-import'); ?>"
+                class="js-bank-import c-tabs__content <?php echo $viewDto->tabStates['tab-bank-import']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-bank-import']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_bank_import.phtml'; ?>
             </div>
@@ -445,8 +430,8 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 id="tab-export"
                 role="tabpanel"
                 aria-labelledby="btn-tab-export"
-                class="c-tabs__content <?php echo $isActive('tab-export'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-export'); ?>"
+                class="c-tabs__content <?php echo $viewDto->tabStates['tab-export']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-export']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_export.phtml'; ?>
             </div>
@@ -457,8 +442,8 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 id="tab-tools"
                 role="tabpanel"
                 aria-labelledby="btn-tab-tools"
-                class="c-tabs__content <?php echo $isActive('tab-tools'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-tools'); ?>"
+                class="c-tabs__content <?php echo $viewDto->tabStates['tab-tools']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-tools']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_generator_tools.phtml'; ?>
             </div>
@@ -469,8 +454,8 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 id="tab-vouchers"
                 role="tabpanel"
                 aria-labelledby="btn-tab-vouchers"
-                class="js-voucher-manager c-tabs__content <?php echo $isActive('tab-vouchers'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-vouchers'); ?>"
+                class="js-voucher-manager c-tabs__content <?php echo $viewDto->tabStates['tab-vouchers']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-vouchers']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_vouchers.phtml'; ?>
             </div>
@@ -481,8 +466,8 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 id="tab-logs"
                 role="tabpanel"
                 aria-labelledby="btn-tab-logs"
-                class="c-tabs__content <?php echo $isActive('tab-logs'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-logs'); ?>"
+                class="c-tabs__content <?php echo $viewDto->tabStates['tab-logs']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-logs']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_logs.phtml'; ?>
             </div>
@@ -490,8 +475,8 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 id="tab-audit-log"
                 role="tabpanel"
                 aria-labelledby="btn-tab-audit-log"
-                class="c-tabs__content <?php echo $isActive('tab-audit-log'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-audit-log'); ?>"
+                class="c-tabs__content <?php echo $viewDto->tabStates['tab-audit-log']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-audit-log']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_audit_log.phtml'; ?>
             </div>
@@ -502,8 +487,8 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 id="tab-system"
                 role="tabpanel"
                 aria-labelledby="btn-tab-system"
-                class="js-system-tools c-tabs__content <?php echo $isActive('tab-system'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-system'); ?>"
+                class="js-system-tools c-tabs__content <?php echo $viewDto->tabStates['tab-system']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-system']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_system.phtml'; ?>
             </div>
@@ -514,8 +499,8 @@ $ariaHidden = fn (string $tabId): string => $focus === $tabId ? 'false' : 'true'
                 id="tab-backup"
                 role="tabpanel"
                 aria-labelledby="btn-tab-backup"
-                class="c-tabs__content <?php echo $isActive('tab-backup'); ?>"
-                aria-hidden="<?php echo $ariaHidden('tab-backup'); ?>"
+                class="c-tabs__content <?php echo $viewDto->tabStates['tab-backup']->isActiveClass; ?>"
+                aria-hidden="<?php echo $viewDto->tabStates['tab-backup']->ariaHidden; ?>"
             >
                 <?php include $appRoot . '/templates/partials/admin/tab_backup.phtml'; ?>
             </div>
