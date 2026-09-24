@@ -42,7 +42,8 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
         $now = new DateTimeImmutable();
         $dtos = [];
 
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        // VSA FIX: Memory Safe Unbuffered Loop
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $isMultiUse = (bool) $row['is_multi_use'];
             $currentUses = (int) $row['current_uses'];
             $maxUses = (int) $row['max_uses'];

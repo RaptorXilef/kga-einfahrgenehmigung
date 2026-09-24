@@ -60,24 +60,6 @@ final readonly class BackupService implements BackupServiceInterface
             throw new RuntimeException("Unbekanntes Backup-Ziel: {$target}");
         }
 
-        $backupData = [
-            'timestamp' => $this->clock->nowAsString(),
-            'target' => $target,
-            'tables' => [],
-        ];
-
-        foreach ($tablesToBackup as $table) {
-            $stmt = $this->pdo->query("SELECT * FROM `$table`");
-            if ($stmt === false) {
-                continue;
-            }$backupData['tables'][$table] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
-
-        $json = \json_encode($backupData, \JSON_UNESCAPED_UNICODE);
-        if ($json === false) {
-            throw new RuntimeException('JSON encode Fehler beim Backup.');
-        }
-
         $filename = 'backup_' . $this->clock->now()->format('Ymd_His') . '_' . $target . '.zip';
         $filepath = $this->backupDir . '/' . $filename;
 
@@ -86,14 +68,55 @@ final readonly class BackupService implements BackupServiceInterface
             throw new RuntimeException("Konnte ZIP-Datei nicht erstellen: $filepath");
         }
 
-        $zip->addFromString('data.json', $json);
-        $zip->setArchiveComment(\json_encode(['target' => $target, 'tables' => \array_keys($backupData['tables'])]));
+        // VSA FIX: Memory-Safe JSON Streaming (Verhindert RAM-Exhaustion bei großen DBs)
+        $tmpJsonFile = \tempnam(\sys_get_temp_dir(), 'kga_backup_');
+        if ($tmpJsonFile === false) {
+            throw new RuntimeException('Konnte temporäre Backup-Datei nicht erstellen.');
+        }
+
+        $fp = \fopen($tmpJsonFile, 'w');
+        if ($fp === false) {
+            throw new RuntimeException('Konnte temporäre Backup-Datei nicht zum Schreiben öffnen.');
+        }
+
+        \fwrite($fp, '{"timestamp":"' . $this->clock->nowAsString() . '","target":"' . $target . '","tables":{');
+
+        $firstTable = true;
+        foreach ($tablesToBackup as $table) {
+            if (!$firstTable) {
+                \fwrite($fp, ',');
+            }
+            \fwrite($fp, '"' . $table . '":[');
+
+            $stmt = $this->pdo->query("SELECT * FROM `$table`");
+            if ($stmt !== false) {
+                $firstRow = true;
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    if (!$firstRow) {
+                        \fwrite($fp, ',');
+                    }
+                    \fwrite($fp, \json_encode($row, \JSON_UNESCAPED_UNICODE));
+                    $firstRow = false;
+                }
+            }
+            \fwrite($fp, ']');
+            $firstTable = false;
+        }
+        \fwrite($fp, '}}');
+        \fclose($fp);
+
+        $zip->addFile($tmpJsonFile, 'data.json');
+        $zip->setArchiveComment(\json_encode(['target' => $target, 'tables' => $tablesToBackup]));
 
         $backupCfg = $this->config->get('backup_settings', []);
         if (!empty($backupCfg['zip_password'])) {
             $zip->setPassword($backupCfg['zip_password']);
             $zip->setEncryptionName('data.json', ZipArchive::EM_AES_256);
-        }$zip->close();
+        }
+        $zip->close();
+
+        // Temporäre Datei erst nach dem Schließen des ZIP-Archivs löschen!
+        @\unlink($tmpJsonFile);
 
         if (($backupCfg['ftp']['enabled'] ?? false) === true) {
             $this->uploadToFtp($filepath, $filename, $backupCfg['ftp']);
@@ -222,7 +245,8 @@ final readonly class BackupService implements BackupServiceInterface
         foreach ($files as $file) {
             if (!\str_ends_with($file, '.zip')) {
                 continue;
-            }$path = $this->backupDir . '/' . $file;
+            }
+            $path = $this->backupDir . '/' . $file;
 
             $zip = new ZipArchive();
             $meta = [];
@@ -293,6 +317,7 @@ final readonly class BackupService implements BackupServiceInterface
 
         if (!@\ftp_put($connId, $filename, $filepath, \FTP_BINARY)) {
             \error_log('Off-Site Backup fehlgeschlagen: Upload verweigert.');
-        }         \ftp_close($connId);
+        }
+        \ftp_close($connId);
     }
 }

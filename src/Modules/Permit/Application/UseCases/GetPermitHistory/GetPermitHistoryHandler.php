@@ -30,7 +30,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
     {
         $normalizedSearch = Sanitizer::normalizeEmail($query->email);
         $parts = \explode('@', $normalizedSearch);
-        $domain = \count($parts) === 2 ? '%' . $parts[1] : '%';
+        $domain = \count($parts) === 2 ? '\%' . $parts[1] : '%';
 
         $binds = ['domain1' => $domain, 'domain2' => $domain];
         $archiveCond = '';
@@ -64,7 +64,8 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
 
         $dtos = [];
 
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        // VSA FIX: Nutzt `while` anstelle von fetchAll() um Speicher zu schonen
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             // Serverseitiger, exakter E-Mail Abgleich (Alias Ignorance)
             if (Sanitizer::normalizeEmail((string) $row['email']) !== $normalizedSearch) {
                 continue;
@@ -94,7 +95,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
                 $countdownText = 'ABGELAUFEN';
                 $countdownBadgeClass = 'c-badge--outline';
             } elseif ($isFuture) {
-                $daysToStart = (int) $now->diff($von)->format('%r%a');
+                $daysToStart = (int) $now->diff($von)->format('\%r\%a');
                 $countdownText = "Startet in {$daysToStart} Tagen";
             } else {
                 $diff = $now->diff($bis);

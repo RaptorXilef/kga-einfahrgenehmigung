@@ -28,7 +28,6 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
     public function handle(mixed $query): array
     {
         $stmt = $this->pdo->query("SELECT * FROM permits WHERE status = 'offen'");
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
         $now = new DateTimeImmutable('today');
         $dueDaysCfg = (int) $this->config->get('payment_due_days', 14);
@@ -40,7 +39,8 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
         $dtos = [];
         $sortDeadlines = [];
 
-        foreach ($rows as $row) {
+        // VSA FIX: Memory Safe Unbuffered Loop
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $createdAt = new DateTimeImmutable($row['erstellt']);
             $validFrom = new DateTimeImmutable($row['von']);
             $isSuspended = (bool) $row['is_suspended'];
@@ -104,7 +104,7 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
                 $safeMail = \htmlspecialchars($row['email'], \ENT_QUOTES, 'UTF-8');
                 $wbrMail = \str_replace('@', '<wbr>@', $safeMail);
                 $emailHtml = <<<HTML
-                        <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
+                    <small><a href="mailto:{$safeMail}" class="u-text-link c-table__mail-link">{$wbrMail}</a></small>
                     HTML;
             }
 

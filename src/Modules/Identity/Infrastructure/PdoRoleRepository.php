@@ -18,7 +18,9 @@ final readonly class PdoRoleRepository implements RoleRepositoryInterface
     {
         $roles = [];
         $stmt = $this->pdo->query('SELECT * FROM roles ORDER BY name ASC');
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+
+        // VSA FIX: Memory Safe Unbuffered Loop
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $roles[$row['id']] = $this->mapToEntity($row);
         }
 

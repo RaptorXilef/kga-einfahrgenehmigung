@@ -25,12 +25,12 @@ final readonly class GetVoucherArchiveHandler implements QueryHandlerInterface
     {
         // Pragmatischer Direkt-Query für das Dashboard (CQRS Read-Model)
         $stmt = $this->pdo->query('SELECT * FROM vouchers_archive ORDER BY redeemed_at DESC LIMIT 500');
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        // VSA FIX: Formatieren wir das Datum direkt im Read-Model, damit die PHTML komplett logikfrei bleibt.
-        foreach ($rows as &$row) {
+        $rows = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $dt = new DateTimeImmutable($row['redeemed_at']);
             $row['redeemed_at_formatted'] = $dt->format('d.m.y');
+            $rows[] = $row;
         }
 
         return $rows;

@@ -25,7 +25,8 @@ final readonly class PdoUnpaidPermitProvider implements UnpaidPermitProviderInte
         $unpaidPlates = [];
         $prices = [];
 
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        // VSA FIX: Nutze fetch() statt fetchAll(), um bei vielen Pächtern den RAM zu schonen
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $c = $row['code'];
             $allCodes[$c] = true;
             $prices[$c] = (float) $row['preis'];
