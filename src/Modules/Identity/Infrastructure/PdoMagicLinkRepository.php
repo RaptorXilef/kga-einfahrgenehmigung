@@ -8,6 +8,7 @@ use App\Modules\Identity\Domain\MagicLink;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 final readonly class PdoMagicLinkRepository implements MagicLinkRepositoryInterface
@@ -17,6 +18,7 @@ final readonly class PdoMagicLinkRepository implements MagicLinkRepositoryInterf
     ) {
     }
 
+    #[Override]
     public function save(MagicLink $magicLink): void
     {
         $sql = 'REPLACE INTO magic_links (token, email, code, expires) VALUES (:token, :email, :code, :expires)';
@@ -28,6 +30,7 @@ final readonly class PdoMagicLinkRepository implements MagicLinkRepositoryInterf
         ]);
     }
 
+    #[Override]
     public function findByInput(string $input): ?MagicLink
     {
         $stmt = $this->pdo->prepare('SELECT * FROM magic_links WHERE token = :input OR code = :input LIMIT 1');
@@ -46,11 +49,13 @@ final readonly class PdoMagicLinkRepository implements MagicLinkRepositoryInterf
         );
     }
 
+    #[Override]
     public function delete(string $token): void
     {
         $this->pdo->prepare('DELETE FROM magic_links WHERE token = :token')->execute(['token' => $token]);
     }
 
+    #[Override]
     public function deleteExpired(DateTimeImmutable $now): void
     {
         $this->pdo->prepare('DELETE FROM magic_links WHERE expires < :now')

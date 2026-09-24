@@ -7,10 +7,12 @@ use App\Modules\Identity\Application\UseCases\GetUserManagementData\UserManageme
  * Partial: User Account Management
  *
  * Erstellung, Bearbeitung und Zuweisung von Benutzerkonten.
+ * VSA FIX: Nutzt `$csrfToken` statt `$_SESSION['csrf_token']`.
  *
  * @var AssetHelperInterface $asset
  * @var UserManagementViewDto $viewDto
  * @var array $settings
+ * @var string $csrfToken
  */
 if ($viewDto->canManageUsers) { ?>
 <div class="u-flex u-flex-column u-gap-l">
@@ -36,7 +38,7 @@ if ($viewDto->canManageUsers) { ?>
                 <input
                     type="hidden"
                     name="csrf_token"
-                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                    value="<?php echo $csrfToken; ?>"
                 >
                 <div class="c-form-group">
                     <label
@@ -180,7 +182,7 @@ if ($viewDto->canManageUsers) { ?>
                     <input
                         type="hidden"
                         name="csrf_token"
-                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                        value="<?php echo $csrfToken; ?>"
                     >
                     <input
                         type="hidden"
@@ -229,7 +231,7 @@ if ($viewDto->canManageUsers) { ?>
                             <input
                                 type="hidden"
                                 name="csrf_token"
-                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                value="<?php echo $csrfToken; ?>"
                             >
                             <input
                                 type="hidden"
@@ -264,7 +266,7 @@ if ($viewDto->canManageUsers) { ?>
                             <input
                                 type="hidden"
                                 name="csrf_token"
-                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                value="<?php echo $csrfToken; ?>"
                             >
                             <input
                                 type="hidden"
@@ -301,7 +303,7 @@ if ($viewDto->canManageUsers) { ?>
                             <input
                                 type="hidden"
                                 name="csrf_token"
-                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                value="<?php echo $csrfToken; ?>"
                             >
                             <input
                                 type="hidden"
@@ -349,7 +351,7 @@ if ($viewDto->canManageUsers) { ?>
                             <input
                                 type="hidden"
                                 name="csrf_token"
-                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                value="<?php echo $csrfToken; ?>"
                             >
                             <input
                                 type="hidden"
@@ -390,4 +392,5 @@ if ($viewDto->canManageUsers) { ?>
         </div>
         <?php } ?>
     </div>
-    <?php } ?>
+</div>
+<?php } ?>

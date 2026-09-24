@@ -9,6 +9,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\Modules\Identity\Domain\LoginAttempt;
 use App\Modules\Identity\Domain\LoginAttemptRepositoryInterface;
 use App\SharedKernel\Domain\ValueObject\IpAddress;
+use Override;
 
 /**
  * Implementierung des Rate-Limiters zum Schutz vor Brute-Force Logins.
@@ -39,6 +40,7 @@ final readonly class RateLimiter implements RateLimiterInterface
      *
      * @return bool True, wenn die IP gesperrt ist.
      */
+    #[Override]
     public function isBlocked(string $ip): bool
     {
         $attempt = $this->repository->findByIp($ip);
@@ -64,6 +66,7 @@ final readonly class RateLimiter implements RateLimiterInterface
      *
      * @param string $ip Die betroffene IP-Adresse.
      */
+    #[Override]
     public function recordFailedAttempt(string $ip): void
     {
         $this->repository->deleteOlderThan(self::LOCKOUT_MINUTES);
@@ -87,6 +90,7 @@ final readonly class RateLimiter implements RateLimiterInterface
      *
      * @param string $ip Die betroffene IP-Adresse.
      */
+    #[Override]
     public function clearAttempts(string $ip): void
     {
         $this->repository->deleteByIp($ip);

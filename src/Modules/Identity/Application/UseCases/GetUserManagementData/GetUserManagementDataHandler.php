@@ -28,19 +28,18 @@ final readonly class GetUserManagementDataHandler implements QueryHandlerInterfa
     #[Override]
     public function handle(mixed $query): UserManagementViewDto
     {
-        // 1. Rollen laden & parsen
+        // 1. Rollen speicherschonend laden & parsen
         $stmtRoles = $this->pdo->query('SELECT * FROM roles ORDER BY name ASC');
-        $rolesRows = $stmtRoles->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
         $rolesMap = [];
         $globalRoleOptions = [];
         $roleDtos = [];
         $structure = $this->config->get('structure', []);
 
-        foreach ($rolesRows as $r) {
+        while ($r = $stmtRoles->fetch(PDO::FETCH_ASSOC)) {
             $id = (string) $r['id'];
             $name = (string) $r['name'];
-            $perms = \is_string($r['permissions']) ? \json_decode($r['permissions'], true) : [];
+            $perms = \is_string($r['permissions']) ? (\json_decode($r['permissions'], true) ?: []) : [];
             $rolesMap[$id] = $name;
 
             $globalRoleOptions[] = [
@@ -63,12 +62,11 @@ final readonly class GetUserManagementDataHandler implements QueryHandlerInterfa
             );
         }
 
-        // 2. Benutzer laden & DTOs mappen
+        // 2. Benutzer speicherschonend laden & DTOs mappen
         $stmtUsers = $this->pdo->query('SELECT * FROM users ORDER BY username ASC');
-        $usersRows = $stmtUsers->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
         $userDtos = [];
-        foreach ($usersRows as $u) {
+        while ($u = $stmtUsers->fetch(PDO::FETCH_ASSOC)) {
             $uid = (string) $u['id'];
             $roleId = (string) ($u['role_id'] ?? $u['group'] ?? 'guest');
             $username = (string) $u['username'];

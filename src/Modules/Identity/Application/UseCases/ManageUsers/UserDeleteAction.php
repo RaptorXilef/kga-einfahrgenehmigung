@@ -12,7 +12,7 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\ImageStorageInterface;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
@@ -25,7 +25,7 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
     public function __construct(
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
-        private ConfigInterface $config,
+        private ImageStorageInterface $imageStorage,
         private SessionManager $sessionManager,
         private DeleteUserHandler $deleteHandler,
     ) {
@@ -54,10 +54,7 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
                 $this->auth->getUserId(),
             ));
 
-            $avatarPath = \rtrim($this->config->getString('root_path'), '/\\') . '/public/assets/img/user/' . $dto->userId . '.webp';
-            if (\file_exists($avatarPath)) {
-                @\unlink($avatarPath);
-            }
+            $this->imageStorage->deleteImage('user', $dto->userId);
 
             $this->auditLogger->log('USER_DELETE', "Benutzerkonto '{$deletedName}' (ID: {$dto->userId}) unwiderruflich gelöscht.");
             $this->sessionManager->addFlash('success', "Benutzer '{$deletedName}' wurde entfernt.");

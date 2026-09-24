@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Infrastructure;
 
 use App\Modules\Identity\Domain\Role;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use Override;
 use PDO;
 
 final readonly class PdoRoleRepository implements RoleRepositoryInterface
@@ -14,6 +15,7 @@ final readonly class PdoRoleRepository implements RoleRepositoryInterface
     {
     }
 
+    #[Override]
     public function loadAll(): array
     {
         $roles = [];
@@ -27,6 +29,7 @@ final readonly class PdoRoleRepository implements RoleRepositoryInterface
         return $roles;
     }
 
+    #[Override]
     public function findById(string $id): ?Role
     {
         $stmt = $this->pdo->prepare('SELECT * FROM roles WHERE id = :id LIMIT 1');
@@ -36,6 +39,7 @@ final readonly class PdoRoleRepository implements RoleRepositoryInterface
         return $row ? $this->mapToEntity($row) : null;
     }
 
+    #[Override]
     public function save(Role $role): void
     {
         $sql = 'INSERT INTO roles (id, name, permissions) VALUES (:id, :name, :perms)
@@ -47,6 +51,7 @@ final readonly class PdoRoleRepository implements RoleRepositoryInterface
         ]);
     }
 
+    #[Override]
     public function delete(string $id): void
     {
         $this->pdo->prepare('DELETE FROM roles WHERE id = :id')->execute(['id' => $id]);

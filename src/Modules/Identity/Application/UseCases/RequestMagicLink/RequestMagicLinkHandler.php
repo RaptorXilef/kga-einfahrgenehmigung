@@ -6,12 +6,12 @@ namespace App\Modules\Identity\Application\UseCases\RequestMagicLink;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Identity\Domain\Events\MagicLinkRequestedEvent;
 use App\Modules\Identity\Domain\MagicLink;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
-use DateTimeImmutable;
 use Override;
 
 /**
@@ -23,6 +23,7 @@ final readonly class RequestMagicLinkHandler implements CommandHandlerInterface
         private MagicLinkRepositoryInterface $repository,
         private EventDispatcherInterface $eventDispatcher,
         private ConfigInterface $config,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -36,7 +37,7 @@ final readonly class RequestMagicLinkHandler implements CommandHandlerInterface
         $code = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
 
         $duration = $this->config->getInt('magic_link_duration', 15);
-        $expiresAt = (new DateTimeImmutable())->modify("+{$duration} minutes");
+        $expiresAt = $this->clock->now()->modify("+{$duration} minutes");
 
         $magicLink = new MagicLink(
             $token,

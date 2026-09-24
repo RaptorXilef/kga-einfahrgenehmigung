@@ -4,13 +4,14 @@ use App\Contracts\System\AssetHelperInterface;
 
 /**
  * Page: Admin Login
- * VSA FIX: PHTML ist jetzt 100% dumm. Nutzt `$csrfToken` und `$redirectCode`.
+ * VSA FIX: PHTML ist 100% dumm. Kein $_SESSION-Zugriff mehr, nutzt injiziertes `$formData`, `$csrfToken` und `$redirectCode`.
  *
  * Template für die Admin-Login-Maske.
  * Zeigt das Anmeldeformular für Systembetreuer und Administratoren an.
  *
  * @var AssetHelperInterface $asset
  * @var array $settings
+ * @var array $formData
  * @var string $appRoot
  * @var string $cspNonce
  * @var string $csrfToken
@@ -20,9 +21,7 @@ use App\Contracts\System\AssetHelperInterface;
 // Aktiviere das Public-Layout (weil der Body u-bg-light l-public-body benötigt)
 $layout = 'public';
 $pageTitle = 'Admin Login - ' . ($settings['vereins_name'] ?? '');
-
-$formData =$_SESSION['form_data'] ?? [];
-unset($_SESSION['form_data']);
+$savedUser = (string) ($formData['user'] ?? '');
 ?>
 
 <div class="c-tab-content-container o-container o-container--small u-padding-block-xl">
@@ -67,7 +66,7 @@ unset($_SESSION['form_data']);
                         name="user"
                         class="c-form-input"
                         placeholder="z.B. vorstand"
-                        value="<?php echo \htmlspecialchars($formData['user'] ?? ''); ?>"
+                        value="<?php echo \htmlspecialchars($savedUser); ?>"
                         required
                         autofocus
                         autocomplete="username"
@@ -86,7 +85,7 @@ unset($_SESSION['form_data']);
                             id="login_pass"
                             class="c-form-input c-password-toggle__input"
                             placeholder="••••••••"
-                            value="<?php echo \htmlspecialchars($formData['pass'] ?? ''); ?>"
+                            value=""
                             required
                             autocomplete="current-password"
                         >

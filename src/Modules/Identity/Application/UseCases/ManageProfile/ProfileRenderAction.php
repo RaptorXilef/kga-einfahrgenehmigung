@@ -52,13 +52,10 @@ final readonly class ProfileRenderAction implements ViewActionInterface
         $role = $roles[$userRoleId] ?? null;
 
         $html = $this->renderer->render('admin/profile', [
-            'auth' => $this->auth,
             'role' => $role ? $role->name : $userRoleId,
-            'roleRepository' => $this->roleRepository,
-            'imageStorage' => $this->imageStorage,
             'userId' => $userId,
             'username' => $user instanceof User ? $user->username : 'Unbekannt',
-            'userRepository' => $this->userRepository,
+            'userImage' => $this->imageStorage->getImageUrl('user', $userId, 'user.webp'),
         ]);
 
         return new HtmlResponse($html);

@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Infrastructure;
 
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
+use Override;
 use PDO;
 
 final readonly class PdoUserRepository implements UserRepositoryInterface
@@ -15,6 +16,7 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
     ) {
     }
 
+    #[Override]
     public function loadAll(): array
     {
         $users = [];
@@ -28,6 +30,7 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
         return $users;
     }
 
+    #[Override]
     public function findById(string $id): ?User
     {
         $stmt = $this->pdo->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
@@ -41,6 +44,7 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
         return $this->mapRowToEntity($row);
     }
 
+    #[Override]
     public function findByUsername(string $username): ?User
     {
         $stmt = $this->pdo->prepare('SELECT * FROM users WHERE username = :username LIMIT 1');
@@ -54,6 +58,7 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
         return $this->mapRowToEntity($row);
     }
 
+    #[Override]
     public function save(User $user): void
     {
         $sql = 'INSERT INTO users (id, username, role_id, pass, last_seen_changelog)
@@ -71,6 +76,7 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
         ]);
     }
 
+    #[Override]
     public function delete(string $id): void
     {
         $this->pdo->prepare('DELETE FROM users WHERE id = :id')->execute(['id' => $id]);

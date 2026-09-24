@@ -11,6 +11,7 @@ use App\Contracts\Security\RateLimiterInterface;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
+use Override;
 use RuntimeException;
 
 /**
@@ -33,6 +34,7 @@ final readonly class AuthService implements AuthorizationInterface
         $this->sessionManager->rotateCsrfToken();
     }
 
+    #[Override]
     public function isLoggedIn(): bool
     {
         try {
@@ -46,6 +48,7 @@ final readonly class AuthService implements AuthorizationInterface
             || $this->sessionManager->getAdminUser() === ($this->config->get('backdoor')['label'] ?? '');
     }
 
+    #[Override]
     public function hasPermission(string $permission): bool
     {
         $uid = $this->sessionManager->getUserId();

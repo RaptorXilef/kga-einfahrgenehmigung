@@ -1,27 +1,23 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Infrastructure\Config\Config;
 
 /**
  * Page: History Magic Link Login
  *
  * 2-Step Login-Formular (OTP Anforderung und Eingabe).
+ * VSA FIX: 100% Dumme View ohne $_SESSION-Zugriff.
  *
  * Login-Maske für die Endnutzer-Historie (Passwortloses Login).
  * Schritt 1: Eingabe der E-Mail-Adresse. Schritt 2: Eingabe des 6-stelligen Login-Codes.
  *
- * Path: templates/pages/history_login.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
  * @var AssetHelperInterface $asset
- * @var Config $config
  * @var array $settings  Frontend-Konfigurationen (vereins_name, jahresFarbe).
  * @var bool $isSuccess  Flag für grüne Erfolgsmeldungen (z.B. Code erfolgreich versendet).
- * @var int $step  Aktueller UI-Eingabeschritt (1 = E-Mail anfordern, 2 = Code eingeben).
+ * @var int $step        Aktueller UI-Eingabeschritt (1 = E-Mail anfordern, 2 = Code eingeben).
  * @var string $appRoot
  * @var string $cspNonce
+ * @var string $csrfToken
  */
 $layout = 'public';
 $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
@@ -38,7 +34,7 @@ $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
             >
             <h2 class="u-margin-block-none u-margin-block-start-s">Meine Genehmigungen</h2>
             <p class="u-text-muted u-margin-block-start-s">Geben Sie Ihre E-Mail-Adresse ein, mit der Sie bereits eine
-                Genemigung beantragt haben, um einen sicheren Login-Link zu erhalten.</p>
+                Genehmigung beantragt haben, um einen sicheren Login-Link zu erhalten.</p>
         </header>
 
         <div class="c-card__body">
@@ -55,7 +51,7 @@ $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
                 <input
                     type="hidden"
                     name="csrf_token"
-                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                    value="<?php echo $csrfToken; ?>"
                 >
                 <div class="c-form-group">
                     <label
@@ -104,7 +100,7 @@ $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
                 <input
                     type="hidden"
                     name="csrf_token"
-                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                    value="<?php echo $csrfToken; ?>"
                 >
                 <div class="c-form-group">
                     <label

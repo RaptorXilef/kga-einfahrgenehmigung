@@ -1,30 +1,28 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Contracts\System\ImageStorageInterface;
-use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\Identity\Domain\UserRepositoryInterface;
 
 /**
  * Page: User Profile
  *
  * Verwaltung von Avatar, Login-Name und Passwort für den angemeldeten User.
+ * VSA FIX: 100% Dumme View ohne $_SESSION oder Repository-Aufrufe.
  *
  * Profil-Einstellungsseite des aktuell angemeldeten Administrators.
  * Erlaubt die Personalisierung des eigenen Kontos (Anzeigename, Passwort-Änderung, Avatar-WebP-Upload).
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
- * @var ImageStorageInterface $imageStorage
- * @var UserRepositoryInterface $userRepository
  * @var array $settings
  * @var string $appRoot
  * @var string $cspNonce
- * @var string $role     Der Klartext-Name der eigenen Rolle.
- * @var string $userId   Die aktive Benutzer-ID.
- * @var string $username Der aktuelle Anzeigename.
+ * @var string $csrfToken
+ * @var string $role  Der Klartext-Name der eigenen Rolle.
+ * @var string $userId  Die aktive Benutzer-ID.
+ * @var string $username  Der aktuelle Anzeigename.
+ * @var string $userImage  Die fertig aufgelöste Avatar-URL.
  */
-$userImage = $imageStorage->getImageUrl('user', $userId, 'user.webp');
+$layout = 'admin';
+$pageTitle = 'Mein Profil - ' . ($settings['vereins_name'] ?? '');
 ?>
 
 <main class="c-tab-content-container u-padding-block-l">
@@ -62,7 +60,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'user.webp');
                     <input
                         type="hidden"
                         name="csrf_token"
-                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                        value="<?php echo $csrfToken; ?>"
                     >
 
                     <div
@@ -129,7 +127,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'user.webp');
                             <input
                                 type="hidden"
                                 name="csrf_token"
-                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                value="<?php echo $csrfToken; ?>"
                             >
                             <div class="c-form-group">
                                 <label
@@ -170,7 +168,7 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'user.webp');
                             <input
                                 type="hidden"
                                 name="csrf_token"
-                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                value="<?php echo $csrfToken; ?>"
                             >
                             <div class="c-form-group">
                                 <label

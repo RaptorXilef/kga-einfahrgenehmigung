@@ -6,6 +6,7 @@ namespace App\Modules\System\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\ImageStorageInterface;
+use Override;
 
 final readonly class ImageStorageService implements ImageStorageInterface
 {
@@ -13,6 +14,7 @@ final readonly class ImageStorageService implements ImageStorageInterface
     {
     }
 
+    #[Override]
     public function uploadImage(string $folder, string $id, array $file): bool
     {
         if (!isset($file['error']) || $file['error'] !== \UPLOAD_ERR_OK) {
@@ -60,6 +62,7 @@ final readonly class ImageStorageService implements ImageStorageInterface
         return \imagewebp($target, $destPath, 85);
     }
 
+    #[Override]
     public function getImageUrl(string $folder, string $id, string $fallbackIcon): string
     {
         $root = \rtrim((string) $this->config->get('root_path'), '/\\');
@@ -71,5 +74,18 @@ final readonly class ImageStorageService implements ImageStorageInterface
         }
 
         return $baseUrl . 'assets/img/icons/' . $fallbackIcon;
+    }
+
+    #[Override]
+    public function deleteImage(string $folder, string $id): void
+    {
+        $root = \rtrim((string) $this->config->get('root_path'), '/\\');
+        $serverPath = $root . '/public/assets/img/' . $folder . '/' . $id . '.webp';
+
+        if (!\file_exists($serverPath)) {
+            return;
+        }
+
+        @\unlink($serverPath);
     }
 }

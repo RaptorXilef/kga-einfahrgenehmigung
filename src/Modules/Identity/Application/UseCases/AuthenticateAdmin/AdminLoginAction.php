@@ -10,10 +10,8 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
-use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\Identity\Domain\RoleRepositoryInterface;
-use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use Override;
 
@@ -23,10 +21,8 @@ final readonly class AdminLoginAction implements ActionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private AuthService $auth,
-        private RoleRepositoryInterface $roleRepository,
+        private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
-        private UserRepositoryInterface $userRepository,
         private AuthenticateAdminHandler $loginHandler,
     ) {
     }
@@ -56,10 +52,11 @@ final readonly class AdminLoginAction implements ActionInterface
 
     private function renderForm(string $redirectCode): HtmlResponse
     {
+        $formData = $this->sessionManager->getFormData();
+        $this->sessionManager->clearFormData();
+
         $html = $this->renderer->render('admin/login', [
-            'auth' => $this->auth,
-            'roleRepository' => $this->roleRepository,
-            'userRepository' => $this->userRepository,
+            'formData' => $formData,
             'redirectCode' => $redirectCode,
         ]);
 

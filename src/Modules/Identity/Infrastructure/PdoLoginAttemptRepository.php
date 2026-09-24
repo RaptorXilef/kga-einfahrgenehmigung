@@ -10,6 +10,7 @@ use App\Modules\Identity\Domain\LoginAttemptRepositoryInterface;
 use App\SharedKernel\Domain\ValueObject\IpAddress;
 use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 final readonly class PdoLoginAttemptRepository implements LoginAttemptRepositoryInterface
@@ -22,6 +23,7 @@ final readonly class PdoLoginAttemptRepository implements LoginAttemptRepository
     ) {
     }
 
+    #[Override]
     public function findByIp(string $ip): ?LoginAttempt
     {
         $table = $this->config->get('storage_config')['login_attempts']['table'];
@@ -41,6 +43,7 @@ final readonly class PdoLoginAttemptRepository implements LoginAttemptRepository
         return null;
     }
 
+    #[Override]
     public function save(LoginAttempt $attempt): void
     {
         $table = $this->config->get('storage_config')['login_attempts']['table'];
@@ -54,12 +57,14 @@ final readonly class PdoLoginAttemptRepository implements LoginAttemptRepository
         $this->pdo->prepare($sql)->execute($data);
     }
 
+    #[Override]
     public function deleteByIp(string $ip): void
     {
         $table = $this->config->get('storage_config')['login_attempts']['table'];
         $this->pdo->prepare("DELETE FROM `{$table}` WHERE ip_address = ?")->execute([$ip]);
     }
 
+    #[Override]
     public function deleteOlderThan(int $minutes): void
     {
         $table = $this->config->get('storage_config')['login_attempts']['table'];
