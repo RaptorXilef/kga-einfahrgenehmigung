@@ -6,10 +6,12 @@ namespace App\Modules\Identity\Application\UseCases\AuthenticateAdmin;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 
 #[Route('GET', '/admin_logout')]
 #[Route('POST', '/admin_logout')]
@@ -21,7 +23,8 @@ final readonly class AdminLogoutAction implements ActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $this->auditLogger->log('LOGOUT', 'Abmeldung aus dem System.');
         $this->auth->logout();

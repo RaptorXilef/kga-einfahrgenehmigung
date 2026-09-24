@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\CheckPermit;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -13,6 +14,7 @@ use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\Identity\Application\Services\AuthService;
+use Override;
 
 #[Route('GET', '/check')]
 final readonly class CheckPermitAction implements ViewActionInterface
@@ -26,7 +28,8 @@ final readonly class CheckPermitAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = CheckPermitRequest::fromArray($request->get);

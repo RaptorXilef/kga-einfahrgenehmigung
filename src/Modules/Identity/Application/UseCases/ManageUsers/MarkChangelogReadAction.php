@@ -7,12 +7,14 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
+use Override;
 
 #[Route('POST', '/api/mark_changelog_read')]
 #[RequiresAuth]
@@ -24,7 +26,8 @@ final readonly class MarkChangelogReadAction implements ActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = MarkChangelogReadRequest::fromArray($request->post);

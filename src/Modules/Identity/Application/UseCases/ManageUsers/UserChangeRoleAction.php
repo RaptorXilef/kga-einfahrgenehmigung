@@ -8,6 +8,7 @@ use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -17,6 +18,7 @@ use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
+use Override;
 
 #[Route('POST', '/change_user_role')]
 #[RequiresAuth]
@@ -31,12 +33,14 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'system.users.manage';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = ChangeUserRoleRequest::fromArray($request->post);

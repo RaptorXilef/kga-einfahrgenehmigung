@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\System\Application\UseCases\ManageMails;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use Override;
 
 #[Route('GET', '/api/process_mail_queue')]
 #[Route('POST', '/api/process_mail_queue')]
@@ -21,9 +23,10 @@ final readonly class ProcessMailQueueAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
-        $cronSecret = (string) $this->config->get('cron_secret', '');
+        $cronSecret = $this->config->getString('cron_secret');
         $token = $request->get['token'] ?? '';
 
         $isCron = $request->getMethod() === 'GET' && $token !== '' && $token === $cronSecret;

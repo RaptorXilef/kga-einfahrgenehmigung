@@ -6,6 +6,7 @@ namespace App\Modules\System\Application\UseCases\ManageMails;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -13,6 +14,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 
 #[Route('GET', '/resend_mail')]
 #[Route('POST', '/resend_mail')]
@@ -26,7 +28,8 @@ final readonly class ResendMailAction implements ActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = ResendMailRequest::fromArray($request->post);

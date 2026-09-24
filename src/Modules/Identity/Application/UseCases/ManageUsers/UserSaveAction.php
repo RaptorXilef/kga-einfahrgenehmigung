@@ -8,6 +8,7 @@ use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -16,6 +17,7 @@ use App\Contracts\System\ImageStorageInterface;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
+use Override;
 
 #[Route('POST', '/save_user')]
 #[RequiresAuth]
@@ -23,19 +25,21 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private RoleRepositoryInterface $roleRepository, // Legacy-Repo für Namensauflösung im Log
+        private RoleRepositoryInterface $roleRepository,
         private ImageStorageInterface $imageStorage,
         private SessionManager $sessionManager,
-        private CreateUserHandler $createHandler, // CQRS
+        private CreateUserHandler $createHandler,
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'system.users.manage';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = UserSaveRequest::fromArray($request->post, $request->files);

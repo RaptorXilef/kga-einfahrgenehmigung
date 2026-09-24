@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\GetVerifiedRequest;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use Override;
 use Throwable;
 
 #[Route('GET', '/permit_edit')]
@@ -21,7 +23,8 @@ final readonly class PermitEditAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = PermitEditRequest::fromArray($request->get);

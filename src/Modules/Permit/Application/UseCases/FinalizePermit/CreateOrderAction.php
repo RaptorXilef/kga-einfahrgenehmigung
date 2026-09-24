@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\FinalizePermit;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -13,6 +14,7 @@ use App\Contracts\Payment\PaymentProviderInterface;
 use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestHandler;
 use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestQuery;
 use Exception;
+use Override;
 use Throwable;
 
 #[Route('POST', '/api/create_order')]
@@ -24,7 +26,8 @@ final readonly class CreateOrderAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = CreateOrderRequest::fromArray($request->post);

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\ArchiveExpiredPermits;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
+use Override;
 
 #[Route('GET', '/api/cron/archive')]
 #[Route('POST', '/api/cron/archive')]
@@ -22,13 +24,14 @@ final readonly class ArchiveCronAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
-        if (($request->get['token'] ?? '') !== (string) $this->config->get('cron_secret', '')) {
+        if (($request->get['token'] ?? '') !== $this->config->getString('cron_secret')) {
             return JsonResponse::error('Unautorisiert.', 403);
         }
 
-        $graceDays = (int) $this->config->get('archive_grace_days', 0);
+        $graceDays = $this->config->getInt('archive_grace_days', 0);
         $this->archiveHandler->handle(new ArchiveExpiredPermitsCommand($graceDays));
         $anonymizedCount = $this->archiveRepository->anonymizeOldRecords(10);
 

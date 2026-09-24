@@ -7,11 +7,13 @@ namespace App\Modules\Permit\Application\UseCases\SendPaymentReminders;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use Exception;
+use Override;
 
 #[Route('POST', '/send_reminder')]
 final readonly class PermitSendReminderAction implements ActionInterface, RequiresPermissionInterface
@@ -23,12 +25,14 @@ final readonly class PermitSendReminderAction implements ActionInterface, Requir
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'finance.mark_paid';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $codes = $request->post['codes'] ?? [];
         $singleCode = $request->post['code'] ?? '';

@@ -7,11 +7,13 @@ namespace App\Modules\Permit\Application\UseCases\MarkPermitAsPaid;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
+use Override;
 
 #[Route('GET', '/mark_as_paid')]
 #[Route('POST', '/mark_as_paid')]
@@ -24,12 +26,14 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'finance.mark_paid';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $codes = $request->post['codes'] ?? [];
         $singleCode = $request->post['code'] ?? '';

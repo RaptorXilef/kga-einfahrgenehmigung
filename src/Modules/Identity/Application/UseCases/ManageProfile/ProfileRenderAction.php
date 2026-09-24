@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageProfile;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
@@ -17,6 +18,7 @@ use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
+use Override;
 
 #[Route('GET', '/profile')]
 #[RequiresAuth]
@@ -32,7 +34,8 @@ final readonly class ProfileRenderAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $userId = $this->auth->getUserId();
 

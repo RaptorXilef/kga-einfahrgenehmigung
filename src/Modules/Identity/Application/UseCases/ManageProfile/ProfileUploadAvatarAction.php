@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageProfile;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -13,6 +14,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\System\ImageStorageInterface;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 
 #[Route('GET', '/change_own_avatar')]
 #[Route('POST', '/change_own_avatar')]
@@ -26,7 +28,8 @@ final readonly class ProfileUploadAvatarAction implements ActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $userId = $this->auth->getUserId();
 

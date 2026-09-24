@@ -7,12 +7,14 @@ namespace App\Modules\System\Application\UseCases\ManageMails;
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Response\TextResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
+use Override;
 
 #[Route('GET', '/debug_mail')]
 #[RequiresAuth]
@@ -20,18 +22,20 @@ final readonly class ViewDebugMailAction implements ViewActionInterface, Require
 {
     public function __construct(
         private ConfigInterface $config,
-        private MailLogInterface $mailLog, // <--- Injiziert
+        private MailLogInterface $mailLog,
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'system.logs.view';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
-        if ($this->config->get('debug_mode', false) !== true) {
+        if ($this->config->getBool('debug_mode', false) !== true) {
             return new TextResponse('Der Debug-Modus ist nicht aktiv.', 403);
         }
 
@@ -41,7 +45,6 @@ final readonly class ViewDebugMailAction implements ViewActionInterface, Require
             return new TextResponse('Ungueltiger oder fehlender Dateiname.', 400);
         }
 
-        // VSA FIX: I/O Operation (file_exists / file_get_contents) wurde in die Infrastruktur verlagert
         $content = $this->mailLog->getDebugMailContent($file);
 
         if ($content === null) {

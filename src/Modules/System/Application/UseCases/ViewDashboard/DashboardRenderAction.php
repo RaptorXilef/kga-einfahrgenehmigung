@@ -6,6 +6,7 @@ namespace App\Modules\System\Application\UseCases\ViewDashboard;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
@@ -37,6 +38,7 @@ use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchive
 use App\Modules\Voucher\Application\UseCases\GetVoucherList\GetVoucherListHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherList\GetVoucherListQuery;
 use DateTimeImmutable;
+use Override;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -66,9 +68,10 @@ final readonly class DashboardRenderAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
-        $paginationCfg = $this->config->get('pagination', []);
+        $paginationCfg = $this->config->getArray('pagination');
         $dto = DashboardViewRequest::fromRequest($request->get, $this->sessionManager->getAdminFilters(), $paginationCfg, $this->clock);
 
         if ($dto->resetFilters) {
@@ -174,7 +177,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $dtEnd = new DateTimeImmutable($dto->end);
 
         $limitOptions = [];
-        $paginationCfg = $this->config->get('pagination', []);
+        $paginationCfg = $this->config->getArray('pagination');
         foreach ($paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250] as $l) {
             $limitOptions[] = new LimitOptionDto($l, $dto->limit === $l ? 'selected' : '');
         }
@@ -254,7 +257,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $auditPage = (int) ($request->get['audit_page'] ?? 1);
         $auditData = $permissions->canViewLogs ? $this->auditLogRepository->getPaginated($auditPage, $dto->limit, $auditFilter) : ['items' => [], 'total' => 0];
 
-        // VSA FIX: Map AuditLog Entities to AuditLogViewDto to keep the view 100% logic-free
+        // Map AuditLog Entities to AuditLogViewDto to keep the view 100% logic-free
         $auditLogsDto = [];
         if ($permissions->canViewLogs) {
             foreach ($auditData['items'] as $log) {
@@ -335,8 +338,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             auditTotal: $auditData['total'],
             auditFilter: $auditFilter,
             unreadReleaseNotes: $unreadReleaseNotes,
-            bankImportMode: (string) $this->config->get('bank_import_mode', 'simple'),
-            cronSecret: (string) $this->config->get('cron_secret', ''),
+            bankImportMode: $this->config->getString('bank_import_mode', 'simple'),
+            cronSecret: $this->config->getString('cron_secret', ''),
         );
     }
 }

@@ -7,12 +7,14 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\System\ImageStorageInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 
 #[Route('GET', '/upload_avatar')]
 #[Route('POST', '/upload_avatar')]
@@ -25,12 +27,14 @@ final readonly class UserUploadAvatarAction implements ActionInterface, Requires
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'system.users.manage';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = UploadUserAvatarRequest::fromRequest($request->post, $request->files);

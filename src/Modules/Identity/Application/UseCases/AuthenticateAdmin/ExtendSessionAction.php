@@ -6,10 +6,12 @@ namespace App\Modules\Identity\Application\UseCases\AuthenticateAdmin;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 
 #[Route('POST', '/api/ping')]
 final readonly class ExtendSessionAction implements ActionInterface
@@ -20,7 +22,8 @@ final readonly class ExtendSessionAction implements ActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $userId = $this->sessionManager->getUserId();
 

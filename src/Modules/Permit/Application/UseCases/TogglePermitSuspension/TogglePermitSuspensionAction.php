@@ -6,12 +6,14 @@ namespace App\Modules\Permit\Application\UseCases\TogglePermitSuspension;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
+use Override;
 
 /**
  * Action zum Sperren oder Entsperren einer aktiven Genehmigung (VSA CQRS).
@@ -32,7 +34,8 @@ final readonly class TogglePermitSuspensionAction implements ActionInterface
     /**
      * Setzt den Sperrstatus (Suspension) einer Genehmigung.
      */
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = PermitToggleSuspensionRequest::fromArray($request->post);

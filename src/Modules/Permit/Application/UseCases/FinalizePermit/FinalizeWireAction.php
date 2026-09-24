@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\FinalizePermit;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -12,6 +13,7 @@ use App\Application\Response\JsonResponse;
 use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestHandler;
 use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\GetVerifiedRequestQuery;
 use App\Modules\Permit\Domain\PermitStatus;
+use Override;
 use Throwable;
 
 #[Route('POST', '/api/finalize_wire')]
@@ -23,7 +25,8 @@ final readonly class FinalizeWireAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = FinalizeWireRequest::fromArray($request->post);
@@ -42,7 +45,6 @@ final readonly class FinalizeWireAction implements ViewActionInterface
             $targetStatus = $price <= 0.0 ? PermitStatus::Bezahlt : PermitStatus::Offen;
             $comment = $price <= 0.0 ? 'Kostenlos / Gebührenfrei' : 'Zahlung per Überweisung gewählt';
 
-            // VSA CQRS FIX: Nimmt nur den String-Code entgegen
             $permitCode = $this->finalizeHandler->handle(new FinalizePermitCommand(
                 $dto->token,
                 $targetStatus,

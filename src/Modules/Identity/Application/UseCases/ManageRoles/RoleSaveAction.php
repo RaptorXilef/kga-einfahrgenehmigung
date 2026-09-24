@@ -8,12 +8,14 @@ use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 
 #[Route('POST', '/save_role')]
 #[RequiresAuth]
@@ -27,12 +29,14 @@ final readonly class RoleSaveAction implements ActionInterface, RequiresPermissi
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'system.roles.manage';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = RoleSaveRequest::fromArray($request->post);

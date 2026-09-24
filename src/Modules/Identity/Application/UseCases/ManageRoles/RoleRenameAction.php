@@ -7,12 +7,14 @@ namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
+use Override;
 
 #[Route('POST', '/rename_role')]
 final readonly class RoleRenameAction implements ActionInterface, RequiresPermissionInterface
@@ -24,12 +26,14 @@ final readonly class RoleRenameAction implements ActionInterface, RequiresPermis
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'system.roles.manage';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = RoleRenameRequest::fromArray($request->post);

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Application\UseCases\VerifyMagicLink;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 
 #[Route('GET', '/history_logout')]
 #[Route('POST', '/history_logout')]
@@ -21,7 +23,8 @@ final readonly class HistoryLogoutAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $email = (string) $this->sessionManager->getHistoryEmail();
         if ($email !== '') {

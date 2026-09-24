@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageProfile;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -15,6 +16,7 @@ use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserPasswordComm
 use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserPasswordHandler;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
+use Override;
 
 #[Route('POST', '/change_own_password')]
 final readonly class ProfileUpdatePasswordAction implements ActionInterface
@@ -27,7 +29,8 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $userId = $this->auth->getUserId();
 

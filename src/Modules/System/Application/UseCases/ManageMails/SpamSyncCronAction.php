@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\System\Application\UseCases\ManageMails;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\System\Application\Services\EmailValidationService;
+use Override;
 
 #[Route('GET', '/api/cron/spam_sync')]
 #[Route('POST', '/api/cron/spam_sync')]
@@ -21,9 +23,10 @@ final readonly class SpamSyncCronAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
-        if (($request->get['token'] ?? '') !== (string) $this->config->get('cron_secret', '')) {
+        if (($request->get['token'] ?? '') !== $this->config->getString('cron_secret')) {
             return JsonResponse::error('Unautorisiert. Ungültiges Cron-Token.', 403);
         }
 

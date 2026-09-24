@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\CancelPermit;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -12,6 +13,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
+use Override;
 
 #[Route('GET', '/history_cancel_permit')]
 #[Route('POST', '/history_cancel_permit')]
@@ -24,7 +26,8 @@ final readonly class HistoryCancelPermitAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = HistoryCancelPermitRequest::fromArray($request->post);

@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\AuthenticateAdmin;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
@@ -14,6 +15,7 @@ use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 
 #[Route('GET', '/admin_login')]
 #[Route('POST', '/admin_login')]
@@ -29,11 +31,11 @@ final readonly class AdminLoginAction implements ActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $redirectCode = (string) ($request->get['code'] ?? $request->post['code'] ?? '');
 
-        // VSA FIX: Die Middleware kümmert sich um POST Fehler und leitet auf GET zurück!
         if ($request->getMethod() === 'GET') {
             return $this->renderForm($redirectCode);
         }

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\GetDateInfo;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Modules\Permit\Application\Services\HolidayService;
+use Override;
 use Throwable;
 
 #[Route('POST', '/api/get_date_info')]
@@ -19,7 +21,8 @@ final readonly class GetDateInfoAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = ApiDateInfoRequest::fromArray($request->input);

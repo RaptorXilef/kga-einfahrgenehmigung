@@ -7,9 +7,11 @@ namespace App\Modules\Permit\Application\UseCases\SearchPermits;
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
+use Override;
 use Throwable;
 
 #[Route('POST', '/api/search_permits')]
@@ -21,12 +23,14 @@ final readonly class SearchPermitsAction implements ViewActionInterface, Require
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'permits.view';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = ApiSearchPermitsRequest::fromArray($request->post);

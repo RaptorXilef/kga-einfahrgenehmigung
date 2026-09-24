@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
@@ -13,6 +14,7 @@ use App\Application\View\TemplateRenderer;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Application\UseCases\GetUserManagementData\GetUserManagementDataHandler;
 use App\Modules\Identity\Application\UseCases\GetUserManagementData\GetUserManagementDataQuery;
+use Override;
 
 #[Route('GET', '/users')]
 #[RequiresAuth]
@@ -25,12 +27,13 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $viewDto = $this->dataHandler->handle(new GetUserManagementDataQuery($this->auth));
 
         $html = $this->renderer->render('admin/users', [
-            'auth' => $this->auth, // Legacy-Objekt bleibt vorerst für Container verfügbar, falls benötigt
+            'auth' => $this->auth,
             'viewDto' => $viewDto,
         ]);
 

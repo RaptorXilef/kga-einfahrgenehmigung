@@ -6,6 +6,7 @@ namespace App\Modules\System\Application\UseCases\QrCode;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
 use Endroid\QrCode\Encoding\Encoding;
@@ -13,11 +14,13 @@ use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Exception;
+use Override;
 
 #[Route('GET', '/api/qr.png')]
 final readonly class QrCodeRenderAction implements ActionInterface
 {
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $data = $request->get['data'] ?? '';
         $size = (int) ($request->get['size'] ?? 200);

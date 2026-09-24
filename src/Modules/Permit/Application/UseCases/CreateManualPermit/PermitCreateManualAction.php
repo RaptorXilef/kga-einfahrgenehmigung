@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\CreateManualPermit;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
@@ -18,6 +19,7 @@ use App\SharedKernel\Domain\ValueObject\LicensePlate;
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use App\SharedKernel\Domain\ValueObject\Price;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
+use Override;
 
 #[Route('GET', '/create_manual')]
 #[Route('POST', '/create_manual')]
@@ -31,12 +33,14 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'permits.create';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         if ($request->getMethod() === 'GET') {
             return new RedirectResponse('admin?focus=tab-tools');

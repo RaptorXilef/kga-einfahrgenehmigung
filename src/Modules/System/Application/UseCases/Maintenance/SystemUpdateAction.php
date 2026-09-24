@@ -6,11 +6,13 @@ namespace App\Modules\System\Application\UseCases\Maintenance;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Contracts\System\RouteCacheInterface;
+use Override;
 use Throwable;
 
 #[Route('GET', '/api/system_update')]
@@ -24,13 +26,13 @@ final readonly class SystemUpdateAction implements ActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $tokenRaw = $request->get['token'] ?? '';
         $providedToken = \is_string($tokenRaw) ? $tokenRaw : '';
 
-        $cronRaw = $this->config->get('cron_secret', '');
-        $expectedToken = \is_string($cronRaw) ? $cronRaw : '';
+        $expectedToken = $this->config->getString('cron_secret');
 
         if ($expectedToken === '' || $providedToken !== $expectedToken) {
             return JsonResponse::error('Unautorisiert. Ungültiges Deployment-Token.', 403);
