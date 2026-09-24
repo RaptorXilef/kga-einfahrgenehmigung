@@ -80,17 +80,17 @@ parameters:
         # #Variable \$[a-zA-Z0-9_]+ might not be defined.#: In deinen PHTML-Dateien nutzen wir extract($data).
         # PHPStan kann nicht wissen, dass dadurch plötzlich Variablen wie $vereinsName existieren und
         # wirft hunderte Fehlalarme.
-        - '#Variable \$[a-zA-Z0-9_]+ might not be defined.#'
+        - '#Variable \$[a-zA-Z0-9_]+ might not be defined\.#'
 
         # #Expression on left side of \?\? is not nullable.#: Wenn PHPStan zu 100% sicher ist,
         # dass $text ein String ist, verbietet es dir zur Sicherheit $text ?? '' zu schreiben.
         # In der Praxis baut man solche Fallbacks (z.B. in PHTMLs) aber gerne zur absoluten Sicherheit ein.
-        - '#Expression on left side of \?\? is not nullable.#'
+        - '#Expression on left side of \?\? is not nullable\.#'
 
         # #Variable \$[a-zA-Z0-9_]+ in empty\(\) always exists and is not falsy.#: Manchmal weiß PHPStan durch
         # vorherige Checks schon, dass eine Variable existiert und warnt dann bei redundanten empty() Prüfungen.
         # In PHTMLs als Sicherheitsnetz aber gewollt.
-        - '#Variable \$[a-zA-Z0-9_]+ in empty\(\) always exists and is not falsy.#'
+        - '#Variable \$[a-zA-Z0-9_]+ in empty\(\) always exists and is not falsy\.#'
 
         # #Match expression does not handle remaining value#: Warnt, wenn ein match() nicht alle theoretisch
         # möglichen Werte (mixed) abdeckt. Oft wissen wir aber durch die Domänen-Logik, dass andere Werte nicht auftreten können.
@@ -160,10 +160,12 @@ parameters:
           allowIn:
               - src/SharedKernel/Infrastructure/*
               - src/Modules/*/Infrastructure/*
-              - src/Modules/*/Application/UseCases/*
-              - src/Modules/*/Application/Listeners/*
-              - src/Modules/System/Application/Services/*
+              - src/Modules/Finance/Application/UseCases/ExportFinanceData/ExportFinanceDataHandler.php
+              - src/Modules/Permit/Application/UseCases/ExportPermits/ExportPermitsHandler.php
               - src/Application/Middleware/JsonBodyParserMiddleware.php
+              - src/Application/View/TemplateRenderer.php
+              - src/Application/Exception/GlobalExceptionHandler.php
+              - src/Application/Routing/ActionRegistry.php
               - src/Bootstrap/*
               - public/*
 
@@ -218,7 +220,6 @@ parameters:
               - src/Application/Exception/GlobalExceptionHandler.php
               - src/Application/FrontendController.php
               - src/Bootstrap/*
-              - src/Modules/System/Application/UseCases/QrCode/QrCodeRenderAction.php
               - public/*
 
         # 5. Verbot von Debug- und Kill-Funktionen
@@ -235,7 +236,6 @@ parameters:
               - src/Application/Response/*
               - src/Application/Exception/GlobalExceptionHandler.php
               - src/Application/FrontendController.php
-              - src/Modules/System/Application/UseCases/QrCode/QrCodeRenderAction.php
 
         # 6. Verbot von System/Exec Funktionen (Sicherheitsrisiko)
         - function:
@@ -271,15 +271,13 @@ parameters:
               - 'microtime'
               - 'sleep'
               - 'usleep'
+              - 'uniqid'
           message: 'Verstoß gegen Clean Architecture: Nutze das ClockInterface anstelle von nativen Zeit-Funktionen, um den Code testbar zu halten.'
           allowIn:
               - src/SharedKernel/Infrastructure/*
               - src/Modules/*/Infrastructure/*
-              - src/Modules/*/Application/UseCases/*
-              - src/Modules/*/Application/Services/*
-              - src/Modules/*/Presentation/*
+              - src/Application/View/TemplateRenderer.php
               - src/Bootstrap/*
-              - src/Application/Session/SessionManager.php
               - public/*
 
     # =========================================================================
@@ -320,15 +318,14 @@ parameters:
           allowIn:
               - public/*
         - superglobal: '$_SERVER'
-          message: 'Verboten! Nutze stattdessen ServerRequest->server.'
+          message: 'Verboten! Nutze stattdessen ServerRequest->server oder IpResolverInterface.'
           allowIn:
               - src/Application/Http/ServerRequest.php
               - src/Application/Exception/GlobalExceptionHandler.php
-              - src/Application/Middleware/ApiRateLimitMiddleware.php
               - src/Application/Middleware/SecurityHeadersMiddleware.php
               - src/Bootstrap/SystemBootstrapper.php
               - src/SharedKernel/Infrastructure/Config/Config.php
-              - src/Modules/System/Application/Services/AuditLoggerService.php
+              - src/Modules/System/Infrastructure/System/ServerIpResolver.php
               - public/*
         - superglobal: '$_ENV'
           message: 'Verboten! Nutze stattdessen das ConfigInterface.'

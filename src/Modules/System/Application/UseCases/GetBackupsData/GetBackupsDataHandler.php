@@ -7,7 +7,9 @@ namespace App\Modules\System\Application\UseCases\GetBackupsData;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\System\AssetHelperInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use Override;
 
 /**
  * @implements QueryHandlerInterface<GetBackupsDataQuery, BackupsResultDto>
@@ -16,59 +18,71 @@ final readonly class GetBackupsDataHandler implements QueryHandlerInterface
 {
     public function __construct(
         private BackupServiceInterface $backupService,
-        private AssetHelperInterface $assetHelper,
         private ConfigInterface $config,
+        private AssetHelperInterface $assetHelper,
+        private ClockInterface $clock,
     ) {
     }
 
     /**
      * @param GetBackupsDataQuery $query
      */
+    #[Override]
     public function handle(mixed $query): BackupsResultDto
     {
-        $backups = $this->backupService->listBackups();
-        $dtos = [];
+        $backupCfg = $this->config->getArray('backup_settings');
+        $ftpEnabled = (bool) ($backupCfg['ftp']['enabled'] ?? false);
 
-        $targets = [
-            'all' => ['label' => 'Komplette Datenbank (Alle)', 'icon' => 'package.webp', 'emoji' => '📦'],
-            'roles' => ['label' => 'Rechte-Rollen', 'icon' => 'shield.webp', 'emoji' => '🛡️'],
-            'magic_links' => ['label' => 'Login-Tokens', 'icon' => 'link.webp', 'emoji' => '🔗'],
-            'mail_log' => ['label' => 'E-Mail Protokolle', 'icon' => 'envelope.webp', 'emoji' => '📧'],
-            'mail_queue' => ['label' => 'Mail-Warteschlange', 'icon' => 'inbox.webp', 'emoji' => '📤'],
-            'pending_verification' => ['label' => 'Warteraum (E-Mail)', 'icon' => 'envelope.webp', 'emoji' => '✉️'],
-            'permits' => ['label' => 'Genehmigungen', 'icon' => 'document.webp', 'emoji' => '📄'],
-            'permits_archive' => ['label' => 'Genehmigungs-Archiv', 'icon' => 'archive.webp', 'emoji' => '🗄️'],
-            'permits_cancelled' => ['label' => 'Stornierte Genehmigungen', 'icon' => 'blocked.webp', 'emoji' => '🚫'],
-            'users' => ['label' => 'Benutzerkonten', 'icon' => 'user.webp', 'emoji' => '👥'],
-            'verified_pending' => ['label' => 'Warteraum (Zahlung)', 'icon' => 'card.webp', 'emoji' => '💳'],
-            'vouchers' => ['label' => 'Gutscheine', 'icon' => 'voucher.webp', 'emoji' => '🎟️'],
-            'vouchers_archive' => ['label' => 'Gutschein-Archiv', 'icon' => 'archive.webp', 'emoji' => '📚'],
-            'login_attempts' => ['label' => 'Login-Versuche', 'icon' => 'shield.webp', 'emoji' => '🛡'],
-            'update_migrations' => ['label' => 'Update-Migration-Verlauf', 'icon' => 'sync.webp', 'emoji' => '♻'],
-            'audit_logs' => ['label' => 'Nutzerprotokoll (Audit)', 'icon' => 'view.webp', 'emoji' => '👁️‍🗨️'],
+        $targetLabels = [
+            'all' => 'Voll-Backup (Alle Tabellen)',
+            'permits' => 'Aktive Genehmigungen (permits)',
+            'permits_archive' => 'Archivierte Genehmigungen (permits_archive)',
+            'permits_cancelled' => 'Stornierte Genehmigungen (permits_cancelled)',
+            'vouchers' => 'Gutscheincodes (vouchers)',
+            'vouchers_archive' => 'Gutschein-Archiv (vouchers_archive)',
+            'users' => 'Benutzerkonten (users)',
+            'roles' => 'Rechte-Rollen (roles)',
+            'audit_logs' => 'Audit-Logs (audit_logs)',
+            'mail_log' => 'E-Mail-Logs (mail_logs)',
+            'mail_queue' => 'E-Mail-Warteschlange (mail_queue)',
         ];
 
-        foreach ($backups as $b) {
-            $targetIconName = $b['target'] === 'all' ? 'package.webp' : ($targets[$b['target']]['icon'] ?? 'document.webp');
+        $storageConfig = $this->config->getArray('storage_config');
+        $targetOptions = [
+            ['value' => 'all', 'label' => $targetLabels['all']],
+        ];
 
-            $dtos[] = new BackupViewDto(
-                filename: $b['filename'],
-                sizeMb: \round($b['size'] / 1024 / 1024, 2),
-                dateFormatted: \date('d.m.Y — H:i:s', $b['date']),
-                targetName: $b['target'],
-                targetLabel: $b['target'] === 'all' ? 'Voll-Backup' : 'Tabelle: ' . $b['target'],
-                targetIconUrl: $this->assetHelper->url('assets/img/icons/' . $targetIconName),
-                tables: $b['tables'] ?? [],
+        foreach (\array_keys($storageConfig) as $key) {
+            $targetOptions[] = [
+                'value' => (string) $key,
+                'label' => $targetLabels[$key] ?? (string) $key,
+            ];
+        }
+
+        $rawBackups = $this->backupService->listBackups();
+        $items = [];
+
+        foreach ($rawBackups as $b) {
+            $timestamp = (int) ($b['date'] ?? 0);
+            $dt = $this->clock->now()->setTimestamp($timestamp);
+            $sizeBytes = (int) ($b['size'] ?? 0);
+            $sizeMb = \number_format($sizeBytes / 1024 / 1024, 2, ',', '.');
+            $targetKey = (string) ($b['target'] ?? 'all');
+
+            $items[] = new BackupItemViewDto(
+                filename: (string) ($b['filename'] ?? ''),
+                sizeMb: $sizeMb,
+                dateFormatted: $dt->format('d.m.Y H:i') . ' Uhr',
+                targetLabel: $targetLabels[$targetKey] ?? $targetKey,
+                targetIconUrl: $this->assetHelper->url('assets/img/icons/' . ($targetKey === 'all' ? 'package.webp' : 'document.webp')),
+                tables: \is_array($b['tables'] ?? null) ? $b['tables'] : [],
             );
         }
 
-        $targetOptions = [];
-        foreach ($targets as $key => $data) {
-            $targetOptions[] = ['value' => $key, 'label' => $data['emoji'] . ' ' . $data['label']];
-        }
-
-        $ftpEnabled = $this->config->get('backup_settings')['ftp']['enabled'] ?? false;
-
-        return new BackupsResultDto($dtos, $targetOptions, $ftpEnabled);
+        return new BackupsResultDto(
+            ftpEnabled: $ftpEnabled,
+            targetOptions: $targetOptions,
+            items: $items,
+        );
     }
 }

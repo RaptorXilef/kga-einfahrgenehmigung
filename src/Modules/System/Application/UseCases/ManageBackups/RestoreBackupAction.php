@@ -17,9 +17,9 @@ use App\Modules\System\Application\Services\AuditLoggerService;
 use Override;
 use Throwable;
 
-#[Route('POST', '/create_backup')]
+#[Route('POST', '/restore_data')]
 #[RequiresAuth]
-final readonly class CreateBackupAction implements ActionInterface, RequiresPermissionInterface
+final readonly class RestoreBackupAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
@@ -37,17 +37,25 @@ final readonly class CreateBackupAction implements ActionInterface, RequiresPerm
     #[Override]
     public function execute(ServerRequest $request): ResponseInterface
     {
+        $filename = \trim((string) ($request->post['filename'] ?? ''));
+        $mode = (int) ($request->post['mode'] ?? 1);
         $target = \trim((string) ($request->post['target'] ?? 'all'));
-        if ($target === '') {
-            $target = 'all';
+
+        if ($filename === '') {
+            $this->sessionManager->addFlash('error', 'Fehler: Keine Backup-Datei ausgewählt.');
+
+            return new RedirectResponse('admin?focus=tab-backup');
         }
 
         try {
-            $filename = $this->backupService->createBackup($target);
-            $this->auditLogger->log('SYSTEM_BACKUP_CREATE', "Manuelles Backup '{$filename}' (Ziel: {$target}) erstellt.");
-            $this->sessionManager->addFlash('success', "Backup '{$filename}' erfolgreich erstellt.");
+            // Vor jeder Wiederherstellung ein automatisches Sicherheits-Backup anlegen
+            $this->backupService->createBackup('all');
+            $this->backupService->restoreBackup($filename, $mode, $target);
+
+            $this->auditLogger->log('SYSTEM_BACKUP_RESTORE', "Backup '{$filename}' (Modus: {$mode}, Ziel: {$target}) wiederhergestellt.");
+            $this->sessionManager->addFlash('success', "Backup '{$filename}' wurde erfolgreich wiederhergestellt.");
         } catch (Throwable $e) {
-            $this->sessionManager->addFlash('error', 'Fehler beim Erstellen des Backups: ' . $e->getMessage());
+            $this->sessionManager->addFlash('error', 'Fehler bei der Wiederherstellung: ' . $e->getMessage());
         }
 
         return new RedirectResponse('admin?focus=tab-backup');
