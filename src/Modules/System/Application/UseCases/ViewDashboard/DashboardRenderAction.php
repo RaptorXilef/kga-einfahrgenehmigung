@@ -231,14 +231,14 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         }
 
         // Pagination HTML Generierung (Befreit die PHTML-Dateien von den Includes)
-        // FIX: Sichere Übergabe von $focus, um direkten $_GET Zugriff zu vermeiden!
+        // FIX: Pfad von 'admin/pagination' auf 'partials/admin/pagination' korrigiert
         $renderPagination = function (int $total, string $tabId) use ($dto, $focus): string {
             $limit = $dto->limit;
             $page = ($tabId === $focus) ? $dto->page : 1;
             $totalPages = \max(1, (int) \ceil($total / $limit));
             $offset = ($page - 1) * $limit;
 
-            return $this->renderer->render('admin/pagination', [
+            return $this->renderer->render('partials/admin/pagination', [
                 'page' => $page,
                 'totalPages' => $totalPages,
                 'totalCount' => $total,
