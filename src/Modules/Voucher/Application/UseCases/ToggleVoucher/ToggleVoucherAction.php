@@ -8,12 +8,14 @@ use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
+use Override;
 
 #[Route('POST', '/activate_voucher')]
 #[Route('POST', '/deactivate_voucher')]
@@ -27,12 +29,14 @@ final readonly class ToggleVoucherAction implements ActionInterface, RequiresPer
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'vouchers.suspend';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = VoucherToggleRequest::fromArray($request->post);

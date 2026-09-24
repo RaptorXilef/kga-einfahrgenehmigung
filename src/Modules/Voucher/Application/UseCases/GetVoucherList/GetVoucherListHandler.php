@@ -6,6 +6,7 @@ namespace App\Modules\Voucher\Application\UseCases\GetVoucherList;
 
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 /**
@@ -25,6 +26,7 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
      *
      * @return array<VoucherListDto>
      */
+    #[Override]
     public function handle(mixed $query): array
     {
         $sql = 'SELECT * FROM vouchers';
@@ -42,7 +44,6 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
         $now = new DateTimeImmutable();
         $dtos = [];
 
-        // VSA FIX: Memory Safe Unbuffered Loop
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $isMultiUse = (bool) $row['is_multi_use'];
             $currentUses = (int) $row['current_uses'];
@@ -51,7 +52,7 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
             $type = (string) $row['type'];
             $value = (float) $row['value'];
 
-            $expiresAtObj = $row['expires_at'] ? new DateTimeImmutable($row['expires_at']) : null;
+            $expiresAtObj = $row['expires_at'] ? new DateTimeImmutable((string) $row['expires_at']) : null;
             $prefill = \json_decode((string) $row['prefill_data'], true) ?: [];
 
             // 1. Logik-Auswertung
@@ -77,7 +78,7 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
                 rowClass: $isInvalid ? 'c-table__row--danger u-opacity-50' : '',
                 discountText: $discountText,
                 discountBadgeClass: $type === 'free' ? 'c-badge--success' : 'c-badge--primary',
-                usageBadgeText: $isMultiUse ? "Mehrfach ({$currentUses}/" . ($maxUses > 0 ? $maxUses : '&infin;') . ')' : 'Einweg',
+                usageBadgeText: $isMultiUse ? "Mehrfach ({$currentUses}/" . ($maxUses > 0 ? (string) $maxUses : '&infin;') . ')' : 'Einweg',
                 usageBadgeIcon: $isMultiUse ? 'sync.webp' : null,
                 dateModeText: empty($prefill['datum_von']) ? 'Flexible Datenwahl' : 'Gefixte Daten',
                 prefilledName: !empty($prefill['name']) ? (string) $prefill['name'] : null,

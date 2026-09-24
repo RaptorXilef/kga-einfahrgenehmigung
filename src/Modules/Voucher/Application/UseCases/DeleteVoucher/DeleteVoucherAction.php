@@ -7,11 +7,13 @@ namespace App\Modules\Voucher\Application\UseCases\DeleteVoucher;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 
 /**
  * Action zum unwiderruflichen Löschen eines Gutscheins (VSA).
@@ -27,12 +29,14 @@ final readonly class DeleteVoucherAction implements ActionInterface, RequiresPer
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'vouchers.delete';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = DeleteVoucherRequest::fromArray($request->post);

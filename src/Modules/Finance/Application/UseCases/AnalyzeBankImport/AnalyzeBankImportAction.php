@@ -7,12 +7,14 @@ namespace App\Modules\Finance\Application\UseCases\AnalyzeBankImport;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportAction;
 use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportHandler;
+use Override;
 
 #[Route('GET', '/bank_import_analyze')]
 #[Route('POST', '/bank_import_analyze')]
@@ -26,12 +28,14 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'finance.bank_import';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $file = $request->files['bank_csv'] ?? null;
         if (!$file || (isset($file['error']) && $file['error'] !== 0)) {
@@ -75,7 +79,7 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
             $guessedDate = $index;
         }
 
-        $mode = $this->config->get('bank_import_mode', 'simple');
+        $mode = $this->config->getString('bank_import_mode', 'simple');
 
         if ($mode === 'advanced') {
             $this->sessionManager->setFormData([

@@ -11,6 +11,7 @@ use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use DateTimeImmutable;
 use DomainException;
 use InvalidArgumentException;
+use Override;
 
 /**
  * Handler für die Gutscheinerstellung.
@@ -22,13 +23,14 @@ final readonly class CreateVoucherHandler implements CommandHandlerInterface
 {
     public function __construct(
         private VoucherRepositoryInterface $repository,
-        private ClockInterface $clock, // VSA FIX: Inject ClockInterface
+        private ClockInterface $clock,
     ) {
     }
 
     /**
      * @param CreateVoucherCommand $command
      */
+    #[Override]
     public function handle(mixed $command): void
     {
         // 1. Validierung
@@ -63,7 +65,7 @@ final readonly class CreateVoucherHandler implements CommandHandlerInterface
             $expiresAtDate,
             $command->prefillData,
             $command->createdBy,
-            $this->clock->now(), // Injizierte Zeit übergeben
+            $this->clock->now(),
         );
 
         // 5. Speichern

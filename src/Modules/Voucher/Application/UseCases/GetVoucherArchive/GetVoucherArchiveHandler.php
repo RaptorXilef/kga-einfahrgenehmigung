@@ -6,6 +6,7 @@ namespace App\Modules\Voucher\Application\UseCases\GetVoucherArchive;
 
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
+use Override;
 use PDO;
 
 /**
@@ -21,6 +22,7 @@ final readonly class GetVoucherArchiveHandler implements QueryHandlerInterface
     /**
      * @param GetVoucherArchiveQuery $query
      */
+    #[Override]
     public function handle(mixed $query): array
     {
         // Pragmatischer Direkt-Query für das Dashboard (CQRS Read-Model)
@@ -28,7 +30,7 @@ final readonly class GetVoucherArchiveHandler implements QueryHandlerInterface
 
         $rows = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $dt = new DateTimeImmutable($row['redeemed_at']);
+            $dt = new DateTimeImmutable((string) $row['redeemed_at']);
             $row['redeemed_at_formatted'] = $dt->format('d.m.y');
             $rows[] = $row;
         }

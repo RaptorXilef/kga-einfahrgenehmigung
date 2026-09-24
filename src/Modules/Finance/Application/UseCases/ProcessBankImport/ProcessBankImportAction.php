@@ -8,10 +8,12 @@ use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use Override;
 use Throwable;
 
 #[Route('POST', '/bank_import_process')]
@@ -25,12 +27,14 @@ final readonly class ProcessBankImportAction implements ActionInterface, Require
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'finance.bank_import';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         try {
             $dto = BankImportProcessRequest::fromArray($request->post);

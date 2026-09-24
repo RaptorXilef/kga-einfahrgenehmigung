@@ -7,12 +7,14 @@ namespace App\Modules\Voucher\Application\UseCases\CreateVoucher;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 
 /**
  * Action zum Erstellen eines neuen Gutscheins (VSA).
@@ -30,18 +32,20 @@ final readonly class CreateVoucherAction implements ActionInterface, RequiresPer
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'vouchers.create';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         if ($request->getMethod() === 'GET') {
             return new RedirectResponse('admin?focus=tab-tools');
         }
 
-        $maxPlot = (int) $this->config->get('max_plot_number', 9999);
+        $maxPlot = $this->config->getInt('max_plot_number', 9999);
         $dto = VoucherCreateRequest::fromArray($request->post, $maxPlot);
 
         $command = new CreateVoucherCommand(

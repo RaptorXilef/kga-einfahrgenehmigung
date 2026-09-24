@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers;
 
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use Override;
 use PDO;
 
 /**
@@ -20,6 +21,7 @@ final readonly class CheckAvailableVouchersHandler implements QueryHandlerInterf
     /**
      * @param CheckAvailableVouchersQuery $query
      */
+    #[Override]
     public function handle(mixed $query): bool
     {
         // Hochperformanter Check: Finde 1 aktiven, nicht abgelaufenen und nicht aufgebrauchten Gutschein

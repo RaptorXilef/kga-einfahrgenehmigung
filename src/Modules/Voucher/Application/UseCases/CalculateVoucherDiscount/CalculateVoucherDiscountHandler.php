@@ -8,6 +8,7 @@ use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
+use Override;
 
 /**
  * @implements QueryHandlerInterface<CalculateVoucherDiscountQuery, VoucherDiscountDto>
@@ -22,6 +23,7 @@ final readonly class CalculateVoucherDiscountHandler implements QueryHandlerInte
     /**
      * @param CalculateVoucherDiscountQuery $query
      */
+    #[Override]
     public function handle(mixed $query): VoucherDiscountDto
     {
         $voucher = $this->repository->findByCode($query->code);

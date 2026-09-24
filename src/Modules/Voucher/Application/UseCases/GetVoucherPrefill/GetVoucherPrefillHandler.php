@@ -8,6 +8,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use Override;
 
 /**
  * @implements QueryHandlerInterface<GetVoucherPrefillQuery, ?VoucherPrefillDto>
@@ -23,6 +24,7 @@ final readonly class GetVoucherPrefillHandler implements QueryHandlerInterface
     /**
      * @param GetVoucherPrefillQuery $query
      */
+    #[Override]
     public function handle(mixed $query): ?VoucherPrefillDto
     {
         $voucher = $this->repository->findByCode($query->code);

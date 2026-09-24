@@ -9,6 +9,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
 use Generator;
+use Override;
 use PDO;
 
 /**
@@ -26,6 +27,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
     ) {
     }
 
+    #[Override]
     public function handle(mixed $query): FinanceExportResultDto
     {
         // Den Generator anwerfen (es werden noch keine Daten aus MySQL geladen)
@@ -61,7 +63,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
     private function yieldFilteredData(ExportFinanceDataQuery $query): Generator
     {
         $validTplKeys = [];
-        $permitTemplates = $this->config->get('permit_templates', []);
+        $permitTemplates = $this->config->getArray('permit_templates');
 
         if ($query->type !== 'all') {
             foreach ($permitTemplates as $k => $tpl) {
@@ -267,7 +269,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
 
     private function generateFilename(string $format, string $start, string $end): string
     {
-        $clubName = (string) $this->config->get('vereins_name', 'export');
+        $clubName = $this->config->getString('vereins_name', 'export');
         $clubName = \mb_strtolower($clubName, 'UTF-8');
         $clubName = \str_replace(['ä', 'ö', 'ü', 'ß'], ['ae', 'oe', 'ue', 'ss'], $clubName);
         $slug = \trim((string) \preg_replace('/[^a-z0-9]+/', '_', $clubName), '_');

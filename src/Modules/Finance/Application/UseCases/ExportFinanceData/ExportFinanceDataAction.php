@@ -6,6 +6,7 @@ namespace App\Modules\Finance\Application\UseCases\ExportFinanceData;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
@@ -13,6 +14,7 @@ use App\Application\Response\FileDownloadResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
+use Override;
 
 #[Route('GET', '/dashboard_export')]
 #[Route('POST', '/dashboard_export')]
@@ -22,16 +24,18 @@ final readonly class ExportFinanceDataAction implements ViewActionInterface, Req
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
         private ExportFinanceDataHandler $exportHandler,
-        private ClockInterface $clock, // <--- Injiziert
+        private ClockInterface $clock,
     ) {
     }
 
+    #[Override]
     public function getRequiredPermission(): string
     {
         return 'finance.export';
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $sessionFilters = $this->sessionManager->getAdminFilters();
         $dto = ExportRequest::fromRequest($request, $sessionFilters, $this->clock);
