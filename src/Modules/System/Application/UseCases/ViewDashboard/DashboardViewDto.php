@@ -65,15 +65,20 @@ final readonly class DashboardViewDto
         public bool $showBankWizard,
         public int $minArchiveYear,
         public string $expiredLoadArchiveUrl,
+
         // --- Komplexe DTOs für die anderen Tabs ---
         public ?DashboardStatsDto $stats,
         public ?GeneratorToolsViewDto $generatorTools,
         public ?MailLogsResultDto $mailLogs,
         public ?BackupsResultDto $backups,
+
         // --- VSA FIX: Legacy Variablen als reine Arrays/Strings ins DTO gehoben ---
         public ?array $vouchers,
         public ?array $voucherArchive,
-        public ?array $auditLogs,
+        /**
+         * @var AuditLogViewDto[]
+         */
+        public array $auditLogs,
         public int $auditTotal,
         public string $auditFilter,
         public array $unreadReleaseNotes,

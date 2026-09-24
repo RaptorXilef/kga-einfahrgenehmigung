@@ -5,7 +5,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Audit Log
- * VSA FIX: PHTML ist jetzt 100% dumm. Keine $_GET Fallbacks mehr.
+ * VSA FIX: PHTML ist jetzt 100% dumm. Keine $_GET Fallbacks mehr, nutzt reines DTO.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
@@ -116,19 +116,13 @@ if ($viewDto->permissions->canViewLogs) {
                         </td>
                     </tr>
                     <?php } else { ?>
-                    <?php foreach ($viewDto->auditLogs as $log) {
-                                // Fallback Avatar if not present in DTO directly
-                                $avatar = $settings['base_url'] . 'assets/img/user/' . $log->userId . '.webp';
-                                if (!\file_exists(\rtrim($appRoot, '/\\') . '/public/assets/img/user/' . $log->userId . '.webp')) {
-                                    $avatar = $settings['base_url'] . 'assets/img/icons/user.webp';
-                                }
-                                ?>
+                    <?php foreach ($viewDto->auditLogs as $log) { ?>
                     <tr class="u-hover-fade">
                         <td class="c-table__data-cell u-text-nowrap">
                             <div class="u-flex u-flex-column">
                                 <span
-                                    class="u-text-sm u-color-main u-font-semibold"><?php echo $log->createdAt->format('d.m.Y'); ?></span>
-                                <small class="u-color-muted"><?php echo $log->createdAt->format('H:i:s'); ?> Uhr</small>
+                                    class="u-text-sm u-color-main u-font-semibold"><?php echo $log->dateFormatted; ?></span>
+                                <small class="u-color-muted"><?php echo $log->timeFormatted; ?> Uhr</small>
                             </div>
                         </td>
                         <td class="c-table__data-cell">
@@ -142,7 +136,7 @@ if ($viewDto->permissions->canViewLogs) {
                         <td class="c-table__data-cell">
                             <div class="u-flex u-align-center u-gap-s">
                                 <img
-                                    src="<?php echo $avatar; ?>"
+                                    src="<?php echo $log->avatarUrl; ?>"
                                     loading="lazy"
                                     class="c-icon c-icon--md u-border-radius-circle"
                                     alt=""
@@ -152,7 +146,7 @@ if ($viewDto->permissions->canViewLogs) {
                                         class="u-text-sm u-color-main"><?php echo \htmlspecialchars($log->username); ?></strong><br>
                                     <small
                                         class="u-color-muted u-font-mono u-text-xs"
-                                        title="IP-Adresse: <?php echo \htmlspecialchars($log->ipAddress->value); ?>"
+                                        title="IP-Adresse: <?php echo \htmlspecialchars($log->ipAddress); ?>"
                                     >
                                         <?php echo \htmlspecialchars($log->userId); ?>
                                     </small>

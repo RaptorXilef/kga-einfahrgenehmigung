@@ -12,6 +12,7 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Identity\Application\Services\AuthService;
@@ -44,8 +45,6 @@ use DateTimeImmutable;
 #[RequiresAuth]
 final readonly class DashboardRenderAction implements ViewActionInterface
 {
-    public $request;
-
     public function __construct(
         private AuditLogRepositoryInterface $auditLogRepository,
         private AuthService $auth,
@@ -54,6 +53,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
+        private ImageStorageInterface $imageStorage,
         private GetVoucherListHandler $getVoucherListHandler,
         private GetVoucherArchiveHandler $getVoucherArchiveHandler,
         private GetFinanceListHandler $financeListHandler,
@@ -100,7 +100,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         // 2. View-Model für das Dashboard aufbauen
         $dashboardViewDto = $this->buildDashboardViewDto($dto, $focus, $minArchiveYear, $permitsResult, $financePermitsDto, $statsDto, $request);
 
-        // VSA FIX: Die View konsumiert nun ausschließlich das fertige DTO!
         $html = $this->renderer->render('admin/dashboard', [
             'viewDto' => $dashboardViewDto,
             'formData' => $this->sessionManager->getFormData() ?? [],
@@ -248,13 +247,30 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         $paginationHtmlLogs = $mailLogsDto instanceof MailLogsResultDto ? $renderPagination($mailLogsDto->total, 'tab-logs') : '';
 
-        // VSA FIX: Legacy Daten laden und ins DTO verfrachten
         $vouchers = $permissions->canViewVouchers ? $this->getVoucherListHandler->handle(new GetVoucherListQuery()) : null;
         $voucherArchive = $permissions->canViewVouchers ? $this->getVoucherArchiveHandler->handle(new GetVoucherArchiveQuery()) : null;
 
         $auditFilter = (string) ($request->get['audit_filter'] ?? '');
         $auditPage = (int) ($request->get['audit_page'] ?? 1);
         $auditData = $permissions->canViewLogs ? $this->auditLogRepository->getPaginated($auditPage, $dto->limit, $auditFilter) : ['items' => [], 'total' => 0];
+
+        // VSA FIX: Map AuditLog Entities to AuditLogViewDto to keep the view 100% logic-free
+        $auditLogsDto = [];
+        if ($permissions->canViewLogs) {
+            foreach ($auditData['items'] as $log) {
+                $auditLogsDto[] = new AuditLogViewDto(
+                    dateFormatted: $log->createdAt->format('d.m.Y'),
+                    timeFormatted: $log->createdAt->format('H:i:s'),
+                    action: $log->action,
+                    details: $log->details,
+                    username: $log->username,
+                    userId: $log->userId,
+                    ipAddress: $log->ipAddress->value,
+                    avatarUrl: $this->imageStorage->getImageUrl('user', $log->userId, 'user.webp'),
+                );
+            }
+        }
+
         $paginationHtmlAudit = $permissions->canViewLogs ? $renderPagination($auditData['total'], 'tab-audit-log', 'audit_page') : '';
 
         $unreadReleaseNotes = [];
@@ -315,7 +331,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             backups: $backupsDto,
             vouchers: $vouchers,
             voucherArchive: $voucherArchive,
-            auditLogs: $auditData['items'],
+            auditLogs: $auditLogsDto,
             auditTotal: $auditData['total'],
             auditFilter: $auditFilter,
             unreadReleaseNotes: $unreadReleaseNotes,
