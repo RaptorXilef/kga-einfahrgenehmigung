@@ -6,10 +6,10 @@ namespace App\Modules\Identity\Application\UseCases\VerifyMagicLink;
 
 use App\Application\Session\SessionManager;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Identity\Domain\MagicLink;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
-use DateTimeImmutable;
 use DomainException;
 
 /**
@@ -21,6 +21,7 @@ final readonly class VerifyMagicLinkHandler implements CommandHandlerInterface
         private MagicLinkRepositoryInterface $repository,
         private SessionManager $sessionManager,
         private RateLimiterInterface $rateLimiter,
+        private ClockInterface $clock, // VSA FIX: Inject ClockInterface
     ) {
     }
 
@@ -29,7 +30,7 @@ final readonly class VerifyMagicLinkHandler implements CommandHandlerInterface
      */
     public function handle(mixed $command): void
     {
-        $now = new DateTimeImmutable();
+        $now = $this->clock->now();
 
         // Passive Garbage Collection
         $this->repository->deleteExpired($now);

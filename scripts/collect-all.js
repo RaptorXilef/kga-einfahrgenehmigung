@@ -112,6 +112,7 @@ const configs = {
             'composer.json',
             'package.json',
             'deptrac.yaml',
+            'phpstan.neon.dist',
             // '.github/workflows/deploy.yml', // Mit Slashes angeben, wird durch path.normalize systemübergreifend korrekt verarbeitet
         ],
         ext: '.md',

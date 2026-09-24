@@ -6,6 +6,7 @@ namespace App\Modules\Permit\Application\Services;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\Utils\ClockInterface;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
@@ -25,6 +26,7 @@ final readonly class HolidayService
     public function __construct(
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
+        private ClockInterface $clock, // VSA FIX: Clock injiziert
     ) {
     }
 
@@ -39,7 +41,7 @@ final readonly class HolidayService
      */
     public function isTimeAllowedNow(): bool
     {
-        $now = new DateTimeImmutable();
+        $now = $this->clock->now();
         if ($this->isRestrictedDay($now)) {
             return false;
         }
@@ -132,8 +134,9 @@ final readonly class HolidayService
      */
     public function getTodayAllowedSlots(): string
     {
-        $dayKey = \strtolower((new DateTimeImmutable())->format('D'));
-        $slots = $this->getOpeningHoursForDate(new DateTimeImmutable())[$dayKey] ?? [];
+        $now = $this->clock->now();
+        $dayKey = \strtolower($now->format('D'));
+        $slots = $this->getOpeningHoursForDate($now)[$dayKey] ?? [];
 
         if ($slots === []) {
             return 'heute keine Einfahrt erlaubt';
@@ -217,7 +220,7 @@ final readonly class HolidayService
      */
     public function getOpeningHoursForDate(?DateTimeInterface $date = null): array
     {
-        $date ??= new DateTimeImmutable();
+        $date ??= $this->clock->now();
         $seasons = $this->config->get('seasons', []);
 
         // Wenn Seasons existieren, prüfen in welche wir fallen
@@ -297,7 +300,7 @@ final readonly class HolidayService
      * Zentrale Feiertagsbündelung
      *
      * Führt automatische bundeslandspezifische Feiertage und manuelle Konfigurations-Feiertage zusammen.
-     * Bereinigt die Liste von Duplikaten und validiert Datumsformate.
+     * Bereinigt die Liste von Duplikaten und validiert Datumsformate (VSA FIX: komplett ohne I/O & strtotime).
      *
      * @param int $year Das Jahr, für das die komplette Feiertagsliste benötigt wird.
      *
@@ -315,19 +318,21 @@ final readonly class HolidayService
         // 2. Eigene Feiertage aus der Config laden (Fehlerrobustes Parsing)
         $customHolidays = $this->config->get('custom_holidays', []);
         foreach ($customHolidays as $customDate) {
-            $cleanDate = \str_replace('.', '-', $customDate); // Macht aus 26.05.2026 -> 26-05-2026
-            $time = \strtotime($cleanDate);
-            if ($time === false) {
+            // Wir prüfen auf Y-m-d und alternativ d.m.Y Format ohne native Zeit-Funktionen
+            $parsedDate = DateTimeImmutable::createFromFormat('Y-m-d', $customDate);
+            if ($parsedDate === false) {
+                $parsedDate = DateTimeImmutable::createFromFormat('d.m.Y', $customDate);
+            }
+            if ($parsedDate === false) {
                 continue;
             }
 
-            $parsedDate = \date('Y-m-d', $time);
             // Nur übernehmen, wenn es das angefragte Jahr betrifft
-            if (!\str_starts_with($parsedDate, (string) $year)) {
+            if ($parsedDate->format('Y') !== (string) $year) {
                 continue;
             }
 
-            $holidays[] = $parsedDate;
+            $holidays[] = $parsedDate->format('Y-m-d');
         }
 
         // Duplikate entfernen (falls ein Custom-Date zufällig auf einen Feiertag fällt)

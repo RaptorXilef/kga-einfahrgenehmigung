@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\CheckPermit;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
@@ -24,6 +25,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
         private PermitRepositoryInterface $repository,
         private HolidayService $holidayService,
         private ConfigInterface $config,
+        private ClockInterface $clock, // VSA FIX: Inject ClockInterface
     ) {
     }
 
@@ -32,7 +34,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
      */
     public function handle(mixed $query): PermitCheckDetailsDto
     {
-        $now = new DateTimeImmutable();
+        $now = $this->clock->now();
 
         // 1. Genehmigung suchen (Zuerst via Code in allen Tabellen)
         $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($query->codeOrPlate));

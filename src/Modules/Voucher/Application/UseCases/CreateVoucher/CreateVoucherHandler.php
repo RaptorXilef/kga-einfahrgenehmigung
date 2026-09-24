@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Voucher\Application\UseCases\CreateVoucher;
 
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
@@ -21,6 +22,7 @@ final readonly class CreateVoucherHandler implements CommandHandlerInterface
 {
     public function __construct(
         private VoucherRepositoryInterface $repository,
+        private ClockInterface $clock, // VSA FIX: Inject ClockInterface
     ) {
     }
 
@@ -61,6 +63,7 @@ final readonly class CreateVoucherHandler implements CommandHandlerInterface
             $expiresAtDate,
             $command->prefillData,
             $command->createdBy,
+            $this->clock->now(), // Injizierte Zeit übergeben
         );
 
         // 5. Speichern

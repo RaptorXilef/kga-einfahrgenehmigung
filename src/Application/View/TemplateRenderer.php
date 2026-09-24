@@ -37,9 +37,8 @@ final readonly class TemplateRenderer
     {
         $appRoot = \rtrim((string) $this->config->get('root_path'), '/\\');
 
-        // 1. Sichere Routen-Ermittlung aus dem gekapselten ServerRequest
-        $requestUri = (string) ($this->request->server['REQUEST_URI'] ?? '/');
-        $path = \parse_url($requestUri, \PHP_URL_PATH);
+        // 1. Sichere Routen-Ermittlung aus dem gekapselten ServerRequest (Kein $_SERVER mehr!)
+        $path = \parse_url($this->request->getPath(), \PHP_URL_PATH);
         $path = \trim((string) $path, '/');
         if (\str_ends_with($path, '.php')) {
             $path = \substr($path, 0, -4);

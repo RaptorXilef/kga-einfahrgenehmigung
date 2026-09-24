@@ -32,6 +32,7 @@ final class Voucher
 
     /**
      * Named Constructor für sauberes Erzeugen neuer Gutscheine.
+     * VSA FIX: $createdAt wird jetzt vom Aufrufer injiziert (Domain pureness)
      */
     public static function create(
         string $code,
@@ -44,6 +45,7 @@ final class Voucher
         ?DateTimeImmutable $expiresAt,
         array $prefillData,
         string $createdBy,
+        DateTimeImmutable $createdAt,
     ): self {
         return new self(
             $code,
@@ -58,7 +60,7 @@ final class Voucher
             'aktiv',
             $prefillData,
             $createdBy,
-            new DateTimeImmutable(),
+            $createdAt,
         );
     }
 
