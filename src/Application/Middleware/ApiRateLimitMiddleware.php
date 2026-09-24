@@ -22,7 +22,9 @@ final readonly class ApiRateLimitMiddleware implements MiddlewareInterface
 
     public function process(ServerRequest $request, callable $next): mixed
     {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        // FIX: Sicherer Zugriff über den gekapselten Request statt direkter Superglobal $_SERVER-Nutzung
+        $ip = $request->getIp();
+
         if ($this->rateLimiter->isBlocked($ip)) {
             return JsonResponse::error('Zu viele Anfragen. Bitte versuchen Sie es später erneut.', 429);
         }

@@ -1,34 +1,30 @@
 <?php
 
-use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Permit\Domain\PermitStatus;
+use App\Modules\Permit\Application\UseCases\GetPermitHistory\HistoryPermitViewDto;
 
 /**
  * Page: Tenant History
  *
  * Listet alle jemals abgewickelten Genehmigungen eines Pächters auf.
+ * View wurde vollständig "verdummt". Alle Business-Logiken liegen im DTO.
  *
  * Historische Antragsübersicht für den Endnutzer.
  * Listet alle Genehmigungen einer verifizierten E-Mail-Adresse auf. Bietet Optionen zum
  * Nachladen von Jahresarchiven sowie Verknüpfungen zur PDF-A4-Druckansicht.
  *
- * @var \DateTimeImmutable $now
  * @var AssetHelperInterface $asset
- * @var ConfigInterface $config
  * @var array $settings
- * @var array<int, \App\Modules\Permit\Domain\Permit> $permits
+ * @var HistoryPermitViewDto[] $permitsDto
  * @var bool $isSuccess
  * @var int $currentArchiveYear
+ * @var int $lastYear
  * @var string $appRoot
  * @var string $cspNonce
  * @var string $email
  */
 $layout = 'public';
 $pageTitle = 'Meine Genehmigungen - ' . ($settings['vereins_name'] ?? '');
-
-$now = new \DateTimeImmutable('today');
-\usort($permits, fn ($a, $b) => $b->getCreatedAt() <=> $a->getCreatedAt());
 ?>
 
 <div class="c-tab-content-container o-container o-container--large u-padding-block-xl">
@@ -88,7 +84,7 @@ $now = new \DateTimeImmutable('today');
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (empty($permits)) { ?>
+                    <?php if (empty($permitsDto)) { ?>
                     <tr>
                         <td
                             colspan="5"
@@ -107,109 +103,66 @@ $now = new \DateTimeImmutable('today');
                         </td>
                     </tr>
                     <?php } else { ?>
-                    <?php foreach ($permits as $permit) {
-                            // 1. Zeit-Berechnungen
-                            $isExpired = $permit->getValidUntil() < $now;
-                            $isFuture = $permit->getValidFrom() > $now;
-                            $diff = $now->diff($permit->getValidUntil());
-                            $remaining = (int) $diff->format('%r%a');
-
-                            $countdownText = '';
-                            if ($isExpired) {
-                                $countdownText = 'ABGELAUFEN';
-                            } elseif ($isFuture) {
-                                $daysToStart = (int) $now->diff($permit->getValidFrom())->format('%r%a');
-                                $countdownText = "Startet in $daysToStart Tagen";
-                            } else {
-                                $countdownText = ($remaining === 0) ? 'Läuft heute ab' : "Noch $remaining Tage";
-                            }
-
-                            // 2. Finanz-Berechnungen
-                            $isPaid = $permit->getStatus() === PermitStatus::Bezahlt;
-                            $statusText = \strtoupper($permit->getStatus()->value);
-                            $statusClass = 'c-badge--danger'; // Default für alles was offen ist
-
-                            if ($isPaid) {
-                                $statusClass = 'c-badge--success';
-                            } else {
-                                // Überfälligkeit checken via Service (für den korrekten Text)
-                                $overdueLevel = $overdueLevels[$permit->code->value] ?? 0;
-                                if ($overdueLevel === 2) {
-                                    $statusText = 'ZAHLUNG ÜBERFÄLLIG';
-                                } elseif ($overdueLevel === 1) {
-                                    $statusText = 'MAHNFRIST';
-                                } else {
-                                    $statusText = 'ZAHLUNG OFFEN';
-                                }
-                            }
-
-                            // 3. Fahrzeug Icon
-                            $vKey = $permit->getVehicleType();
-                            $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
-                            $iconPath = $vCfg['icon'] ?? 'assets/img/icons/warning.webp';
-                            $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
-                            ?>
-                    <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
+                    <?php foreach ($permitsDto as $permit) { ?>
+                    <tr class="u-hover-fade <?php echo $permit->rowClass; ?>">
                         <td
                             class="c-table__data-cell"
-                            data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
+                            data-sort-val="<?php echo \htmlspecialchars($permit->ownerName); ?>"
                         >
                             <div class="u-flex u-flex-column">
                                 <span class="u-font-semibold u-color-main u-text-sm">
-                                    <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
+                                    <?php echo \htmlspecialchars($permit->ownerName); ?>
                                 </span>
                                 <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs">
-                                            <?php echo $permit->code->value; ?>
+                                            <?php echo $permit->code; ?>
                                         </code>
                                 <div>
                                     <span class="c-badge c-badge--outline">PARZELLE
-                                        <?php echo $permit->getPlotNumber(); ?></span>
+                                        <?php echo $permit->plotNumber; ?></span>
                                 </div>
                             </div>
                         </td>
                         <td
                             class="c-table__data-cell u-text-center"
-                            data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>"
+                            data-sort-val="<?php echo \htmlspecialchars($permit->licensePlate); ?>"
                         >
                             <div>
                                 <img
-                                    src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                    class="c-icon c-table__icon <?php echo $isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
-                                    title="<?php echo $vLabel; ?>"
+                                    src="<?php echo $settings['base_url'] . $permit->vehicleIcon; ?>"
+                                    class="c-icon c-table__icon <?php echo $permit->isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
+                                    title="<?php echo \htmlspecialchars($permit->vehicleLabel); ?>"
                                     loading="lazy"
                                     alt=""
                                 >
                             </div>
                             <div class="u-margin-block-start-xs">
                                 <span class="c-license-plate">
-                                    <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
+                                    <?php echo \htmlspecialchars($permit->licensePlate); ?>
                                 </span>
                             </div>
                         </td>
                         <td
                             class="c-table__data-cell u-text-center"
-                            data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>"
+                            data-sort-val="<?php echo $permit->validFromDate; ?>"
                         >
                             <div>
                                 <strong
-                                    class="u-color-main u-text-sm"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
+                                    class="u-color-main u-text-sm"><?php echo $permit->validFromDate; ?></strong><br>
                                 <small class="u-color-muted">bis
-                                    <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
+                                    <?php echo $permit->validUntilDate; ?></small>
                                 <div class="u-margin-block-start-xs">
-                                    <?php if ($isExpired) { ?>
+                                    <?php if ($permit->isExpired) { ?>
                                     <span class="c-badge c-badge--outline">
-                                        <?php echo $countdownText; ?>
+                                        <?php echo $permit->countdownText; ?>
                                     </span>
                                     <?php } else { ?>
-                                    <span
-                                        class="c-badge <?php echo ($remaining <= 1 && !$isFuture) ? 'c-badge--danger' : 'c-badge--primary'; ?>"
-                                    >
+                                    <span class="c-badge <?php echo $permit->countdownBadgeClass; ?>">
                                         <img
                                             src="<?php echo $asset->url('assets/img/icons/hourglass.webp'); ?>"
                                             class="c-icon c-button__icon"
                                             loading="lazy"
                                             alt=""
-                                        > <?php echo $countdownText; ?>
+                                        > <?php echo $permit->countdownText; ?>
                                     </span>
                                     <?php } ?>
                                 </div>
@@ -217,17 +170,17 @@ $now = new \DateTimeImmutable('today');
                         </td>
                         <td
                             class="c-table__data-cell u-text-center"
-                            data-sort-val="<?php echo $isPaid ? '1' : '0'; ?>"
+                            data-sort-val="<?php echo $permit->statusText; ?>"
                         >
-                            <span class="c-badge <?php echo $statusClass; ?>"><?php echo $statusText; ?></span>
+                            <span
+                                class="c-badge <?php echo $permit->statusBadgeClass; ?>"><?php echo $permit->statusText; ?></span>
                         </td>
                         <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                             <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
-                                <?php $allowCancel = (bool) $config->get('allow_user_cancellation', true);
-                            if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) { ?>
+                                <?php if ($permit->canCancel) { ?>
                                 <form
                                     method="POST"
-                                    id="cancelPermitForm_<?php echo $permit->code->value; ?>"
+                                    id="cancelPermitForm_<?php echo $permit->code; ?>"
                                     action="<?php echo $settings['base_url']; ?>history_cancel_permit"
                                     class="u-margin-block-none js-form-cancel-permit"
                                     data-confirm="Möchten Sie diesen Antrag wirklich zurückziehen und unwiderruflich stornieren?\n\nWICHTIG: Falls Sie den Betrag bereits überwiesen haben, wird dieser NICHT automatisch zurückerstattet."
@@ -240,13 +193,13 @@ $now = new \DateTimeImmutable('today');
                                     <input
                                         type="hidden"
                                         name="code"
-                                        value="<?php echo $permit->code->value; ?>"
+                                        value="<?php echo $permit->code; ?>"
                                     >
                                     <button
                                         type="submit"
                                         class="c-button c-button--danger-outline c-button--icon-only"
                                         title="Antrag stornieren"
-                                        aria-label="Antrag für Genehmigung <?php echo $permit->code->value; ?> stornieren"
+                                        aria-label="Antrag für Genehmigung <?php echo $permit->code; ?> stornieren"
                                     >
                                         <img
                                             src="<?php echo $asset->url('assets/img/icons/delete.webp'); ?>"
@@ -258,11 +211,11 @@ $now = new \DateTimeImmutable('today');
                                 </form>
                                 <?php } ?>
                                 <a
-                                    href="check?code=<?php echo $permit->code->value; ?>"
+                                    href="check?code=<?php echo $permit->code; ?>"
                                     target="_blank"
                                     class="c-button c-button--secondary c-button--icon-only"
                                     title="Status / Prüfseite öffnen"
-                                    aria-label="Status für Genehmigung <?php echo $permit->code->value; ?> prüfen"
+                                    aria-label="Status für Genehmigung <?php echo $permit->code; ?> prüfen"
                                 >
                                     <img
                                         src="<?php echo $asset->url('assets/img/icons/view.webp'); ?>"
@@ -272,11 +225,11 @@ $now = new \DateTimeImmutable('today');
                                     >
                                 </a>
                                 <a
-                                    href="history_print?code=<?php echo $permit->code->value; ?>"
+                                    href="history_print?code=<?php echo $permit->code; ?>"
                                     target="_blank"
                                     class="c-button c-button--secondary c-button--icon-only"
                                     title="Dokument anzeigen"
-                                    aria-label="Druckansicht für Genehmigung <?php echo $permit->code->value; ?> öffnen"
+                                    aria-label="Druckansicht für Genehmigung <?php echo $permit->code; ?> öffnen"
                                 >
                                     <img
                                         src="<?php echo $asset->url('assets/img/icons/print.webp'); ?>"
@@ -295,8 +248,7 @@ $now = new \DateTimeImmutable('today');
         </div>
 
         <div class="c-card__footer u-text-center">
-            <?php $lastYear = (int) \date('Y') - 1;
-if ($currentArchiveYear !== $lastYear) { ?>
+            <?php if ($currentArchiveYear !== $lastYear) { ?>
             <a
                 href="?load_archive=<?php echo $lastYear; ?>"
                 class="c-button c-button--secondary"

@@ -10,22 +10,17 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
-use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\ViewRenderRequest;
-use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
-use App\Modules\Permit\Domain\PermitFinancialCalculator;
-use App\SharedKernel\Application\Security\Sanitizer;
 
 #[Route('GET', '/history')]
 final readonly class HistoryRenderAction implements ViewActionInterface
 {
     public function __construct(
-        private ConfigInterface $config,
-        private PermitArchiveRepositoryInterface $archiveRepository,
         private GetPermitHistoryHandler $historyHandler,
-        private PermitFinancialCalculator $financialCalculator,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -43,34 +38,15 @@ final readonly class HistoryRenderAction implements ViewActionInterface
             return new HtmlResponse($html);
         }
 
-        $permits = $this->historyHandler->handle(new GetPermitHistoryQuery($emailInSession));
-        $loadedYear = $dto->loadArchive;
-
-        if ($loadedYear > 0) {
-            $archivedPermits = $this->archiveRepository->getArchivedPermits($loadedYear);
-            $normalizedSessionEmail = Sanitizer::normalizeEmail($emailInSession);
-
-            foreach ($archivedPermits as $p) {
-                if (Sanitizer::normalizeEmail($p->getOwnerEmail()) !== $normalizedSessionEmail) {
-                    continue;
-                }
-                $permits[] = $p;
-            }
-        }
-
-        \usort($permits, fn ($a, $b): int => $b->getCreatedAt() <=> $a->getCreatedAt());
-
-        $overdueLevels = [];
-        foreach ($permits as $permit) {
-            $overdueLevels[$permit->code->value] = $this->financialCalculator->getOverdueLevel($permit);
-        }
+        $permitsDto = $this->historyHandler->handle(new GetPermitHistoryQuery($emailInSession, $dto->loadArchive));
+        $lastYear = (int) $this->clock->now()->format('Y') - 1;
 
         $html = $this->renderer->render('frontend/history_list', [
-            'currentArchiveYear' => $loadedYear,
+            'currentArchiveYear' => $dto->loadArchive,
+            'lastYear' => $lastYear,
             'email' => $emailInSession,
             'isSuccess' => $dto->isSuccess,
-            'overdueLevels' => $overdueLevels,
-            'permits' => $permits,
+            'permitsDto' => $permitsDto,
         ]);
 
         return new HtmlResponse($html);

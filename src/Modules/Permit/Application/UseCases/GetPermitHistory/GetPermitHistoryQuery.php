@@ -8,7 +8,9 @@ use App\SharedKernel\Application\Query\QueryInterface;
 
 final readonly class GetPermitHistoryQuery implements QueryInterface
 {
-    public function __construct(public string $email)
-    {
+    public function __construct(
+        public string $email,
+        public int $archiveYear = 0,
+    ) {
     }
 }
