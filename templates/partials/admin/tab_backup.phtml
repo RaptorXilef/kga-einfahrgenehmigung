@@ -1,46 +1,17 @@
 <?php
 
-use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
-use App\Infrastructure\Maintenance\BackupService;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Backups & Restoration
+ * VSA FIX: 100% Dumme View - Konsumiert nur noch das Dumb-View DTO.
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
- * @var BackupService $backupService
- * @var ConfigInterface $config
+ * @var DashboardViewDto $viewDto
  * @var array $settings
- * @var array $backups
  */
-
-// Das HTML <select> Tag erlaubt KEINE <img> Tags in Optionen.
-// Emojis sind hier zwingend notwendig, wenn eine visuelle Identifikation gewünscht ist.
-// Die atomaren WebP-Dateien werden stattdessen für die schicken Badges weiter unten genutzt.
-$targets = [
-    'all' => ['label' => 'Komplette Datenbank (Alle)', 'icon' => 'package.webp', 'emoji' => '📦'],
-    'roles' => ['label' => 'Rechte-Rollen', 'icon' => 'shield.webp', 'emoji' => '🛡️'],
-    'magic_links' => ['label' => 'Login-Tokens', 'icon' => 'link.webp', 'emoji' => '🔗'],
-    'mail_log' => ['label' => 'E-Mail Protokolle', 'icon' => 'envelope.webp', 'emoji' => '📧'],
-    'mail_queue' => ['label' => 'Mail-Warteschlange', 'icon' => 'inbox.webp', 'emoji' => '📤'],
-    'pending_verification' => ['label' => 'Warteraum (E-Mail)', 'icon' => 'envelope.webp', 'emoji' => '✉️'],
-    'permits' => ['label' => 'Genehmigungen', 'icon' => 'document.webp', 'emoji' => '📄'],
-    'permits_archive' => ['label' => 'Genehmigungs-Archiv', 'icon' => 'archive.webp', 'emoji' => '🗄️'],
-    'permits_cancelled' => ['label' => 'Stornierte Genehmigungen', 'icon' => 'blocked.webp', 'emoji' => '🚫'],
-    'users' => ['label' => 'Benutzerkonten', 'icon' => 'user.webp', 'emoji' => '👥'],
-    'verified_pending' => ['label' => 'Warteraum (Zahlung)', 'icon' => 'card.webp', 'emoji' => '💳'],
-    'vouchers' => ['label' => 'Gutscheine', 'icon' => 'voucher.webp', 'emoji' => '🎟️'],
-    'vouchers_archive' => ['label' => 'Gutschein-Archiv', 'icon' => 'archive.webp', 'emoji' => '📚'],
-    'login_attempts' => ['label' => 'Login-Versuche', 'icon' => 'shield.webp', 'emoji' => '🛡'],
-    'update_migrations' => ['label' => 'Update-Migration-Verlauf', 'icon' => 'sync.webp', 'emoji' => '♻'],
-    'audit_logs' => ['label' => 'Nutzerprotokoll (Audit)', 'icon' => 'view.webp', 'emoji' => '👁️‍🗨️'],
-];
-
-if ($auth->hasPermission('system.backup.manage')) {
-    $ftpEnabled = $config->get('backup_settings')['ftp']['enabled'] ?? false;
-    ?>
+if ($viewDto->permissions->canManageBackups) { ?>
 <div class="c-tab-content-container">
 
     <div class="u-margin-bottom-l">
@@ -59,7 +30,7 @@ if ($auth->hasPermission('system.backup.manage')) {
                     <p class="u-color-muted u-text-sm u-margin-none">Datenbank-Tabellen komprimiert sichern.</p>
                 </div>
             </div>
-            <?php if ($ftpEnabled) { ?>
+            <?php if ($viewDto->backups->ftpEnabled) { ?>
             <span
                 class="c-badge c-badge--success"
                 title="Backups werden zusätzlich auf einen externen Server gespiegelt."
@@ -117,9 +88,8 @@ if ($auth->hasPermission('system.backup.manage')) {
                             class="c-form-select"
                             required
                         >
-                            <?php foreach ($targets as $key => $data) { ?>
-                            <option value="<?php echo $key; ?>"><?php echo $data['emoji'] . ' ' . $data['label']; ?>
-                            </option>
+                            <?php foreach ($viewDto->backups->targetOptions as $opt) { ?>
+                            <option value="<?php echo $opt['value']; ?>"><?php echo $opt['label']; ?></option>
                             <?php } ?>
                         </select>
                         <button
@@ -165,12 +135,11 @@ if ($auth->hasPermission('system.backup.manage')) {
                             required
                         >
                             <option value="">Tabelle auswählen...</option>
-                            <?php foreach ($targets as $key => $data) {
-                                    if ($key === 'all') {
+                            <?php foreach ($viewDto->backups->targetOptions as $opt) {
+                                    if ($opt['value'] === 'all') {
                                         continue;
                                     } ?>
-                            <option value="<?php echo $key; ?>"><?php echo $data['emoji'] . ' ' . $data['label']; ?>
-                            </option>
+                            <option value="<?php echo $opt['value']; ?>"><?php echo $opt['label']; ?></option>
                             <?php } ?>
                         </select>
                         <button
@@ -200,7 +169,7 @@ if ($auth->hasPermission('system.backup.manage')) {
             </div>
         </header>
 
-        <?php if (empty($backups)) { ?>
+        <?php if (empty($viewDto->backups->items)) { ?>
         <div class="c-card c-card--primary">
             <div class="c-card__body u-padding-around-l u-text-center u-color-muted">
                 <span class="u-text-2xl u-display-block u-margin-bottom-s">
@@ -216,33 +185,27 @@ if ($auth->hasPermission('system.backup.manage')) {
         </div>
         <?php } else { ?>
         <div class="o-grid o-grid--auto-fit-lg">
-            <?php foreach ($backups as $index => $b) {
-                        $formattedDate = \date('d.m.Y — H:i:s', $b['date']);
-                        $sizeMb = \round($b['size'] / 1024 / 1024, 2);
-
-                        // Icon passend zum Backup Ziel laden
-                        $targetIcon = $b['target'] === 'all' ? 'package.webp' : ($targets[$b['target']]['icon'] ?? 'document.webp');
-                        ?>
+            <?php foreach ($viewDto->backups->items as $index => $b) { ?>
             <div class="c-card c-card--primary u-flex-column u-margin-none">
                 <div class="c-card__header u-flex u-justify-between u-align-center u-padding-around-m u-bg-light">
                     <div>
-                        <h4 class="u-margin-none u-text-lg"><?php echo $formattedDate; ?></h4>
-                        <span class="u-color-muted u-text-sm"><?php echo \htmlspecialchars($b['filename']); ?>
-                            (<?php echo $sizeMb; ?> MB)</span>
+                        <h4 class="u-margin-none u-text-lg"><?php echo $b->dateFormatted; ?></h4>
+                        <span class="u-color-muted u-text-sm"><?php echo \htmlspecialchars($b->filename); ?>
+                            (<?php echo $b->sizeMb; ?> MB)</span>
                     </div>
                     <span class="c-badge c-badge--primary u-flex u-align-center">
                         <img
-                            src="<?php echo $asset->url('assets/img/icons/' . $targetIcon); ?>"
+                            src="<?php echo $b->targetIconUrl; ?>"
                             class="c-icon c-icon--inline u-margin-inline-end-xs"
                             alt=""
                         >
-                        <?php echo $b['target'] === 'all' ? 'Voll-Backup' : 'Tabelle: ' . \htmlspecialchars($b['target']); ?>
+                        <?php echo $b->targetLabel; ?>
                     </span>
                 </div>
                 <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1 u-padding-around-m">
 
                     <div class="u-flex u-flex-wrap u-gap-xs u-margin-bottom-m">
-                        <?php foreach ($b['tables'] as $tbl) { ?>
+                        <?php foreach ($b->tables as $tbl) { ?>
                         <span class="c-badge c-badge--outline u-text-xs"><?php echo \htmlspecialchars($tbl); ?></span>
                         <?php } ?>
                     </div>
@@ -261,7 +224,7 @@ if ($auth->hasPermission('system.backup.manage')) {
                         <input
                             type="hidden"
                             name="filename"
-                            value="<?php echo \htmlspecialchars($b['filename']); ?>"
+                            value="<?php echo \htmlspecialchars($b->filename); ?>"
                         >
 
                         <div class="c-box c-box--subtle u-margin-bottom-m">
@@ -327,7 +290,7 @@ if ($auth->hasPermission('system.backup.manage')) {
                                 required
                             >
                                 <option value="all">Alle enthaltenen Tabellen</option>
-                                <?php foreach ($b['tables'] as $tbl) { ?>
+                                <?php foreach ($b->tables as $tbl) { ?>
                                 <option value="<?php echo \htmlspecialchars($tbl); ?>">Nur Tabelle:
                                     <?php echo \htmlspecialchars($tbl); ?></option>
                                 <?php } ?>

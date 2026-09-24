@@ -12,8 +12,6 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Mail\MailLogInterface;
-use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
@@ -27,6 +25,12 @@ use App\Modules\Permit\Application\UseCases\GetDashboardStats\GetDashboardStatsH
 use App\Modules\Permit\Application\UseCases\GetDashboardStats\GetDashboardStatsQuery;
 use App\Modules\Permit\Application\UseCases\GetFinanceList\GetFinanceListHandler;
 use App\Modules\Permit\Application\UseCases\GetFinanceList\GetFinanceListQuery;
+use App\Modules\Permit\Application\UseCases\GetGeneratorToolsData\GetGeneratorToolsDataHandler;
+use App\Modules\Permit\Application\UseCases\GetGeneratorToolsData\GetGeneratorToolsDataQuery;
+use App\Modules\System\Application\UseCases\GetBackupsData\GetBackupsDataHandler;
+use App\Modules\System\Application\UseCases\GetBackupsData\GetBackupsDataQuery;
+use App\Modules\System\Application\UseCases\GetMailLogsData\GetMailLogsDataHandler;
+use App\Modules\System\Application\UseCases\GetMailLogsData\GetMailLogsDataQuery;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
 use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveQuery;
@@ -44,11 +48,9 @@ final readonly class DashboardRenderAction implements ViewActionInterface
     public function __construct(
         private AuditLogRepositoryInterface $auditLogRepository,
         private AuthService $auth,
-        private BackupServiceInterface $backupService,
         private ConfigInterface $config,
         private RoleRepositoryInterface $roleRepository,
         private ImageStorageInterface $imageStorage,
-        private MailLogInterface $mailLog,
         private SystemInfoInterface $systemInfo,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
@@ -58,6 +60,9 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private GetFinanceListHandler $financeListHandler,
         private GetDashboardStatsHandler $statsHandler,
         private GetDashboardPermitsHandler $getDashboardPermitsHandler,
+        private GetGeneratorToolsDataHandler $generatorToolsHandler,
+        private GetMailLogsDataHandler $mailLogsHandler,
+        private GetBackupsDataHandler $backupsHandler,
         private ClockInterface $clock,
     ) {
     }
@@ -112,14 +117,13 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         $html = $this->renderer->render('admin/dashboard', [
             'viewDto' => $dashboardViewDto,
-            // Legacy Variables für un-refaktorierte Tabs (Stats, Export, Vouchers, Logs, System, Backups)
+            // Legacy Variables für un-refaktorierte Tabs (Stats, Vouchers, System)
             'allowedLimits' => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
             'allReleaseNotes' => $allReleaseNotes,
             'auditFilter' => $auditFilter,
             'auditLogs' => $auditData['items'],
             'auditTotal' => $auditData['total'],
             'auth' => $this->auth,
-            'backups' => $this->auth->hasPermission('system.backup.manage') ? $this->backupService->listBackups() : [],
             'statsDto' => $statsDto,
             'currentPage' => $dto->page,
             'filterEnd' => $dto->end,
@@ -130,7 +134,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'roleRepository' => $this->roleRepository,
             'imageStorage' => $this->imageStorage,
             'itemsPerPage' => $dto->limit,
-            'mailLogs' => $this->mailLog->loadLogs(),
             'minArchiveYear' => $minArchiveYear,
             'structure' => $this->config->get('structure', []),
             'unreadReleaseNotes' => $unreadReleaseNotes,
@@ -152,6 +155,13 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         array $financePermitsDto,
         ServerRequest $request,
     ): DashboardViewDto {
+
+        $hasAnyPermitExport = $this->auth->hasPermission('permits.export.active')
+            || $this->auth->hasPermission('permits.export.future')
+            || $this->auth->hasPermission('permits.export.expired')
+            || $this->auth->hasPermission('permits.export.active_future')
+            || $this->auth->hasPermission('permits.export.all');
+
         // Berechtigungen flachziehen
         $permissions = new DashboardPermissionsDto(
             canViewPermits: $this->auth->hasPermission('permits.view'),
@@ -171,12 +181,12 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             canManageBackups: $this->auth->hasPermission('system.backup.manage'),
             showPrivacyEmails: $this->auth->hasPermission('privacy.emails.view'),
             showPrivacyFinance: $this->auth->hasPermission('privacy.finance.view'),
-            // --- Export Buttons laden ---
             canExportPermitsActive: $this->auth->hasPermission('permits.export.active'),
             canExportPermitsFuture: $this->auth->hasPermission('permits.export.future'),
             canExportPermitsExpired: $this->auth->hasPermission('permits.export.expired'),
             canExportPermitsActiveFuture: $this->auth->hasPermission('permits.export.active_future'),
             canExportPermitsAll: $this->auth->hasPermission('permits.export.all'),
+            hasAnyPermitExport: $hasAnyPermitExport,
         );
 
         // Tab States (Aktive CSS Klassen ohne if-Logik im PHTML)
@@ -193,7 +203,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         }
 
         // Control Bar DTO
-        // VSA FIX: Datums-Formatierung direkt ins View DTO packen (Befreit PHTML von \strtotime)
         $dtStart = new DateTimeImmutable($dto->start);
         $dtEnd = new DateTimeImmutable($dto->end);
 
@@ -230,8 +239,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             );
         }
 
-        // Pagination HTML Generierung (Befreit die PHTML-Dateien von den Includes)
-        // FIX: Pfad von 'admin/pagination' auf 'partials/admin/pagination' korrigiert
+        // Pagination HTML Generierung
         $renderPagination = function (int $total, string $tabId) use ($dto, $focus): string {
             $limit = $dto->limit;
             $page = $tabId === $focus ? $dto->page : 1;
@@ -249,13 +257,28 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             ]);
         };
 
-        // Paginierung für den Finance Tab (Der Handler lädt alle offenen, wir slicen hier für die View)
+        // Paginierung für den Finance Tab
         $totalUnpaid = \count($financePermitsDto);
         $finPage = $focus === 'tab-finance' ? $dto->page : 1;
         $finTotalPages = \max(1, (int) \ceil($totalUnpaid / $dto->limit));
         $finPage = \min($finPage, $finTotalPages);
         $finOffset = ($finPage - 1) * $dto->limit;
         $slicedFinancePermits = \array_slice($financePermitsDto, $finOffset, $dto->limit);
+
+        // Daten für die neuen Dumb View Handler
+        $generatorToolsDto = $this->auth->hasPermission('permits.create') || $this->auth->hasPermission('vouchers.create')
+            ? $this->generatorToolsHandler->handle(new GetGeneratorToolsDataQuery($this->auth))
+            : null;
+
+        $mailLogsDto = $this->auth->hasPermission('system.logs.view')
+            ? $this->mailLogsHandler->handle(new GetMailLogsDataQuery($dto->page, $dto->limit))
+            : null;
+
+        $backupsDto = $this->auth->hasPermission('system.backup.manage')
+            ? $this->backupsHandler->handle(new GetBackupsDataQuery())
+            : null;
+
+        $paginationHtmlLogs = $mailLogsDto ? $renderPagination($mailLogsDto->total, 'tab-logs') : '';
 
         // Archiv URL
         $queryParams = $request->get;
@@ -293,11 +316,15 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             paginationHtmlExpired: $renderPagination($permitsResult->countExpired, 'tab-expired'),
             paginationHtmlCancelled: $renderPagination($permitsResult->countCancelled, 'tab-cancelled'),
             paginationHtmlFinance: $renderPagination($totalUnpaid, 'tab-finance'),
+            paginationHtmlLogs: $paginationHtmlLogs,
             financeTableColspan: $financeTableColspan,
             focus: $focus,
             showBankWizard: $showBankWizard,
             minArchiveYear: $minArchiveYear,
             expiredLoadArchiveUrl: '?' . \http_build_query($queryParams),
+            generatorTools: $generatorToolsDto,
+            mailLogs: $mailLogsDto,
+            backups: $backupsDto,
         );
     }
 }

@@ -1,60 +1,26 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Infrastructure\Config\Config;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Ausstellung (Werkzeuge & Generatoren)
+ * VSA FIX: 100% Dumme View - Konsumiert nur noch das GeneratorToolsViewDto.
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
- * @var Config $config
+ * @var DashboardViewDto $viewDto
  * @var array<string, mixed> $settings
- * @var array<int, \App\Core\Entity\Permit> $allPermits
  * @var string $cspNonce
  */
-$allowedTemplates = [];
-foreach ($config->get('permit_templates', []) as $key => $tpl) {
-    if ($auth->hasPermission("template.$key")) {
-        $allowedTemplates[$key] = $tpl;
-    }
-}
-
-$hasAnyTemplate = !empty($allowedTemplates);
-$reasons = $config->get('internal_reasons', ['Barzahlung vor Ort', 'Vorstandsbeschluss']);
-$standardPurposes = $config->get('purposes', []);
-
-// Extrahiere alle bisher genutzten EIGENEN Gründe aus der Datenbank (für Auto-Complete)
-$customPurposes = [];
-if (isset($allPermits) && \is_array($allPermits)) {
-    foreach ($allPermits as $p) {
-        $z = $p->getPurpose();
-        if ($z !== '' && !\in_array($z, $standardPurposes, true)) {
-            $customPurposes[$z] = $z;
-        }
-    }
-    \ksort($customPurposes);
-}
-
-// Vorbereitung für JavaScript Preiskalkulation & Datums-Sync
-$tplMetadata = [];
-foreach ($config->get('permit_templates', []) as $key => $tpl) {
-    $tplMetadata[$key] = [
-        'days' => $tpl['days'],
-        'type' => $tpl['type'],
-        'prices' => $tpl['prices'],
-    ];
-}
 ?>
 
 <div class="c-tab-content-container">
-    <?php if (!$hasAnyTemplate) { ?>
+    <?php if (!$viewDto->generatorTools->hasAnyTemplate) { ?>
     <div class="c-card c-card--danger u-text-center">
         <div class="c-card__body c-card__body--xl">
             <div class="u-text-4xl u-margin-block-end-m">
                 <img
-                    src="<?php echo $asset->url('assets/img/icons/denied.webp'); // prohibited?>"
+                    src="<?php echo $asset->url('assets/img/icons/denied.webp'); ?>"
                     class="c-icon c-button__icon"
                     loading="lazy"
                     alt=""
@@ -75,7 +41,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         <!-- ========================================== -->
         <!-- KARTE 1: MANUELLE GENEHMIGUNG AUSSTELLEN   -->
         <!-- ========================================== -->
-        <?php if ($auth->hasPermission('permits.create')) { ?>
+        <?php if ($viewDto->permissions->canCreatePermits) { ?>
         <section class="c-card c-card--success u-margin-block-none">
             <header class="c-card__header u-bg-light">
                 <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
@@ -122,8 +88,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 class="c-form-select js-pf-template"
                                 autocomplete="off"
                             >
-                                <?php foreach ($allowedTemplates as $key => $tpl) { ?>
-                                <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?>
+                                <?php foreach ($viewDto->generatorTools->allowedTemplateOptions as $opt) { ?>
+                                <option value="<?php echo $opt['value']; ?>">
+                                    <?php echo \htmlspecialchars($opt['label']); ?>
                                 </option>
                                 <?php } ?>
                             </select>
@@ -139,11 +106,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 class="c-form-select js-pf-typ"
                                 autocomplete="off"
                             >
-                                <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
-                                            if (!($vData['active'] ?? true)) {
-                                                continue;
-                                            } ?>
-                                <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($vData['label']); ?>
+                                <?php foreach ($viewDto->generatorTools->vehicleOptions as $opt) { ?>
+                                <option value="<?php echo $opt['value']; ?>">
+                                    <?php echo \htmlspecialchars($opt['label']); ?>
                                 </option>
                                 <?php } ?>
                             </select>
@@ -162,7 +127,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 id="datum_von"
                                 class="c-form-input js-pf-von"
                                 required
-                                value="<?php echo \date('Y-m-d'); ?>"
+                                value="<?php echo $viewDto->generatorTools->defaultDateVon; ?>"
                                 autocomplete="off"
                             >
                         </div>
@@ -274,7 +239,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 for="zweck_select"
                             >
                                 <span>Einfahrts-Grund *</span>
-                                <!-- A11Y FIX: Natives Button-Element statt <span> für korrekte Tastaturnavigation -->
                                 <button
                                     type="button"
                                     class="u-text-link u-cursor-pointer js-pf-toggle-zweck"
@@ -295,8 +259,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 class="c-form-select js-pf-zweck-select"
                                 autocomplete="off"
                             >
-                                <?php foreach ($standardPurposes as $val => $label) { ?>
-                                <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($label); ?></option>
+                                <?php foreach ($viewDto->generatorTools->standardPurposesOptions as $opt) { ?>
+                                <option value="<?php echo $opt['value']; ?>">
+                                    <?php echo \htmlspecialchars($opt['label']); ?></option>
                                 <?php } ?>
                             </select>
 
@@ -313,7 +278,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 autocomplete="off"
                             >
                             <datalist id="custom_purposes_list">
-                                <?php foreach ($customPurposes as $cp) { ?>
+                                <?php foreach ($viewDto->generatorTools->customPurposes as $cp) { ?>
                                 <option value="<?php echo \htmlspecialchars($cp); ?>"></option>
                                 <?php } ?>
                             </datalist>
@@ -400,7 +365,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         <!-- ========================================== -->
         <!-- KARTE 2: GUTSCHEIN GENERIEREN              -->
         <!-- ========================================== -->
-        <?php if ($auth->hasPermission('vouchers.create')) { ?>
+        <?php if ($viewDto->permissions->canManageVouchers) { ?>
         <section class="c-card c-card--voucher u-margin-block-none u-flex-grow-1">
             <header class="c-card__header u-bg-light">
                 <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
@@ -439,8 +404,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             class="c-form-select js-pf-template"
                             autocomplete="off"
                         >
-                            <?php foreach ($allowedTemplates as $key => $tpl) { ?>
-                            <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
+                            <?php foreach ($viewDto->generatorTools->allowedTemplateOptions as $opt) { ?>
+                            <option value="<?php echo $opt['value']; ?>"><?php echo \htmlspecialchars($opt['label']); ?>
+                            </option>
                             <?php } ?>
                         </select>
                     </div>
@@ -487,8 +453,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         <label
                             class="c-form-label"
                             for="v_reason"
-                        >Interne Notiz / Grund * (Doppelklick öffnet
-                            Schnellauswahl)</label>
+                        >Interne Notiz / Grund * (Doppelklick öffnet Schnellauswahl)</label>
                         <input
                             type="text"
                             id="v_reason"
@@ -500,7 +465,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             autocomplete="off"
                         >
                         <datalist id="reason_presets">
-                            <?php foreach ($reasons as $r) {
+                            <?php foreach ($viewDto->generatorTools->voucherReasons as $r) {
                                         echo "<option value='" . \htmlspecialchars($r) . "'>";
                                     } ?>
                         </datalist>
@@ -666,12 +631,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                         autocomplete="off"
                                     >
                                         <option value="">-- Nicht vorgeben --</option>
-                                        <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
-                                                    if (!($vData['active'] ?? true)) {
-                                                        continue;
-                                                    } ?>
-                                        <option value="<?php echo $val; ?>">
-                                            <?php echo \htmlspecialchars($vData['label']); ?></option>
+                                        <?php foreach ($viewDto->generatorTools->vehicleOptions as $opt) { ?>
+                                        <option value="<?php echo $opt['value']; ?>">
+                                            <?php echo \htmlspecialchars($opt['label']); ?></option>
                                         <?php } ?>
                                     </select>
                                 </div>
@@ -687,8 +649,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                         autocomplete="off"
                                     >
                                         <option value="">-- Nicht vorgeben --</option>
-                                        <?php foreach ($standardPurposes as $val => $label) { ?>
-                                        <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($label); ?>
+                                        <?php foreach ($viewDto->generatorTools->standardPurposesOptions as $opt) { ?>
+                                        <option value="<?php echo $opt['value']; ?>">
+                                            <?php echo \htmlspecialchars($opt['label']); ?>
                                         </option>
                                         <?php } ?>
                                     </select>
@@ -778,6 +741,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 </div>
 
 <script nonce="<?php echo $cspNonce; ?>">
-window.KGA_TEMPLATES = <?php echo \json_encode($tplMetadata); ?>;
+window.KGA_TEMPLATES = <?php echo $viewDto->generatorTools->tplMetadataJson; ?>;
 
 </script>

@@ -6,6 +6,9 @@ namespace App\Modules\System\Application\UseCases\ViewDashboard;
 
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitDto;
 use App\Modules\Permit\Application\UseCases\GetFinanceList\FinancePermitDto;
+use App\Modules\Permit\Application\UseCases\GetGeneratorToolsData\GeneratorToolsViewDto;
+use App\Modules\System\Application\UseCases\GetBackupsData\BackupsResultDto;
+use App\Modules\System\Application\UseCases\GetMailLogsData\MailLogsResultDto;
 
 /**
  * Der allumfassende Read-Model-Container für das Admin-Dashboard.
@@ -54,11 +57,17 @@ final readonly class DashboardViewDto
         public string $paginationHtmlExpired,
         public string $paginationHtmlCancelled,
         public string $paginationHtmlFinance,
+        public string $paginationHtmlLogs,
         public int $financeTableColspan,
         public string $focus,
         public bool $showBankWizard,
         public int $minArchiveYear,
         public string $expiredLoadArchiveUrl,
+
+        // --- Die neuen Dumb View DTOs für die System-Tabs ---
+        public ?GeneratorToolsViewDto $generatorTools,
+        public ?MailLogsResultDto $mailLogs,
+        public ?BackupsResultDto $backups,
     ) {
     }
 }

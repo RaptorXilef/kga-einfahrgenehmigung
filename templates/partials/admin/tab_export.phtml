@@ -12,15 +12,10 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
  * @var DashboardViewDto $viewDto
  * @var array $settings
  */
-$hasAnyPermitExport = $viewDto->permissions->canExportPermitsActive
-    || $viewDto->permissions->canExportPermitsFuture
-    || $viewDto->permissions->canExportPermitsExpired
-    || $viewDto->permissions->canExportPermitsActiveFuture
-    || $viewDto->permissions->canExportPermitsAll;
 ?>
 
 <div class="c-tab-content-container">
-    <?php if ($viewDto->permissions->canExport || $hasAnyPermitExport) { ?>
+    <?php if ($viewDto->permissions->canExport || $viewDto->permissions->hasAnyPermitExport) { ?>
     <section class="c-card">
         <header class="c-card__header u-text-center">
             <h3 class="u-margin-block-none">
@@ -101,7 +96,7 @@ $hasAnyPermitExport = $viewDto->permissions->canExportPermitsActive
             </div>
             <?php } ?>
 
-            <?php if ($hasAnyPermitExport) { ?>
+            <?php if ($viewDto->permissions->hasAnyPermitExport) { ?>
             <h4 class="u-margin-block-start-none u-margin-block-end-m u-text-uppercase u-color-muted u-text-sm">
                 Genehmigungs-Listen (Tabelle)</h4>
             <div class="c-action-grid">

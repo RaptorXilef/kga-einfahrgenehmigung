@@ -33,6 +33,7 @@ final readonly class DashboardPermissionsDto
         public bool $canExportPermitsExpired,
         public bool $canExportPermitsActiveFuture,
         public bool $canExportPermitsAll,
+        public bool $hasAnyPermitExport,
     ) {
     }
 }
