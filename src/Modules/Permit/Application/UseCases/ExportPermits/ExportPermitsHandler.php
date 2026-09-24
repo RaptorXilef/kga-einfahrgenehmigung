@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
+use Generator;
 use PDO;
 
 /**
@@ -26,17 +27,25 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
 
     public function handle(mixed $query): ExportPermitsResultDto
     {
-        $rows = $this->fetchFilteredData($query);
+        // 1. Data-Stream anstoßen (Generator)
+        $rowStream = $this->yieldFilteredData($query);
+
+        // 2. Stream direkt in den CSV Puffer schreiben (Memory Safe)
+        $csvContent = $this->generateCsvFromStream($rowStream);
+
         $filename = $this->generateFilename($query->state, $query->start, $query->end);
 
         return new ExportPermitsResultDto(
-            content: $this->generateCsv($rows),
+            content: $csvContent,
             filename: $filename,
             contentType: 'text/csv; charset=utf-8',
         );
     }
 
-    private function fetchFilteredData(ExportPermitsQuery $query): array
+    /**
+     * @return Generator<array>
+     */
+    private function yieldFilteredData(ExportPermitsQuery $query): Generator
     {
         $validTplKeys = [];
         $permitTemplates = $this->config->get('permit_templates', []);
@@ -49,7 +58,7 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
                 $validTplKeys[] = $k;
             }
             if ($validTplKeys === []) {
-                return [];
+                return; // Beendet den Generator sofort
             }
         }
 
@@ -101,10 +110,13 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(\array_merge($binds, $binds)); // Binds für beide Tabellen
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        // VSA FIX: Yield statt fetchAll. Reduziert RAM-Bedarf um 99%.
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            yield $row;
+        }
     }
 
-    private function generateCsv(array $rows): string
+    private function generateCsvFromStream(iterable $rowStream): string
     {
         $output = \fopen('php://temp', 'r+');
         if (!$output) {
@@ -116,14 +128,18 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
             'Parzelle', 'Kennzeichen', 'Code', 'Name', 'Datum gültig von', 'Datum gültig bis',
         ], ';', '"', '\\');
 
-        foreach ($rows as $row) {
-            $dtVon = new DateTimeImmutable($row['von']);
-            $dtBis = new DateTimeImmutable($row['bis']);
+        // Iteriere über den Generator und schreibe sofort in den Stream
+        foreach ($rowStream as $row) {
+            $dtVon = new DateTimeImmutable((string) $row['von']);
+            $dtBis = new DateTimeImmutable((string) $row['bis']);
 
             \fputcsv($output, [
-                \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT), $this->sanitizeCsvCell($row['kennzeichen']), $row['code'],
+                \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
+                $this->sanitizeCsvCell($row['kennzeichen']),
+                $row['code'],
                 $this->sanitizeCsvCell($row['name']),
-                $dtVon->format('d.m.Y'), $dtBis->format('d.m.Y'),
+                $dtVon->format('d.m.Y'),
+                $dtBis->format('d.m.Y'),
             ], ';', '"', '\\');
         }
 

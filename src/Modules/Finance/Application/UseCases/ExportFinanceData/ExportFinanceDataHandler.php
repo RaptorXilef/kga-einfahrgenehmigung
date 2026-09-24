@@ -8,11 +8,12 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
+use Generator;
 use PDO;
 
 /**
- * Ersetzt den alten ExportService und PermitFilterService!
  * Sammelt die Export-Daten blitzschnell via nativen PDO-Queries.
+ * VSA FIX: Nutzt Generatoren für maximalen Speicherschutz bei Massenexporten.
  *
  * @implements QueryHandlerInterface<ExportFinanceDataQuery, FinanceExportResultDto>
  */
@@ -21,18 +22,19 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
     public function __construct(
         private PDO $pdo,
         private ConfigInterface $config,
-        private ClockInterface $clock, // <--- Injiziert
+        private ClockInterface $clock,
     ) {
     }
 
     public function handle(mixed $query): FinanceExportResultDto
     {
-        $rows = $this->fetchFilteredData($query);
+        // Den Generator anwerfen (es werden noch keine Daten aus MySQL geladen)
+        $rowStream = $this->yieldFilteredData($query);
         $filename = $this->generateFilename($query->format, $query->start, $query->end);
 
         if ($query->format === 'json') {
             return new FinanceExportResultDto(
-                content: $this->generateJson($rows),
+                content: $this->generateJson($rowStream),
                 filename: $filename,
                 contentType: 'application/json',
             );
@@ -40,20 +42,23 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
 
         if ($query->format === 'csv_stats') {
             return new FinanceExportResultDto(
-                content: $this->generateStatsCsv($rows),
+                content: $this->generateStatsCsv($rowStream),
                 filename: $filename,
                 contentType: 'text/csv; charset=utf-8',
             );
         }
 
         return new FinanceExportResultDto(
-            content: $this->generateCsv($rows),
+            content: $this->generateCsv($rowStream),
             filename: $filename,
             contentType: 'text/csv; charset=utf-8',
         );
     }
 
-    private function fetchFilteredData(ExportFinanceDataQuery $query): array
+    /**
+     * @return Generator<array>
+     */
+    private function yieldFilteredData(ExportFinanceDataQuery $query): Generator
     {
         $validTplKeys = [];
         $permitTemplates = $this->config->get('permit_templates', []);
@@ -67,7 +72,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
                 $validTplKeys[] = $k;
             }
             if ($validTplKeys === []) {
-                return [];
+                return;
             }
         }
 
@@ -96,12 +101,14 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
         ";
 
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(\array_merge($binds, $binds)); // Binds für beide Tabellen
+        $stmt->execute(\array_merge($binds, $binds));
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            yield $row;
+        }
     }
 
-    private function generateCsv(array $rows): string
+    private function generateCsv(iterable $rowStream): string
     {
         $output = \fopen('php://temp', 'r+');
         if (!$output) {
@@ -114,9 +121,9 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
             'Buchungstext', 'Betrag (EUR)', 'Zahlungsstatus', 'Tarif/Vorlage',
         ], ';', '"', '\\');
 
-        foreach ($rows as $row) {
-            $dateStr = \substr($row['bezahlt_am'] ?: $row['erstellt'], 0, 10);
-            $dt = new DateTimeImmutable($dateStr); // Sicherer als strtotime
+        foreach ($rowStream as $row) {
+            $dateStr = \substr((string) ($row['bezahlt_am'] ?: $row['erstellt']), 0, 10);
+            $dt = new DateTimeImmutable($dateStr);
             $belegDate = $dt->format('d.m.Y');
 
             $zweck = $this->sanitizeCsvCell($row['zweck'] . ' (Kfz: ' . $row['kennzeichen'] . ')');
@@ -128,7 +135,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
                 \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
                 $zweck,
                 \number_format((float) $row['preis'], 2, ',', ''),
-                \strtoupper($row['status']),
+                \strtoupper((string) $row['status']),
                 $row['template_key'],
             ], ';', '"', '\\');
         }
@@ -140,7 +147,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
         return (string) $content;
     }
 
-    private function generateStatsCsv(array $rows): string
+    private function generateStatsCsv(iterable $rowStream): string
     {
         $output = \fopen('php://temp', 'r+');
         if (!$output) {
@@ -150,16 +157,19 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
         \fwrite($output, "\xEF\xBB\xBF");
 
         $stats = [
-            'gesamtzahl' => \count($rows),
+            'gesamtzahl' => 0,
             'bezahlt' => 0, 'offen' => 0, 'storniert' => 0,
             'erwartet' => 0.0, 'bezahlt_umsatz' => 0.0, 'offen_umsatz' => 0.0,
             'vorlagen' => [],
         ];
 
-        foreach ($rows as $row) {
-            $status = $row['status'];
+        // Wir aggregieren den Stream, speichern die Rows aber nicht zwischen!
+        foreach ($rowStream as $row) {
+            $status = (string) $row['status'];
             $price = (float) $row['preis'];
-            $tpl = $row['template_key'];
+            $tpl = (string) $row['template_key'];
+
+            ++$stats['gesamtzahl'];
 
             if ($status === 'bezahlt') {
                 ++$stats['bezahlt'];
@@ -199,10 +209,10 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
         return (string) $content;
     }
 
-    private function generateJson(array $rows): string
+    private function generateJson(iterable $rowStream): string
     {
         $stats = [
-            'gesamtzahl_antraege' => \count($rows),
+            'gesamtzahl_antraege' => 0,
             'status_uebersicht' => ['bezahlt' => 0, 'offen' => 0, 'storniert' => 0],
             'finanzen' => ['erwarteter_umsatz_eur' => 0.0, 'bezahlter_umsatz_eur' => 0.0, 'offener_umsatz_eur' => 0.0],
             'vorlagen_nutzung' => [],
@@ -210,10 +220,14 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
 
         $transactions = [];
 
-        foreach ($rows as $row) {
-            $status = $row['status'];
+        // Bei JSON müssen wir leider ein Array aufbauen, da json_encode() keinen Stream akzeptiert.
+        // Dennoch sparen wir massiv RAM, da PDO die Zeilen nun abräumt.
+        foreach ($rowStream as $row) {
+            $status = (string) $row['status'];
             $price = (float) $row['preis'];
-            $tpl = $row['template_key'];
+            $tpl = (string) $row['template_key'];
+
+            ++$stats['gesamtzahl_antraege'];
 
             if ($status === 'bezahlt') {
                 ++$stats['status_uebersicht']['bezahlt'];
@@ -258,7 +272,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
         $clubName = \str_replace(['ä', 'ö', 'ü', 'ß'], ['ae', 'oe', 'ue', 'ss'], $clubName);
         $slug = \trim((string) \preg_replace('/[^a-z0-9]+/', '_', $clubName), '_');
 
-        $timestamp = $this->clock->now()->format('Ymd_Hi'); // Time-Safe via ClockInterface
+        $timestamp = $this->clock->now()->format('Ymd_Hi');
         $extension = $format === 'csv_stats' ? 'csv' : $format;
         $type = $format === 'csv_stats' ? 'statistik' : 'finanzexport';
 

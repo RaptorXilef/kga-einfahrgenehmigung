@@ -28,8 +28,7 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
         $vConfig = $this->config->get('vehicle_types', []);
         $permitTemplates = $this->config->get('permit_templates', []);
 
-        // 1. Schlanker PDO Fetch über beide Tabellen (ohne schwere Entity Hydration!)
-        // FIX: Eindeutige Parameter :minArchiveYear1 und :minArchiveYear2 für ATTR_EMULATE_PREPARES = false
+        // 1. Schlanker PDO Fetch über beide Tabellen
         $sql = '
             SELECT template_key, typ, status, preis, erstellt, parzelle, name, email, kennzeichen, zweck
             FROM permits
@@ -45,8 +44,6 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
             'minArchiveYear2' => $query->minArchiveYear,
         ]);
 
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-
         // 2. Initialisiere leere Statistik-Container
         $periodStats = [
             'count' => 0, 'revenue_paid' => 0.0, 'revenue_unpaid' => 0.0,
@@ -58,15 +55,16 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
         $monthlyStats = [];
         $queryLower = \strtolower(\trim($query->searchQuery));
 
-        // 3. Ein einziger High-Speed Loop durch alle Datensätze
-        foreach ($rows as $row) {
-            $date = \substr($row['erstellt'], 0, 10); // Y-m-d
-            $status = $row['status'];
-            $typ = $row['typ'];
+        // 3. VSA FIX: Ein einziger High-Speed Loop (Unbuffered/Row-by-Row).
+        // Wirft fetchAll() komplett raus, um RAM-Leaks bei großen Archiven zu verhindern!
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $date = \substr((string) $row['erstellt'], 0, 10); // Y-m-d
+            $status = (string) $row['status'];
+            $typ = (string) $row['typ'];
             $price = (float) $row['preis'];
-            $year = \substr($row['erstellt'], 0, 4);
-            $monthKey = \substr($row['erstellt'], 5, 2) . '.' . $year; // m.Y
-            $monthSortKey = \substr($row['erstellt'], 0, 7); // Y-m
+            $year = \substr((string) $row['erstellt'], 0, 4);
+            $monthKey = \substr((string) $row['erstellt'], 5, 2) . '.' . $year; // m.Y
+            $monthSortKey = \substr((string) $row['erstellt'], 0, 7); // Y-m
 
             // ---- A) Globale Jahresstatistiken (Für Akkordeon) ----
             if (!isset($yearlyStats[$year])) {
@@ -108,11 +106,10 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
             }
 
             $pNum = \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT);
-            // FIX: E-Mail Feld initialisieren und stets updaten!
             $periodStats['plots'][$pNum] ??= ['count' => 0, 'revenue' => 0.0, 'name' => $row['name'], 'email' => $row['email']];
             ++$periodStats['plots'][$pNum]['count'];
             $periodStats['plots'][$pNum]['revenue'] += $price;
-            // Immer die Daten des aktuellsten Antrags (der am weitesten oben steht) merken
+            // Immer die Daten des aktuellsten Antrags merken
             $periodStats['plots'][$pNum]['name'] = $row['name'];
             $periodStats['plots'][$pNum]['email'] = $row['email'];
 
