@@ -36,6 +36,11 @@ final readonly class PermitFormViewDto
         public string $voucherReason,
         public bool $hasActiveVoucher,
         public array $agreementsChecked,
+        // NEU: Fertig aufbereitete Arrays für die Select-Felder und Checkboxen
+        public array $templateOptions,
+        public array $vehicleOptions,
+        public array $purposeOptions,
+        public array $agreements,
     ) {
     }
 }

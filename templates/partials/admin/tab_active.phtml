@@ -203,7 +203,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                                 </button>
                             </form>
                             <?php } else { ?>
-                                <!-- Button zum Sperren -->
+                            <!-- Button zum Sperren -->
                             <button
                                 class="c-button c-button--danger c-button--small c-button--icon-only js-suspend-btn"
                                 data-code="<?php echo $permit->code; ?>"
@@ -217,7 +217,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                                 >
                             </button>
 
-                                <!-- FORMULAR FÜR DIE SPERRE -->
+                            <!-- FORMULAR FÜR DIE SPERRE -->
                             <form
                                 id="form_suspend_<?php echo $permit->code; ?>"
                                 method="POST"

@@ -10,6 +10,7 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\Exceptions\PermitCollisionException;
 use App\Modules\System\Application\Services\BotProtectionService;
 use App\Modules\System\Application\Services\EmailValidationService;
@@ -32,6 +33,7 @@ final readonly class SubmitPermitAction implements ViewActionInterface
         private SessionManager $sessionManager,
         private BotProtectionService $botProtection,
         private EmailValidationService $emailValidation,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -48,7 +50,7 @@ final readonly class SubmitPermitAction implements ViewActionInterface
             $this->botProtection->verifyHoneypot((string) ($request->post['hp_contact_website'] ?? ''));
 
             // 3. DTO Validierung (Slice-eigenes DTO)
-            $dto = PermitSubmitRequest::fromArray($request->post);
+            $dto = PermitSubmitRequest::fromArray($request->post, $this->clock);
 
             // 4. TIEFE E-MAIL-PRÜFUNG (DNS/MX & Trashmail)
             if ($dto->email !== '') {

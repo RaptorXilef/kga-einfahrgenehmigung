@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\SubmitPermitRequest;
 
 use App\Application\Exception\ValidationException;
+use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Domain\ValueObject\LicensePlate;
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use DateTimeImmutable;
@@ -32,7 +33,7 @@ final readonly class PermitSubmitRequest
     ) {
     }
 
-    public static function fromArray(array $post): self
+    public static function fromArray(array $post, ClockInterface $clock): self
     {
         // 1. Array komplett säubern (XSS-Schutz, Trimmen)
         $sanitized = \array_map(fn ($value): mixed => \is_string($value) ? \trim(\strip_tags($value)) : $value, $post);
@@ -68,7 +69,9 @@ final readonly class PermitSubmitRequest
         try {
             $dtVon = new DateTimeImmutable($datumVon);
             $dtBis = new DateTimeImmutable($datumBis);
-            $today = new DateTimeImmutable('today');
+
+            // Nutze ClockInterface für Test-sichere "Heute"-Ermittlung
+            $today = $clock->now()->setTime(0, 0, 0);
 
             // Setzen der Uhrzeit auf 00:00:00 für sauberen Tagesvergleich
             if ($dtVon->setTime(0, 0, 0) < $today) {

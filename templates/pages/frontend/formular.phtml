@@ -8,6 +8,7 @@ use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\PermitFormViewDt
  * Page: Public Application Form
  *
  * Das interaktive Antragsformular für neue Genehmigungen inkl. Code-Einlösung.
+ * Komplett logikbefreites Template (Dumb View).
  *
  * Öffentliches Beantragungs-Formular (wird von PermitController & PaymentController genutzt).
  * Erfasst Anträge für Ausnahmegenehmigungen. Integriert PayPal-Smart-Buttons für Online-Zahlungen,
@@ -287,16 +288,12 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 autocomplete="off"
                                 <?php echo $viewDto->isTypLocked ? 'readonly tabindex="-1"' : ''; ?>
                             >
-                                <?php foreach ($config->get('vehicle_types') as $val => $vData) {
-                                        // Pächter sehen NUR aktive Typen, außer er wird vom Gutschein/Session verlangt
-                                        if (!($vData['active'] ?? true) && $viewDto->typ !== $val) {
-                                            continue;
-                                        } ?>
+                                <?php foreach ($viewDto->vehicleOptions as $opt) { ?>
                                 <option
-                                    value="<?php echo $val; ?>"
-                                    <?php echo $viewDto->typ === $val ? 'selected' : ''; ?>
+                                    value="<?php echo \htmlspecialchars($opt['value']); ?>"
+                                    <?php echo $opt['selected'] ? 'selected' : ''; ?>
                                 >
-                                    <?php echo \htmlspecialchars($vData['label']); ?>
+                                    <?php echo \htmlspecialchars($opt['label']); ?>
                                 </option>
                                 <?php } ?>
                             </select>
@@ -358,11 +355,13 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             autocomplete="off"
                             <?php echo $viewDto->isZweckLocked ? 'readonly tabindex="-1"' : ''; ?>
                         >
-                            <?php foreach ($config->get('purposes') as $val => $label) { ?>
+                            <?php foreach ($viewDto->purposeOptions as $opt) { ?>
                             <option
-                                value="<?php echo $val; ?>"
-                                <?php echo $viewDto->zweck === $val ? 'selected' : ''; ?>
-                            ><?php echo $label; ?></option>
+                                value="<?php echo \htmlspecialchars($opt['value']); ?>"
+                                <?php echo $opt['selected'] ? 'selected' : ''; ?>
+                            >
+                                <?php echo \htmlspecialchars($opt['label']); ?>
+                            </option>
                             <?php } ?>
                         </select>
                     </div>
@@ -385,12 +384,12 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             autocomplete="off"
                             <?php echo $viewDto->isTemplateKeyLocked ? 'readonly tabindex="-1"' : ''; ?>
                         >
-                            <?php foreach ($publicTemplates as $key => $tpl) { ?>
+                            <?php foreach ($viewDto->templateOptions as $opt) { ?>
                             <option
-                                value="<?php echo $key; ?>"
-                                <?php echo $viewDto->templateKey === $key ? 'selected' : ''; ?>
+                                value="<?php echo \htmlspecialchars($opt['value']); ?>"
+                                <?php echo $opt['selected'] ? 'selected' : ''; ?>
                             >
-                                <?php echo $tpl['label']; ?>
+                                <?php echo \htmlspecialchars($opt['label']); ?>
                             </option>
                             <?php } ?>
                         </select>
@@ -467,12 +466,12 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     Wird berechnet...
                 </div>
 
-                <?php if (!empty($agreements)) { ?>
+                <?php if (!empty($viewDto->agreements)) { ?>
                 <div class="c-form-group c-box c-box--subtle u-margin-block-end-l">
                     <p class="u-margin-block-start-none u-margin-block-end-s u-font-bold u-text-muted">
                         Rechtliches:</p>
                     <div class="u-flex u-flex-column u-gap-s">
-                        <?php foreach ($agreements as $key => $agree) { ?>
+                        <?php foreach ($viewDto->agreements as $key => $agree) { ?>
                         <label class="c-checkbox">
                             <input
                                 type="checkbox"

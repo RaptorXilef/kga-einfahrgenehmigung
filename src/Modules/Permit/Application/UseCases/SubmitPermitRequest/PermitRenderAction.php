@@ -11,6 +11,7 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailableVouchersHandler;
 use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailableVouchersQuery;
 use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\GetVoucherPrefillHandler;
@@ -25,6 +26,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
         private TemplateRenderer $renderer,
         private CheckAvailableVouchersHandler $checkVouchersHandler,
         private GetVoucherPrefillHandler $prefillHandler,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -41,7 +43,8 @@ final readonly class PermitRenderAction implements ViewActionInterface
                 $successMessage = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
             }
         } else {
-            $this->sessionManager->setFormStartTime(\time());
+            // Zeiterfassung für Bot-Schutz nun Time-Safe über das ClockInterface
+            $this->sessionManager->setFormStartTime($this->clock->now()->getTimestamp());
         }
 
         // Gutschein-Daten über CQRS Schnittstelle auflösen
@@ -59,6 +62,41 @@ final readonly class PermitRenderAction implements ViewActionInterface
         $publicTemplates = \array_filter($permitTemplates, fn (array $t): bool => ($t['public'] ?? false) === true);
         $defaultTemplateKey = \array_key_first($publicTemplates) ?? 'std_7';
 
+        $activeTemplateKey = (string) ($formData['template_key'] ?? $prefillDto?->templateKey ?? $defaultTemplateKey);
+        $activeVehicleType = (string) ($formData['typ'] ?? $prefillData['typ'] ?? '');
+        $activePurpose = (string) ($formData['zweck'] ?? $prefillData['zweck'] ?? '');
+
+        // Dropdown-Optionen vorbereiten (Logik aus der View verbannt)
+        $templateOptions = [];
+        foreach ($publicTemplates as $key => $tpl) {
+            $templateOptions[] = [
+                'value' => $key,
+                'label' => $tpl['label'],
+                'selected' => $activeTemplateKey === $key,
+            ];
+        }
+
+        $vehicleOptions = [];
+        foreach ($this->config->get('vehicle_types', []) as $val => $vData) {
+            if (!($vData['active'] ?? true) && $activeVehicleType !== $val) {
+                continue;
+            }
+            $vehicleOptions[] = [
+                'value' => $val,
+                'label' => $vData['label'],
+                'selected' => $activeVehicleType === $val,
+            ];
+        }
+
+        $purposeOptions = [];
+        foreach ($this->config->get('purposes', []) as $val => $label) {
+            $purposeOptions[] = [
+                'value' => $val,
+                'label' => $label,
+                'selected' => $activePurpose === $val,
+            ];
+        }
+
         // Flaches View-DTO für das PHTML erzeugen
         $viewDto = new PermitFormViewDto(
             name: (string) ($formData['name'] ?? $prefillData['name'] ?? ''),
@@ -67,17 +105,17 @@ final readonly class PermitRenderAction implements ViewActionInterface
             isEmailLocked: !empty($prefillData['email']),
             parzelle: (string) ($formData['parzelle'] ?? $prefillData['parzelle'] ?? ''),
             isParzelleLocked: !empty($prefillData['parzelle']),
-            typ: (string) ($formData['typ'] ?? $prefillData['typ'] ?? ''),
+            typ: $activeVehicleType,
             isTypLocked: !empty($prefillData['typ']),
             kennzeichen: (string) ($formData['kennzeichen'] ?? $prefillData['kennzeichen'] ?? ''),
             isKennzeichenLocked: !empty($prefillData['kennzeichen']),
             firma: (string) ($formData['firma'] ?? $prefillData['firma'] ?? ''),
             isFirmaLocked: !empty($prefillData['firma']),
-            zweck: (string) ($formData['zweck'] ?? $prefillData['zweck'] ?? ''),
+            zweck: $activePurpose,
             isZweckLocked: !empty($prefillData['zweck']),
-            templateKey: (string) ($formData['template_key'] ?? $prefillDto?->templateKey ?? $defaultTemplateKey),
+            templateKey: $activeTemplateKey,
             isTemplateKeyLocked: !empty($prefillDto?->templateKey),
-            datumVon: (string) ($formData['datum_von'] ?? $prefillData['datum_von'] ?? \date('Y-m-d')),
+            datumVon: (string) ($formData['datum_von'] ?? $prefillData['datum_von'] ?? $this->clock->now()->format('Y-m-d')),
             isDatumVonLocked: !empty($prefillData['datum_von']),
             datumBis: (string) ($formData['datum_bis'] ?? $prefillData['datum_bis'] ?? ''),
             isDatumBisLocked: !empty($prefillData['datum_bis']),
@@ -86,10 +124,13 @@ final readonly class PermitRenderAction implements ViewActionInterface
             voucherReason: $prefillDto ? $prefillDto->reason : '',
             hasActiveVoucher: $prefillDto !== null,
             agreementsChecked: (array) ($formData['agreements'] ?? []),
+            templateOptions: $templateOptions,
+            vehicleOptions: $vehicleOptions,
+            purposeOptions: $purposeOptions,
+            agreements: $this->getParsedAgreements(),
         );
 
         $html = $this->renderer->render('frontend/formular', [
-            'agreements' => $this->getParsedAgreements(),
             'viewDto' => $viewDto,
             'hasActiveVouchers' => $this->checkVouchersHandler->handle(new CheckAvailableVouchersQuery()),
             'success' => $dto->isSuccess,
