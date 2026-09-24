@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Finance\Application\UseCases\ExportFinanceData;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use PDO;
 
@@ -19,6 +20,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
     public function __construct(
         private PDO $pdo,
         private ConfigInterface $config,
+        private ClockInterface $clock, // <--- Injiziert
     ) {
     }
 
@@ -112,8 +114,10 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
         ], ';', '"', '\\');
 
         foreach ($rows as $row) {
-            $date = \substr($row['bezahlt_am'] ?: $row['erstellt'], 0, 10);
-            $belegDate = \date('d.m.Y', \strtotime($date));
+            $dateStr = \substr($row['bezahlt_am'] ?: $row['erstellt'], 0, 10);
+            $dt = new \DateTimeImmutable($dateStr); // Sicherer als strtotime
+            $belegDate = $dt->format('d.m.Y');
+
             $zweck = $this->sanitizeCsvCell($row['zweck'] . ' (Kfz: ' . $row['kennzeichen'] . ')');
 
             \fputcsv($output, [
@@ -253,7 +257,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
         $clubName = \str_replace(['ä', 'ö', 'ü', 'ß'], ['ae', 'oe', 'ue', 'ss'], $clubName);
         $slug = \trim((string) \preg_replace('/[^a-z0-9]+/', '_', $clubName), '_');
 
-        $timestamp = \date('Ymd_Hi');
+        $timestamp = $this->clock->now()->format('Ymd_Hi'); // Time-Safe via ClockInterface
         $extension = $format === 'csv_stats' ? 'csv' : $format;
         $type = $format === 'csv_stats' ? 'statistik' : 'finanzexport';
 

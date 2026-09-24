@@ -20,6 +20,7 @@ use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
+use App\Contracts\System\IpResolverInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\System\PdfGeneratorInterface;
 use App\Contracts\System\RouteCacheInterface;
@@ -65,6 +66,7 @@ use App\Modules\System\Infrastructure\Storage\JsonHelper;
 use App\Modules\System\Infrastructure\System\DompdfGenerator;
 use App\Modules\System\Infrastructure\System\FileRouteCache;
 use App\Modules\System\Infrastructure\System\LocalAssetHelper;
+use App\Modules\System\Infrastructure\System\ServerIpResolver;
 use App\Modules\System\Infrastructure\System\SystemInfoService;
 use App\Modules\Voucher\Domain\VoucherArchiveRepositoryInterface;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface as NewVoucherRepositoryInterface;
@@ -205,6 +207,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(AuthorizationInterface::class, fn (): mixed => $container->get(AuthService::class));
 
         // --- SYSTEM ---
+        $container->bind(IpResolverInterface::class, fn (): ServerIpResolver => new ServerIpResolver());
         $container->bind(LockManagerInterface::class, fn (): mixed => $container->get(FileLockManager::class));
         $container->bind(BackupServiceInterface::class, fn (): mixed => $container->get(BackupService::class));
         $container->bind(ErrorLoggerInterface::class, fn (): mixed => $container->get(ErrorLogger::class));

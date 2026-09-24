@@ -6,6 +6,7 @@ namespace App\Modules\System\Application\Services;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthSessionInterface;
+use App\Contracts\System\IpResolverInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\System\Domain\AuditLog;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
@@ -21,6 +22,7 @@ final readonly class AuditLoggerService
         private ClockInterface $clock,
         private AuditLogRepositoryInterface $repository,
         private ConfigInterface $config,
+        private IpResolverInterface $ipResolver, // <--- Injiziert
     ) {
     }
 
@@ -55,10 +57,8 @@ final readonly class AuditLoggerService
             $username = $this->session->getAdminUser();
         }
 
-        $ipStr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-        if ($ipStr === 'unknown' || $ipStr === '') {
-            $ipStr = '0.0.0.0'; // Fallback for CLI or untrackable IPs
-        }
+        // IP-Adresse sicher über das Interface auflösen
+        $ipStr = $this->ipResolver->getIp();
 
         $logEntry = new AuditLog(
             \uniqid('al_'),

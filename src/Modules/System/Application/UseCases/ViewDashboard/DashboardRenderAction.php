@@ -15,6 +15,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\System\ImageStorageInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\User;
@@ -56,19 +57,20 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private GetFinanceListHandler $financeListHandler,
         private GetDashboardStatsHandler $statsHandler,
         private GetDashboardPermitsHandler $getDashboardPermitsHandler,
+        private ClockInterface $clock, // <--- Injiziert
     ) {
     }
 
     public function execute(ServerRequest $request): mixed
     {
         $paginationCfg = $this->config->get('pagination', []);
-        $dto = DashboardViewRequest::fromRequest($request->get, $this->sessionManager->getAdminFilters(), $paginationCfg);
+        $dto = DashboardViewRequest::fromRequest($request->get, $this->sessionManager->getAdminFilters(), $paginationCfg, $this->clock);
 
         if ($dto->resetFilters) {
             $this->sessionManager->clearAdminFilters();
         }
 
-        $filterStartYear = (int) \date('Y', \strtotime($dto->start));
+        $filterStartYear = (int) \date('Y', \strtotime($dto->start)); // Formatierung aus String ist okay
         $requestedDepth = (int) ($request->get['archive_depth'] ?? $filterStartYear);
         $minArchiveYear = \min($filterStartYear, $requestedDepth);
         $focus = $request->get['focus'] ?? 'tab-active';
@@ -253,7 +255,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $focus = 'tab-bank-import';
         }
 
-        // Colspan Finance Tab
         $financeTableColspan = 5 + ($permissions->showPrivacyEmails ? 1 : 0) + ($permissions->showPrivacyFinance ? 1 : 0) + ($permissions->canMarkPaid ? 1 : 0);
 
         return new DashboardViewDto(

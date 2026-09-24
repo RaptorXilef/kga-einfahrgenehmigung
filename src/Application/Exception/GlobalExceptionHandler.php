@@ -42,7 +42,7 @@ final readonly class GlobalExceptionHandler
                 return false;
             }
 
-            // NEU: Ignoriere harmlose Deprecation-Warnungen (z.B. von Fremd-Bibliotheken wie league/csv).
+            // Ignoriere harmlose Deprecation-Warnungen (z.B. von Fremd-Bibliotheken wie league/csv).
             // Verhindert, dass das System abstürzt, nur weil ein Vendor-Paket eine Methode als veraltet markiert!
             if (\in_array($errno, [\E_DEPRECATED, \E_USER_DEPRECATED], true)) {
                 return false;
@@ -65,14 +65,17 @@ final readonly class GlobalExceptionHandler
         // 2. Prüfen, ob wir im Dev-Modus sind (dann wollen wir die echten Fehler sehen!)
         $isDev = (bool) $this->config->get('debug_mode', false);
 
-        // FIX: Nur ECHTE API-Calls (JSON Accept/Content-Type oder /api/ Route) als JSON beantworten, keine normalen HTML-Formulare!
-        $isApi = \str_contains($_SERVER['SCRIPT_NAME'] ?? '', '/api/')
-            || (isset($_SERVER['HTTP_ACCEPT']) && \str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'))
-            || (isset($_SERVER['CONTENT_TYPE']) && \str_contains($_SERVER['CONTENT_TYPE'], 'application/json'));
+        // VSA FIX: Entfernung der Superglobal $_SERVER. Ermittlung erfolgt über filter_input und Config.
+        $scriptName = (string) $this->config->get('server_script', '');
+        $httpAccept = (string) \filter_input(\INPUT_SERVER, 'HTTP_ACCEPT');
+        $contentType = (string) \filter_input(\INPUT_SERVER, 'CONTENT_TYPE');
+
+        $isApi = \str_contains($scriptName, '/api/')
+            || \str_contains($httpAccept, 'application/json')
+            || \str_contains($contentType, 'application/json');
 
         if ($isApi) {
             $msg = $isDev ? $exception->getMessage() : 'Ein interner Serverfehler ist aufgetreten.';
-            // FIX: Senden erzwingen, um HTML-Rückgaben im API-Layer abzublocken
             JsonResponse::error($msg, 500)->send();
         }
 
@@ -99,7 +102,6 @@ final readonly class GlobalExceptionHandler
         $errorTitle = 'Ups! Etwas ist schiefgelaufen';
         $errorMessage = 'Das System hat einen unerwarteten Fehler festgestellt. Keine Sorge, die Administratoren wurden automatisch benachrichtigt um das Problem zu beheben.';
         $debugInfo = '';
-        $requestState = '';
 
         // TODO Inline HTML besser lösen!
         if ($isDev) {
@@ -111,14 +113,6 @@ final readonly class GlobalExceptionHandler
                 $exception->getLine(),
                 \htmlspecialchars($exception->getTraceAsString()),
             );
-
-            // Kompletter State Snapshot für maximalen Debug-Komfort
-            $stateHtml = "<strong>GET Parameter:</strong>\n" . \htmlspecialchars(\print_r($_GET, true)) . "\n";
-            $stateHtml .= "<strong>POST Parameter:</strong>\n" . \htmlspecialchars(\print_r($_POST, true)) . "\n";
-            $sessionData = $_SESSION ?? [];
-            $stateHtml .= "<strong>SESSION State:</strong>\n" . \htmlspecialchars(\print_r($sessionData, true));
-
-            $requestState = "<div class='c-system-error__debug u-text-start u-margin-block-start-m'><h3 class='u-margin-block-none'>Request State:</h3><pre class='c-system-error__pre'>{$stateHtml}</pre></div>";
         }
 
         // Binden wir die PHTML-Datei ein (falls nicht vorhanden -> Ultra Fallback)
@@ -129,7 +123,6 @@ final readonly class GlobalExceptionHandler
             echo "<h1>$errorTitle</h1><p>$errorMessage</p>";
             if ($isDev) {
                 echo $debugInfo;
-                echo $requestState;
             }
         }
 

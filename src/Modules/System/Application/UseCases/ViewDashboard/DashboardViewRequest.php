@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Application\UseCases\ViewDashboard;
 
+use App\Contracts\Utils\ClockInterface;
+
 final readonly class DashboardViewRequest
 {
     private function __construct(
@@ -17,13 +19,13 @@ final readonly class DashboardViewRequest
     ) {
     }
 
-    public static function fromRequest(array $get, array $sessionFilters, array $paginationCfg): self
+    public static function fromRequest(array $get, array $sessionFilters, array $paginationCfg, ClockInterface $clock): self
     {
         $reset = isset($get['reset_filters']);
         $actualFilters = $reset ? [] : $sessionFilters;
 
-        $start = (string) ($actualFilters['start'] ?? $get['start'] ?? \date('Y-01-01'));
-        $end = (string) ($actualFilters['end'] ?? $get['end'] ?? \date('Y-12-31'));
+        $start = (string) ($actualFilters['start'] ?? $get['start'] ?? $clock->now()->format('Y-01-01'));
+        $end = (string) ($actualFilters['end'] ?? $get['end'] ?? $clock->now()->format('Y-12-31'));
         $type = (string) ($actualFilters['type'] ?? $get['type'] ?? 'all');
         $query = \strtolower(\trim((string) ($actualFilters['q'] ?? $get['q'] ?? '')));
 

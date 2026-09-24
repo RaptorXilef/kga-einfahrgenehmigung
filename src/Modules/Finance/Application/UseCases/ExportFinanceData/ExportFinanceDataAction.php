@@ -11,6 +11,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
 use App\Application\Response\FileDownloadResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\System\Application\Services\AuditLoggerService;
 
 #[Route('GET', '/dashboard_export')]
@@ -21,6 +22,7 @@ final readonly class ExportFinanceDataAction implements ViewActionInterface, Req
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
         private ExportFinanceDataHandler $exportHandler,
+        private ClockInterface $clock, // <--- Injiziert
     ) {
     }
 
@@ -32,7 +34,7 @@ final readonly class ExportFinanceDataAction implements ViewActionInterface, Req
     public function execute(ServerRequest $request): mixed
     {
         $sessionFilters = $this->sessionManager->getAdminFilters();
-        $dto = ExportRequest::fromRequest($request, $sessionFilters);
+        $dto = ExportRequest::fromRequest($request, $sessionFilters, $this->clock);
 
         $query = new ExportFinanceDataQuery(
             $dto->format,
