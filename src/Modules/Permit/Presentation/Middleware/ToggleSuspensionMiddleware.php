@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Presentation\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -13,11 +14,10 @@ use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Permit\Application\UseCases\TogglePermitSuspension\PermitToggleSuspensionRequest;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
+use Override;
 
 /**
  * Guard für das Sperren/Entsperren von Genehmigungen.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
 {
@@ -28,7 +28,8 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(ServerRequest $request, callable $next): mixed
+    #[Override]
+    public function process(ServerRequest $request, callable $next): ResponseInterface
     {
         try {
             $dto = PermitToggleSuspensionRequest::fromArray($request->post);

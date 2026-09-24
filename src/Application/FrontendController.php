@@ -38,11 +38,11 @@ final readonly class FrontendController
         private JsonBodyParserMiddleware $jsonBodyParser,
         private ApiCsrfMiddleware $apiCsrf,
         private FormExceptionHandlerMiddleware $formExceptionHandler,
-        private MaintenanceModeMiddleware $maintenanceMode, // VSA FIX: Maintenance Logic decoupled
+        private MaintenanceModeMiddleware $maintenanceMode,
     ) {
     }
 
-    public function handleRequest(ServerRequest $request): ?ResponseInterface
+    public function handleRequest(ServerRequest $request): ResponseInterface
     {
         $relativePath = $this->resolveRelativePath($request);
         $routeMatch = $this->resolveRoute($request, $relativePath);
@@ -108,7 +108,7 @@ final readonly class FrontendController
         return ['request' => $request, 'class' => '', 'requiresAuth' => false];
     }
 
-    private function executePipeline(ServerRequest $request, string $className, bool $requiresAuth, string $path): ?ResponseInterface
+    private function executePipeline(ServerRequest $request, string $className, bool $requiresAuth, string $path): ResponseInterface
     {
         $pipeline = new MiddlewarePipeline();
 
@@ -116,7 +116,7 @@ final readonly class FrontendController
         $pipeline->add($this->jsonBodyParser);
         $pipeline->add($this->formExceptionHandler);
 
-        // Neu: Wartungsmodus-Prüfung geschieht jetzt in der Middleware-Kette
+        // Wartungsmodus-Prüfung geschieht jetzt in der Middleware-Kette
         $pipeline->add($this->maintenanceMode);
 
         // Ausnahmen für Server-to-Server oder Cronjobs, die keine Session (und somit kein CSRF-Token) besitzen
@@ -136,7 +136,7 @@ final readonly class FrontendController
             $pipeline->add(new AuthMiddleware($this->sessionManager, $this->config));
         }
 
-        $response = $pipeline->process($request, function (ServerRequest $req) use ($className): mixed {
+        return $pipeline->process($request, function (ServerRequest $req) use ($className): ResponseInterface {
             $action = $this->actionFactory->create($className);
 
             // --- SECURITY FIX: Role-Based Access Control (RBAC) Enforcement ---
@@ -154,11 +154,5 @@ final readonly class FrontendController
 
             return new HtmlResponse('404 Not Found - Die angeforderte Seite existiert nicht.', 404);
         });
-
-        if ($response instanceof ResponseInterface) {
-            return $response;
-        }
-
-        return null;
     }
 }

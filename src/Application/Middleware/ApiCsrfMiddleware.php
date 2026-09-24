@@ -5,15 +5,12 @@ declare(strict_types=1);
 namespace App\Application\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Application\Session\SessionManager;
+use Override;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class ApiCsrfMiddleware implements MiddlewareInterface
 {
     public function __construct(
@@ -21,10 +18,10 @@ final readonly class ApiCsrfMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(ServerRequest $request, callable $next): mixed
+    #[Override]
+    public function process(ServerRequest $request, callable $next): ResponseInterface
     {
-        // CSRF-Prüfung nur bei schreibenden HTTP-Methoden durchführen
-        $method = $request->getMethod() ?? 'GET';
+        $method = $request->getMethod();
 
         if (\in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
             $providedToken = $request->getHeader('X-CSRF-Token') ?: ($request->post['csrf_token'] ?? '');

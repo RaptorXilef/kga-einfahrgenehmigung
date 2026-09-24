@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\SubmitPermitRequest;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
@@ -17,6 +18,7 @@ use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailab
 use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\GetVoucherPrefillHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\GetVoucherPrefillQuery;
 use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\VoucherPrefillDto;
+use Override;
 
 #[Route('GET', '/')]
 final readonly class PermitRenderAction implements ViewActionInterface
@@ -31,7 +33,8 @@ final readonly class PermitRenderAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $dto = ViewRenderRequest::fromArray($request->get);
         $flashes = $this->sessionManager->getFlashes();
@@ -59,7 +62,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
         $formData = $this->sessionManager->getFormData();
         $prefillData = $prefillDto instanceof VoucherPrefillDto ? $prefillDto->data : [];
 
-        $permitTemplates = $this->config->get('permit_templates', []);
+        $permitTemplates = $this->config->getArray('permit_templates');
         $publicTemplates = \array_filter($permitTemplates, fn (array $t): bool => ($t['public'] ?? false) === true);
         $defaultTemplateKey = \array_key_first($publicTemplates) ?? 'std_7';
 
@@ -82,7 +85,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
         $tplMetadataJson = \json_encode($tplMetadata, \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT) ?: '{}';
 
         $vehicleOptions = [];
-        foreach ($this->config->get('vehicle_types', []) as $val => $vData) {
+        foreach ($this->config->getArray('vehicle_types') as $val => $vData) {
             if (!($vData['active'] ?? true) && $activeVehicleType !== $val) {
                 continue;
             }
@@ -94,7 +97,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
         }
 
         $purposeOptions = [];
-        foreach ($this->config->get('purposes', []) as $val => $label) {
+        foreach ($this->config->getArray('purposes') as $val => $label) {
             $purposeOptions[] = [
                 'value' => $val,
                 'label' => $label,
@@ -149,8 +152,8 @@ final readonly class PermitRenderAction implements ViewActionInterface
 
     private function getParsedAgreements(): array
     {
-        $agreementsConfig = $this->config->get('agreements', []);
-        $baseUrl = $this->config->getBaseUrl() ?? '/';
+        $agreementsConfig = $this->config->getArray('agreements');
+        $baseUrl = $this->config->getBaseUrl();
         $parsed = [];
 
         foreach ($agreementsConfig as $key => $agree) {
@@ -162,7 +165,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
                     $finalLink = \rtrim($baseUrl, '/') . '/' . \ltrim($agree['link'], '/');
                 }
                 $linkHtml = '<a href="' . \htmlspecialchars($finalLink) .
-                '" target="_blank" style="color: var(--primary-color); text-decoration: underline; font-weight: 500;">$1</a>';
+                    '" target="_blank" style="color: var(--primary-color); text-decoration: underline; font-weight: 500;">$1</a>';
                 $renderedLabel = \preg_replace('/\[(.*?)\]/', $linkHtml, $cleanLabel);
             } else {
                 $renderedLabel = \preg_replace('/\[(.*?)\]/', '$1', $cleanLabel);

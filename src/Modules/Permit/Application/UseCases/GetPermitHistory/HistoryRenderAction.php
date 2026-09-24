@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\GetPermitHistory;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
@@ -12,6 +13,7 @@ use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\ViewRenderRequest;
+use Override;
 
 #[Route('GET', '/history')]
 final readonly class HistoryRenderAction implements ViewActionInterface
@@ -24,7 +26,8 @@ final readonly class HistoryRenderAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $dto = ViewRenderRequest::fromArray($request->get);
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();

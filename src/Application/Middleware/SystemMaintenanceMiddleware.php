@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Application\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Contracts\System\StorageBootstrapperInterface;
+use Override;
 use Throwable;
 
 final readonly class SystemMaintenanceMiddleware implements MiddlewareInterface
@@ -16,7 +18,8 @@ final readonly class SystemMaintenanceMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(ServerRequest $request, callable $next): mixed
+    #[Override]
+    public function process(ServerRequest $request, callable $next): ResponseInterface
     {
         try {
             $this->bootstrapper->bootstrap();

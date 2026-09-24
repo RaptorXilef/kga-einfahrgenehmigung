@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Application\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
+use Override;
 use Throwable;
 
 /**
  * Sendet Serverseitige Events an Google Analytics (GA4).
  * Asynchron im Terminate-Prozess (nachdem der Request beantwortet wurde).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class AnalyticsMiddleware implements MiddlewareInterface
 {
@@ -26,7 +26,8 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(ServerRequest $request, callable $next): mixed
+    #[Override]
+    public function process(ServerRequest $request, callable $next): ResponseInterface
     {
         $response = $next($request);
 
@@ -40,7 +41,7 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
 
     private function trackEvent(ServerRequest $request): void
     {
-        if ($this->config->get('is_local_env', false)) {
+        if ($this->config->getBool('is_local_env', false)) {
             return;
         }
 
@@ -61,7 +62,7 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
         }
         // -------------------------------------------
 
-        $gaCfg = $this->config->get('ga4_server_side', []);
+        $gaCfg = $this->config->getArray('ga4_server_side');
         $gaId = $gaCfg['measurement_id'] ?? '';
         $apiSecret = $gaCfg['api_secret'] ?? '';
 

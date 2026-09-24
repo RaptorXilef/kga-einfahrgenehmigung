@@ -5,24 +5,21 @@ declare(strict_types=1);
 namespace App\Application\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Security\RateLimiterInterface;
+use Override;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class ApiRateLimitMiddleware implements MiddlewareInterface
 {
     public function __construct(private RateLimiterInterface $rateLimiter)
     {
     }
 
-    public function process(ServerRequest $request, callable $next): mixed
+    #[Override]
+    public function process(ServerRequest $request, callable $next): ResponseInterface
     {
-        // FIX: Sicherer Zugriff über den gekapselten Request statt direkter Superglobal $_SERVER-Nutzung
         $ip = $request->getIp();
 
         if ($this->rateLimiter->isBlocked($ip)) {

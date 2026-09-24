@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Application\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Contracts\Security\AuthorizationInterface;
+use Override;
 
 final readonly class PermissionMiddleware implements MiddlewareInterface
 {
@@ -18,7 +20,8 @@ final readonly class PermissionMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(ServerRequest $request, callable $next): mixed
+    #[Override]
+    public function process(ServerRequest $request, callable $next): ResponseInterface
     {
         if (!$this->auth->hasPermission($this->requiredPermission)) {
             return new RedirectResponse($this->fallbackUrl);

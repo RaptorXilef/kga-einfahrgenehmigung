@@ -18,5 +18,5 @@ interface MiddlewareInterface
      *
      * @param callable $next Die nächste Middleware oder die finale Action.
      */
-    public function process(ServerRequest $request, callable $next): mixed;
+    public function process(ServerRequest $request, callable $next): ResponseInterface;
 }

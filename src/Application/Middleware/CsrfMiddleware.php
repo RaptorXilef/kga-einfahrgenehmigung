@@ -5,15 +5,12 @@ declare(strict_types=1);
 namespace App\Application\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use Override;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class CsrfMiddleware implements MiddlewareInterface
 {
     public function __construct(
@@ -22,10 +19,10 @@ final readonly class CsrfMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(ServerRequest $request, callable $next): mixed
+    #[Override]
+    public function process(ServerRequest $request, callable $next): ResponseInterface
     {
-        // CSRF greift nur bei POST-Requests!
-        $method = $request->getMethod() ?? 'GET';
+        $method = $request->getMethod();
 
         if (\in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
             $provided = $request->getHeader('X-CSRF-Token') ?: ($request->post['csrf_token'] ?? '');
@@ -35,7 +32,7 @@ final readonly class CsrfMiddleware implements MiddlewareInterface
                 // UX-Rettung: Wir speichern die eingegebenen Formulardaten zwischen,
                 // bevor wir die Anfrage ablehnen.
                 $postData = $request->post;
-                unset($postData['csrf_token'], $postData['action']); // Interne Felder entfernen
+                unset($postData['csrf_token'], $postData['action']);
 
                 if ($postData !== []) {
                     $this->sessionManager->setFormData($postData);

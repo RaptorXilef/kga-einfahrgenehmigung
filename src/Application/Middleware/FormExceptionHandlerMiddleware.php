@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Application\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use DomainException;
 use InvalidArgumentException;
+use Override;
 
 /**
  * Zentrales Catch-All für fachliche Validierungsfehler bei Formularen.
  * Ersetzt try/catch-Blöcke in den Actions und implementiert das PRG-Pattern (Post/Redirect/Get).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class FormExceptionHandlerMiddleware implements MiddlewareInterface
 {
@@ -23,7 +23,8 @@ final readonly class FormExceptionHandlerMiddleware implements MiddlewareInterfa
     {
     }
 
-    public function process(ServerRequest $request, callable $next): mixed
+    #[Override]
+    public function process(ServerRequest $request, callable $next): ResponseInterface
     {
         try {
             return $next($request);

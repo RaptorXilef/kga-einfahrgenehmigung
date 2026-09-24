@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Application\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
+use Override;
 
 /**
  * Global Security Headers.
@@ -19,10 +21,11 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
     ) {
     }
 
+    #[Override]
     public function process(
         ServerRequest $request,
         callable $next,
-    ): mixed {
+    ): ResponseInterface {
         if (!\defined('CSP_NONCE')) {
             \define('CSP_NONCE', \rtrim(\base64_encode(\random_bytes(16)), '='));
         }

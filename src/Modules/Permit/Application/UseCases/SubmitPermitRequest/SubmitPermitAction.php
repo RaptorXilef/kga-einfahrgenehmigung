@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\SubmitPermitRequest;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -20,6 +21,7 @@ use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use App\SharedKernel\Domain\ValueObject\VoucherCode;
 use DomainException;
 use InvalidArgumentException;
+use Override;
 use Throwable;
 
 /**
@@ -37,7 +39,8 @@ final readonly class SubmitPermitAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(ServerRequest $request): mixed
+    #[Override]
+    public function execute(ServerRequest $request): ResponseInterface
     {
         $ip = $request->getIp();
 
