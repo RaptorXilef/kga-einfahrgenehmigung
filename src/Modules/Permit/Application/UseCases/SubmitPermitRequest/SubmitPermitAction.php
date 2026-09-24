@@ -86,14 +86,15 @@ final readonly class SubmitPermitAction implements ViewActionInterface
                 sessionEmail: $this->sessionManager->getVerifiedEmail(),
             );
 
-            $result = $this->submitHandler->handle($command);
+            $this->submitHandler->handle($command);
+            $result = $command->context;
 
             $this->sessionManager->clearFormData();
             $this->sessionManager->clearEditState();
             $this->sessionManager->clearFormStartTime();
             $this->botProtection->recordStrike($ip); // Begrenzt auch erfolgreiche Anträge auf x pro 15 Min
 
-            if ($result->action === 'redirect_checkout') {
+            if ($result->redirectAction === 'redirect_checkout') {
                 return new RedirectResponse('checkout?token=' . $result->token);
             }
 

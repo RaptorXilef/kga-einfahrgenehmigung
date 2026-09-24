@@ -37,7 +37,10 @@ final readonly class VerificationAction implements ViewActionInterface
         }
 
         $ip = $request->getIp();
-        $result = $this->confirmHandler->handle(new ConfirmPermitEmailCommand($token));
+
+        $command = new ConfirmPermitEmailCommand($token);
+        $this->confirmHandler->handle($command);
+        $result = $command->context;
 
         if (!$result->isSuccess) {
             $this->rateLimiter->recordFailedAttempt($ip);

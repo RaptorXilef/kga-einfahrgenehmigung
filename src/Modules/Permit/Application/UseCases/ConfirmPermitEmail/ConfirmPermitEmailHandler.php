@@ -15,8 +15,12 @@ use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateV
 use App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount\CalculateVoucherDiscountQuery;
 use App\Modules\Voucher\Application\UseCases\RedeemVoucher\RedeemVoucherCommand;
 use App\Modules\Voucher\Application\UseCases\RedeemVoucher\RedeemVoucherHandler;
+use App\SharedKernel\Application\Command\CommandHandlerInterface;
 
-final readonly class ConfirmPermitEmailHandler
+/**
+ * @implements CommandHandlerInterface<ConfirmPermitEmailCommand>
+ */
+final readonly class ConfirmPermitEmailHandler implements CommandHandlerInterface
 {
     public function __construct(
         private VerificationRepositoryInterface $verificationRepository,
@@ -28,7 +32,10 @@ final readonly class ConfirmPermitEmailHandler
     ) {
     }
 
-    public function handle(ConfirmPermitEmailCommand $command): ConfirmPermitEmailResult
+    /**
+     * @param ConfirmPermitEmailCommand $command
+     */
+    public function handle(mixed $command): void
     {
         $allPending = $this->verificationRepository->loadPending();
         $input = \strtoupper(\trim($command->tokenOrCode));
@@ -47,11 +54,17 @@ final readonly class ConfirmPermitEmailHandler
             foreach ($allVerified as $t => $req) {
                 $strToken = (string) $t;
                 if (\strtoupper($strToken) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
-                    return new ConfirmPermitEmailResult(true, null, $strToken, $req->data);
+                    $command->context->isSuccess = true;
+                    $command->context->checkoutToken = $strToken;
+                    $command->context->verifiedData = $req->data;
+
+                    return;
                 }
             }
 
-            return new ConfirmPermitEmailResult(false);
+            $command->context->isSuccess = false;
+
+            return;
         }
 
         $token = $matchedToken;
@@ -89,7 +102,10 @@ final readonly class ConfirmPermitEmailHandler
                     // Auto-Finalize
                     $permit = $this->finalizePermitHandler->handle(new FinalizePermitCommand($token, PermitStatus::Bezahlt, 'Gutschein (Voll-Rabatt): ' . $voucherCodeStr));
 
-                    return new ConfirmPermitEmailResult(true, $permit);
+                    $command->context->isSuccess = true;
+                    $command->context->finalisedPermit = $permit;
+
+                    return;
                 }
 
                 $data['preis'] = $finalPrice;
@@ -104,6 +120,8 @@ final readonly class ConfirmPermitEmailHandler
 
         $data['actual_token'] = $token;
 
-        return new ConfirmPermitEmailResult(true, null, $token, $data);
+        $command->context->isSuccess = true;
+        $command->context->checkoutToken = $token;
+        $command->context->verifiedData = $data;
     }
 }

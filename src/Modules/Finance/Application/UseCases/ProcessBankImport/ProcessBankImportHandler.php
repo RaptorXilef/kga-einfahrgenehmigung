@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
 use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
+use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use App\SharedKernel\Domain\Event\BankPaymentAssignedEvent;
 use DateTimeImmutable;
 use DomainException;
@@ -16,14 +17,16 @@ use League\Csv\Reader;
 /**
  * Orchestriert den Bank-Import. Da wir ein ResultDTO zurückgeben, implementiert
  * dieser Use-Case ganz pragmatisch NICHT das strenge CommandHandlerInterface (void).
+ *
+ * @implements CommandHandlerInterface<ProcessBankImportCommand>
  */
-final readonly class ProcessBankImportHandler
+final readonly class ProcessBankImportHandler implements CommandHandlerInterface
 {
     public function __construct(
         private UnpaidPermitProviderInterface $unpaidPermitProvider,
         private ConfigInterface $config,
         private EventDispatcherInterface $eventDispatcher,
-        private BankImportInfrastructureInterface $infrastructure, // <--- Injiziert
+        private BankImportInfrastructureInterface $infrastructure,
     ) {
     }
 
@@ -31,8 +34,10 @@ final readonly class ProcessBankImportHandler
      * Da Handler per Interface void zurückgeben, nutzen wir ein lokales State-Feld oder werfen Exceptions.
      * Da die Architektur aber ein Result-Array im Controller erwartet hat, nutzen wir einen Trick:
      * Wir geben hier ausnahmsweise das DTO zurück, da es ein Workflow-Orchestrator ist.
+     *
+     * @param ProcessBankImportCommand $command
      */
-    public function handle(ProcessBankImportCommand $command): BankImportResultDto
+    public function handle(mixed $command): void
     {
         $runLogs = [];
 
@@ -42,7 +47,10 @@ final readonly class ProcessBankImportHandler
         if (!$csv instanceof Reader) {
             $this->infrastructure->writeLog("Fehler: Die Datei '{$command->tempFile}' ist ungültig oder konnte nicht geöffnet werden.", $runLogs);
 
-            return new BankImportResultDto(false, 'Datei konnte nicht gefunden oder gelesen werden.');
+            $command->context->success = false;
+            $command->context->message = 'Datei konnte nicht gefunden oder gelesen werden.';
+
+            return;
         }
 
         // --- DECOUPLED DATA FETCH ---
@@ -263,12 +271,10 @@ final readonly class ProcessBankImportHandler
                 $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . $istFormatted . ')';
 
                 try {
-                    // Domain-Kommunikation! Das Finance-Modul feuert nun ein Event.
                     $this->eventDispatcher->dispatch(new BankPaymentAssignedEvent($permitId, $grund, $formatierterTag));
                     $this->infrastructure->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).", $runLogs);
                     $erfolgreichDetails[] = "{$permitId} ({$ownerName})";
                 } catch (DomainException) {
-                    // Das Permit Modul hat das Event abgelehnt (z.B. weil das Permit nicht mehr existiert)
                     $this->infrastructure->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).", $runLogs);
                     $fehlerhaftStorage[] = "{$permitId} ({$ownerName})";
                 }
@@ -278,7 +284,6 @@ final readonly class ProcessBankImportHandler
             }
         }
 
-        // Bündelung für das Frontend
         $erfolgreichDetails = \array_values(\array_unique($erfolgreichDetails));
         $skippedNotInCsv = \array_values(\array_unique($skippedNotInCsv));
         $skippedAlreadyPaid = \array_values(\array_unique($skippedAlreadyPaid));
@@ -321,17 +326,15 @@ final readonly class ProcessBankImportHandler
 
         $this->infrastructure->cleanupTempFile($command->tempFile);
 
-        return new BankImportResultDto(
-            success: true,
-            message: 'Import abgeschlossen.',
-            successCount: $erfCount,
-            skippedCount: $uebCount,
-            errorCount: $fehlCount,
-            successDetails: $erfolgreichDetails,
-            skippedDetails: $uebersprungenDetails,
-            errorDetails: $fehlerhaftDetails,
-            collectiveTransfers: $sammelTransfers,
-        );
+        $command->context->success = true;
+        $command->context->message = 'Import abgeschlossen.';
+        $command->context->successCount = $erfCount;
+        $command->context->skippedCount = $uebCount;
+        $command->context->errorCount = $fehlCount;
+        $command->context->successDetails = $erfolgreichDetails;
+        $command->context->skippedDetails = $uebersprungenDetails;
+        $command->context->errorDetails = $fehlerhaftDetails;
+        $command->context->collectiveTransfers = $sammelTransfers;
     }
 
     private function parseDate(string $rawDate): string

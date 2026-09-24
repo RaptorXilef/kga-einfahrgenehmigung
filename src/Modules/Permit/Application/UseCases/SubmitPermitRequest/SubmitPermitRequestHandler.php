@@ -14,13 +14,17 @@ use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
+use App\SharedKernel\Application\Command\CommandHandlerInterface;
 use App\SharedKernel\Application\Security\Sanitizer;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use App\SharedKernel\Domain\ValueObject\VoucherCode;
 use DateTimeImmutable;
 use InvalidArgumentException;
 
-final readonly class SubmitPermitRequestHandler
+/**
+ * @implements CommandHandlerInterface<SubmitPermitRequestCommand>
+ */
+final readonly class SubmitPermitRequestHandler implements CommandHandlerInterface
 {
     public function __construct(
         private ConfigInterface $config,
@@ -31,7 +35,10 @@ final readonly class SubmitPermitRequestHandler
     ) {
     }
 
-    public function handle(SubmitPermitRequestCommand $command): SubmitPermitResult
+    /**
+     * @param SubmitPermitRequestCommand $command
+     */
+    public function handle(mixed $command): void
     {
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
 
@@ -52,10 +59,8 @@ final readonly class SubmitPermitRequestHandler
 
             // Wenn die E-Mail NICHT geändert wurde -> Nur Daten updaten & direkt zurück zum Checkout!
             if ($oldData !== null && Sanitizer::normalizeEmail((string) $command->email) === Sanitizer::normalizeEmail($command->sessionEmail)) {
-                // Wir mergen die neuen Daten in die alten (damit verification_code erhalten bleibt)
                 $merged = \array_merge($oldData, $rawDataArray);
 
-                // Preis dynamisch neu berechnen (falls sich Tarif oder Fahrzeugtyp geändert hat)
                 $tKey = $merged['template_key'];
                 $templates = (array) $this->config->get('permit_templates', []);
                 $template = $templates[$tKey] ?? $templates['std_7'] ?? ['prices' => []];
@@ -72,7 +77,10 @@ final readonly class SubmitPermitRequestHandler
 
                 $this->verificationRepository->saveVerified($allVerified);
 
-                return new SubmitPermitResult('redirect_checkout', $command->editToken);
+                $command->context->redirectAction = 'redirect_checkout';
+                $command->context->token = $command->editToken;
+
+                return;
             }
 
             // Falls die E-Mail geändert WURDE, löschen wir das alte Token,
@@ -86,7 +94,8 @@ final readonly class SubmitPermitRequestHandler
         // --- NEUANLAGE MODUS ---
         $token = $this->createNewPendingRequest($rawDataArray);
 
-        return new SubmitPermitResult('redirect_verify', $token);
+        $command->context->redirectAction = 'redirect_verify';
+        $command->context->token = $token;
     }
 
     private function createNewPendingRequest(array $data): string
