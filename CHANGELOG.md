@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.79.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.78.4...v0.79.0) (2026-09-24)
+
+### 🚀 Features
+
+* **export:** Add specific permit export buttons with granular RBAC ([65fccd6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/65fccd6557c127e677f1b2a0c73520448166f15b))
+
+### 🐛 Bug Fixes
+
+* **dashboard:** Correct template path for pagination partial rendering ([3d00aca](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3d00acab0a754fd67fe8f1b98e71c9d446c24f30))
+* **dashboard:** Refactor remaining permit tabs to use DashboardViewDto ([733147b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/733147bf4d991f7bf371fa6d5f96bfce31004a55))
+* **dashboard:** Resolve undefined array key and unused imports ([3684592](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/36845920da111a47d63f1bf3313e07b2b17ed530))
+
+### ⚙️ Refactoring
+
+* **core:** Eradicate Superglobals and native time functions from Application layer ([97a7970](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/97a79707b4d55862560dc00d0a5cb71dc95d829a))
+* **dashboard:** Eradicate RBAC and presentation logic from admin views ([cdc92db](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cdc92db34c31b47c1f0008809556810c646e9afe))
+* **history:** Implement strict Read-Models and dumb views for tenant history ([d3ddbc7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d3ddbc7cefe8649c5ba9321a30368cbfcf4c4ad4))
+* **io:** Isolate native file system and time functions into Infrastructure ([20c54b6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/20c54b65464e9ec077f9558014c12c2994050897))
+* **permit:** Make application form view dumb and time-safe ([c8b1cfb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c8b1cfba7e5214500eb654bd3b1a323bd2bbb4f5))
+
 ## [0.78.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.78.3...v0.78.4) (2026-09-23)
 
 ### 🐛 Bug Fixes
