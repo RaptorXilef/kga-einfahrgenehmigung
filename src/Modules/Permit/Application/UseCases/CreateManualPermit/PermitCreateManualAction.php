@@ -11,6 +11,7 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\System\Application\Services\AuditLoggerService;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
@@ -29,6 +30,7 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
         private CreateManualPermitHandler $createHandler,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -40,7 +42,7 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = PermitCreateManualRequest::fromArray($request->post);
+            $dto = PermitCreateManualRequest::fromArray($request->post, $this->clock);
         } catch (ValidationException|InvalidArgumentException $e) {
             $postData = $request->post;
             unset($postData['csrf_token']);

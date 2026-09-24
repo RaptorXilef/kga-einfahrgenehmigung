@@ -6,6 +6,7 @@ namespace App\Modules\Permit\Application\UseCases\SearchPermits;
 
 use App\Contracts\Config\ConfigInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use DateTimeImmutable;
 use PDO;
 
 /**
@@ -89,19 +90,19 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
 
         // Daten flach mappen, wie es die API / das Vue.js Frontend erwartet
         $formattedItems = \array_map(fn (array $row): array => [
-            'bis' => \date('d.m.Y', \strtotime($row['bis'])),
-            'code' => $row['code'],
-            'email' => $row['email'] ?: '',
-            'erstellt' => \date('d.m.Y H:i', \strtotime($row['erstellt'])),
+            'bis' => (new DateTimeImmutable((string) $row['bis']))->format('d.m.Y'),
+            'code' => (string) $row['code'],
+            'email' => (string) $row['email'] ?: '',
+            'erstellt' => (new DateTimeImmutable((string) $row['erstellt']))->format('d.m.Y H:i'),
             'is_archived' => (bool) $row['is_archived'],
-            'kennzeichen' => $row['kennzeichen'],
-            'name' => $row['name'],
+            'kennzeichen' => (string) $row['kennzeichen'],
+            'name' => (string) $row['name'],
             'parzelle' => \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
             'preis' => (float) $row['preis'],
-            'status' => $row['status'],
-            'template_key' => $row['template_key'],
-            'von' => \date('d.m.Y', \strtotime($row['von'])),
-            'zweck' => $row['zweck'],
+            'status' => (string) $row['status'],
+            'template_key' => (string) $row['template_key'],
+            'von' => (new DateTimeImmutable((string) $row['von']))->format('d.m.Y'),
+            'zweck' => (string) $row['zweck'],
         ], $items);
 
         return ['items' => $formattedItems, 'total' => $total];

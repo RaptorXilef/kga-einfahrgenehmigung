@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\CreateManualPermit;
 
 use App\Application\Exception\ValidationException;
+use App\Contracts\Utils\ClockInterface;
 
 final readonly class PermitCreateManualRequest
 {
@@ -25,7 +26,7 @@ final readonly class PermitCreateManualRequest
     ) {
     }
 
-    public static function fromArray(array $post): self
+    public static function fromArray(array $post, ClockInterface $clock): self
     {
         $sanitized = \array_map(fn ($value): mixed => \is_string($value) ? \trim(\strip_tags($value)) : $value, $post);
 
@@ -57,8 +58,8 @@ final readonly class PermitCreateManualRequest
             firma: $sanitized['firma'] ?? '',
             zweck: $sanitized['zweck'] ?? 'Privat',
             templateKey: $sanitized['template_key'] ?? 'std_7',
-            datumVon: $sanitized['datum_von'] ?? \date('Y-m-d'),
-            datumBis: $sanitized['datum_bis'] ?? \date('Y-m-d'),
+            datumVon: $sanitized['datum_von'] ?? $clock->now()->format('Y-m-d'),
+            datumBis: $sanitized['datum_bis'] ?? $clock->now()->format('Y-m-d'),
             manualPrice: $preis,
             status: $isPaid ? 'bezahlt' : 'offen',
             sendEmail: isset($post['send_email']),
