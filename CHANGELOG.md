@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.79.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.3...v0.79.4) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* **core,system,permit:** Heal Deptrac boundaries, and fix SQL/holiday runtime bugs ([1e51e62](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1e51e62f0cda87392f3582a80876d0790d98fc66))
+
+### ⚙️ Refactoring
+
+* **arch,core:** Resolve Deptrac violations via Contracts and type/clock hardening ([36a36eb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/36a36eb023e6f43cce1aae918bd7392e0fbeab4c))
+* **arch,infra:** Extract CSV stream I/O and GA4 cURL calls into Infrastructure layer ([5ea991a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5ea991a1ebfaba56c2882fb776c7dbb7aa33057a))
+* **permit:** Decouple GetPermitByCode read slice from Domain Entity ... ([9f73bd8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9f73bd858e926ecf7872df4b6d0f6f49e673634c))
+* **view,permit,system:** Dumb Views by extracting all template logic into DTOs and Presenters ([195e3d0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/195e3d0d91d162c6d835304d974340186b38cc81))
+
 ## [0.79.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.2...v0.79.3) (2026-09-24)
 
 ### ⚙️ Refactoring
