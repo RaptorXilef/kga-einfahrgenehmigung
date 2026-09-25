@@ -13,7 +13,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\System\AuditLoggerInterface;
 use Override;
 
 #[Route('GET', '/resend_mail')]
@@ -21,7 +21,7 @@ use Override;
 final readonly class ResendMailAction implements ActionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private MailLogInterface $mailLog,
         private MailServiceInterface $mailService,
         private SessionManager $sessionManager,

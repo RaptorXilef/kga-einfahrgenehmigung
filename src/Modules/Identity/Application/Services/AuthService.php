@@ -28,6 +28,7 @@ final readonly class AuthService implements AuthorizationInterface
     ) {
     }
 
+    #[Override]
     public function logout(): void
     {
         $this->sessionManager->destroy();
@@ -66,6 +67,7 @@ final readonly class AuthService implements AuthorizationInterface
         return ($this->sessionManager->getPermissions()[$permission] ?? false) === true;
     }
 
+    #[Override]
     public function refreshSessionPermissions(string $roleId): void
     {
         $roles = $this->roleRepository->loadAll();

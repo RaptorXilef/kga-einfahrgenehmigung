@@ -12,27 +12,12 @@ use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use Override;
 
 /**
- * Bereitet die Backup-Liste sowie die möglichen Tabellen-Ziele logikfrei für die View auf.
+ * Bereitet die vorhandenen Backups und Tabellen-Ziele logikfrei für die Dashboard-View auf.
  *
  * @implements QueryHandlerInterface<GetBackupsDataQuery, BackupsResultDto>
  */
 final readonly class GetBackupsDataHandler implements QueryHandlerInterface
 {
-    private const array TARGET_LABELS = [
-        'all' => 'Vollständige Datenbank (Alle Tabellen)',
-        'permits' => 'Aktive Genehmigungen (permits)',
-        'permits_archive' => 'Genehmigungs-Archiv (permits_archive)',
-        'permits_cancelled' => 'Stornierte Genehmigungen (permits_cancelled)',
-        'vouchers' => 'Aktive Gutscheine (vouchers)',
-        'vouchers_archive' => 'Gutschein-Archiv (vouchers_archive)',
-        'users' => 'Benutzerkonten (users)',
-        'roles' => 'Rollen & Rechte (roles)',
-        'audit_logs' => 'Audit-Log (audit_logs)',
-        'mail_log' => 'E-Mail Versand-Log (mail_logs)',
-        'mail_queue' => 'E-Mail Warteschlange (mail_queue)',
-        'login_attempts' => 'Login-Sperren / Rate-Limits (login_attempts)',
-    ];
-
     public function __construct(
         private BackupServiceInterface $backupService,
         private ConfigInterface $config,
@@ -47,19 +32,33 @@ final readonly class GetBackupsDataHandler implements QueryHandlerInterface
     #[Override]
     public function handle(mixed $query): BackupsResultDto
     {
-        $backupSettings = $this->config->getArray('backup_settings');
-        $ftpEnabled = (bool) ($backupSettings['ftp']['enabled'] ?? false);
+        $backupCfg = $this->config->getArray('backup_settings');
+        $ftpEnabled = (bool) ($backupCfg['ftp']['enabled'] ?? false);
+
+        $targetLabels = [
+            'all' => 'Komplettes System (Alle Tabellen)',
+            'permits' => 'Aktive Genehmigungen (permits)',
+            'permits_archive' => 'Genehmigungs-Archiv (permits_archive)',
+            'permits_cancelled' => 'Stornierte Genehmigungen (permits_cancelled)',
+            'users' => 'Benutzerkonten (users)',
+            'roles' => 'Rollen & Rechte (roles)',
+            'vouchers' => 'Aktive Gutscheine (vouchers)',
+            'vouchers_archive' => 'Gutschein-Archiv (vouchers_archive)',
+            'mail_log' => 'E-Mail-Versandprotokoll (mail_logs)',
+            'mail_queue' => 'E-Mail-Warteschlange (mail_queue)',
+            'audit_logs' => 'Sicherheits-Audit-Log (audit_logs)',
+        ];
 
         $storageConfig = $this->config->getArray('storage_config');
         $targetOptions = [
-            ['value' => 'all', 'label' => self::TARGET_LABELS['all']],
+            ['value' => 'all', 'label' => $targetLabels['all']],
         ];
 
         foreach ($storageConfig as $key => $cfg) {
-            if (!isset($cfg['table'])) {
+            if (!\is_array($cfg) || !isset($cfg['table'])) {
                 continue;
             }
-            $label = self::TARGET_LABELS[$key] ?? "Tabelle: {$cfg['table']} ({$key})";
+            $label = $targetLabels[$key] ?? \sprintf('%s (%s)', $key, (string) $cfg['table']);
             $targetOptions[] = [
                 'value' => (string) $key,
                 'label' => $label,
@@ -69,29 +68,28 @@ final readonly class GetBackupsDataHandler implements QueryHandlerInterface
         $rawBackups = $this->backupService->listBackups();
         $items = [];
 
-        foreach ($rawBackups as $b) {
-            $timestamp = isset($b['date']) && \is_numeric($b['date']) ? (int) $b['date'] : $this->clock->now()->getTimestamp();
+        foreach ($rawBackups as $raw) {
+            $timestamp = (int) ($raw['date'] ?? 0);
             $dateFormatted = $this->clock->now()->setTimestamp($timestamp)->format('d.m.Y H:i') . ' Uhr';
-
-            $sizeBytes = isset($b['size']) && \is_numeric($b['size']) ? (int) $b['size'] : 0;
+            $sizeBytes = (int) ($raw['size'] ?? 0);
             $sizeMb = \number_format($sizeBytes / 1024 / 1024, 2, ',', '.');
+            $targetKey = (string) ($raw['target'] ?? 'all');
 
-            $targetKey = (string) ($b['target'] ?? 'all');
-            $targetLabel = $targetKey === 'all' ? 'Komplett-Backup' : (self::TARGET_LABELS[$targetKey] ?? $targetKey);
-            $iconFile = $targetKey === 'all' ? 'package.webp' : 'document.webp';
+            $isFull = $targetKey === 'all';
+            $iconFile = $isFull ? 'package.webp' : 'document.webp';
 
             $tables = [];
-            if (isset($b['tables']) && \is_array($b['tables'])) {
-                foreach ($b['tables'] as $tbl) {
+            if (isset($raw['tables']) && \is_array($raw['tables'])) {
+                foreach ($raw['tables'] as $tbl) {
                     $tables[] = (string) $tbl;
                 }
             }
 
             $items[] = new BackupItemViewDto(
-                filename: (string) ($b['filename'] ?? ''),
-                sizeMb: $sizeMb,
+                filename: (string) ($raw['filename'] ?? ''),
                 dateFormatted: $dateFormatted,
-                targetLabel: $targetLabel,
+                sizeMb: $sizeMb,
+                targetLabel: $isFull ? 'Voll-Backup' : $targetKey,
                 targetIconUrl: $this->assetHelper->url('assets/img/icons/' . $iconFile),
                 tables: $tables,
             );

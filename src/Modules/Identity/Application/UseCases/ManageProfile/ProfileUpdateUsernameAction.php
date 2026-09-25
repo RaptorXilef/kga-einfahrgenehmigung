@@ -11,10 +11,10 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Contracts\Security\AuthorizationInterface;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Modules\Identity\Application\UseCases\ManageUsers\RenameUserCommand;
 use App\Modules\Identity\Application\UseCases\ManageUsers\RenameUserHandler;
-use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
 use Override;
 
@@ -22,8 +22,8 @@ use Override;
 final readonly class ProfileUpdateUsernameAction implements ActionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
-        private AuthService $auth,
+        private AuditLoggerInterface $auditLogger,
+        private AuthorizationInterface $auth,
         private SessionManager $sessionManager,
         private RenameUserHandler $renameHandler,
     ) {

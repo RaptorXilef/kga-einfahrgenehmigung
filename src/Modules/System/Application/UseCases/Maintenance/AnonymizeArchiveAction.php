@@ -11,8 +11,8 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
-use App\Modules\System\Application\Services\AuditLoggerService;
 use Override;
 use Throwable;
 
@@ -21,7 +21,7 @@ use Throwable;
 final readonly class AnonymizeArchiveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private PermitArchiveRepositoryInterface $archiveRepository,
         private SessionManager $sessionManager,
     ) {

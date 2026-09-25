@@ -10,14 +10,14 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\System\AuditLoggerInterface;
 use Override;
 
 #[Route('POST', '/api/ping')]
 final readonly class ExtendSessionAction implements ActionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private SessionManager $sessionManager,
     ) {
     }

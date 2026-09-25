@@ -11,17 +11,17 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Security\AuthorizationInterface;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\System\RouteCacheInterface;
-use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\System\Application\Services\AuditLoggerService;
 use Override;
 
 #[Route('POST', '/clear_cache')]
 final readonly class ClearCacheAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
-        private AuthService $auth,
+        private AuditLoggerInterface $auditLogger,
+        private AuthorizationInterface $auth,
         private RouteCacheInterface $routeCache,
         private SessionManager $sessionManager,
     ) {

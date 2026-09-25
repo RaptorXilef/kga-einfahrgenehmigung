@@ -12,7 +12,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\System\AuditLoggerInterface;
 use Override;
 use Throwable;
 
@@ -21,7 +21,7 @@ use Throwable;
 final readonly class RunUpdateMigrationsAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private SessionManager $sessionManager,
         private UpdateMigrationServiceInterface $migrationService,
     ) {

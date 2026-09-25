@@ -13,8 +13,8 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Contracts\System\ImageStorageInterface;
-use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
@@ -25,7 +25,7 @@ use Override;
 final readonly class ProfileRenderAction implements ViewActionInterface
 {
     public function __construct(
-        private AuthService $auth,
+        private AuthorizationInterface $auth,
         private RoleRepositoryInterface $roleRepository,
         private ImageStorageInterface $imageStorage,
         private SessionManager $sessionManager,

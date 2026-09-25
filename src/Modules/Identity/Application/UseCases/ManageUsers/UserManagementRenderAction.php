@@ -11,7 +11,7 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\View\TemplateRenderer;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Modules\Identity\Application\UseCases\GetUserManagementData\GetUserManagementDataHandler;
 use App\Modules\Identity\Application\UseCases\GetUserManagementData\GetUserManagementDataQuery;
 use Override;
@@ -21,7 +21,7 @@ use Override;
 final readonly class UserManagementRenderAction implements ViewActionInterface
 {
     public function __construct(
-        private AuthService $auth,
+        private AuthorizationInterface $auth,
         private TemplateRenderer $renderer,
         private GetUserManagementDataHandler $dataHandler,
     ) {

@@ -9,16 +9,13 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Integration\FinanceIntegrationInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\System\PdfGeneratorInterface;
+use App\Contracts\System\QrCodeGeneratorInterface;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Domain\Events\PermitCreatedEvent;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
 use App\Modules\Permit\Presentation\View\PermitA4Presenter;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\Writer\PngWriter;
 
 /**
  * Lauscht auf PermitCreatedEvent und versendet die System-E-Mails.
@@ -32,6 +29,7 @@ final readonly class SendPermitMailListener
         private MailServiceInterface $mailService,
         private PermitFinancialCalculator $financialCalculator,
         private PdfGeneratorInterface $pdfGenerator,
+        private QrCodeGeneratorInterface $qrCodeGenerator,
         private TemplateRenderer $renderer,
     ) {
     }
@@ -137,16 +135,8 @@ final readonly class SendPermitMailListener
 
         // --- 3. DAS A4 DOKUMENT (ALS PDF ANHANG) ---
 
-        // 3.1 QR-Code für den Anhang in Base64 generieren (Offline-Sicherheit)
-        $qrCode = new QrCode(
-            data: $checkUrl,
-            encoding: new Encoding('UTF-8'),
-            errorCorrectionLevel: ErrorCorrectionLevel::Low,
-            size: 160,
-            margin: 0,
-        );
-        $writer = new PngWriter();
-        $checkQrBase64 = $writer->write($qrCode)->getDataUri();
+        // 3.1 QR-Code für den Anhang über das QrCodeGeneratorInterface generieren
+        $checkQrBase64 = $this->qrCodeGenerator->generateDataUri($checkUrl, 160, 0);
 
         $docDto = PermitA4Presenter::createViewDto(
             fullIdentifier: $permitCodeStr,

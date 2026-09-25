@@ -54,7 +54,7 @@ deptrac:
 
     ruleset:
         # ---------------------------------------------------------
-        # DIE BOUNDED CONTEXTS (Module)
+        # DIE BOUNDED CONTEXTS (Module - 100% isoliert!)
         # ---------------------------------------------------------
         Permit:
             - SharedKernel
@@ -67,21 +67,18 @@ deptrac:
             - Contracts
             - Application
             - Vendor
-            - System # Benötigt den AuditLoggerService für die Actions
 
         Voucher:
             - SharedKernel
             - Contracts
             - Application
             - Vendor
-            - System # Benötigt den AuditLoggerService
 
         Identity:
             - SharedKernel
             - Contracts
             - Application
             - Vendor
-            - System # Benötigt den AuditLoggerService
 
         System:
             - SharedKernel

@@ -13,10 +13,10 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
-use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
 use Override;
 
@@ -25,7 +25,7 @@ use Override;
 final readonly class UserChangeRoleAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private RoleRepositoryInterface $roleRepository,
         private UserRepositoryInterface $userRepository,
         private SessionManager $sessionManager,

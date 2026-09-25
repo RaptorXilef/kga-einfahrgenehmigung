@@ -31,6 +31,7 @@ use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\IpResolverInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\System\PdfGeneratorInterface;
+use App\Contracts\System\QrCodeGeneratorInterface;
 use App\Contracts\System\RouteCacheInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
 use App\Contracts\System\SystemInfoInterface;
@@ -80,6 +81,7 @@ use App\Modules\System\Infrastructure\Storage\FileLockManager;
 use App\Modules\System\Infrastructure\Storage\ImageStorageService;
 use App\Modules\System\Infrastructure\Storage\JsonHelper;
 use App\Modules\System\Infrastructure\System\DompdfGenerator;
+use App\Modules\System\Infrastructure\System\EndroidQrCodeGenerator;
 use App\Modules\System\Infrastructure\System\FileRouteCache;
 use App\Modules\System\Infrastructure\System\Ga4MeasurementClient;
 use App\Modules\System\Infrastructure\System\LocalAssetHelper;
@@ -265,6 +267,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(SystemInfoInterface::class, fn (): SystemInfoInterface => $container->get(SystemInfoService::class));
         $container->bind(UpdateMigrationServiceInterface::class, fn (): UpdateMigrationServiceInterface => $container->get(UpdateMigrationService::class));
         $container->bind(PdfGeneratorInterface::class, fn (): DompdfGenerator => new DompdfGenerator());
+        $container->bind(QrCodeGeneratorInterface::class, fn (): EndroidQrCodeGenerator => new EndroidQrCodeGenerator());
         $container->bind(RouteCacheInterface::class, fn (): FileRouteCache => new FileRouteCache(
             $container->get(ConfigInterface::class),
         ));

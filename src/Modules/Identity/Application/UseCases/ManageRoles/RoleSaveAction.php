@@ -13,8 +13,8 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\Security\AuthorizationInterface;
+use App\Contracts\System\AuditLoggerInterface;
 use Override;
 
 #[Route('POST', '/save_role')]
@@ -22,8 +22,8 @@ use Override;
 final readonly class RoleSaveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
-        private AuthService $auth,
+        private AuditLoggerInterface $auditLogger,
+        private AuthorizationInterface $auth,
         private SessionManager $sessionManager,
         private SaveRoleHandler $saveRoleHandler,
     ) {

@@ -10,7 +10,7 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\System\AuditLoggerInterface;
 use Override;
 
 #[Route('GET', '/history_logout')]
@@ -18,7 +18,7 @@ use Override;
 final readonly class HistoryLogoutAction implements ViewActionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private SessionManager $sessionManager,
     ) {
     }

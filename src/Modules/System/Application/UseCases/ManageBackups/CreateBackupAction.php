@@ -13,17 +13,20 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Storage\BackupServiceInterface;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\System\AuditLoggerInterface;
 use Override;
 use Throwable;
 
+/**
+ * Action zum manuellen Erstellen eines System- oder Tabellen-Backups.
+ */
 #[Route('POST', '/create_backup')]
 #[RequiresAuth]
 final readonly class CreateBackupAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
         private BackupServiceInterface $backupService,
+        private AuditLoggerInterface $auditLogger,
         private SessionManager $sessionManager,
     ) {
     }
@@ -45,9 +48,9 @@ final readonly class CreateBackupAction implements ActionInterface, RequiresPerm
         try {
             $filename = $this->backupService->createBackup($target);
             $this->auditLogger->log('SYSTEM_BACKUP_CREATE', "Manuelles Backup '{$filename}' (Ziel: {$target}) erstellt.");
-            $this->sessionManager->addFlash('success', "Backup '{$filename}' erfolgreich erstellt.");
+            $this->sessionManager->addFlash('success', "Backup '{$filename}' wurde erfolgreich erstellt.");
         } catch (Throwable $e) {
-            $this->sessionManager->addFlash('error', 'Fehler beim Erstellen des Backups: ' . $e->getMessage());
+            $this->sessionManager->addFlash('error', 'Backup fehlgeschlagen: ' . $e->getMessage());
         }
 
         return new RedirectResponse('admin?focus=tab-backup');

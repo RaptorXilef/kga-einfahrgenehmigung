@@ -12,7 +12,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Security\RateLimiterInterface;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\System\AuditLoggerInterface;
 use DomainException;
 use Override;
 
@@ -21,7 +21,7 @@ use Override;
 final readonly class HistoryVerifyTokenAction implements ViewActionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private RateLimiterInterface $rateLimiter,
         private SessionManager $sessionManager,
         private VerifyMagicLinkHandler $verifyHandler,

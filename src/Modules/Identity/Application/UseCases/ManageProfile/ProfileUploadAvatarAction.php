@@ -11,9 +11,9 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Security\AuthorizationInterface;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
-use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\System\Application\Services\AuditLoggerService;
 use Override;
 
 #[Route('GET', '/change_own_avatar')]
@@ -21,10 +21,10 @@ use Override;
 final readonly class ProfileUploadAvatarAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
+        private AuthorizationInterface $auth,
         private ImageStorageInterface $imageStorage,
         private SessionManager $sessionManager,
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
     ) {
     }
 

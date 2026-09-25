@@ -12,8 +12,8 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
-use App\Modules\System\Application\Services\AuditLoggerService;
 use Override;
 
 #[Route('GET', '/upload_role_image')]
@@ -21,7 +21,7 @@ use Override;
 final readonly class RoleUploadImageAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private ImageStorageInterface $imageStorage,
         private SessionManager $sessionManager,
     ) {

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Application\UseCases\AuthenticateAdmin;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
-use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
@@ -24,7 +24,7 @@ final readonly class AuthenticateAdminHandler implements CommandHandlerInterface
         private AuthSessionInterface $session,
         private RateLimiterInterface $rateLimiter,
         private ConfigInterface $config,
-        private AuthService $authService,
+        private AuthorizationInterface $authService,
     ) {
     }
 

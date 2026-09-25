@@ -12,8 +12,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
 use App\Application\Response\FileDownloadResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Modules\System\Application\Services\AuditLoggerService;
 use Override;
 
 #[Route('GET', '/dashboard_export')]
@@ -21,7 +21,7 @@ use Override;
 final readonly class ExportFinanceDataAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private SessionManager $sessionManager,
         private ExportFinanceDataHandler $exportHandler,
         private ClockInterface $clock,

@@ -11,10 +11,10 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Contracts\Security\AuthorizationInterface;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserPasswordCommand;
 use App\Modules\Identity\Application\UseCases\ManageUsers\ChangeUserPasswordHandler;
-use App\Modules\System\Application\Services\AuditLoggerService;
 use DomainException;
 use Override;
 
@@ -22,9 +22,9 @@ use Override;
 final readonly class ProfileUpdatePasswordAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
+        private AuthorizationInterface $auth,
         private SessionManager $sessionManager,
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private ChangeUserPasswordHandler $changePasswordHandler,
     ) {
     }

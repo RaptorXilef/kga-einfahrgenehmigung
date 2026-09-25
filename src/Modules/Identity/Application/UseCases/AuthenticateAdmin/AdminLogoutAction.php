@@ -9,8 +9,8 @@ use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
-use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\Security\AuthorizationInterface;
+use App\Contracts\System\AuditLoggerInterface;
 use Override;
 
 #[Route('GET', '/admin_logout')]
@@ -18,8 +18,8 @@ use Override;
 final readonly class AdminLogoutAction implements ActionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
-        private AuthService $auth,
+        private AuditLoggerInterface $auditLogger,
+        private AuthorizationInterface $auth,
     ) {
     }
 

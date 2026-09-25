@@ -19,4 +19,8 @@ interface AuthorizationInterface
     public function getUserId(): string;
 
     public function getRole(): string;
+
+    public function refreshSessionPermissions(string $roleId): void;
+
+    public function logout(): void;
 }

@@ -10,16 +10,18 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\BinaryResponse;
 use App\Application\Response\EmptyResponse;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\Writer\PngWriter;
-use Exception;
+use App\Contracts\System\QrCodeGeneratorInterface;
 use Override;
+use Throwable;
 
 #[Route('GET', '/api/qr.png')]
 final readonly class QrCodeRenderAction implements ActionInterface
 {
+    public function __construct(
+        private QrCodeGeneratorInterface $qrCodeGenerator,
+    ) {
+    }
+
     #[Override]
     public function execute(ServerRequest $request): ResponseInterface
     {
@@ -32,24 +34,15 @@ final readonly class QrCodeRenderAction implements ActionInterface
         }
 
         try {
-            $qrCode = new QrCode(
-                data: (string) $data,
-                encoding: new Encoding('UTF-8'),
-                errorCorrectionLevel: ErrorCorrectionLevel::Low,
-                size: $size,
-                margin: $margin,
-            );
-
-            $writer = new PngWriter();
-            $result = $writer->write($qrCode);
+            $result = $this->qrCodeGenerator->generatePng((string) $data, $size, $margin);
 
             return new BinaryResponse(
-                content: $result->getString(),
-                contentType: $result->getMimeType(),
+                content: $result['content'],
+                contentType: $result['mimeType'],
                 statusCode: 200,
                 headers: ['Cache-Control' => 'public, max-age=31536000'],
             );
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             \error_log('QR-Code Generierung fehlgeschlagen: ' . $e->getMessage());
 
             return new EmptyResponse(500);

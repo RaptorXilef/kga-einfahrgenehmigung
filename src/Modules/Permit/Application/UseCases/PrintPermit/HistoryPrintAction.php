@@ -15,6 +15,7 @@ use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\PdfGeneratorInterface;
+use App\Contracts\System\QrCodeGeneratorInterface;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
@@ -22,10 +23,6 @@ use App\Modules\Permit\Application\UseCases\GetPermitByCode\PermitReadDto;
 use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
 use App\Modules\Permit\Presentation\View\PermitA4Presenter;
 use App\SharedKernel\Application\Security\Sanitizer;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\Writer\PngWriter;
 use Override;
 
 #[Route('GET', '/history_print')]
@@ -38,6 +35,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
         private GetPermitByCodeHandler $getPermitByCodeHandler,
         private SessionManager $sessionManager,
         private PdfGeneratorInterface $pdfGenerator,
+        private QrCodeGeneratorInterface $qrCodeGenerator,
         private TemplateRenderer $renderer,
     ) {
     }
@@ -59,16 +57,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
         if ($permit instanceof PermitReadDto && Sanitizer::normalizeEmail($permit->ownerEmail) === Sanitizer::normalizeEmail($emailInSession)) {
             $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
             $checkUrl = $safeBaseUrl . 'check?code=' . $permit->code;
-
-            $qrCode = new QrCode(
-                data: $checkUrl,
-                encoding: new Encoding('UTF-8'),
-                errorCorrectionLevel: ErrorCorrectionLevel::Low,
-                size: 160,
-                margin: 0,
-            );
-            $writer = new PngWriter();
-            $checkQrBase64 = $writer->write($qrCode)->getDataUri();
+            $checkQrBase64 = $this->qrCodeGenerator->generateDataUri($checkUrl, 160, 0);
 
             $openingHtml = HolidayHtmlPresenter::formatOpeningHours(
                 $this->holidayService->getOpeningHoursDataForDateRange($permit->validFrom, $permit->validUntil),

@@ -12,7 +12,7 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\System\AuditLoggerInterface;
 use Override;
 
 #[Route('GET', '/admin_login')]
@@ -20,7 +20,7 @@ use Override;
 final readonly class AdminLoginAction implements ActionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private AuthenticateAdminHandler $loginHandler,
