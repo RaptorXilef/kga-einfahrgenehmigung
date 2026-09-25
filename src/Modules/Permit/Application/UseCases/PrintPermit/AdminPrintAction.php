@@ -19,7 +19,7 @@ use App\Contracts\System\PdfGeneratorInterface;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
-use App\Modules\Permit\Domain\Permit;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\PermitReadDto;
 use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
@@ -53,14 +53,14 @@ final readonly class AdminPrintAction implements ViewActionInterface
         $code = $dto->code;
         $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($code));
 
-        if (!$permit instanceof Permit) {
+        if (!$permit instanceof PermitReadDto) {
             return new EmptyResponse(404);
         }
 
         $this->auditLogger->log('PERMIT_PRINT', "Druck-PDF für Genehmigung '{$code}' generiert.");
 
         $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
-        $checkUrl = $safeBaseUrl . 'check?code=' . $permit->code->value;
+        $checkUrl = $safeBaseUrl . 'check?code=' . $permit->code;
 
         $qrCode = new QrCode(
             data: $checkUrl,
@@ -73,33 +73,33 @@ final readonly class AdminPrintAction implements ViewActionInterface
         $checkQrBase64 = $writer->write($qrCode)->getDataUri();
 
         $pdfData = [
-            'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
+            'bis_formatted' => $permit->validUntilFormatted,
             'checkUrl' => $checkUrl,
             'checkQrBase64' => $checkQrBase64,
-            'erstellt' => $permit->getCreatedAt()->format('d.m.Y H:i'),
-            'firma' => $permit->getCompany() ?? '',
-            'fullIdentifier' => $permit->code->value,
+            'erstellt' => $permit->createdAtFormatted,
+            'firma' => $permit->company ?? '',
+            'fullIdentifier' => $permit->code,
             'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
-                $this->holidayService->getHolidaysInRange($permit->getValidFrom(), $permit->getValidUntil()),
+                $this->holidayService->getHolidaysInRange($permit->validFrom, $permit->validUntil),
             ),
             'jahresFarbe' => $this->config->getString('jahresFarbe'),
-            'kennzeichen' => $permit->getLicensePlate(),
-            'name' => $permit->getOwnerName(),
+            'kennzeichen' => $permit->licensePlate,
+            'name' => $permit->ownerName,
             'opening_html' => HolidayHtmlPresenter::formatOpeningHours(
-                $this->holidayService->getOpeningHoursDataForDateRange($permit->getValidFrom(), $permit->getValidUntil()),
+                $this->holidayService->getOpeningHoursDataForDateRange($permit->validFrom, $permit->validUntil),
             ),
-            'parzelle' => $permit->getPlotNumber(),
+            'parzelle' => $permit->plotNumber,
             'settings' => ['base_url' => $safeBaseUrl],
-            'template_key' => $permit->template_key->value,
+            'template_key' => $permit->templateKey,
             'terminkalenderUrl' => $this->config->getString('terminkalender_url'),
             'vereinsName' => $this->config->getString('vereins_name'),
-            'von_formatted' => $permit->getValidFrom()->format('d.m.Y'),
-            'zweck' => $permit->getPurpose(),
+            'von_formatted' => $permit->validFromFormatted,
+            'zweck' => $permit->purpose,
         ];
 
         $a4Html = $this->renderer->render('emails/permit_a4_document', $pdfData);
         $pdfBinary = $this->pdfGenerator->generateFromHtml($a4Html);
 
-        return new PdfStreamResponse($pdfBinary, "Genehmigung_{$permit->code->value}.pdf");
+        return new PdfStreamResponse($pdfBinary, "Genehmigung_{$permit->code}.pdf");
     }
 }

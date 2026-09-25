@@ -12,7 +12,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Security\AuthorizationInterface;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
-use App\Modules\Permit\Domain\Permit;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\PermitReadDto;
 use Override;
 
 /**
@@ -37,7 +37,7 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
 
         $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($code));
 
-        if (!$permit instanceof Permit) {
+        if (!$permit instanceof PermitReadDto) {
             return $next($request);
         }
 

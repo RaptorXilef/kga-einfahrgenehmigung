@@ -15,9 +15,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Integration\FinanceIntegrationInterface;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
-use App\Modules\Permit\Domain\Permit;
-use App\Modules\Permit\Domain\PermitFinancialCalculator;
-use App\Modules\Permit\Domain\PermitStatus;
+use App\Modules\Permit\Application\UseCases\GetPermitByCode\PermitReadDto;
 use Override;
 
 #[Route('GET', '/success')]
@@ -27,7 +25,6 @@ final readonly class SuccessAction implements ViewActionInterface
     public function __construct(
         private ConfigInterface $config,
         private GetPermitByCodeHandler $getPermitByCodeHandler,
-        private PermitFinancialCalculator $financialCalculator,
         private TemplateRenderer $renderer,
         private FinanceIntegrationInterface $financeIntegration,
     ) {
@@ -39,35 +36,33 @@ final readonly class SuccessAction implements ViewActionInterface
         $dto = SuccessRequest::fromArray($request->get);
         $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($dto->code));
 
-        if (!$permit instanceof Permit) {
+        if (!$permit instanceof PermitReadDto) {
             return new RedirectResponse('index');
         }
 
         $epcData = '';
         $usage = '';
-        $isPaid = $permit->getStatus() === PermitStatus::Bezahlt;
 
-        if ($dto->method === 'wire' && !$isPaid) {
-            $usage = $this->financialCalculator->generateUsageText($permit);
-            $epcData = $this->financeIntegration->generateEpcQrData($permit->getPrice(), $usage);
+        if ($dto->method === 'wire' && !$permit->isPaid) {
+            $usage = $permit->usageText;
+            $epcData = $this->financeIntegration->generateEpcQrData($permit->price, $usage);
         }
 
         $requirePayment = $this->config->getBool('require_payment_for_validity', false);
-        $dueDate = $this->financialCalculator->calculatePaymentDueDate($permit)->format('d.m.Y');
 
         $viewDto = new CheckoutSuccessViewDto(
-            permitCode: $permit->code->value,
+            permitCode: $permit->code,
             method: $dto->method,
-            isPaid: $isPaid,
+            isPaid: $permit->isPaid,
             requirePayment: $requirePayment,
-            dueDate: $dueDate,
+            dueDate: $permit->paymentDueDateFormatted,
             epcData: $epcData,
-            preisFormatted: \number_format($permit->getPrice(), 2, ',', '.') . ' €',
+            preisFormatted: $permit->priceFormatted,
             kontoinhaber: $this->config->getString('kontoinhaber'),
             iban: $this->config->getString('iban'),
             bic: $this->config->getString('bic'),
             usage: $usage,
-            ownerEmail: $permit->getOwnerEmail() ?: 'Ihre E-Mail-Adresse',
+            ownerEmail: $permit->ownerEmail !== '' ? $permit->ownerEmail : 'Ihre E-Mail-Adresse',
         );
 
         $html = $this->renderer->render('frontend/checkout_success', [
