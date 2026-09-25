@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.79.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.5...v0.79.6) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* **stan:** resolve strict comparison, useless cast and while-condition errors ([36d970b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/36d970b5b4fd30c531fafcd5078de1422032464b))
+
+### ⚙️ Refactoring
+
+* **arch:** complete backup slices, add qr-code port and decouple bounded contexts ([c420183](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c420183b662cd822e0b8120ab8c0b4ff6dcc6169))
+* **cqrs:** extract remaining action logic into handlers, make verification repo atomic ... ([8512348](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8512348d2ec73923f52ddbfa5e5eb74e1bed4efe))
+* **views:** complete dumb PHTML views, add view DTOs and finalize static analysis setup ([fd474de](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fd474dee62a23a02733e687a8d1b3392d64c7a94))
+
 ## [0.79.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.4...v0.79.5) (2026-09-25)
 
 ### 🐛 Bug Fixes
