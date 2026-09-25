@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Finance\Application\UseCases\ExportFinanceData;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\CsvExporterInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
@@ -14,7 +15,7 @@ use PDO;
 
 /**
  * Sammelt die Export-Daten blitzschnell via nativen PDO-Queries.
- * VSA FIX: Nutzt Generatoren für maximalen Speicherschutz bei Massenexporten.
+ * VSA FIX: Nutzt Generatoren für maximalen Speicherschutz und das CsvExporterInterface (0% I/O in Application).
  *
  * @implements QueryHandlerInterface<ExportFinanceDataQuery, FinanceExportResultDto>
  */
@@ -24,9 +25,13 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
         private PDO $pdo,
         private ConfigInterface $config,
         private ClockInterface $clock,
+        private CsvExporterInterface $csvExporter,
     ) {
     }
 
+    /**
+     * @param ExportFinanceDataQuery $query
+     */
     #[Override]
     public function handle(mixed $query): FinanceExportResultDto
     {
@@ -58,7 +63,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
     }
 
     /**
-     * @return Generator<array>
+     * @return Generator<int, array<string, mixed>>
      */
     private function yieldFilteredData(ExportFinanceDataQuery $query): Generator
     {
@@ -110,54 +115,45 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
         }
     }
 
+    /**
+     * @param iterable<int, array<string, mixed>> $rowStream
+     */
     private function generateCsv(iterable $rowStream): string
     {
-        $output = \fopen('php://temp', 'r+');
-        if (!$output) {
-            return '';
-        }
-
-        \fwrite($output, "\xEF\xBB\xBF");
-        \fputcsv($output, [
+        $headers = [
             'Belegdatum', 'Belegnummer', 'Pächter/Name', 'Parzelle',
             'Buchungstext', 'Betrag (EUR)', 'Zahlungsstatus', 'Tarif/Vorlage',
-        ], ';', '"', '\\');
+        ];
 
-        foreach ($rowStream as $row) {
-            $dateStr = \substr((string) ($row['bezahlt_am'] ?: $row['erstellt']), 0, 10);
-            $dt = new DateTimeImmutable($dateStr);
-            $belegDate = $dt->format('d.m.Y');
+        $mappedRows = (function () use ($rowStream): Generator {
+            foreach ($rowStream as $row) {
+                $dateStr = \substr((string) ($row['bezahlt_am'] ?: $row['erstellt']), 0, 10);
+                $dt = new DateTimeImmutable($dateStr);
+                $belegDate = $dt->format('d.m.Y');
 
-            $zweck = $this->sanitizeCsvCell($row['zweck'] . ' (Kfz: ' . $row['kennzeichen'] . ')');
+                $zweck = $row['zweck'] . ' (Kfz: ' . $row['kennzeichen'] . ')';
 
-            \fputcsv($output, [
-                $belegDate,
-                $row['code'],
-                $this->sanitizeCsvCell($row['name']),
-                \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
-                $zweck,
-                \number_format((float) $row['preis'], 2, ',', ''),
-                \strtoupper((string) $row['status']),
-                $row['template_key'],
-            ], ';', '"', '\\');
-        }
+                yield [
+                    $belegDate,
+                    (string) $row['code'],
+                    (string) $row['name'],
+                    \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
+                    $zweck,
+                    \number_format((float) $row['preis'], 2, ',', ''),
+                    \strtoupper((string) $row['status']),
+                    (string) $row['template_key'],
+                ];
+            }
+        })();
 
-        \rewind($output);
-        $content = \stream_get_contents($output);
-        \fclose($output);
-
-        return (string) $content;
+        return $this->csvExporter->export($headers, $mappedRows);
     }
 
+    /**
+     * @param iterable<int, array<string, mixed>> $rowStream
+     */
     private function generateStatsCsv(iterable $rowStream): string
     {
-        $output = \fopen('php://temp', 'r+');
-        if (!$output) {
-            return '';
-        }
-
-        \fwrite($output, "\xEF\xBB\xBF");
-
         $stats = [
             'gesamtzahl' => 0,
             'bezahlt' => 0, 'offen' => 0, 'storniert' => 0,
@@ -165,7 +161,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
             'vorlagen' => [],
         ];
 
-        // Wir aggregieren den Stream, speichern die Rows aber nicht zwischen!
+        // Wir aggregieren den Stream, speichern die Einzelzeilen aber nicht zwischen!
         foreach ($rowStream as $row) {
             $status = (string) $row['status'];
             $price = (float) $row['preis'];
@@ -191,26 +187,26 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
             ++$stats['vorlagen'][$tpl];
         }
 
-        \fputcsv($output, ['Metrik', 'Wert'], ';', '"', '\\');
-        \fputcsv($output, ['Gesamtzahl Anträge', $stats['gesamtzahl']], ';', '"', '\\');
-        \fputcsv($output, ['Status: Bezahlt', $stats['bezahlt']], ';', '"', '\\');
-        \fputcsv($output, ['Status: Offen', $stats['offen']], ';', '"', '\\');
-        \fputcsv($output, ['Status: Storniert', $stats['storniert']], ';', '"', '\\');
-        \fputcsv($output, ['Erwarteter Umsatz (EUR)', \number_format($stats['erwartet'], 2, ',', '')], ';', '"', '\\');
-        \fputcsv($output, ['Bezahlter Umsatz (EUR)', \number_format($stats['bezahlt_umsatz'], 2, ',', '')], ';', '"', '\\');
-        \fputcsv($output, ['Offener Umsatz (EUR)', \number_format($stats['offen_umsatz'], 2, ',', '')], ';', '"', '\\');
+        $summaryRows = [
+            ['Gesamtzahl Anträge', $stats['gesamtzahl']],
+            ['Status: Bezahlt', $stats['bezahlt']],
+            ['Status: Offen', $stats['offen']],
+            ['Status: Storniert', $stats['storniert']],
+            ['Erwarteter Umsatz (EUR)', \number_format($stats['erwartet'], 2, ',', '')],
+            ['Bezahlter Umsatz (EUR)', \number_format($stats['bezahlt_umsatz'], 2, ',', '')],
+            ['Offener Umsatz (EUR)', \number_format($stats['offen_umsatz'], 2, ',', '')],
+        ];
 
         foreach ($stats['vorlagen'] as $tpl => $count) {
-            \fputcsv($output, ['Nutzung Vorlage: ' . $tpl, $count], ';', '"', '\\');
+            $summaryRows[] = ['Nutzung Vorlage: ' . $tpl, $count];
         }
 
-        \rewind($output);
-        $content = \stream_get_contents($output);
-        \fclose($output);
-
-        return (string) $content;
+        return $this->csvExporter->export(['Metrik', 'Wert'], $summaryRows);
     }
 
+    /**
+     * @param iterable<int, array<string, mixed>> $rowStream
+     */
     private function generateJson(iterable $rowStream): string
     {
         $stats = [
@@ -279,18 +275,5 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
         $type = $format === 'csv_stats' ? 'statistik' : 'finanzexport';
 
         return "{$slug}_{$type}_{$start}_bis_{$end}_{$timestamp}.{$extension}";
-    }
-
-    private function sanitizeCsvCell(mixed $value): string
-    {
-        $str = (string) $value;
-        if ($str === '') {
-            return $str;
-        }
-        if (\in_array($str[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
-            return "'" . $str;
-        }
-
-        return $str;
     }
 }

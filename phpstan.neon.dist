@@ -155,13 +155,12 @@ parameters:
               - 'file_get_contents'
               - 'fopen'
               - 'fwrite'
+              - 'fputcsv'
               - 'fclose'
           message: 'Verstoß gegen Clean Architecture: Dateisystem-Operationen (I/O) sind hier verboten. Lagere dies in das Infrastructure-Layer aus.'
           allowIn:
               - src/SharedKernel/Infrastructure/*
               - src/Modules/*/Infrastructure/*
-              - src/Modules/Finance/Application/UseCases/ExportFinanceData/ExportFinanceDataHandler.php
-              - src/Modules/Permit/Application/UseCases/ExportPermits/ExportPermitsHandler.php
               - src/Application/Middleware/JsonBodyParserMiddleware.php
               - src/Application/View/TemplateRenderer.php
               - src/Application/Exception/GlobalExceptionHandler.php
@@ -185,7 +184,6 @@ parameters:
           allowIn:
               - src/SharedKernel/Infrastructure/*
               - src/Modules/*/Infrastructure/*
-              - src/Application/Middleware/AnalyticsMiddleware.php
 
         # 3. Bildverarbeitung (GD Library)
         - function:

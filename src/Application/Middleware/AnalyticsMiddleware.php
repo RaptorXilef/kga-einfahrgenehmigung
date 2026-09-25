@@ -9,13 +9,15 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\AnalyticsTrackerInterface;
 use App\Contracts\Utils\ClockInterface;
 use Override;
 use Throwable;
 
 /**
- * Sendet Serverseitige Events an Google Analytics (GA4).
+ * Sendet serverseitige Events an Google Analytics (GA4).
  * Asynchron im Terminate-Prozess (nachdem der Request beantwortet wurde).
+ * VSA FIX: 100% frei von direktem cURL – delegiert den Netzwerk-Aufruf an AnalyticsTrackerInterface.
  */
 final readonly class AnalyticsMiddleware implements MiddlewareInterface
 {
@@ -23,6 +25,7 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
         private ConfigInterface $config,
         private SessionManager $sessionManager,
         private ClockInterface $clock,
+        private AnalyticsTrackerInterface $analyticsTracker,
     ) {
     }
 
@@ -52,40 +55,37 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
 
         // --- 1. DATENSCHUTZ-FIX: Strict Request Wrapper anstelle von $_COOKIE ---
         $consentCookie = $request->cookie['kga_cookie_consent'] ?? null;
-        if (!$consentCookie) {
+        if (!\is_string($consentCookie) || $consentCookie === '') {
             return; // Kein Consent-Cookie vorhanden -> Nichts tracken
         }
 
         $consent = \json_decode($consentCookie, true);
-        if (empty($consent['analytics'])) {
+        if (!\is_array($consent) || empty($consent['analytics'])) {
             return; // Nutzer hat Analytics abgelehnt -> Nichts tracken
         }
-        // -------------------------------------------
 
         $gaCfg = $this->config->getArray('ga4_server_side');
-        $gaId = $gaCfg['measurement_id'] ?? '';
-        $apiSecret = $gaCfg['api_secret'] ?? '';
-
-        if ($gaId === '' || $apiSecret === '') {
+        if (($gaCfg['measurement_id'] ?? '') === '' || ($gaCfg['api_secret'] ?? '') === '') {
             return;
         }
 
-        if ($this->sessionManager->getAnalyticsId() === null) {
-            $this->sessionManager->setAnalyticsId(\bin2hex(\random_bytes(16)));
+        $clientId = $this->sessionManager->getAnalyticsId();
+        if ($clientId === null) {
+            $clientId = \bin2hex(\random_bytes(16));
+            $this->sessionManager->setAnalyticsId($clientId);
         }
 
-        // --- 2. BUGFIX: Strict Session Manager anstelle von $_SESSION ---
+        // --- 2. Strict Session Manager anstelle von $_SESSION ---
         $sessionId = $this->sessionManager->getAnalyticsSessionId();
         if ($sessionId === null) {
-            // Nutze die ClockInterface statt nativer time() Funktion für Testbarkeit!
             $sessionId = $this->clock->now()->getTimestamp();
             $this->sessionManager->setAnalyticsSessionId($sessionId);
         }
-        // ---------------------------------
 
+        $serverName = \is_string($request->server['SERVER_NAME'] ?? null) ? $request->server['SERVER_NAME'] : 'localhost';
         $baseUrl = $this->config->getBaseUrl() !== ''
             ? \rtrim($this->config->getBaseUrl(), '/')
-            : 'https://' . ($request->server['SERVER_NAME'] ?? 'localhost');
+            : 'https://' . $serverName;
 
         $pageLocation = $baseUrl . $path;
 
@@ -93,34 +93,6 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
         $cleanPath = \trim($path, '/');
         $pageTitle = $cleanPath === '' ? 'Home' : \ucfirst($cleanPath);
 
-        $payload = [
-            'client_id' => $this->sessionManager->getAnalyticsId(),
-            'events' => [
-                [
-                    'name' => 'page_view',
-                    'params' => [
-                        'page_location' => $pageLocation,
-                        'page_title' => $pageTitle,
-                        'session_id' => $sessionId, // verknüpft die Klicks zu EINER Sitzung
-                        'engagement_time_msec' => 1,
-                    ],
-                ],
-            ],
-        ];
-
-        $ch = \curl_init('https://www.google-analytics.com/mp/collect?measurement_id=' . \urlencode($gaId) . '&api_secret=' . \urlencode($apiSecret));
-        if ($ch === false) {
-            return;
-        }
-
-        \curl_setopt_array($ch, [
-            \CURLOPT_PROTOCOLS => \CURLPROTO_HTTPS,
-            \CURLOPT_RETURNTRANSFER => true,
-            \CURLOPT_POST => true,
-            \CURLOPT_POSTFIELDS => \json_encode($payload),
-            \CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-            \CURLOPT_TIMEOUT_MS => 250,
-        ]);
-        \curl_exec($ch);
+        $this->analyticsTracker->trackPageView($clientId, $sessionId, $pageLocation, $pageTitle);
     }
 }

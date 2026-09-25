@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\ExportPermits;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\CsvExporterInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
@@ -14,6 +15,7 @@ use PDO;
 
 /**
  * Sammelt die Export-Daten der Permits via nativen PDO-Queries.
+ * VSA FIX: 100% frei von direkter Stream-I/O durch Nutzung des CsvExporterInterface.
  *
  * @implements QueryHandlerInterface<ExportPermitsQuery, ExportPermitsResultDto>
  */
@@ -23,9 +25,13 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
         private PDO $pdo,
         private ConfigInterface $config,
         private ClockInterface $clock,
+        private CsvExporterInterface $csvExporter,
     ) {
     }
 
+    /**
+     * @param ExportPermitsQuery $query
+     */
     #[Override]
     public function handle(mixed $query): ExportPermitsResultDto
     {
@@ -45,7 +51,7 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
     }
 
     /**
-     * @return Generator<array>
+     * @return Generator<int, array<string, mixed>>
      */
     private function yieldFilteredData(ExportPermitsQuery $query): Generator
     {
@@ -117,38 +123,32 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
         }
     }
 
+    /**
+     * @param iterable<int, array<string, mixed>> $rowStream
+     */
     private function generateCsvFromStream(iterable $rowStream): string
     {
-        $output = \fopen('php://temp', 'r+');
-        if (!$output) {
-            return '';
-        }
-
-        \fwrite($output, "\xEF\xBB\xBF");
-        \fputcsv($output, [
+        $headers = [
             'Parzelle', 'Kennzeichen', 'Code', 'Name', 'Datum gültig von', 'Datum gültig bis',
-        ], ';', '"', '\\');
+        ];
 
-        // Iteriere über den Generator und schreibe sofort in den Stream
-        foreach ($rowStream as $row) {
-            $dtVon = new DateTimeImmutable((string) $row['von']);
-            $dtBis = new DateTimeImmutable((string) $row['bis']);
+        $mappedRows = (function () use ($rowStream): Generator {
+            foreach ($rowStream as $row) {
+                $dtVon = new DateTimeImmutable((string) $row['von']);
+                $dtBis = new DateTimeImmutable((string) $row['bis']);
 
-            \fputcsv($output, [
-                \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
-                $this->sanitizeCsvCell($row['kennzeichen']),
-                $row['code'],
-                $this->sanitizeCsvCell($row['name']),
-                $dtVon->format('d.m.Y'),
-                $dtBis->format('d.m.Y'),
-            ], ';', '"', '\\');
-        }
+                yield [
+                    \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
+                    (string) $row['kennzeichen'],
+                    (string) $row['code'],
+                    (string) $row['name'],
+                    $dtVon->format('d.m.Y'),
+                    $dtBis->format('d.m.Y'),
+                ];
+            }
+        })();
 
-        \rewind($output);
-        $content = \stream_get_contents($output);
-        \fclose($output);
-
-        return (string) $content;
+        return $this->csvExporter->export($headers, $mappedRows);
     }
 
     private function generateFilename(string $state, string $start, string $end): string
@@ -173,18 +173,5 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
         }
 
         return "{$slug}_genehmigungen_{$stateSlug}_{$start}_bis_{$end}_{$timestamp}.csv";
-    }
-
-    private function sanitizeCsvCell(mixed $value): string
-    {
-        $str = (string) $value;
-        if ($str === '') {
-            return $str;
-        }
-        if (\in_array($str[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
-            return "'" . $str;
-        }
-
-        return $str;
     }
 }

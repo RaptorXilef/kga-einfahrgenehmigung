@@ -22,8 +22,10 @@ use App\Contracts\Security\EmailValidationInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\LockManagerInterface;
+use App\Contracts\System\AnalyticsTrackerInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\AuditLoggerInterface;
+use App\Contracts\System\CsvExporterInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\IpResolverInterface;
@@ -79,6 +81,7 @@ use App\Modules\System\Infrastructure\Storage\ImageStorageService;
 use App\Modules\System\Infrastructure\Storage\JsonHelper;
 use App\Modules\System\Infrastructure\System\DompdfGenerator;
 use App\Modules\System\Infrastructure\System\FileRouteCache;
+use App\Modules\System\Infrastructure\System\Ga4MeasurementClient;
 use App\Modules\System\Infrastructure\System\LocalAssetHelper;
 use App\Modules\System\Infrastructure\System\ServerIpResolver;
 use App\Modules\System\Infrastructure\System\SystemInfoService;
@@ -88,6 +91,7 @@ use App\Modules\Voucher\Domain\VoucherRepositoryInterface as NewVoucherRepositor
 use App\Modules\Voucher\Infrastructure\PdoVoucherArchiveRepository;
 use App\Modules\Voucher\Infrastructure\PdoVoucherRepository;
 use App\SharedKernel\Infrastructure\Database\PdoFactory;
+use App\SharedKernel\Infrastructure\Storage\MemoryCsvExporter;
 use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use Override;
 use PDO;
@@ -195,6 +199,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
 
         // --- NETWORK & THIRD-PARTY SERVICES ---
         $container->bind(PaymentProviderInterface::class, fn (): PaymentProviderInterface => $container->get(PayPalService::class));
+        $container->bind(AnalyticsTrackerInterface::class, fn (): AnalyticsTrackerInterface => $container->get(Ga4MeasurementClient::class));
 
         $container->bind('mail.transport', function () use ($container): MicrosoftGraphMailService|OAuthSmtpMailService|SmtpMailService {
             $config = $container->get(ConfigInterface::class);
@@ -250,6 +255,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
 
         // --- SYSTEM ---
         $container->bind(IpResolverInterface::class, fn (): ServerIpResolver => new ServerIpResolver());
+        $container->bind(CsvExporterInterface::class, fn (): MemoryCsvExporter => new MemoryCsvExporter());
         $container->bind(LockManagerInterface::class, fn (): LockManagerInterface => $container->get(FileLockManager::class));
         $container->bind(BackupServiceInterface::class, fn (): BackupServiceInterface => $container->get(BackupService::class));
         $container->bind(ErrorLoggerInterface::class, fn (): ErrorLoggerInterface => $container->get(ErrorLogger::class));
