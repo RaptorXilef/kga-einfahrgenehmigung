@@ -134,21 +134,46 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
             $stmt = $this->pdo->query("SELECT * FROM `{$table}` ORDER BY timestamp DESC");
             if ($stmt !== false) {
                 while (\is_array($r = $stmt->fetch(PDO::FETCH_ASSOC))) {
-                    $logs[] = new MailLogEntry(
-                        (string) $r['id'],
-                        new DateTimeImmutable((string) $r['timestamp']),
-                        (string) ($r['recipient'] ?? ''),
-                        isset($r['reply_to']) ? (string) $r['reply_to'] : null,
-                        (string) ($r['subject'] ?? ''),
-                        new TemplateKey((string) ($r['template'] ?: 'std_7')),
-                        (string) ($r['status'] ?? ''),
-                        \is_string($r['data'] ?? null) ? $this->jsonHelper->decode($r['data']) : (\is_array($r['data'] ?? null) ? $r['data'] : []),
-                    );
+                    $logs[] = $this->mapRowToLogEntry($r);
                 }
             }
         }
 
         return $logs;
+    }
+
+    #[Override]
+    public function findByTimestamp(string $timestamp): ?MailLogEntry
+    {
+        if (!$this->pdo instanceof PDO) {
+            return null;
+        }
+
+        $cfg = $this->config->getArray('storage_config')['mail_log'] ?? [];
+        $table = $cfg['table'] ?? 'mail_logs';
+
+        $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE timestamp = :ts LIMIT 1");
+        $stmt->execute(['ts' => $timestamp]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return \is_array($row) ? $this->mapRowToLogEntry($row) : null;
+    }
+
+    /**
+     * @param array<string, mixed> $r
+     */
+    private function mapRowToLogEntry(array $r): MailLogEntry
+    {
+        return new MailLogEntry(
+            (string) $r['id'],
+            new DateTimeImmutable((string) $r['timestamp']),
+            (string) ($r['recipient'] ?? ''),
+            isset($r['reply_to']) ? (string) $r['reply_to'] : null,
+            (string) ($r['subject'] ?? ''),
+            new TemplateKey((string) ($r['template'] ?: 'std_7')),
+            (string) ($r['status'] ?? ''),
+            \is_string($r['data'] ?? null) ? $this->jsonHelper->decode($r['data']) : (\is_array($r['data'] ?? null) ? $r['data'] : []),
+        );
     }
 
     #[Override]

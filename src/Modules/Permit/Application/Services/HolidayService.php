@@ -373,37 +373,37 @@ final readonly class HolidayService
 
         if (
             \in_array($state, [
-            'Baden-Württemberg',
-            'Bayern',
-            'Sachsen-Anhalt',
+                'Baden-Württemberg',
+                'Bayern',
+                'Sachsen-Anhalt',
             ], true)
         ) {
             $holidays[] = $year . '-01-06'; // Heilige Drei Könige
         }
         if (
             \in_array($state, [
-            'Berlin',
-            'Mecklenburg-Vorpommern',
+                'Berlin',
+                'Mecklenburg-Vorpommern',
             ], true)
         ) {
             $holidays[] = $year . '-03-08'; // Frauentag
         }
         if (
             \in_array($state, [
-            'Baden-Württemberg',
-            'Bayern',
-            'Hessen',
-            'Nordrhein-Westfalen',
-            'Rheinland-Pfalz',
-            'Saarland',
+                'Baden-Württemberg',
+                'Bayern',
+                'Hessen',
+                'Nordrhein-Westfalen',
+                'Rheinland-Pfalz',
+                'Saarland',
             ], true)
         ) {
             $holidays[] = $easter->modify('+60 days')->format('Y-m-d'); // Fronleichnam
         }
         if (
             \in_array($state, [
-            'Saarland',
-            'Bayern',
+                'Saarland',
+                'Bayern',
             ], true)
         ) {
             $holidays[] = $year . '-08-15'; // Mariä Himmelfahrt
@@ -413,26 +413,26 @@ final readonly class HolidayService
         }
         if (
             \in_array($state, [
-            'Brandenburg',
-            'Bremen',
-            'Hamburg',
-            'Mecklenburg-Vorpommern',
-            'Niedersachsen',
-            'Sachsen',
-            'Sachsen-Anhalt',
-            'Schleswig-Holstein',
-            'Thüringen',
+                'Brandenburg',
+                'Bremen',
+                'Hamburg',
+                'Mecklenburg-Vorpommern',
+                'Niedersachsen',
+                'Sachsen',
+                'Sachsen-Anhalt',
+                'Schleswig-Holstein',
+                'Thüringen',
             ], true)
         ) {
             $holidays[] = $year . '-10-31'; // Reformationstag
         }
         if (
             \in_array($state, [
-            'Baden-Württemberg',
-            'Bayern',
-            'Nordrhein-Westfalen',
-            'Rheinland-Pfalz',
-            'Saarland',
+                'Baden-Württemberg',
+                'Bayern',
+                'Nordrhein-Westfalen',
+                'Rheinland-Pfalz',
+                'Saarland',
             ], true)
         ) {
             $holidays[] = $year . '-11-01'; // Allerheiligen

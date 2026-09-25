@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\Services;
 use App\Contracts\Integration\PermitIntegrationInterface;
 use App\Modules\Permit\Application\UseCases\GetPermitHistory\GetPermitHistoryHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitHistory\GetPermitHistoryQuery;
+use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use Override;
 
 /**
@@ -16,6 +17,7 @@ final readonly class PermitIntegrationService implements PermitIntegrationInterf
 {
     public function __construct(
         private GetPermitHistoryHandler $historyHandler,
+        private PermitArchiveRepositoryInterface $archiveRepository,
     ) {
     }
 
@@ -25,5 +27,11 @@ final readonly class PermitIntegrationService implements PermitIntegrationInterf
         $permits = $this->historyHandler->handle(new GetPermitHistoryQuery($email));
 
         return \count($permits) > 0;
+    }
+
+    #[Override]
+    public function anonymizeArchive(int $yearsThreshold = 10): int
+    {
+        return $this->archiveRepository->anonymizeOldRecords($yearsThreshold);
     }
 }

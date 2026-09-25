@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
+use App\Modules\Identity\Domain\Role;
+use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\Identity\Domain\UserUniquenessChecker;
@@ -11,15 +13,15 @@ use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use Override;
 
 /**
- * Da wir die neue ID zurückgeben müssen (für den Avatar-Upload), lösen wir
- * uns hier pragmatisch vom void CommandHandlerInterface.
+ * Erstellt einen neuen Benutzer und gibt die generierte ID sowie den aufgelösten Rollennamen zurück.
  *
- * @implements CommandWithResultHandlerInterface<CreateUserCommand, string>
+ * @implements CommandWithResultHandlerInterface<CreateUserCommand, CreateUserResult>
  */
 final readonly class CreateUserHandler implements CommandWithResultHandlerInterface
 {
     public function __construct(
         private UserRepositoryInterface $repository,
+        private RoleRepositoryInterface $roleRepository,
         private UserUniquenessChecker $uniquenessChecker,
     ) {
     }
@@ -28,7 +30,7 @@ final readonly class CreateUserHandler implements CommandWithResultHandlerInterf
      * @param CreateUserCommand $command
      */
     #[Override]
-    public function handle(mixed $command): string
+    public function handle(mixed $command): CreateUserResult
     {
         $this->uniquenessChecker->check($command->username);
 
@@ -44,6 +46,12 @@ final readonly class CreateUserHandler implements CommandWithResultHandlerInterf
 
         $this->repository->save($user);
 
-        return $newId;
+        $role = $this->roleRepository->findById($command->roleId);
+        $roleName = $role instanceof Role ? $role->name : $command->roleId;
+
+        return new CreateUserResult(
+            roleName: $roleName,
+            userId: $newId,
+        );
     }
 }

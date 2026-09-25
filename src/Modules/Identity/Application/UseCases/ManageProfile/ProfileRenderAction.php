@@ -14,10 +14,6 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Security\AuthorizationInterface;
-use App\Contracts\System\ImageStorageInterface;
-use App\Modules\Identity\Domain\RoleRepositoryInterface;
-use App\Modules\Identity\Domain\User;
-use App\Modules\Identity\Domain\UserRepositoryInterface;
 use Override;
 
 #[Route('GET', '/profile')]
@@ -26,11 +22,9 @@ final readonly class ProfileRenderAction implements ViewActionInterface
 {
     public function __construct(
         private AuthorizationInterface $auth,
-        private RoleRepositoryInterface $roleRepository,
-        private ImageStorageInterface $imageStorage,
+        private GetProfileDataHandler $profileDataHandler,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
-        private UserRepositoryInterface $userRepository,
     ) {
     }
 
@@ -45,17 +39,14 @@ final readonly class ProfileRenderAction implements ViewActionInterface
             return new RedirectResponse('admin');
         }
 
-        $roles = $this->roleRepository->loadAll();
-        $user = $this->userRepository->findById($userId);
-
-        $userRoleId = $user instanceof User ? $user->roleId : 'guest';
-        $role = $roles[$userRoleId] ?? null;
+        $viewDto = $this->profileDataHandler->handle(new GetProfileDataQuery($userId));
 
         $html = $this->renderer->render('admin/profile', [
-            'role' => $role ? $role->name : $userRoleId,
-            'userId' => $userId,
-            'username' => $user instanceof User ? $user->username : 'Unbekannt',
-            'userImage' => $this->imageStorage->getImageUrl('user', $userId, 'user.webp'),
+            'viewDto' => $viewDto,
+            'role' => $viewDto->roleName,
+            'userId' => $viewDto->userId,
+            'username' => $viewDto->username,
+            'userImage' => $viewDto->userImage,
         ]);
 
         return new HtmlResponse($html);

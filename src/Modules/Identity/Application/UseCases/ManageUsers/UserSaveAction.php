@@ -15,7 +15,6 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
-use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use DomainException;
 use Override;
 
@@ -25,7 +24,6 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
 {
     public function __construct(
         private AuditLoggerInterface $auditLogger,
-        private RoleRepositoryInterface $roleRepository,
         private ImageStorageInterface $imageStorage,
         private SessionManager $sessionManager,
         private CreateUserHandler $createHandler,
@@ -50,20 +48,17 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
         }
 
         try {
-            $newId = $this->createHandler->handle(new CreateUserCommand(
+            $result = $this->createHandler->handle(new CreateUserCommand(
                 $dto->username,
                 $dto->password,
                 $dto->group,
             ));
 
             if ($dto->avatar !== null) {
-                $this->imageStorage->uploadImage('user', $newId, $dto->avatar);
+                $this->imageStorage->uploadImage('user', $result->userId, $dto->avatar);
             }
 
-            $roles = $this->roleRepository->loadAll();
-            $roleName = isset($roles[$dto->group]) ? $roles[$dto->group]->name : $dto->group;
-
-            $this->auditLogger->log('USER_CREATE', "Neues Benutzerkonto '{$dto->username}' (ID: {$newId}, Rolle: {$roleName}) erstellt.");
+            $this->auditLogger->log('USER_CREATE', "Neues Benutzerkonto '{$dto->username}' (ID: {$result->userId}, Rolle: {$result->roleName}) erstellt.");
             $this->sessionManager->addFlash('success', "Benutzer '{$dto->username}' erfolgreich erstellt.");
 
             return new RedirectResponse('users');

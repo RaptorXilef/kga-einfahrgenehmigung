@@ -12,8 +12,6 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Security\AuthorizationInterface;
-use App\Modules\Identity\Domain\User;
-use App\Modules\Identity\Domain\UserRepositoryInterface;
 use Override;
 
 #[Route('POST', '/api/mark_changelog_read')]
@@ -22,7 +20,7 @@ final readonly class MarkChangelogReadAction implements ActionInterface
 {
     public function __construct(
         private AuthorizationInterface $auth,
-        private UserRepositoryInterface $userRepository,
+        private MarkChangelogReadHandler $markChangelogHandler,
     ) {
     }
 
@@ -41,11 +39,10 @@ final readonly class MarkChangelogReadAction implements ActionInterface
             return JsonResponse::success(['message' => 'Für System-Accounts übersprungen.']);
         }
 
-        $user = $this->userRepository->findById($userId);
-        if ($user instanceof User) {
-            $user->markChangelogAsRead($dto->version);
-            $this->userRepository->save($user);
-        }
+        $this->markChangelogHandler->handle(new MarkChangelogReadCommand(
+            userId: $userId,
+            version: $dto->version,
+        ));
 
         return JsonResponse::success();
     }

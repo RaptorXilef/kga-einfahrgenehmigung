@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\SharedKernel\Infrastructure\Database;
 
 use App\Contracts\Utils\ClockInterface;
-use DateTimeImmutable;
+use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use Override;
 use PDO;
 use PDOStatement;
@@ -18,14 +18,17 @@ class DebugPDO extends PDO
 {
     private string $logFile;
 
+    private readonly ClockInterface $clock;
+
     public function __construct(
         string $dsn,
         ?string $username = null,
         ?string $password = null,
         ?array $options = null,
-        private readonly ?ClockInterface $clock = null,
+        ?ClockInterface $clock = null,
     ) {
         parent::__construct($dsn, $username, $password, $options);
+        $this->clock = $clock ?? new SystemClock();
         $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, [DebugPDOStatement::class, [$this]]);
     }
 
@@ -45,9 +48,7 @@ class DebugPDO extends PDO
             @\mkdir($logDir, 0o755, true);
         }
 
-        $timestampStr = $this->clock instanceof ClockInterface
-            ? $this->clock->now()->format('Y-m-d H:i:s')
-            : (new DateTimeImmutable())->format('Y-m-d H:i:s');
+        $timestampStr = $this->clock->now()->format('Y-m-d H:i:s');
 
         // microtime is kept specifically for ms duration profiling
         $timestamp = $timestampStr . '.' . \sprintf('%03d', \fmod(\microtime(true), 1) * 1000);

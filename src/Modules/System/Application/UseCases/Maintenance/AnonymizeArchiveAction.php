@@ -11,8 +11,8 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Integration\PermitIntegrationInterface;
 use App\Contracts\System\AuditLoggerInterface;
-use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use Override;
 use Throwable;
 
@@ -22,7 +22,7 @@ final readonly class AnonymizeArchiveAction implements ActionInterface, Requires
 {
     public function __construct(
         private AuditLoggerInterface $auditLogger,
-        private PermitArchiveRepositoryInterface $archiveRepository,
+        private PermitIntegrationInterface $permitIntegration,
         private SessionManager $sessionManager,
     ) {
     }
@@ -37,13 +37,13 @@ final readonly class AnonymizeArchiveAction implements ActionInterface, Requires
     public function execute(ServerRequest $request): ResponseInterface
     {
         try {
-            $count = $this->archiveRepository->anonymizeOldRecords(10);
+            $count = $this->permitIntegration->anonymizeArchive(10);
 
             if ($count === 0) {
                 $this->sessionManager->addFlash('info', 'Hinweis: Es wurden keine Archiv-Einträge gefunden, die älter als 10 Jahre sind.');
             } else {
                 $this->auditLogger->log('SYSTEM_ANONYMIZE', "DSGVO-Bereinigung durchgeführt. {$count} alte Archiv-Einträge wurden anonymisiert.");
-                $this->sessionManager->addFlash('success', "Erfolg: Es wurden $count alte Archiv-Einträge DSGVO-konform anonymisiert.");
+                $this->sessionManager->addFlash('success', "Erfolg: Es wurden {$count} alte Archiv-Einträge DSGVO-konform anonymisiert.");
             }
 
             return new RedirectResponse('admin');

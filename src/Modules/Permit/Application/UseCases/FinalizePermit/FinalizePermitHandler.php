@@ -12,6 +12,7 @@ use App\Modules\Permit\Domain\PermitFactory;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\Vehicle;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
+use App\Modules\Permit\Domain\VerificationRequest;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use App\SharedKernel\Domain\ValueObject\LicensePlate;
@@ -43,13 +44,13 @@ final readonly class FinalizePermitHandler implements CommandWithResultHandlerIn
     public function handle(mixed $command): string
     {
         return $this->lockManager->executeWithLock('checkout', function () use ($command): string {
-            $allVerified = $this->verificationRepository->loadVerified();
+            $verifiedReq = $this->verificationRepository->findVerifiedByToken($command->token);
 
-            if (!isset($allVerified[$command->token])) {
+            if (!$verifiedReq instanceof VerificationRequest) {
                 throw new RuntimeException('Antragssitzung abgelaufen oder bereits abgeschlossen.');
             }
 
-            $data = $allVerified[$command->token]->data;
+            $data = $verifiedReq->data;
 
             $startDate = new DateTimeImmutable((string) $data['datum_von']);
             $datumBisRaw = \trim((string) ($data['datum_bis'] ?? ''));
@@ -72,9 +73,8 @@ final readonly class FinalizePermitHandler implements CommandWithResultHandlerIn
 
             $this->permitRepository->save($permit);
 
-            // Housekeeping: Remove from pending
-            unset($allVerified[$command->token]);
-            $this->verificationRepository->saveVerified($allVerified);
+            // Atomares Housekeeping: Einzelnes Token aus verified_pending entfernen
+            $this->verificationRepository->deleteVerified($command->token);
 
             // Mails feuern!
             $codeParts = \explode('-', $permit->code->value);

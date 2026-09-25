@@ -14,6 +14,11 @@ interface MailLogInterface
     public function loadLogs(): array;
 
     /**
+     * Sucht gezielt einen einzelnen Log-Eintrag anhand seines Zeitstempels (Y-m-d H:i:s).
+     */
+    public function findByTimestamp(string $timestamp): ?MailLogEntry;
+
+    /**
      * @param MailLogEntry[] $logs
      */
     public function saveLogs(array $logs, bool $forceSql = false): void;

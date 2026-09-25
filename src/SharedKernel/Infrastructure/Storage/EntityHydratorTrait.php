@@ -149,9 +149,11 @@ trait EntityHydratorTrait
         $typeName = $type instanceof ReflectionNamedType ? $type->getName() : null;
 
         if (\in_array($typeName, [DateTimeImmutable::class, DateTime::class, DateTimeInterface::class], true)) {
-            $timeStr = \is_scalar($rawValue) ? (string) $rawValue : 'now';
+            if (\is_scalar($rawValue) && \trim((string) $rawValue) !== '') {
+                return new DateTimeImmutable((string) $rawValue);
+            }
 
-            return new DateTimeImmutable($timeStr);
+            return $this->clock->now();
         }
 
         if ($typeName === 'array') {

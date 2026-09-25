@@ -6,9 +6,11 @@ namespace App\Modules\Permit\Infrastructure;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\CancelledPermitRepositoryInterface;
 use App\Modules\Permit\Domain\Permit;
 use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
+use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use Override;
 use PDO;
 
@@ -21,6 +23,7 @@ final readonly class PdoCancelledPermitRepository implements CancelledPermitRepo
         private PDO $pdo,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
+        private ClockInterface $clock = new SystemClock(),
     ) {
     }
 

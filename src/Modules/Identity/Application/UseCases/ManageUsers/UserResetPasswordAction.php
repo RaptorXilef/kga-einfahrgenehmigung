@@ -13,8 +13,6 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\System\AuditLoggerInterface;
-use App\Modules\Identity\Domain\User;
-use App\Modules\Identity\Domain\UserRepositoryInterface;
 use DomainException;
 use Override;
 
@@ -24,7 +22,6 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
     public function __construct(
         private AuditLoggerInterface $auditLogger,
         private SessionManager $sessionManager,
-        private UserRepositoryInterface $userRepository,
         private ChangeUserPasswordHandler $changePasswordHandler,
     ) {
     }
@@ -47,12 +44,9 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
         }
 
         try {
-            $user = $this->userRepository->findById($dto->userId);
-            $username = $user instanceof User ? $user->username : 'Unbekannt';
+            $result = $this->changePasswordHandler->handle(new ChangeUserPasswordCommand($dto->userId, $dto->newPassword));
 
-            $this->changePasswordHandler->handle(new ChangeUserPasswordCommand($dto->userId, $dto->newPassword));
-
-            $this->auditLogger->log('USER_RESET_PASSWORD', "Kennwort für Benutzer '{$username}' (ID: {$dto->userId}) manuell zurückgesetzt.");
+            $this->auditLogger->log('USER_RESET_PASSWORD', "Kennwort für Benutzer '{$result->username}' (ID: {$dto->userId}) manuell zurückgesetzt.");
             $this->sessionManager->addFlash('success', 'Passwort wurde zurückgesetzt.');
 
             return new RedirectResponse('users');

@@ -11,7 +11,7 @@ use DomainException;
 use Override;
 
 /**
- * @implements CommandWithResultHandlerInterface<ChangeUserPasswordCommand, string>
+ * @implements CommandWithResultHandlerInterface<ChangeUserPasswordCommand, ChangeUserPasswordResult>
  */
 final readonly class ChangeUserPasswordHandler implements CommandWithResultHandlerInterface
 {
@@ -21,12 +21,12 @@ final readonly class ChangeUserPasswordHandler implements CommandWithResultHandl
     }
 
     /**
-     * Gibt den neuen Hash für das Session-Update zurück.
+     * Gibt den neuen Hash für das Session-Update sowie den Benutzernamen für das Audit-Log zurück.
      *
      * @param ChangeUserPasswordCommand $command
      */
     #[Override]
-    public function handle(mixed $command): string
+    public function handle(mixed $command): ChangeUserPasswordResult
     {
         $user = $this->repository->findById($command->userId);
         if (!$user instanceof User) {
@@ -40,6 +40,9 @@ final readonly class ChangeUserPasswordHandler implements CommandWithResultHandl
         $user->changePassword($command->newPassword);
         $this->repository->save($user);
 
-        return $user->getPasswordHash();
+        return new ChangeUserPasswordResult(
+            passwordHash: $user->getPasswordHash(),
+            username: $user->username,
+        );
     }
 }

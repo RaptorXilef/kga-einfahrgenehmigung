@@ -8,7 +8,9 @@ use App\SharedKernel\Application\Command\CommandInterface;
 
 final readonly class ArchiveExpiredPermitsCommand implements CommandInterface
 {
-    public function __construct(public int $graceDays)
-    {
+    public function __construct(
+        public int $graceDays,
+        public int $anonymizeYearsThreshold = 10,
+    ) {
     }
 }

@@ -49,11 +49,11 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
         }
 
         try {
-            $newHash = $this->changePasswordHandler->handle(
+            $result = $this->changePasswordHandler->handle(
                 new ChangeUserPasswordCommand($userId, $dto->newPassword, $dto->oldPassword),
             );
 
-            $this->sessionManager->setAuthSession($userId, $this->auth->getRole(), $this->auth->getUsername(), $newHash);
+            $this->sessionManager->setAuthSession($userId, $this->auth->getRole(), $this->auth->getUsername(), $result->passwordHash);
             $this->auditLogger->log('PROFILE_PASSWORD_CHANGE', 'Eigenes Kennwort wurde geändert.');
             $this->sessionManager->addFlash('success', 'Erfolg: Ihr Passwort wurde geändert.');
 

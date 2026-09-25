@@ -17,7 +17,7 @@ use DomainException;
 use Override;
 
 /**
- * Orchestriert die Bestätigung und gibt den resultierenden Identifikator (Token oder Code) zurück.
+ * Orchestriert die Bestätigung atomar und gibt den resultierenden Identifikator (Token oder Code) zurück.
  *
  * @implements CommandWithResultHandlerInterface<ConfirmPermitEmailCommand, string>
  */
@@ -41,36 +41,21 @@ final readonly class ConfirmPermitEmailHandler implements CommandWithResultHandl
     #[Override]
     public function handle(mixed $command): string
     {
-        $allPending = $this->verificationRepository->loadPending();
-        $input = \strtoupper(\trim($command->tokenOrCode));
+        $pendingReq = $this->verificationRepository->findPendingByTokenOrCode($command->tokenOrCode);
 
-        $matchedToken = null;
-        foreach ($allPending as $t => $req) {
-            $strToken = (string) $t;
-            if (\strtoupper($strToken) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
-                $matchedToken = $strToken;
-                break;
-            }
-        }
-
-        if ($matchedToken === null) {
-            $allVerified = $this->verificationRepository->loadVerified();
-            foreach ($allVerified as $t => $req) {
-                $strToken = (string) $t;
-                if (\strtoupper($strToken) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
-                    return $strToken;
-                }
+        if (!$pendingReq instanceof VerificationRequest) {
+            $verifiedReq = $this->verificationRepository->findVerifiedByTokenOrCode($command->tokenOrCode);
+            if ($verifiedReq instanceof VerificationRequest) {
+                return $verifiedReq->token;
             }
 
             throw new DomainException('Sitzung abgelaufen oder Bestätigungscode ungültig.');
         }
 
-        $token = $matchedToken;
-        $req = $allPending[$token];
-        $data = $req->data;
+        $token = $pendingReq->token;
+        $data = $pendingReq->data;
 
-        unset($allPending[$token]);
-        $this->verificationRepository->savePending($allPending);
+        $this->verificationRepository->deletePending($token);
 
         $hours = (int) $this->config->get('hours_pending_finalize', 48);
         $expires = $this->clock->now()->modify("+{$hours} hours");
@@ -83,7 +68,7 @@ final readonly class ConfirmPermitEmailHandler implements CommandWithResultHandl
 
             if ($discountResult->isValid) {
                 // Einlösen!
-                $this->voucherIntegration->redeemVoucher($voucherCodeStr, $data['name'] ?? 'Unbekannt', (string) ($data['parzelle'] ?? '0'));
+                $this->voucherIntegration->redeemVoucher($voucherCodeStr, (string) ($data['name'] ?? 'Unbekannt'), (string) ($data['parzelle'] ?? '0'));
 
                 $finalPrice = $discountResult->finalPrice;
 
@@ -91,9 +76,7 @@ final readonly class ConfirmPermitEmailHandler implements CommandWithResultHandl
                     $data['preis'] = 0.0;
                     $data['status'] = PermitStatus::Bezahlt->value;
 
-                    $allVerified = $this->verificationRepository->loadVerified();
-                    $allVerified[$token] = new VerificationRequest($token, $expires, $data);
-                    $this->verificationRepository->saveVerified($allVerified);
+                    $this->verificationRepository->saveVerifiedOne(new VerificationRequest($token, $expires, $data));
 
                     // Auto-Finalize durchführen
                     return $this->finalizePermitHandler->handle(new FinalizePermitCommand($token, PermitStatus::Bezahlt, 'Gutschein (Voll-Rabatt): ' . $voucherCodeStr));
@@ -105,11 +88,7 @@ final readonly class ConfirmPermitEmailHandler implements CommandWithResultHandl
             }
         }
 
-        $allVerified = $this->verificationRepository->loadVerified();
-        $allVerified[$token] = new VerificationRequest($token, $expires, $data);
-        $this->verificationRepository->saveVerified($allVerified);
-
-        $data['actual_token'] = $token;
+        $this->verificationRepository->saveVerifiedOne(new VerificationRequest($token, $expires, $data));
 
         return $token;
     }

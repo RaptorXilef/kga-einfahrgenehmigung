@@ -17,8 +17,8 @@ use Override;
 use Throwable;
 
 /**
-* Action zum Leeren (Truncate) einer ausgewählten Datenbank-Tabelle.
-*/
+ * Action zum Leeren (Truncate) einer ausgewählten Datenbank-Tabelle.
+ */
 #[Route('POST', '/truncate_target')]
 #[RequiresAuth]
 final readonly class TruncateTargetAction implements ActionInterface, RequiresPermissionInterface

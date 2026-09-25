@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\GetVerifiedRequest;
 
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
+use App\Modules\Permit\Domain\VerificationRequest;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use Override;
 
@@ -26,8 +27,9 @@ final readonly class GetVerifiedRequestHandler implements QueryHandlerInterface
         if ($query->token === '') {
             return null;
         }
-        $all = $this->repository->loadVerified();
 
-        return isset($all[$query->token]) ? $all[$query->token]->data : null;
+        $req = $this->repository->findVerifiedByToken($query->token);
+
+        return $req instanceof VerificationRequest ? $req->data : null;
     }
 }

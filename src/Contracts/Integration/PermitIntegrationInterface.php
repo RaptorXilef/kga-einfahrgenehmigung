@@ -10,4 +10,9 @@ namespace App\Contracts\Integration;
 interface PermitIntegrationInterface
 {
     public function hasPermits(string $email): bool;
+
+    /**
+     * Anonymisiert abgelaufene Archiv-Einträge, die älter als der angegebene Schwellenwert (in Jahren) sind.
+     */
+    public function anonymizeArchive(int $yearsThreshold = 10): int;
 }

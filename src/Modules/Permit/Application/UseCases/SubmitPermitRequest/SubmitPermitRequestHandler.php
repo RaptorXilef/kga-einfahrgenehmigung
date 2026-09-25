@@ -62,30 +62,29 @@ final readonly class SubmitPermitRequestHandler implements CommandWithResultHand
 
         // --- UPDATE-MODUS (Korrektur im Formular) ---
         if ($command->editToken !== null && $command->sessionEmail !== null) {
-            $allVerified = $this->verificationRepository->loadVerified();
-            $oldData = isset($allVerified[$command->editToken]) ? $allVerified[$command->editToken]->data : null;
+            $existingVerified = $this->verificationRepository->findVerifiedByToken($command->editToken);
+            $oldData = $existingVerified?->data;
 
-            // Wenn die E-Mail NICHT geändert wurde -> Nur Daten updaten & Token für Checkout zurückgeben
+            // Wenn die E-Mail NICHT geändert wurde -> Nur Daten atomar updaten & Token für Checkout zurückgeben
             if ($oldData !== null && Sanitizer::normalizeEmail((string) $command->email) === Sanitizer::normalizeEmail($command->sessionEmail)) {
                 $merged = \array_merge($oldData, $rawDataArray);
 
-                $typ = $merged['typ'] ?? 'pkw';
-                $merged['preis'] = $this->financialCalculator->calculateBasePrice(new TemplateKey($merged['template_key']), $typ);
+                $typ = (string) ($merged['typ'] ?? 'pkw');
+                $merged['preis'] = $this->financialCalculator->calculateBasePrice(new TemplateKey((string) $merged['template_key']), $typ);
                 $merged['status'] = PermitStatus::Offen->value;
 
-                $expires = $allVerified[$command->editToken]->expiresAt ?? $this->clock->now()->modify('+48 hours');
-                $allVerified[$command->editToken] = new VerificationRequest($command->editToken, $expires, $merged);
-
-                $this->verificationRepository->saveVerified($allVerified);
+                $expires = $existingVerified->expiresAt;
+                $this->verificationRepository->saveVerifiedOne(
+                    new VerificationRequest($command->editToken, $expires, $merged),
+                );
 
                 return $command->editToken;
             }
 
-            // Falls die E-Mail geändert WURDE, löschen wir das alte Token,
+            // Falls die E-Mail geändert WURDE, löschen wir das alte Token atomar,
             // damit unten regulär eine neue Bestätigungs-Mail rausgeht.
             if ($oldData !== null) {
-                unset($allVerified[$command->editToken]);
-                $this->verificationRepository->saveVerified($allVerified);
+                $this->verificationRepository->deleteVerified($command->editToken);
             }
         }
 
@@ -93,10 +92,13 @@ final readonly class SubmitPermitRequestHandler implements CommandWithResultHand
         return $this->createNewPendingRequest($rawDataArray);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     private function createNewPendingRequest(array $data): string
     {
-        $typ = $data['typ'] ?? 'pkw';
-        $data['preis'] = $this->financialCalculator->calculateBasePrice(new TemplateKey($data['template_key']), $typ);
+        $typ = (string) ($data['typ'] ?? 'pkw');
+        $data['preis'] = $this->financialCalculator->calculateBasePrice(new TemplateKey((string) $data['template_key']), $typ);
 
         $token = \bin2hex(\random_bytes(32));
         $shortCode = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
@@ -108,15 +110,16 @@ final readonly class SubmitPermitRequestHandler implements CommandWithResultHand
         $expires = $this->clock->now()->modify("+{$hours} hours");
 
         $req = new VerificationRequest($token, $expires, $data);
-        $allPending = $this->verificationRepository->loadPending();
-        $allPending[$token] = $req;
-        $this->verificationRepository->savePending($allPending);
+        $this->verificationRepository->savePendingOne($req);
 
         $this->eventDispatcher->dispatch(new VerificationRequestedEvent($data, $token, $shortCode));
 
         return $token;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function extractDataFromCommand(SubmitPermitRequestCommand $command): array
     {
         return [

@@ -21,11 +21,17 @@ use Exception;
 
 /**
  * Trait für die bidirektionale Transformation zwischen Permit-Entitäten und relationalen Arrays.
+ * VSA FIX: Nutzt zu 100% das injizierte ClockInterface für alle Datums-Fallbacks.
  */
 trait PermitMapperTrait
 {
+    /**
+     * @param array<string, mixed> $item
+     */
     public function mapToEntity(array $item): Permit
     {
+        $now = $this->clock->now();
+
         $tKeyStr = \trim((string) ($item['template_key'] ?? 'std_7'));
         if ($tKeyStr === '') {
             $tKeyStr = 'std_7';
@@ -50,35 +56,35 @@ trait PermitMapperTrait
         }
 
         $name = (string) ($item['name'] ?? 'Unbekannt');
-        $von = (string) ($item['von'] ?? 'now');
-        $bis = (string) ($item['bis'] ?? 'now');
-        $created = (string) ($item['erstellt'] ?? 'now');
+        $von = \trim((string) ($item['von'] ?? ''));
+        $bis = \trim((string) ($item['bis'] ?? ''));
+        $created = \trim((string) ($item['erstellt'] ?? ''));
 
         $is_suspended = (bool) ($item['is_suspended'] ?? false);
-        $suspReason = $item['suspension_reason'] ?? null;
-        $kommentar = $item['interner_kommentar'] ?? null;
+        $suspReason = isset($item['suspension_reason']) ? (string) $item['suspension_reason'] : null;
+        $kommentar = isset($item['interner_kommentar']) ? (string) $item['interner_kommentar'] : null;
 
         try {
-            $dtVon = new DateTimeImmutable($von);
+            $dtVon = $von !== '' ? new DateTimeImmutable($von) : $now->setTime(0, 0, 0);
         } catch (Exception) {
-            $dtVon = new DateTimeImmutable('today');
+            $dtVon = $now->setTime(0, 0, 0);
         }
 
         try {
-            $dtBis = new DateTimeImmutable($bis);
+            $dtBis = $bis !== '' ? new DateTimeImmutable($bis) : $now->modify('+1 day')->setTime(0, 0, 0);
         } catch (Exception) {
-            $dtBis = new DateTimeImmutable('tomorrow');
+            $dtBis = $now->modify('+1 day')->setTime(0, 0, 0);
         }
 
         try {
-            $dtCreated = new DateTimeImmutable($created);
+            $dtCreated = $created !== '' ? new DateTimeImmutable($created) : $now;
         } catch (Exception) {
-            $dtCreated = new DateTimeImmutable('now');
+            $dtCreated = $now;
         }
 
-        $bezahltAmStr = $item['bezahlt_am'] ?? null;
+        $bezahltAmStr = isset($item['bezahlt_am']) ? (string) $item['bezahlt_am'] : null;
         $dtBezahltAm = null;
-        if ($bezahltAmStr && $bezahltAmStr !== '0000-00-00 00:00:00' && $bezahltAmStr !== 'null') {
+        if (!\in_array($bezahltAmStr, [null, '', '0000-00-00 00:00:00', 'null'], true)) {
             try {
                 $dtBezahltAm = new DateTimeImmutable($bezahltAmStr);
             } catch (Exception) {
@@ -92,9 +98,9 @@ trait PermitMapperTrait
 
         $statusEnum = PermitStatus::tryFrom((string) ($item['status'] ?? 'offen')) ?? PermitStatus::Offen;
 
-        $lastReminderStr = $item['last_reminder_at'] ?? null;
+        $lastReminderStr = isset($item['last_reminder_at']) ? (string) $item['last_reminder_at'] : null;
         $dtLastReminder = null;
-        if ($lastReminderStr && $lastReminderStr !== '0000-00-00 00:00:00' && $lastReminderStr !== 'null') {
+        if (!\in_array($lastReminderStr, [null, '', '0000-00-00 00:00:00', 'null'], true)) {
             try {
                 $dtLastReminder = new DateTimeImmutable($lastReminderStr);
             } catch (Exception) {
@@ -105,16 +111,19 @@ trait PermitMapperTrait
             code: clone new PermitCode($codeStr),
             template_key: clone new TemplateKey($tKeyStr),
             owner: new Owner($name, $emailObj, clone new PlotNumber($pzInt)),
-            vehicle: new Vehicle((string) ($item['typ'] ?? 'pkw'), clone new LicensePlate($kzStr), $item['firma'] ?? null),
+            vehicle: new Vehicle((string) ($item['typ'] ?? 'pkw'), clone new LicensePlate($kzStr), isset($item['firma']) ? (string) $item['firma'] : null),
             validity: new Validity($dtVon, $dtBis, new Price((float) ($item['preis'] ?? 0.0)), (string) ($item['zweck'] ?? 'Privat')),
             status: new Status($statusEnum, $is_suspended, $suspReason, $dtLastReminder),
             erstellt: $dtCreated,
             interner_kommentar: $kommentar,
-            agreements: $agreements,
+            agreements: \is_array($agreements) ? $agreements : [],
             bezahlt_am: $dtBezahltAm,
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function flattenEntity(Permit $permit): array
     {
         return [

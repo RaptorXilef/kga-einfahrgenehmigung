@@ -14,9 +14,6 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\System\AuditLoggerInterface;
-use App\Modules\Identity\Domain\RoleRepositoryInterface;
-use App\Modules\Identity\Domain\User;
-use App\Modules\Identity\Domain\UserRepositoryInterface;
 use DomainException;
 use Override;
 
@@ -26,8 +23,6 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
 {
     public function __construct(
         private AuditLoggerInterface $auditLogger,
-        private RoleRepositoryInterface $roleRepository,
-        private UserRepositoryInterface $userRepository,
         private SessionManager $sessionManager,
         private ChangeUserRoleHandler $changeRoleHandler,
     ) {
@@ -51,26 +46,14 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
         }
 
         try {
-            $user = $this->userRepository->findById($dto->userId);
-            if (!$user instanceof User) {
-                throw new DomainException('Fehler: Benutzer nicht gefunden.');
-            }
-
-            $oldRole = $user->roleId;
-            $username = $user->username;
-
-            $this->changeRoleHandler->handle(new ChangeUserRoleCommand($dto->userId, $dto->roleId));
-
-            $roles = $this->roleRepository->loadAll();
-            $oldRoleName = isset($roles[$oldRole]) ? $roles[$oldRole]->name : $oldRole;
-            $newRoleName = isset($roles[$dto->roleId]) ? $roles[$dto->roleId]->name : $dto->roleId;
+            $result = $this->changeRoleHandler->handle(new ChangeUserRoleCommand($dto->userId, $dto->roleId));
 
             $this->auditLogger->log(
                 'USER_CHANGE_ROLE',
-                "Rolle von Benutzer '{$username}' (ID: {$dto->userId}) geändert: Von '{$oldRoleName}' auf '{$newRoleName}'.",
+                "Rolle von Benutzer '{$result->username}' (ID: {$dto->userId}) geändert: Von '{$result->oldRoleName}' auf '{$result->newRoleName}'.",
             );
 
-            $this->sessionManager->addFlash('success', "Rolle für '{$username}' geändert.");
+            $this->sessionManager->addFlash('success', "Rolle für '{$result->username}' geändert.");
 
             return new RedirectResponse('users');
         } catch (DomainException $e) {
