@@ -11,6 +11,7 @@ use App\Modules\Permit\Domain\PermitFactory;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\Vehicle;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use DateTimeImmutable;
 use Override;
 
@@ -30,7 +31,7 @@ final readonly class CreateManualPermitHandler implements CommandHandlerInterfac
      * @param CreateManualPermitCommand $command
      */
     #[Override]
-    public function handle(mixed $command): void
+    public function handle(CommandInterface $command): void
     {
         $startDate = new DateTimeImmutable($command->datumVon);
         $customEndDate = $command->datumBis !== '' ? new DateTimeImmutable($command->datumBis) : null;
@@ -56,6 +57,6 @@ final readonly class CreateManualPermitHandler implements CommandHandlerInterfac
 
         $codeParts = \explode('-', $permit->code->value);
         $shortCode = \end($codeParts);
-        $this->eventDispatcher->dispatch(new PermitCreatedEvent($permit, $shortCode));
+        $this->eventDispatcher->dispatch(new PermitCreatedEvent($permit, $shortCode, $permit->getCreatedAt()));
     }
 }

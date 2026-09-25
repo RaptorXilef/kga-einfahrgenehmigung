@@ -13,6 +13,7 @@ use App\Modules\Permit\Domain\PermitFinancialCalculator;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use DateTimeImmutable;
 use Override;
 
@@ -34,7 +35,7 @@ final readonly class SendPaymentRemindersHandler implements CommandHandlerInterf
      * @param SendPaymentRemindersCommand $command
      */
     #[Override]
-    public function handle(mixed $command): void
+    public function handle(CommandInterface $command): void
     {
         if ($command->code !== null && $command->code !== '') {
             $this->dispatchReminder($command->code, $command->forceManual);
@@ -80,7 +81,7 @@ final readonly class SendPaymentRemindersHandler implements CommandHandlerInterf
         // Wir nutzen hier save, da PermitRepositoryInterface::save das Update regelt
         $this->repository->save($permit);
 
-        $this->eventDispatcher->dispatch(new PaymentReminderEvent($permit));
+        $this->eventDispatcher->dispatch(new PaymentReminderEvent($permit, $now));
 
         return true;
     }

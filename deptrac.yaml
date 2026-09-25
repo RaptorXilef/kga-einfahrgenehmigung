@@ -101,7 +101,6 @@ deptrac:
         Contracts:
             - SharedKernel
             - Vendor
-            - System # Erlaubt pragmatisch, dass das MailLogInterface das MailLogEntry aus dem System-Modul referenziert
 
         # Das Rahmenwerk
         Application:

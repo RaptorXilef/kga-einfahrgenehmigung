@@ -15,6 +15,7 @@ use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use App\SharedKernel\Application\Security\Sanitizer;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
@@ -46,7 +47,7 @@ final readonly class SubmitPermitRequestHandler implements CommandWithResultHand
      * @param SubmitPermitRequestCommand $command
      */
     #[Override]
-    public function handle(mixed $command): string
+    public function handle(CommandInterface $command): string
     {
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
 
@@ -106,13 +107,14 @@ final readonly class SubmitPermitRequestHandler implements CommandWithResultHand
         $data['verification_token'] = $token;
         $data['verification_code'] = $shortCode;
 
+        $now = $this->clock->now();
         $hours = (int) $this->config->get('hours_pending_verify', 24);
-        $expires = $this->clock->now()->modify("+{$hours} hours");
+        $expires = $now->modify("+{$hours} hours");
 
         $req = new VerificationRequest($token, $expires, $data);
         $this->verificationRepository->savePendingOne($req);
 
-        $this->eventDispatcher->dispatch(new VerificationRequestedEvent($data, $token, $shortCode));
+        $this->eventDispatcher->dispatch(new VerificationRequestedEvent($data, $token, $shortCode, $now));
 
         return $token;
     }

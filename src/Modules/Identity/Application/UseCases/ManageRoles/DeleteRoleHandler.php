@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
 use App\Contracts\Event\EventDispatcherInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Identity\Domain\Events\RoleDeletedEvent;
 use App\Modules\Identity\Domain\Role;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
 use Override;
@@ -20,6 +22,7 @@ final readonly class DeleteRoleHandler implements CommandWithResultHandlerInterf
     public function __construct(
         private RoleRepositoryInterface $repository,
         private EventDispatcherInterface $eventDispatcher,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -27,7 +30,7 @@ final readonly class DeleteRoleHandler implements CommandWithResultHandlerInterf
      * @param DeleteRoleCommand $command
      */
     #[Override]
-    public function handle(mixed $command): string
+    public function handle(CommandInterface $command): string
     {
         if ($command->roleId === 'admin') {
             throw new DomainException('Die Admin-Rolle kann nicht gelöscht werden.');
@@ -41,7 +44,7 @@ final readonly class DeleteRoleHandler implements CommandWithResultHandlerInterf
         $this->repository->delete($command->roleId);
 
         // Neues VSA-Event triggern, damit z.B. Icons gelöscht werden
-        $this->eventDispatcher->dispatch(new RoleDeletedEvent($command->roleId));
+        $this->eventDispatcher->dispatch(new RoleDeletedEvent($command->roleId, $this->clock->now()));
 
         return $role->name;
     }

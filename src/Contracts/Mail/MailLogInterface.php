@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contracts\Mail;
 
-use App\Modules\System\Domain\MailLogEntry;
-
 /**
  * Vertrag für das revisionssichere und speicherschonende Protokollieren von System-E-Mails.
  */

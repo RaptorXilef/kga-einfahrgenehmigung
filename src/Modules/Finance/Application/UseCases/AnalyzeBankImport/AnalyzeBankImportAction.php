@@ -14,12 +14,15 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
-use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportAction;
+use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportCommand;
+use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportHandler;
+use App\Modules\Finance\Presentation\View\BankImportReportPresenter;
 use Override;
 use Throwable;
 
 /**
  * Nimmt die hochgeladene Bank-CSV entgegen und leitet je nach Modus zum Zuordnungs-Wizard oder Direkt-Import weiter.
+ * VSA FIX: Kein künstlicher ServerRequest und kein Action-zu-Action-Aufruf mehr.
  */
 #[Route('POST', '/bank_import_analyze')]
 #[RequiresAuth]
@@ -29,7 +32,7 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
         private ConfigInterface $config,
         private SessionManager $sessionManager,
         private AnalyzeBankImportHandler $analyzeHandler,
-        private ProcessBankImportAction $processAction,
+        private ProcessBankImportHandler $processHandler,
         private BankImportInfrastructureInterface $infrastructure,
     ) {
     }
@@ -83,22 +86,28 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
             return new RedirectResponse('admin');
         }
 
-        $simulatedPost = \array_merge($request->post, [
-            'temp_file' => $tempPath,
-            'col_id' => $analysis->guessedId,
-            'col_amount' => $analysis->guessedAmount,
-            'col_date' => $analysis->guessedDate,
-        ]);
+        try {
+            $result = $this->processHandler->handle(new ProcessBankImportCommand(
+                tempFile: $tempPath,
+                idColumn: $analysis->guessedId,
+                amountColumn: $analysis->guessedAmount,
+                dateColumn: $analysis->guessedDate,
+            ));
 
-        $simulatedRequest = new ServerRequest(
-            get: $request->get,
-            post: $simulatedPost,
-            files: $request->files,
-            server: $request->server,
-            input: $simulatedPost,
-            cookie: $request->cookie,
-        );
+            if ($result->success) {
+                foreach ($result->collectiveTransfers as $transfer) {
+                    $this->sessionManager->addCollectiveTransfer($transfer);
+                }
 
-        return $this->processAction->execute($simulatedRequest);
+                $reportHtml = BankImportReportPresenter::formatFlashReport($result, $this->config->getBaseUrl());
+                $this->sessionManager->addFlash('success', $reportHtml);
+            } else {
+                $this->sessionManager->addFlash('error', $result->message);
+            }
+        } catch (Throwable $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
+        }
+
+        return new RedirectResponse('admin?focus=tab-finance');
     }
 }

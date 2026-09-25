@@ -2,13 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\System\Domain;
+namespace App\Contracts\Mail;
 
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 
+/**
+ * Unveränderliches Datenobjekt für einen E-Mail-Versandprotokoll-Eintrag.
+ * Lebt im Contracts-Layer, damit MailLogInterface modulsicher ohne Rückwärts-Abhängigkeit auf System bleibt.
+ */
 final readonly class MailLogEntry
 {
+    /**
+     * @param array<string, mixed> $data
+     */
     public function __construct(
         public string $id,
         public DateTimeImmutable $timestamp,

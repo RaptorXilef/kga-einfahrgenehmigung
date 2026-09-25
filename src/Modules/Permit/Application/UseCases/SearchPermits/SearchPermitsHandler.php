@@ -7,12 +7,13 @@ namespace App\Modules\Permit\Application\UseCases\SearchPermits;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
 use Override;
 use PDO;
 
 /**
- * @implements QueryHandlerInterface<SearchPermitsQuery, array>
+ * @implements QueryHandlerInterface<SearchPermitsQuery, SearchPermitsResultDto>
  */
 final readonly class SearchPermitsHandler implements QueryHandlerInterface
 {
@@ -27,7 +28,7 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
      * @param SearchPermitsQuery $query
      */
     #[Override]
-    public function handle(mixed $query): array
+    public function handle(QueryInterface $query): SearchPermitsResultDto
     {
         $validTplKeys = [];
         if ($query->templateType !== 'all') {
@@ -39,7 +40,7 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
                 $validTplKeys[] = $k;
             }
             if ($validTplKeys === []) {
-                return ['items' => [], 'total' => 0];
+                return new SearchPermitsResultDto(items: [], total: 0);
             }
         }
 
@@ -85,7 +86,7 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
         }
 
         if ($sqlParts === []) {
-            return ['items' => [], 'total' => 0];
+            return new SearchPermitsResultDto(items: [], total: 0);
         }
 
         $fullSql = \implode(' UNION ALL ', $sqlParts) . ' ORDER BY erstellt DESC';
@@ -115,6 +116,6 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
             'zweck' => (string) $row['zweck'],
         ], $items);
 
-        return ['items' => $formattedItems, 'total' => $total];
+        return new SearchPermitsResultDto(items: $formattedItems, total: $total);
     }
 }

@@ -16,6 +16,7 @@ use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\Status;
 use App\Modules\Permit\Domain\Vehicle;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Security\Sanitizer;
 use App\SharedKernel\Domain\ValueObject\LicensePlate;
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
@@ -40,7 +41,7 @@ final readonly class CancelPermitHandler implements CommandHandlerInterface
      * @param CancelPermitCommand $command
      */
     #[Override]
-    public function handle(mixed $command): void
+    public function handle(CommandInterface $command): void
     {
         if (!$this->config->getBool('allow_user_cancellation', true)) {
             throw new DomainException('Stornierungen sind derzeit deaktiviert.');
@@ -66,7 +67,7 @@ final readonly class CancelPermitHandler implements CommandHandlerInterface
             throw new DomainException('Nur Genehmigungen, deren Gültigkeit in der Zukunft liegt, können storniert werden.');
         }
 
-        $this->eventDispatcher->dispatch(new PermitCancelledEvent($permit));
+        $this->eventDispatcher->dispatch(new PermitCancelledEvent($permit, $now));
 
         // DSGVO-konforme Anonymisierung
         $anonymizedPermit = new Permit(

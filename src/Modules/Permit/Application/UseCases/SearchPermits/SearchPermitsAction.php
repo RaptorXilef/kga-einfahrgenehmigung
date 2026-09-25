@@ -44,12 +44,12 @@ final readonly class SearchPermitsAction implements ViewActionInterface, Require
             ));
 
             return JsonResponse::success([
-                'data' => $result['items'],
+                'data' => $result->items,
                 'meta' => [
-                    'total' => $result['total'],
+                    'total' => $result->total,
                     'page' => $dto->page,
                     'limit' => $dto->limit,
-                    'total_pages' => \ceil($result['total'] / $dto->limit),
+                    'total_pages' => \ceil($result->total / $dto->limit),
                 ],
             ]);
         } catch (Throwable $e) {

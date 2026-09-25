@@ -13,6 +13,7 @@ use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\Vehicle;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use App\SharedKernel\Domain\ValueObject\LicensePlate;
@@ -41,7 +42,7 @@ final readonly class FinalizePermitHandler implements CommandWithResultHandlerIn
      * @param FinalizePermitCommand $command
      */
     #[Override]
-    public function handle(mixed $command): string
+    public function handle(CommandInterface $command): string
     {
         return $this->lockManager->executeWithLock('checkout', function () use ($command): string {
             $verifiedReq = $this->verificationRepository->findVerifiedByToken($command->token);
@@ -79,7 +80,7 @@ final readonly class FinalizePermitHandler implements CommandWithResultHandlerIn
             // Mails feuern!
             $codeParts = \explode('-', $permit->code->value);
             $shortCode = \end($codeParts);
-            $this->eventDispatcher->dispatch(new PermitCreatedEvent($permit, $shortCode));
+            $this->eventDispatcher->dispatch(new PermitCreatedEvent($permit, $shortCode, $permit->getCreatedAt()));
 
             return $permit->code->value;
         });

@@ -11,6 +11,7 @@ use App\Modules\Identity\Domain\Events\MagicLinkRequestedEvent;
 use App\Modules\Identity\Domain\MagicLink;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use Override;
 
@@ -31,13 +32,14 @@ final readonly class RequestMagicLinkHandler implements CommandHandlerInterface
      * @param RequestMagicLinkCommand $command
      */
     #[Override]
-    public function handle(mixed $command): void
+    public function handle(CommandInterface $command): void
     {
         $token = \bin2hex(\random_bytes(32));
         $code = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
 
+        $now = $this->clock->now();
         $duration = $this->config->getInt('magic_link_duration', 15);
-        $expiresAt = $this->clock->now()->modify("+{$duration} minutes");
+        $expiresAt = $now->modify("+{$duration} minutes");
 
         $magicLink = new MagicLink(
             $token,
@@ -53,6 +55,7 @@ final readonly class RequestMagicLinkHandler implements CommandHandlerInterface
             $command->email,
             $token,
             $code,
+            $now,
         ));
     }
 }

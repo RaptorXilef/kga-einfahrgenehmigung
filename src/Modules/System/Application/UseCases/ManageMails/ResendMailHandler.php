@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Application\UseCases\ManageMails;
 
+use App\Contracts\Mail\MailLogEntry;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Modules\System\Domain\MailLogEntry;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
 use Override;
@@ -28,7 +29,7 @@ final readonly class ResendMailHandler implements CommandWithResultHandlerInterf
      * @param ResendMailCommand $command
      */
     #[Override]
-    public function handle(mixed $command): ResendMailResult
+    public function handle(CommandInterface $command): ResendMailResult
     {
         $log = $this->mailLog->findByTimestamp($command->timestamp);
 

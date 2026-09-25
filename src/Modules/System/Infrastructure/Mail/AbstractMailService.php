@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\System\Infrastructure\Mail;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Mail\MailLogEntry;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Modules\System\Domain\MailLogEntry;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 use Override;
