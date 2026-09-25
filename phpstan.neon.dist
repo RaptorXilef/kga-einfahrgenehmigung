@@ -136,13 +136,13 @@ parameters:
         #  path: tests/*
 
         # Wir ignorieren die strict-rules empty() Meldungen, da sie für die Architektur irrelevant sind
-        # TODO Später auskommentieren, wenn Architekturupdate abgeschlossen ist
+        # TODO Später
         # - '#Construct empty\(\) is not allowed#'
 
         # #Construct empty() is not allowed...#: Verbietet die Funktion empty().
         # Auf Level 9 verlangen die Strict-Rules strenge Vergleiche (z.B. $val !== null && $val !== '').
         # Da wir empty() in Formularen und Validierungen als kompaktes Sicherheitsnetz nutzen, ignorieren wir das.
-        # TODO Später auskommentieren, wenn Architekturupdate abgeschlossen ist
+        # TODO Später
         - '#Construct empty\(\) is not allowed#'
 
         # #Only booleans are allowed in if/while...#: Verbietet "Truthy/Falsy"-Abfragen wie if ($string) oder if ($array).
@@ -153,6 +153,11 @@ parameters:
         # Verhindert harte Casts ((int), (string) oder Einbettung in Strings "") von Variablen, deren Typ PHPStan nur als 'mixed' bekannt ist
         # (häufig bei PDO-Ergebnissen oder Rohdaten). Da wir hier zur Laufzeit absichern, wird dies ignoriert.
         - '#Cannot cast mixed to (int|string|float|bool)\.#'
+
+        # #Part ... (mixed) of encapsed string cannot be cast to string.#:
+        # PHPStan Level 9 verbietet es, Variablen vom Typ 'mixed' (z.B. aus JSON oder Arrays) direkt
+        # in doppelte Anführungszeichen einzubetten (String-Interpolation wie "Wert: {$val}"),
+        # weil sie nicht garantiert als String vorliegen. Wir erlauben es hier pragmatisch.
         - '#Part .* \(mixed\) of encapsed string cannot be cast to string\.#'
 
         # #Parameter ... expects ..., mixed given.#: Schlägt an, wenn eine Methode einen festen Typ (z.B. int oder string)
@@ -163,11 +168,16 @@ parameters:
         # Verhindert den Zugriff auf Array-Schlüssel ($data['key']) oder das Durchlaufen per foreach,
         # wenn PHPStan die Variable fälschlicherweise als 'mixed' statt als Array erkennt.
         - '#Cannot access offset .* on mixed\.#'
+
+        # #Argument of an invalid type mixed supplied for foreach.#:
+        # Schlägt an, wenn du eine Variable vom Typ 'mixed' in einer foreach-Schleife durchlaufen möchtest.
+        # Level 9 verlangt hier, dass vorher geprüft wird, ob es ein Array oder ein Iterable ist.
         - '#Argument of an invalid type mixed supplied for foreach.*#'
 
-        # #Method ... has parameter/return type / Property ... has no value type specified in iterable type array.#:
-        # Erzwingt in PHPStan Level 9 für JEDES Array eine generische Typisierung (z.B. array<string, mixed> statt nur array).
-        # Da manche legacy Strukturen oder Framework-Rückgaben das nicht hergeben, ignorieren wir fehlende Array-Generics.
+        # #Method ... / Property ... return type / parameter has no value type specified in iterable type array.#:
+        # Diese drei Regeln greifen, wenn du irgendwo im Code nur das generische Wort `array` verwendest,
+        # anstatt ein typisiertes Array anzugeben (z.B. `array<string, mixed>` oder `list<string>`).
+        # Da das bei Legacy-Arrays oder schnellen Mappings zu viel Overhead erzeugt, erstmal weg damit.
         - '#Method .* has parameter .* with no value type specified in iterable type array\.#'
         - '#Method .* return type has no value type specified in iterable type array\.#'
         - '#Property .* type has no value type specified in iterable type array\.#'

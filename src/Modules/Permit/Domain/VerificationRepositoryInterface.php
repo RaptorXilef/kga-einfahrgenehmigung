@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Domain;
 
+/**
+ * Vertrag für die Verwaltung von Double-Opt-In- und Checkout-Sitzungen.
+ */
 interface VerificationRepositoryInterface
 {
     /**
@@ -17,16 +20,6 @@ interface VerificationRepositoryInterface
 
     public function deletePending(string $token): void;
 
-    /**
-     * @param array<string, VerificationRequest> $data
-     */
-    public function savePending(array $data, bool $forceSql = false): void;
-
-    /**
-     * @return array<string, VerificationRequest>
-     */
-    public function loadVerified(): array;
-
     public function findVerifiedByToken(string $token): ?VerificationRequest;
 
     public function findVerifiedByTokenOrCode(string $tokenOrCode): ?VerificationRequest;
@@ -34,9 +27,4 @@ interface VerificationRepositoryInterface
     public function saveVerifiedOne(VerificationRequest $request): void;
 
     public function deleteVerified(string $token): void;
-
-    /**
-     * @param array<string, VerificationRequest> $data
-     */
-    public function saveVerified(array $data, bool $forceSql = false): void;
 }

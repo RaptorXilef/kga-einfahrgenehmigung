@@ -81,7 +81,7 @@ final readonly class PermitFinancialCalculator
         $pattern = $this->config->getString('usage_pattern', 'EFG-{{code}}-{{nachname}}');
 
         $codeParts = \explode('-', $permit->code->value);
-        $shortCode = (string) \end($codeParts);
+        $shortCode = \end($codeParts);
 
         $nameParts = \explode(' ', $permit->getOwnerName());
         $vorname = $nameParts[0] ?? '';

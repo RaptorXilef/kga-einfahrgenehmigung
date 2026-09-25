@@ -7,11 +7,13 @@ namespace App\Application\Exception;
 use DomainException;
 
 /**
- * Wird geworfen, wenn die Formulardaten (DTO) ungültig sind.
+ * Wird geworfen, wenn die Eingabedaten eines Request-DTOs ungültig sind.
  */
 final class ValidationException extends DomainException
 {
-    // TODO DOCBLOCK
+    /**
+     * Erzeugt eine neue ValidationException mit einer benutzerfreundlichen Fehlermeldung.
+     */
     public static function withMessage(string $message): self
     {
         return new self($message);

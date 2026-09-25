@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Application\Contracts;
 
 /**
- * TODO DOCBLOCK
+ * Kennzeichnet Action-Klassen, deren Ausführung eine spezifische RBAC-Berechtigung erfordert.
+ * Wird vom FrontendController vor dem Aufruf von execute() automatisch geprüft.
  */
 interface RequiresPermissionInterface
 {

@@ -6,22 +6,20 @@ namespace App\Contracts\Mail;
 
 use App\Modules\System\Domain\MailLogEntry;
 
+/**
+ * Vertrag für das revisionssichere und speicherschonende Protokollieren von System-E-Mails.
+ */
 interface MailLogInterface
 {
     /**
-     * @return MailLogEntry[]
+     * Speichert einen einzelnen Log-Eintrag atomar und bereinigt Einträge über dem Limit.
      */
-    public function loadLogs(): array;
+    public function insertLog(MailLogEntry $entry, int $maxEntries = 5000): void;
 
     /**
      * Sucht gezielt einen einzelnen Log-Eintrag anhand seines Zeitstempels (Y-m-d H:i:s).
      */
     public function findByTimestamp(string $timestamp): ?MailLogEntry;
-
-    /**
-     * @param MailLogEntry[] $logs
-     */
-    public function saveLogs(array $logs, bool $forceSql = false): void;
 
     /**
      * Gibt den rohen HTML-Inhalt einer Debug-E-Mail sicher zurück (ohne direkten File-Zugriff im Frontend).

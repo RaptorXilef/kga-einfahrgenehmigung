@@ -7,12 +7,14 @@ namespace App\Modules\Permit\Infrastructure;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
 use Override;
 use PDO;
 
+/**
+ * PDO-Implementierung des Genehmigungs-Archivs.
+ */
 final readonly class PdoPermitArchiveRepository implements PermitArchiveRepositoryInterface
 {
     use DynamicSqlTrait;
@@ -24,40 +26,6 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
         private JsonHelperInterface $jsonHelper,
         private ClockInterface $clock,
     ) {
-    }
-
-    #[Override]
-    public function findByHash(string $hash): ?Permit
-    {
-        $hash = \strtoupper(\trim($hash));
-        $table = $this->config->getArray('storage_config')['permits_archive']['table'] ?? 'permits_archive';
-
-        $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE code = ?");
-        $stmt->execute([$hash]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (\is_array($row)) {
-            return $this->mapToEntity($row);
-        }
-
-        $searchParts = \explode('-', $hash);
-        $searchId = \end($searchParts);
-
-        $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE code LIKE ? OR code = ?");
-        $stmt->execute(['%-' . $searchId, $searchId]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return \is_array($row) ? $this->mapToEntity($row) : null;
-    }
-
-    #[Override]
-    public function isCodeInArchive(string $code): bool
-    {
-        $table = $this->config->getArray('storage_config')['permits_archive']['table'] ?? 'permits_archive';
-        $stmt = $this->pdo->prepare("SELECT code FROM `{$table}` WHERE code = ?");
-        $stmt->execute([$code]);
-
-        return (bool) $stmt->fetch();
     }
 
     #[Override]
@@ -87,20 +55,5 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
         $stmt->execute([$cutoffDate]);
 
         return $stmt->rowCount();
-    }
-
-    #[Override]
-    public function getArchivedPermits(int $minYear): array
-    {
-        $table = $this->config->getArray('storage_config')['permits_archive']['table'] ?? 'permits_archive';
-        $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE YEAR(erstellt) >= ? OR YEAR(von) >= ?");
-        $stmt->execute([$minYear, $minYear]);
-
-        $permits = [];
-        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            $permits[] = $this->mapToEntity($row);
-        }
-
-        return $permits;
     }
 }

@@ -28,8 +28,6 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
     #[Override]
     public function handle(QueryInterface $query): DashboardStatsDto
     {
-        \assert($query instanceof GetDashboardStatsQuery);
-
         $vConfig = $this->config->getArray('vehicle_types');
         $permitTemplates = $this->config->getArray('permit_templates');
         $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
@@ -105,14 +103,12 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
             $rowPlotFormatted = \str_pad((string) ($row['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT);
 
             // ---- A) Globale Jahresstatistiken (Für Akkordeon) ----
-            if (!isset($yearlyStats[$year])) {
-                $yearlyStats[$year] = [
-                    'count' => 0,
-                    'paid' => 0.0,
-                    'unpaid' => 0.0,
-                    'types' => $initialTypes,
-                ];
-            }
+            $yearlyStats[$year] ??= [
+                'count' => 0,
+                'paid' => 0.0,
+                'unpaid' => 0.0,
+                'types' => $initialTypes,
+            ];
             ++$yearlyStats[$year]['count'];
             if (isset($yearlyStats[$year]['types'][$typ])) {
                 ++$yearlyStats[$year]['types'][$typ];

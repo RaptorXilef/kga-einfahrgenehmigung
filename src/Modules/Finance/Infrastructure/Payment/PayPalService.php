@@ -84,7 +84,7 @@ final readonly class PayPalService implements PaymentProviderInterface
         ]);
 
         $response = \curl_exec($curlHandle);
-        $httpCode = (int) \curl_getinfo($curlHandle, \CURLINFO_HTTP_CODE);
+        $httpCode = \curl_getinfo($curlHandle, \CURLINFO_HTTP_CODE);
 
         if ($httpCode !== 201 && $httpCode !== 200) {
             return false;

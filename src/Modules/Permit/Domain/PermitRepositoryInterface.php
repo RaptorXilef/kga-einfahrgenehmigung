@@ -6,22 +6,18 @@ namespace App\Modules\Permit\Domain;
 
 use DateTimeImmutable;
 
+/**
+ * Vertrag für das Persistieren und Laden aktiver Genehmigungen (Write-Model & Generator-Batches).
+ */
 interface PermitRepositoryInterface
 {
     public function save(Permit $permit): void;
 
     public function findByCode(string $code): ?Permit;
 
-    public function findByLicensePlate(string $plate): ?Permit;
-
     public function delete(string $code): void;
 
     public function deleteMultiple(array $codes): int;
-
-    /**
-     * @return iterable<Permit> Generator: Liste aller Genehmigungen, bei denen eine E-Mail-Adresse hinterlegt ist.
-     */
-    public function yieldAllWithEmail(): iterable;
 
     /**
      * @return iterable<Permit> Generator: Liste aller abgelaufenen Genehmigungen, die bezahlt oder storniert sind.
@@ -37,7 +33,13 @@ interface PermitRepositoryInterface
      * Prüft extrem performant direkt in der Datenbank, ob eine zeitliche Kollision vorliegt.
      * Eine Kollision liegt nur vor, wenn sich Zeitraum, Parzelle UND (Kennzeichen oder Firma) überschneiden.
      */
-    public function hasCollision(int $plotNumber, DateTimeImmutable $start, DateTimeImmutable $end, string $licensePlate, ?string $company): bool;
+    public function hasCollision(
+        int $plotNumber,
+        DateTimeImmutable $start,
+        DateTimeImmutable $end,
+        string $licensePlate,
+        ?string $company,
+    ): bool;
 
     /**
      * Prüft über alle Tabellen (Aktiv, Archiv, Storniert), ob ein Code bereits vergeben ist.

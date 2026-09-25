@@ -12,7 +12,6 @@ use App\Contracts\Utils\ClockInterface;
 use App\Modules\System\Domain\MailLogEntry;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
-use Exception;
 use Override;
 use PDO;
 use RuntimeException;
@@ -31,8 +30,15 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
     }
 
     #[Override]
-    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50, array $attachments = []): bool|string
-    {
+    public function sendTemplate(
+        string $recipient,
+        string $subject,
+        string $template,
+        array $data,
+        ?string $replyTo = null,
+        int $priority = 50,
+        array $attachments = [],
+    ): bool|string {
         if (\in_array(\trim($recipient), ['', '0'], true)) {
             $this->logEmail('System', $subject, clone new TemplateKey($template), 'Übersprungen: Kein Empfänger angegeben', null, $data);
 
@@ -90,56 +96,39 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
     }
 
     #[Override]
-    public function saveLogs(array $logs, bool $forceSql = false): void
+    public function insertLog(MailLogEntry $entry, int $maxEntries = 5000): void
     {
-        $cfg = $this->config->getArray('storage_config')['mail_log'] ?? [];
-        $table = $cfg['table'] ?? 'mail_logs';
         if (!$this->pdo instanceof PDO) {
             return;
         }
 
-        $this->pdo->beginTransaction();
-
-        try {
-            $stmt = $this->pdo->prepare("REPLACE INTO `{$table}` (id,timestamp,recipient,reply_to,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-
-            foreach ($logs as $log) {
-                $stmt->execute([
-                    $log->id,
-                    $log->timestamp->format('Y-m-d H:i:s'),
-                    $log->recipient,
-                    $log->replyTo,
-                    $log->subject,
-                    $log->template->value,
-                    $log->status,
-                    \json_encode($log->data, \JSON_UNESCAPED_UNICODE),
-                ]);
-            }
-            $this->pdo->commit();
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
-
-            throw $e;
-        }
-    }
-
-    #[Override]
-    public function loadLogs(): array
-    {
         $cfg = $this->config->getArray('storage_config')['mail_log'] ?? [];
-        $table = $cfg['table'] ?? 'mail_logs';
-        $logs = [];
+        $table = (string) ($cfg['table'] ?? 'mail_logs');
 
-        if ($this->pdo instanceof PDO) {
-            $stmt = $this->pdo->query("SELECT * FROM `{$table}` ORDER BY timestamp DESC");
-            if ($stmt !== false) {
-                while (\is_array($r = $stmt->fetch(PDO::FETCH_ASSOC))) {
-                    $logs[] = $this->mapRowToLogEntry($r);
-                }
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO `{$table}` (id, timestamp, recipient, reply_to, subject, template, status, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        );
+        $stmt->execute([
+            $entry->id, $entry->timestamp->format('Y-m-d H:i:s'),
+            $entry->recipient, $entry->replyTo,
+            $entry->subject, $entry->template->value,
+            $entry->status,             \json_encode($entry->data, \JSON_UNESCAPED_UNICODE),
+        ]);
+
+        // Memory-Safe SQL Pruning: Löscht überzählige Alt-Einträge direkt in der DB ohne RAM-Load
+        if ($maxEntries > 0) {
+            $cutoffStmt = $this->pdo->prepare(
+                "SELECT timestamp FROM `{$table}` ORDER BY timestamp DESC LIMIT 1 OFFSET :offset",
+            );
+            $cutoffStmt->bindValue(':offset', $maxEntries, PDO::PARAM_INT);
+            $cutoffStmt->execute();
+            $cutoffTimestamp = $cutoffStmt->fetchColumn();
+
+            if (\is_string($cutoffTimestamp) && $cutoffTimestamp !== '') {
+                $delStmt = $this->pdo->prepare("DELETE FROM `{$table}` WHERE timestamp < :cutoff");
+                $delStmt->execute(['cutoff' => $cutoffTimestamp]);
             }
         }
-
-        return $logs;
     }
 
     #[Override]
@@ -150,7 +139,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         }
 
         $cfg = $this->config->getArray('storage_config')['mail_log'] ?? [];
-        $table = $cfg['table'] ?? 'mail_logs';
+        $table = (string) ($cfg['table'] ?? 'mail_logs');
 
         $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE timestamp = :ts LIMIT 1");
         $stmt->execute(['ts' => $timestamp]);
@@ -199,7 +188,14 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         return 0;
     }
 
-    abstract protected function dispatch(string $recipient, string $subject, string $body, array $transportConfig, ?string $replyTo = null, array $attachments = []): bool|string;
+    abstract protected function dispatch(
+        string $recipient,
+        string $subject,
+        string $body,
+        array $transportConfig,
+        ?string $replyTo = null,
+        array $attachments = [],
+    ): bool|string;
 
     protected function render(string $templatePath, array $data): string
     {
@@ -225,10 +221,16 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         return \is_array($mailConfig['transports'][$default] ?? null) ? $mailConfig['transports'][$default] : [];
     }
 
-    private function logEmail(string $recipient, string $subject, TemplateKey $template, bool|string $status, ?string $replyTo = null, array $data = []): void
-    {
+    private function logEmail(
+        string $recipient,
+        string $subject,
+        TemplateKey $template,
+        bool|string $status,
+        ?string $replyTo = null,
+        array $data = [],
+    ): void {
         $statusStr = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
-        $maxEntries = $this->config->getInt('mail_log_max_entries', 200);
+        $maxEntries = $this->config->getInt('mail_log_max_entries', 5000);
 
         $entry = new MailLogEntry(
             'ml_' . \bin2hex(\random_bytes(8)),
@@ -241,13 +243,6 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
             $data,
         );
 
-        $logs = $this->loadLogs();
-        \array_unshift($logs, $entry);
-
-        if (\count($logs) > $maxEntries) {
-            $logs = \array_slice($logs, 0, $maxEntries);
-        }
-
-        $this->saveLogs($logs, true);
+        $this->insertLog($entry, $maxEntries);
     }
 }

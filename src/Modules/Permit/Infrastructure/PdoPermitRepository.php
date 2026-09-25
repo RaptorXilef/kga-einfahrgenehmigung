@@ -23,6 +23,9 @@ use DateTimeImmutable;
 use Override;
 use PDO;
 
+/**
+ * PDO-Implementierung für das Permit-Write-Repository.
+ */
 final readonly class PdoPermitRepository implements PermitRepositoryInterface
 {
     public function __construct(
@@ -93,63 +96,6 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
     }
 
     #[Override]
-    public function findByLicensePlate(string $plate): ?Permit
-    {
-        $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($plate));
-
-        if ($searchPlate === null || $searchPlate === '') {
-            return null;
-        }
-
-        $stmt = $this->pdo->prepare(
-            "SELECT * FROM `permits` WHERE REPLACE(REPLACE(kennzeichen, ' ', ''), '-', '') = ?",
-        );
-        $stmt->execute([$searchPlate]);
-
-        $candidates = [];
-        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            $candidates[] = $this->mapRowToEntity($row);
-        }
-
-        if ($candidates === []) {
-            return null;
-        }
-
-        $now = $this->clock->now();
-
-        // Sortierung: 1. Aktive Genehmigungen zuerst, 2. nach dem Enddatum (neueste zuerst)
-        \usort($candidates, function (Permit $a, Permit $b) use ($now): int {
-            $aValid = $a->isValid(false, $now);
-            $bValid = $b->isValid(false, $now);
-
-            if ($aValid && !$bValid) {
-                return -1;
-            }
-            if (!$aValid && $bValid) {
-                return 1;
-            }
-
-            return $b->validity->bis <=> $a->validity->bis;
-        });
-
-        return $candidates[0];
-    }
-
-    #[Override]
-    public function yieldAllWithEmail(): iterable
-    {
-        $stmt = $this->pdo->query("SELECT * FROM permits WHERE email IS NOT NULL AND email != '' AND email != '0'");
-
-        if ($stmt === false) {
-            return;
-        }
-
-        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            yield $this->mapRowToEntity($row);
-        }
-    }
-
-    #[Override]
     public function yieldExpired(DateTimeImmutable $cutoffDate): iterable
     {
         $stmt = $this->pdo->prepare("SELECT * FROM permits WHERE bis < :cutoff AND status IN ('bezahlt', 'storniert')");
@@ -195,8 +141,13 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
     }
 
     #[Override]
-    public function hasCollision(int $plotNumber, DateTimeImmutable $start, DateTimeImmutable $end, string $licensePlate, ?string $company): bool
-    {
+    public function hasCollision(
+        int $plotNumber,
+        DateTimeImmutable $start,
+        DateTimeImmutable $end,
+        string $licensePlate,
+        ?string $company,
+    ): bool {
         $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($licensePlate));
         $query = 'SELECT 1 FROM permits WHERE parzelle = ? AND von <= ? AND bis >= ? AND status != \'storniert\' AND (';
         $params = [$plotNumber, $end->format('Y-m-d'), $start->format('Y-m-d')];

@@ -15,10 +15,12 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
 use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportAction;
-use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImportHandler;
 use Override;
 use Throwable;
 
+/**
+ * Nimmt die hochgeladene Bank-CSV entgegen und leitet je nach Modus zum Zuordnungs-Wizard oder Direkt-Import weiter.
+ */
 #[Route('POST', '/bank_import_analyze')]
 #[RequiresAuth]
 final readonly class AnalyzeBankImportAction implements ActionInterface, RequiresPermissionInterface
@@ -27,7 +29,7 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
         private ConfigInterface $config,
         private SessionManager $sessionManager,
         private AnalyzeBankImportHandler $analyzeHandler,
-        private ProcessBankImportHandler $processHandler,
+        private ProcessBankImportAction $processAction,
         private BankImportInfrastructureInterface $infrastructure,
     ) {
     }
@@ -57,44 +59,22 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
         }
 
         $analysis = $this->analyzeHandler->handle(new AnalyzeBankImportQuery($tempPath));
-        $headers = $analysis->headers;
 
-        if ($headers === []) {
+        if ($analysis->headers === []) {
             $this->sessionManager->addFlash('error', 'Die CSV-Datei ist leer oder konnte nicht gelesen werden.');
 
             return new RedirectResponse('admin');
         }
 
-        $guessedId = 4;
-        $guessedAmount = 14;
-        $guessedDate = 1;
-
-        foreach ($headers as $index => $header) {
-            $h = \strtolower(\trim((string) $header));
-            if (\str_contains($h, 'zweck') || \str_contains($h, 'remittance')) {
-                $guessedId = (int) $index;
-            }
-            if (\str_contains($h, 'betrag') || \str_contains($h, 'amount')) {
-                $guessedAmount = (int) $index;
-            }
-            if (!\str_contains($h, 'buchungstag') && !\str_contains($h, 'valuta') && !\str_contains($h, 'date')) {
-                continue;
-            }
-
-            $guessedDate = (int) $index;
-        }
-
-        $mode = $this->config->getString('bank_import_mode', 'simple');
-
-        if ($mode === 'advanced') {
+        if ($this->config->getString('bank_import_mode', 'simple') === 'advanced') {
             $this->sessionManager->setFormData([
                 'bank_wizard' => [
-                    'headers' => $headers,
+                    'headers' => $analysis->headers,
                     'previewRow' => $analysis->previewRow,
                     'tempFile' => $tempPath,
-                    'guessId' => $guessedId,
-                    'guessAmount' => $guessedAmount,
-                    'guessDate' => $guessedDate,
+                    'guessId' => $analysis->guessedId,
+                    'guessAmount' => $analysis->guessedAmount,
+                    'guessDate' => $analysis->guessedDate,
                 ],
             ]);
 
@@ -103,14 +83,11 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
             return new RedirectResponse('admin');
         }
 
-        // Delegierung im Simple Mode auf die neue VSA Action
-        $processAction = new ProcessBankImportAction($this->sessionManager, $this->config, $this->processHandler);
-
         $simulatedPost = \array_merge($request->post, [
             'temp_file' => $tempPath,
-            'col_id' => $guessedId,
-            'col_amount' => $guessedAmount,
-            'col_date' => $guessedDate,
+            'col_id' => $analysis->guessedId,
+            'col_amount' => $analysis->guessedAmount,
+            'col_date' => $analysis->guessedDate,
         ]);
 
         $simulatedRequest = new ServerRequest(
@@ -122,6 +99,6 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
             cookie: $request->cookie,
         );
 
-        return $processAction->execute($simulatedRequest);
+        return $this->processAction->execute($simulatedRequest);
     }
 }

@@ -12,10 +12,12 @@ use App\Modules\Permit\Domain\VerificationRequest;
 use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
 use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use DateTimeImmutable;
-use Exception;
 use Override;
 use PDO;
 
+/**
+ * PDO-Implementierung für Double-Opt-In- und Checkout-Verifizierungen.
+ */
 final readonly class PdoVerificationRepository implements VerificationRepositoryInterface
 {
     use DynamicSqlTrait;
@@ -57,22 +59,6 @@ final readonly class PdoVerificationRepository implements VerificationRepository
     }
 
     #[Override]
-    public function savePending(array $data, bool $forceSql = false): void
-    {
-        $this->saveSql('pending_verification', $data);
-    }
-
-    #[Override]
-    public function loadVerified(): array
-    {
-        $this->deleteExpiredSql('verified_pending');
-        $data = $this->loadSql('verified_pending');
-        $now = $this->clock->now();
-
-        return \array_filter($data, fn (VerificationRequest $req): bool => !$req->isExpired($now));
-    }
-
-    #[Override]
     public function findVerifiedByToken(string $token): ?VerificationRequest
     {
         $this->deleteExpiredSql('verified_pending');
@@ -107,12 +93,6 @@ final readonly class PdoVerificationRepository implements VerificationRepository
     public function deleteVerified(string $token): void
     {
         $this->deleteOneSql('verified_pending', $token);
-    }
-
-    #[Override]
-    public function saveVerified(array $data, bool $forceSql = false): void
-    {
-        $this->saveSql('verified_pending', $data);
     }
 
     private function resolveTableName(string $targetKey): string
@@ -212,40 +192,5 @@ final readonly class PdoVerificationRepository implements VerificationRepository
         }
 
         return $data;
-    }
-
-    /**
-     * @param array<string, VerificationRequest> $requests
-     */
-    private function saveSql(string $targetKey, array $requests): void
-    {
-        $table = $this->resolveTableName($targetKey);
-        $this->pdo->beginTransaction();
-
-        try {
-            $this->pdo->exec("DELETE FROM `{$table}`");
-
-            $sql = null;
-            $stmt = null;
-
-            foreach ($requests as $token => $req) {
-                $data = [
-                    'token' => $token,
-                    'expires' => $req->expiresAt->format('Y-m-d H:i:s'),
-                    'data' => \json_encode($req->data, \JSON_UNESCAPED_UNICODE),
-                ];
-
-                if ($sql === null) {
-                    $sql = $this->buildReplaceSql($table, $data);
-                    $stmt = $this->pdo->prepare($sql);
-                }
-                $stmt?->execute($data);
-            }
-            $this->pdo->commit();
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
-
-            throw $e;
-        }
     }
 }

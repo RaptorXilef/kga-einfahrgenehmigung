@@ -11,6 +11,8 @@ use League\Csv\Reader;
 use Override;
 
 /**
+ * Liest die Kopfzeile sowie erste Datenzeile einer Bank-CSV und erkennt automatisch die relevanten Spalten.
+ *
  * @implements QueryHandlerInterface<AnalyzeBankImportQuery, BankImportAnalysisDto>
  */
 final readonly class AnalyzeBankImportHandler implements QueryHandlerInterface
@@ -36,13 +38,33 @@ final readonly class AnalyzeBankImportHandler implements QueryHandlerInterface
             $iterator = $csv->getIterator();
             $iterator->rewind();
 
-            $headers = $iterator->valid() ? $iterator->current() : [];
+            $headers = $iterator->valid() && \is_array($iterator->current()) ? $iterator->current() : [];
             $iterator->next();
-            $previewRow = $iterator->valid() ? $iterator->current() : [];
+            $previewRow = $iterator->valid() && \is_array($iterator->current()) ? $iterator->current() : [];
+
+            $guessedId = 4;
+            $guessedAmount = 14;
+            $guessedDate = 1;
+
+            foreach ($headers as $index => $header) {
+                $h = \strtolower(\trim((string) $header));
+                if (\str_contains($h, 'zweck') || \str_contains($h, 'remittance')) {
+                    $guessedId = (int) $index;
+                }
+                if (\str_contains($h, 'betrag') || \str_contains($h, 'amount')) {
+                    $guessedAmount = (int) $index;
+                }
+                if (\str_contains($h, 'buchungstag') || \str_contains($h, 'valuta') || \str_contains($h, 'date')) {
+                    $guessedDate = (int) $index;
+                }
+            }
 
             return new BankImportAnalysisDto(
-                \is_array($headers) ? $headers : [],
-                \is_array($previewRow) ? $previewRow : [],
+                headers: $headers,
+                previewRow: $previewRow,
+                guessedId: $guessedId,
+                guessedAmount: $guessedAmount,
+                guessedDate: $guessedDate,
             );
         } catch (Exception $e) {
             \error_log('AnalyzeBankImportHandler Error: ' . $e->getMessage());

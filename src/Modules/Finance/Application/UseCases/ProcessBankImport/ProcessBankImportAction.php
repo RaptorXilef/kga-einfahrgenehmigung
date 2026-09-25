@@ -13,9 +13,13 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use App\Modules\Finance\Presentation\View\BankImportReportPresenter;
 use Override;
 use Throwable;
 
+/**
+ * Action zur Durchführung des CSV-Bankabgleichs (VSA).
+ */
 #[Route('POST', '/bank_import_process')]
 #[RequiresAuth]
 final readonly class ProcessBankImportAction implements ActionInterface, RequiresPermissionInterface
@@ -53,41 +57,8 @@ final readonly class ProcessBankImportAction implements ActionInterface, Require
                     $this->sessionManager->addCollectiveTransfer($transfer);
                 }
 
-                $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
-
-                $formatList = function (array $categories): string {
-                    $html = '<ul class="u-margin-block-xs u-padding-inline-start-m">';
-                    foreach ($categories as $cat => $items) {
-                        if (\is_numeric($cat)) {
-                            $html .= '<li>' . \htmlspecialchars((string) $items) . '</li>';
-                        } else {
-                            $html .= '<li class="u-margin-block-end-xs"><strong class="u-font-bold"><em>' . \htmlspecialchars($cat) . '</em></strong>:';
-                            $html .= '<ul class="u-margin-block-start-none u-margin-block-end-xs u-padding-inline-start-m">';
-                            foreach ((array) $items as $item) {
-                                $html .= '<li>' . \htmlspecialchars((string) $item) . '</li>';
-                            }
-                            $html .= '</ul></li>';
-                        }
-                    }
-
-                    return $html . '</ul>';
-                };
-
-                $htmlDetails = [];
-                if ($result->successDetails !== []) {
-                    $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/success.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Freigeschaltet:</strong>' . $formatList($result->successDetails) . '</div>';
-                }
-                if ($result->skippedDetails !== []) {
-                    $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/skip.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Übersprungen:</strong>' . $formatList($result->skippedDetails) . '</div>';
-                }
-                if ($result->errorDetails !== []) {
-                    $htmlDetails[] = '<div class="u-margin-bottom-s"><img src="' . $baseUrl . 'assets/img/icons/warning.webp" class="c-icon c-icon--inline" alt="" loading="lazy"> <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($result->errorDetails) . '</div>';
-                }
-
-                $msg = "<div class=\"u-margin-bottom-m\">Bank-Abgleich beendet: <strong>{$result->successCount}</strong> Permits freigeschaltet, {$result->skippedCount} übersprungen, {$result->errorCount} fehlerhaft.</div>";
-                $fullMsg = $msg . \implode('', $htmlDetails);
-
-                $this->sessionManager->addFlash('success', $fullMsg);
+                $reportHtml = BankImportReportPresenter::formatFlashReport($result, $this->config->getBaseUrl());
+                $this->sessionManager->addFlash('success', $reportHtml);
             } else {
                 $this->sessionManager->addFlash('error', $result->message);
             }
