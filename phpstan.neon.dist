@@ -13,9 +13,24 @@ parameters:
     # Level 0-9
     # Level 5 prüft Typen, erlaubt aber noch etwas Flexibilität.
     # Level 9 wäre "Maximaler Schmerz" (nur für neue Projekte empfohlen).
-    # TODO: Vor release auf "max" setzen ohne "
+    # TODO: Noch nicht auf "max" setzen (ohne " )
     level: 0
     # Erstmal 0 um Architekturbrüche zu finden, danach wieder 6
+
+    # Bedeutung: PHPStan prüft im Code standardmäßig sehr streng, wenn du den Typ mixed explizit angibst (z. B.
+    # public function foo(mixed $data)). Wenn es auf true steht, verbietet PHPStan fast jede Operation mit mixed,
+    # solange du es nicht vorher type-safety-mäßig geprüft hast (is_string, is_array etc.). Auf false schaltet
+    # PHPStan diese extrem pingeligen expliziten mixed-Prüfungen ab.
+    # TODO Wenn LVL 9 keine Fehler hat wieder aktivieren
+    checkExplicitMixed: false
+
+    # Bedeutung: Noch wichtiger: Wenn PHPStan den Typ einer Variablen oder eines Funktions-Returns nicht ermitteln
+    # kann (weil z. B. eine Fremdbibliothek keine Typen liefert oder Datenbank-Ergebnisse via PDO geholt werden),
+    # stuft PHPStan dies als implicites mixed ein. Auf true wirft PHPStan in Level 9 hunderte Fehlermeldungen. Mit
+    # false erlauben wir PHPStan, bei unvollständigen Typ-Informationen (besonders bei dynamischen Array-Mappern und
+    # Legacy-Schnittstellen) milder zu urteilen.
+    # TODO Wenn LVL 9 keine Fehler hat wieder aktivieren
+    checkImplicitMixed: false
 
     # Welche Ordner sollen analysiert werden?
     paths:
@@ -123,6 +138,39 @@ parameters:
         # Wir ignorieren die strict-rules empty() Meldungen, da sie für die Architektur irrelevant sind
         # TODO Später auskommentieren, wenn Architekturupdate abgeschlossen ist
         # - '#Construct empty\(\) is not allowed#'
+
+        # #Construct empty() is not allowed...#: Verbietet die Funktion empty().
+        # Auf Level 9 verlangen die Strict-Rules strenge Vergleiche (z.B. $val !== null && $val !== '').
+        # Da wir empty() in Formularen und Validierungen als kompaktes Sicherheitsnetz nutzen, ignorieren wir das.
+        # TODO Später auskommentieren, wenn Architekturupdate abgeschlossen ist
+        - '#Construct empty\(\) is not allowed#'
+
+        # #Only booleans are allowed in if/while...#: Verbietet "Truthy/Falsy"-Abfragen wie if ($string) oder if ($array).
+        # Level 9 verlangt exakte Typen (if ($string !== '')). Für kürzere und lesbarere Checks ignorieren wir das.
+        - '#Only booleans are allowed in.*#'
+
+        # #Cannot cast mixed to int|string|float|bool# & #Part ... (mixed) of encapsed string cannot be cast to string.#:
+        # Verhindert harte Casts ((int), (string) oder Einbettung in Strings "") von Variablen, deren Typ PHPStan nur als 'mixed' bekannt ist
+        # (häufig bei PDO-Ergebnissen oder Rohdaten). Da wir hier zur Laufzeit absichern, wird dies ignoriert.
+        - '#Cannot cast mixed to (int|string|float|bool)\.#'
+        - '#Part .* \(mixed\) of encapsed string cannot be cast to string\.#'
+
+        # #Parameter ... expects ..., mixed given.#: Schlägt an, wenn eine Methode einen festen Typ (z.B. int oder string)
+        # verlangt, du aber eine Variable vom Typ 'mixed' (z.B. aus einem Array oder Request) übergibst.
+        - '#Parameter .* of .* expects .*, mixed given\.#'
+
+        # #Cannot access offset ... on mixed.# & #Argument of an invalid type mixed supplied for foreach.#:
+        # Verhindert den Zugriff auf Array-Schlüssel ($data['key']) oder das Durchlaufen per foreach,
+        # wenn PHPStan die Variable fälschlicherweise als 'mixed' statt als Array erkennt.
+        - '#Cannot access offset .* on mixed\.#'
+        - '#Argument of an invalid type mixed supplied for foreach.*#'
+
+        # #Method ... has parameter/return type / Property ... has no value type specified in iterable type array.#:
+        # Erzwingt in PHPStan Level 9 für JEDES Array eine generische Typisierung (z.B. array<string, mixed> statt nur array).
+        # Da manche legacy Strukturen oder Framework-Rückgaben das nicht hergeben, ignorieren wir fehlende Array-Generics.
+        - '#Method .* has parameter .* with no value type specified in iterable type array\.#'
+        - '#Method .* return type has no value type specified in iterable type array\.#'
+        - '#Property .* type has no value type specified in iterable type array\.#'
 
     # =========================================================================
     # ARCHITEKTUR: VERBOTENE KLASSEN

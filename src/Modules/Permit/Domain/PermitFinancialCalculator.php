@@ -26,24 +26,26 @@ final readonly class PermitFinancialCalculator
      */
     public function calculateBasePrice(TemplateKey $templateKey, string $vehicleType): float
     {
-        $templates = (array) $this->config->get('permit_templates', []);
+        $templates = $this->config->getArray('permit_templates');
         $template = $templates[$templateKey->value] ?? null;
-        if ($template === null) {
+        if (!\is_array($template)) {
             return 0.0;
         }
 
-        $vehicleTypes = (array) $this->config->get('vehicle_types', []);
+        $vehicleTypes = $this->config->getArray('vehicle_types');
         $defaultType = $vehicleTypes === [] ? 'pkw' : (string) \array_key_first($vehicleTypes);
 
-        $typeToUse = isset($template['prices'][$vehicleType]) ? $vehicleType : $defaultType;
+        $prices = \is_array($template['prices'] ?? null) ? $template['prices'] : [];
+        $typeToUse = isset($prices[$vehicleType]) ? $vehicleType : $defaultType;
+        $rawPrice = $prices[$typeToUse] ?? 0.0;
 
-        return (float) ($template['prices'][$typeToUse] ?? 0.0);
+        return \is_numeric($rawPrice) ? (float) $rawPrice : 0.0;
     }
 
     public function calculatePaymentDueDate(Permit $permit): DateTimeImmutable
     {
-        $dueDays = (int) $this->config->get('payment_due_days', 14);
-        $daysBeforeValidity = (int) $this->config->get('payment_due_days_before_validity', 2);
+        $dueDays = $this->config->getInt('payment_due_days', 14);
+        $daysBeforeValidity = $this->config->getInt('payment_due_days_before_validity', 2);
 
         $fallbackDueDate = $permit->getCreatedAt()->modify("+{$dueDays} days")->setTime(23, 59, 59);
         $dynamicDueDate = $permit->getValidFrom()->modify("-{$daysBeforeValidity} days")->setTime(23, 59, 59);
@@ -60,7 +62,7 @@ final readonly class PermitFinancialCalculator
         $now = $this->clock->now();
         $userDeadline = $this->calculatePaymentDueDate($permit);
 
-        $notifyDays = (int) $this->config->get('payment_due_days_notify', 2);
+        $notifyDays = $this->config->getInt('payment_due_days_notify', 2);
         $staffAlertThreshold = $userDeadline->modify("+{$notifyDays} days");
 
         if ($now > $staffAlertThreshold) {
@@ -76,12 +78,10 @@ final readonly class PermitFinancialCalculator
 
     public function generateUsageText(Permit $permit): string
     {
-        $pattern = (string) $this->config->get('usage_pattern', 'EFG-{{code}}-{{nachname}}');
+        $pattern = $this->config->getString('usage_pattern', 'EFG-{{code}}-{{nachname}}');
 
-        // FIX: Wir holen sauber alles NACH dem letzten Bindestrich.
-        // Das deckt die neuen 8-stelligen (V4) Codes und auch alte 6-stellige Legacy-Codes fehlerfrei ab!
         $codeParts = \explode('-', $permit->code->value);
-        $shortCode = \end($codeParts);
+        $shortCode = (string) \end($codeParts);
 
         $nameParts = \explode(' ', $permit->getOwnerName());
         $vorname = $nameParts[0] ?? '';

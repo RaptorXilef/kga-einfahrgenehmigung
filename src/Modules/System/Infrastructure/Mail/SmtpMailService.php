@@ -17,10 +17,10 @@ final class SmtpMailService extends AbstractMailService
 
         try {
             $mail->isSMTP();
-            $mail->Host = $transportConfig['host'] ?? '';
+            $mail->Host = (string) ($transportConfig['host'] ?? '');
             $mail->SMTPAuth = true;
-            $mail->Username = $transportConfig['user'] ?? '';
-            $mail->Password = $transportConfig['pass'] ?? '';
+            $mail->Username = (string) ($transportConfig['user'] ?? '');
+            $mail->Password = (string) ($transportConfig['pass'] ?? '');
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Implicit TLS (Port 465)
             $mail->Port = (int) ($transportConfig['port'] ?? 465);
 
@@ -29,7 +29,7 @@ final class SmtpMailService extends AbstractMailService
             }
 
             $mail->CharSet = PHPMailer::CHARSET_UTF8;
-            $mail->setFrom($transportConfig['from'] ?? '', $this->config->get('vereins_name', 'KGA'));
+            $mail->setFrom((string) ($transportConfig['from'] ?? ''), $this->config->getString('vereins_name', 'KGA'));
             $mail->addAddress($recipient);
 
             if ($replyTo !== null && \filter_var($replyTo, \FILTER_VALIDATE_EMAIL)) {
@@ -37,7 +37,15 @@ final class SmtpMailService extends AbstractMailService
             }
 
             foreach ($attachments as $att) {
-                $mail->addStringAttachment($att['content'], $att['name'], 'base64', $att['mime'] ?? 'application/pdf');
+                if (!\is_array($att)) {
+                    continue;
+                }
+                $mail->addStringAttachment(
+                    (string) ($att['content'] ?? ''),
+                    (string) ($att['name'] ?? 'attachment.pdf'),
+                    'base64',
+                    (string) ($att['mime'] ?? 'application/pdf'),
+                );
             }
 
             $mail->isHTML(true);

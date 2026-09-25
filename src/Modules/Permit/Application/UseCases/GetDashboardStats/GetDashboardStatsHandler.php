@@ -6,6 +6,7 @@ namespace App\Modules\Permit\Application\UseCases\GetDashboardStats;
 
 use App\Contracts\Config\ConfigInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
 use Override;
 use PDO;
@@ -25,8 +26,10 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
      * @param GetDashboardStatsQuery $query
      */
     #[Override]
-    public function handle(mixed $query): DashboardStatsDto
+    public function handle(QueryInterface $query): DashboardStatsDto
     {
+        \assert($query instanceof GetDashboardStatsQuery);
+
         $vConfig = $this->config->getArray('vehicle_types');
         $permitTemplates = $this->config->getArray('permit_templates');
         $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
@@ -48,28 +51,58 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
         ]);
 
         // 2. Initialisiere leere Statistik-Container
+        /** @var array<string, int> $initialTypes */
+        $initialTypes = \array_fill_keys(\array_map(strval(...), \array_keys($vConfig)), 0);
+        $initialTypes['__legacy__'] = 0;
+
+        /**
+         * @var array{
+         *   count: int,
+         *   revenue_paid: float,
+         *   revenue_unpaid: float,
+         *   types: array<string, int>,
+         *   plots: array<int|string, array{count: int, revenue: float, name: string, email: string}>,
+         *   max_plot_count?: int
+         * } $periodStats
+         */
         $periodStats = [
             'count' => 0,
             'revenue_paid' => 0.0,
             'revenue_unpaid' => 0.0,
-            'types' => \array_fill_keys(\array_keys($vConfig), 0),
+            'types' => $initialTypes,
             'plots' => [],
         ];
-        $periodStats['types']['__legacy__'] = 0;
 
+        /**
+         * @var array<int|string, array{
+         *   count: int,
+         *   paid: float,
+         *   unpaid: float,
+         *   types: array<string, int>
+         * }> $yearlyStats
+         */
         $yearlyStats = [];
+
+        /** @var array<string, array{sort_key: string, count: int, revenue: float}> $monthlyStats */
         $monthlyStats = [];
         $queryLower = \strtolower(\trim($query->searchQuery));
 
         // 3. VSA FIX: Ein einziger High-Speed Loop (Unbuffered/Row-by-Row).
         while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            $date = \substr((string) $row['erstellt'], 0, 10);
-            $status = (string) $row['status'];
-            $typ = (string) $row['typ'];
-            $price = (float) $row['preis'];
-            $year = \substr((string) $row['erstellt'], 0, 4);
-            $monthKey = \substr((string) $row['erstellt'], 5, 2) . '.' . $year;
-            $monthSortKey = \substr((string) $row['erstellt'], 0, 7);
+            $erstelltStr = (string) ($row['erstellt'] ?? '');
+            $date = \substr($erstelltStr, 0, 10);
+            $status = (string) ($row['status'] ?? '');
+            $typ = (string) ($row['typ'] ?? '');
+            $price = (float) ($row['preis'] ?? 0.0);
+            $year = \substr($erstelltStr, 0, 4);
+            $monthKey = \substr($erstelltStr, 5, 2) . '.' . $year;
+            $monthSortKey = \substr($erstelltStr, 0, 7);
+            $tplKey = (string) ($row['template_key'] ?? '');
+            $rowName = (string) ($row['name'] ?? '');
+            $rowEmail = (string) ($row['email'] ?? '');
+            $rowPlate = (string) ($row['kennzeichen'] ?? '');
+            $rowPurpose = (string) ($row['zweck'] ?? '');
+            $rowPlotFormatted = \str_pad((string) ($row['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT);
 
             // ---- A) Globale Jahresstatistiken (Für Akkordeon) ----
             if (!isset($yearlyStats[$year])) {
@@ -77,12 +110,16 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
                     'count' => 0,
                     'paid' => 0.0,
                     'unpaid' => 0.0,
-                    'types' => \array_fill_keys(\array_keys($vConfig), 0),
+                    'types' => $initialTypes,
                 ];
-                $yearlyStats[$year]['types']['__legacy__'] = 0;
             }
             ++$yearlyStats[$year]['count'];
-            isset($yearlyStats[$year]['types'][$typ]) ? $yearlyStats[$year]['types'][$typ]++ : $yearlyStats[$year]['types']['__legacy__']++;
+            if (isset($yearlyStats[$year]['types'][$typ])) {
+                ++$yearlyStats[$year]['types'][$typ];
+            } else {
+                ++$yearlyStats[$year]['types']['__legacy__'];
+            }
+
             if ($status === 'bezahlt') {
                 $yearlyStats[$year]['paid'] += $price;
             } else {
@@ -91,11 +128,12 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
 
             // ---- B) Perioden-Filter anwenden für Top-Cards und Rankings ----
             $inPeriod = $date >= $query->filterStart && $date <= $query->filterEnd;
-            $typeMatch = $query->filterType === 'all' || (($permitTemplates[$row['template_key']]['type'] ?? 'standard') === $query->filterType);
+            $tplCfg = \is_array($permitTemplates[$tplKey] ?? null) ? $permitTemplates[$tplKey] : [];
+            $typeMatch = $query->filterType === 'all' || (($tplCfg['type'] ?? 'standard') === $query->filterType);
 
             $searchMatch = true;
             if ($queryLower !== '') {
-                $searchString = \strtolower($row['name'] . ' ' . $row['email'] . ' ' . $row['kennzeichen'] . ' ' . \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT) . ' ' . $row['zweck']);
+                $searchString = \strtolower($rowName . ' ' . $rowEmail . ' ' . $rowPlate . ' ' . $rowPlotFormatted . ' ' . $rowPurpose);
                 $searchMatch = \str_contains($searchString, $queryLower);
             }
 
@@ -104,7 +142,11 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
             }
 
             ++$periodStats['count'];
-            isset($periodStats['types'][$typ]) ? $periodStats['types'][$typ]++ : $periodStats['types']['__legacy__']++;
+            if (isset($periodStats['types'][$typ])) {
+                ++$periodStats['types'][$typ];
+            } else {
+                ++$periodStats['types']['__legacy__'];
+            }
 
             if ($status === 'bezahlt') {
                 $periodStats['revenue_paid'] += $price;
@@ -112,13 +154,12 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
                 $periodStats['revenue_unpaid'] += $price;
             }
 
-            $pNum = \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT);
-            $periodStats['plots'][$pNum] ??= ['count' => 0, 'revenue' => 0.0, 'name' => $row['name'], 'email' => $row['email']];
-            ++$periodStats['plots'][$pNum]['count'];
-            $periodStats['plots'][$pNum]['revenue'] += $price;
+            $periodStats['plots'][$rowPlotFormatted] ??= ['count' => 0, 'revenue' => 0.0, 'name' => $rowName, 'email' => $rowEmail];
+            ++$periodStats['plots'][$rowPlotFormatted]['count'];
+            $periodStats['plots'][$rowPlotFormatted]['revenue'] += $price;
             // Immer die Daten des aktuellsten Antrags merken
-            $periodStats['plots'][$pNum]['name'] = $row['name'];
-            $periodStats['plots'][$pNum]['email'] = $row['email'];
+            $periodStats['plots'][$rowPlotFormatted]['name'] = $rowName;
+            $periodStats['plots'][$rowPlotFormatted]['email'] = $rowEmail;
 
             // ---- C) Monats-Statistiken für den Chart (NUR gefilterte Daten) ----
             $monthlyStats[$monthKey] ??= ['sort_key' => $monthSortKey, 'count' => 0, 'revenue' => 0.0];
@@ -139,7 +180,7 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
         $topPlots = [];
         $rank = 1;
         foreach (\array_slice($periodStats['plots'], 0, 30, true) as $pNum => $pData) {
-            $rawEmail = \trim((string) ($pData['email'] ?? ''));
+            $rawEmail = \trim($pData['email']);
             if ($rawEmail !== '' && $rawEmail !== '0') {
                 $safeMail = \htmlspecialchars($rawEmail, \ENT_QUOTES, 'UTF-8');
                 $wbrMail = \str_replace('@', '<wbr>@', $safeMail);
@@ -148,16 +189,16 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
                 $emailHtml = '<small class="u-color-muted"><em>keine Angabe</em></small>';
             }
 
-            $count = (int) $pData['count'];
+            $count = $pData['count'];
             $perc = $count / $maxPlotCount * 100.0;
 
             $topPlots[] = new PlotRankingItemDto(
                 rank: $rank,
                 isTopThree: $rank <= 3,
                 plotNumber: (string) $pNum,
-                ownerName: (string) ($pData['name'] ?: 'Unbekannt'),
+                ownerName: $pData['name'] !== '' ? $pData['name'] : 'Unbekannt',
                 emailHtml: $emailHtml,
-                revenueFormatted: \number_format((float) $pData['revenue'], 2, ',', '.') . ' €',
+                revenueFormatted: \number_format($pData['revenue'], 2, ',', '.') . ' €',
                 count: $count,
                 intensityPercent: $perc,
             );
@@ -166,10 +207,10 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
 
         // 6. Payload für Chart.js aufbereiten
         $chartDataPayload = [
-            'yearLabels' => \array_reverse(\array_keys($yearlyStats)),
-            'yearRevenue' => \array_reverse(\array_map(fn (array $d): float => $d['paid'] + $d['unpaid'], $yearlyStats)),
-            'yearCounts' => \array_reverse(\array_map(fn (array $d): int => $d['count'], $yearlyStats)),
-            'monthLabels' => \array_values(\array_keys($monthlyStats)),
+            'yearLabels' => \array_map(strval(...), \array_reverse(\array_keys($yearlyStats))),
+            'yearRevenue' => \array_reverse(\array_map(fn (array $d): float => $d['paid'] + $d['unpaid'], \array_values($yearlyStats))),
+            'yearCounts' => \array_reverse(\array_map(fn (array $d): int => $d['count'], \array_values($yearlyStats))),
+            'monthLabels' => \array_map(strval(...), \array_keys($monthlyStats)),
             'monthRevenue' => \array_values(\array_map(fn (array $d): float => $d['revenue'], $monthlyStats)),
             'monthCounts' => \array_values(\array_map(fn (array $d): int => $d['count'], $monthlyStats)),
         ];
@@ -183,10 +224,11 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
             if ($typeKey === '__legacy__') {
                 $periodVehicleStats[] = ['count' => $count, 'label' => 'Sonstige / Ehem.', 'icon' => 'assets/img/icons/warning.webp'];
             } else {
+                $typeCfg = \is_array($vConfig[$typeKey] ?? null) ? $vConfig[$typeKey] : [];
                 $periodVehicleStats[] = [
                     'count' => $count,
-                    'label' => (string) ($vConfig[$typeKey]['label'] ?? $typeKey),
-                    'icon' => (string) ($vConfig[$typeKey]['icon'] ?? ''),
+                    'label' => (string) ($typeCfg['label'] ?? $typeKey),
+                    'icon' => (string) ($typeCfg['icon'] ?? ''),
                 ];
             }
         }
@@ -194,6 +236,7 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
         $yearlyVehicleStats = [];
         $yearlyStatItems = [];
         foreach ($yearlyStats as $year => $data) {
+            $yearStr = (string) $year;
             $statsForYear = [];
             $typeItemsHtml = [];
 
@@ -204,10 +247,11 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
                 if ($tKey === '__legacy__') {
                     $item = ['count' => $count, 'label' => 'Sonstige', 'icon' => 'assets/img/icons/warning.webp'];
                 } else {
+                    $tCfg = \is_array($vConfig[$tKey] ?? null) ? $vConfig[$tKey] : [];
                     $item = [
                         'count' => $count,
-                        'label' => (string) ($vConfig[$tKey]['label'] ?? $tKey),
-                        'icon' => (string) ($vConfig[$tKey]['icon'] ?? ''),
+                        'label' => (string) ($tCfg['label'] ?? $tKey),
+                        'icon' => (string) ($tCfg['icon'] ?? ''),
                     ];
                 }
                 $statsForYear[] = $item;
@@ -218,13 +262,13 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
                 $typeItemsHtml[] = '<span>' . $imgHtml . ' ' . $item['count'] . ' ' . \htmlspecialchars($item['label']) . '</span>';
             }
 
-            $yearlyVehicleStats[$year] = $statsForYear;
+            $yearlyVehicleStats[$yearStr] = $statsForYear;
 
             $paid = $data['paid'];
             $unpaid = $data['unpaid'];
 
             $yearlyStatItems[] = new YearlyStatItemDto(
-                year: $year,
+                year: $yearStr,
                 count: $data['count'],
                 paidShortFormatted: \number_format($paid, 0, ',', '.') . ' €',
                 paidFormatted: \number_format($paid, 2, ',', '.') . ' €',

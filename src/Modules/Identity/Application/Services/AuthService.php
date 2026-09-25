@@ -44,9 +44,12 @@ final readonly class AuthService implements AuthorizationInterface
             return false;
         }
 
+        $superadminCfg = $this->config->getArray('superadmin');
+        $backdoorCfg = $this->config->getArray('backdoor');
+
         return $this->sessionManager->getUserId() !== ''
-            || $this->sessionManager->getAdminUser() === ($this->config->get('superadmin')['label'] ?? 'Dev-Admin')
-            || $this->sessionManager->getAdminUser() === ($this->config->get('backdoor')['label'] ?? '');
+            || $this->sessionManager->getAdminUser() === (string) ($superadminCfg['label'] ?? 'Dev-Admin')
+            || $this->sessionManager->getAdminUser() === (string) ($backdoorCfg['label'] ?? '');
     }
 
     #[Override]
@@ -72,10 +75,10 @@ final readonly class AuthService implements AuthorizationInterface
     {
         $roles = $this->roleRepository->loadAll();
         $rolePerms = isset($roles[$roleId]) ? $roles[$roleId]->permissions : [];
-        $structure = $this->config->get('structure', []);
+        $structure = $this->config->getArray('structure');
 
         $compiler = new PermissionCompiler();
-        $this->sessionManager->setPermissions($compiler->compile(\is_array($structure) ? $structure : [], $rolePerms));
+        $this->sessionManager->setPermissions($compiler->compile($structure, $rolePerms));
     }
 
     #[Override]

@@ -34,18 +34,16 @@ final class ActionRegistry
     {
         $this->cache->clearOld();
 
-        if ($this->config->get('debug_mode', false) !== true) {
+        if (!$this->config->getBool('debug_mode', false)) {
             $cached = $this->cache->load();
             if (\is_array($cached)) {
-                /** @var array{exact: array<string, array<string, array{class: string, auth: bool}>>, dynamic: array<string, array<string, array{class: string, auth: bool}>>} $cachedArr */
-                $cachedArr = $cached;
-                $this->routes = $cachedArr;
+                $this->routes = $cached;
 
                 return;
             }
         }
 
-        $rootPath = \rtrim(\is_string($this->config->get('root_path', '')) ? $this->config->get('root_path', '') : '', '/\\');
+        $rootPath = \rtrim($this->config->getString('root_path', ''), '/\\');
 
         // Scannt ab sofort NUR noch die VSA Modules (Legacy Actions wurden stranguliert)
         $this->scanDirectoryRecursively($rootPath . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules');
@@ -60,7 +58,7 @@ final class ActionRegistry
         }
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
-        $srcPath = \rtrim(\is_string($this->config->get('root_path', '')) ? $this->config->get('root_path', '') : '', '/\\') . \DIRECTORY_SEPARATOR . 'src';
+        $srcPath = \rtrim($this->config->getString('root_path', ''), '/\\') . \DIRECTORY_SEPARATOR . 'src';
 
         foreach ($iterator as $file) {
             /** @var SplFileInfo $file */
@@ -110,34 +108,32 @@ final class ActionRegistry
      */
     public function match(string $method, string $path): ?array
     {
-        if (
-            isset($this->routes['exact'][$method])
-            && \is_array($this->routes['exact'][$method])
-            && isset($this->routes['exact'][$method][$path])
-        ) {
+        if (isset($this->routes['exact'][$method][$path])) {
             $routeData = $this->routes['exact'][$method][$path];
-            $class = \is_string($routeData['class']) ? $routeData['class'] : '';
-            $auth = ($routeData['auth'] ?? false) === true;
 
-            return ['class' => $class, 'params' => [], 'requiresAuth' => $auth];
+            return [
+                'class' => $routeData['class'],
+                'params' => [],
+                'requiresAuth' => $routeData['auth'],
+            ];
         }
 
         $dynamics = $this->routes['dynamic'][$method] ?? [];
-        if (\is_array($dynamics)) {
-            foreach ($dynamics as $regex => $routeData) {
-                if (\is_string($regex) && \preg_match($regex, $path, $matches) === 1) {
-                    $params = [];
-                    foreach ($matches as $k => $v) {
-                        if (!\is_string($k)) {
-                            continue;
-                        }
-                        $params[$k] = $v;
+        foreach ($dynamics as $regex => $routeData) {
+            if (\preg_match($regex, $path, $matches) === 1) {
+                $params = [];
+                foreach ($matches as $k => $v) {
+                    if (!\is_string($k)) {
+                        continue;
                     }
-                    $class = isset($routeData['class']) && \is_string($routeData['class']) ? $routeData['class'] : '';
-                    $auth = isset($routeData['auth']) && $routeData['auth'];
-
-                    return ['class' => $class, 'params' => $params, 'requiresAuth' => $auth];
+                    $params[$k] = $v;
                 }
+
+                return [
+                    'class' => $routeData['class'],
+                    'params' => $params,
+                    'requiresAuth' => $routeData['auth'],
+                ];
             }
         }
 

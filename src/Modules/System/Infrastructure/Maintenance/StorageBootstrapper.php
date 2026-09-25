@@ -79,7 +79,7 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
             return;
         }
 
-        $validKeys = \array_keys($this->config->get('permissions', []));
+        $validKeys = \array_keys($this->config->getArray('permissions'));
         $validKeys[] = '*';
 
         $changed = false;
@@ -88,11 +88,12 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
             $cleanedPerms = [];
 
             foreach ($role->permissions as $perm) {
-                $basePerm = \ltrim($perm, '-');
+                $permStr = (string) $perm;
+                $basePerm = \ltrim($permStr, '-');
                 if (!\in_array($basePerm, $validKeys, true)) {
                     continue;
                 }
-                $cleanedPerms[] = $perm;
+                $cleanedPerms[] = $permStr;
             }
 
             if (\count($cleanedPerms) === $originalCount) {
@@ -142,6 +143,9 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
         }
     }
 
+    /**
+     * @return array<string, User>
+     */
     private function getDefaultUsers(): array
     {
         return [
@@ -155,6 +159,9 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
         ];
     }
 
+    /**
+     * @return array<string, Role>
+     */
     private function getDefaultRoles(): array
     {
         return [

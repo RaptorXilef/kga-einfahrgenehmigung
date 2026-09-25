@@ -25,6 +25,9 @@ final readonly class PermitFactory
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $agreements
+     */
     public function createNew(
         TemplateKey $templateKey,
         Owner $owner,
@@ -38,19 +41,22 @@ final readonly class PermitFactory
         array $agreements,
     ): Permit {
         // 1. Calculate Validity End Date
-        $templates = (array) $this->config->get('permit_templates', []);
-        $template = $templates[$templateKey->value] ?? ['days' => 1];
+        $templates = $this->config->getArray('permit_templates');
+        $template = \is_array($templates[$templateKey->value] ?? null) ? $templates[$templateKey->value] : ['days' => 1];
 
         if (($template['days'] ?? 1) === 'custom') {
             $endDate = $customEndDate ?? $startDate;
         } else {
-            $daysToAdd = \max(0, (int) ($template['days'] ?? 1) - 1);
+            $daysRaw = $template['days'] ?? 1;
+            $daysInt = \is_numeric($daysRaw) ? (int) $daysRaw : 1;
+            $daysToAdd = \max(0, $daysInt - 1);
             $endDate = $startDate->modify('+' . $daysToAdd . ' days');
         }
 
         // 2. Resolve Purpose
-        $purposes = (array) $this->config->get('purposes', []);
-        $zweck = $purposes[$purpose] ?? ($purpose !== '' ? \strip_tags($purpose) : 'Privat');
+        $purposes = $this->config->getArray('purposes');
+        $resolvedPurpose = $purposes[$purpose] ?? null;
+        $zweck = \is_string($resolvedPurpose) ? $resolvedPurpose : ($purpose !== '' ? \strip_tags($purpose) : 'Privat');
 
         // 3. Generate Unique Code
         $platePart = \str_replace(' ', '-', $vehicle->kennzeichen->value);
@@ -58,8 +64,8 @@ final readonly class PermitFactory
             $platePart = \strtoupper($vehicle->typ);
         }
 
-        $useLongCode = (bool) $this->config->get('use_long_permit_code', false);
-        $prefix = (string) $this->config->get('prefix', 'ML');
+        $useLongCode = $this->config->getBool('use_long_permit_code', false);
+        $prefix = $this->config->getString('prefix', 'ML');
 
         do {
             $randomId = $this->generateV4Suffix();

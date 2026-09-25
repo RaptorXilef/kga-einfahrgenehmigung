@@ -19,31 +19,31 @@ final class OAuthSmtpMailService extends AbstractMailService
 
         try {
             $mail->isSMTP();
-            $mail->Host = $transportConfig['host'] ?? 'smtp.office365.com';
+            $mail->Host = (string) ($transportConfig['host'] ?? 'smtp.office365.com');
             $mail->SMTPAuth = true;
             $mail->AuthType = 'XOAUTH2';
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = (int) ($transportConfig['port'] ?? 587);
 
-            $emailAddress = $transportConfig['user'] ?? '';
+            $emailAddress = (string) ($transportConfig['user'] ?? '');
 
             $provider = new Azure([
-                'clientId' => $transportConfig['clientId'] ?? '',
-                'clientSecret' => $transportConfig['clientSecret'] ?? '',
-                'tenant' => $transportConfig['tenantId'] ?? '',
+                'clientId' => (string) ($transportConfig['clientId'] ?? ''),
+                'clientSecret' => (string) ($transportConfig['clientSecret'] ?? ''),
+                'tenant' => (string) ($transportConfig['tenantId'] ?? ''),
             ]);
 
             $mail->setOAuth(
                 new OAuth([
                     'provider' => $provider,
-                    'clientId' => $transportConfig['clientId'] ?? '',
-                    'clientSecret' => $transportConfig['clientSecret'] ?? '',
+                    'clientId' => (string) ($transportConfig['clientId'] ?? ''),
+                    'clientSecret' => (string) ($transportConfig['clientSecret'] ?? ''),
                     'userName' => $emailAddress,
                 ]),
             );
 
             $mail->CharSet = PHPMailer::CHARSET_UTF8;
-            $mail->setFrom($transportConfig['from'] ?? '', $this->config->get('vereins_name', 'KGA'));
+            $mail->setFrom((string) ($transportConfig['from'] ?? ''), $this->config->getString('vereins_name', 'KGA'));
             $mail->addAddress($recipient);
 
             if ($replyTo !== null && \filter_var($replyTo, \FILTER_VALIDATE_EMAIL)) {
@@ -51,7 +51,15 @@ final class OAuthSmtpMailService extends AbstractMailService
             }
 
             foreach ($attachments as $att) {
-                $mail->addStringAttachment($att['content'], $att['name'], 'base64', $att['mime'] ?? 'application/pdf');
+                if (!\is_array($att)) {
+                    continue;
+                }
+                $mail->addStringAttachment(
+                    (string) ($att['content'] ?? ''),
+                    (string) ($att['name'] ?? 'attachment.pdf'),
+                    'base64',
+                    (string) ($att['mime'] ?? 'application/pdf'),
+                );
             }
 
             $mail->isHTML(true);

@@ -28,16 +28,27 @@ final readonly class PdoMailQueueRepository implements MailQueueRepositoryInterf
     ) {
     }
 
+    private function getTableName(): string
+    {
+        $storageCfg = $this->config->getArray('storage_config');
+        $mailQueueCfg = \is_array($storageCfg['mail_queue'] ?? null) ? $storageCfg['mail_queue'] : [];
+
+        return (string) ($mailQueueCfg['table'] ?? 'mail_queue');
+    }
+
     #[Override]
     public function enqueue(MailJob $job): void
     {
-        $table = $this->config->get('storage_config')['mail_queue']['table'];
+        $table = $this->getTableName();
         $data = $this->extractEntity($job, [
             'template' => $job->template->value,
         ]);
         $this->executeUpsert($table, $data, ['id']);
     }
 
+    /**
+     * @param string[] $allowedTemplates
+     */
     #[Override]
     public function processBatch(int $limit, callable $processor, array $allowedTemplates = []): int
     {
@@ -59,7 +70,7 @@ final readonly class PdoMailQueueRepository implements MailQueueRepositoryInterf
         }
 
         try {
-            $table = $this->config->get('storage_config')['mail_queue']['table'];
+            $table = $this->getTableName();
 
             $updateSql = 'UPDATE `' . $table . '` SET attempts = attempts + 100 ' .
                 "WHERE attempts < 3 {$templateFilterSql} " .
@@ -121,7 +132,7 @@ final readonly class PdoMailQueueRepository implements MailQueueRepositoryInterf
 
             return true;
         } catch (Throwable $t) {
-            $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');
+            $rootPath = \rtrim($this->config->getString('root_path', ''), '/\\');
             $logPath = $rootPath . '/logs/mail_queue_errors.log';
             $logMsg = '[' . $this->clock->now()->format('d-M-Y H:i:s e') . "] MailQueue Error [ID {$idStr}]: " . $t->getMessage() . "\n";
             @\file_put_contents($logPath, $logMsg, \FILE_APPEND | \LOCK_EX);
@@ -134,7 +145,7 @@ final readonly class PdoMailQueueRepository implements MailQueueRepositoryInterf
                 return false;
             }
 
-            $table = $this->config->get('storage_config')['mail_queue']['table'];
+            $table = $this->getTableName();
             $this->pdo->prepare('UPDATE `' . $table . '` SET attempts = ? WHERE id = ?')
                 ->execute([$origAttempts, $idStr]);
 
@@ -144,7 +155,7 @@ final readonly class PdoMailQueueRepository implements MailQueueRepositoryInterf
 
     public function delete(string $id): void
     {
-        $table = $this->config->get('storage_config')['mail_queue']['table'];
+        $table = $this->getTableName();
         $this->pdo->prepare('DELETE FROM `' . $table . '` WHERE id = ?')->execute([$id]);
     }
 }
