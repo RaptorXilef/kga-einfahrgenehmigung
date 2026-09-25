@@ -6,6 +6,7 @@ namespace App\Modules\Finance\Application\UseCases\GenerateEpcQr;
 
 use App\Contracts\Config\ConfigInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use Override;
 
 /**
@@ -22,7 +23,7 @@ final readonly class GenerateEpcQrHandler implements QueryHandlerInterface
      * @param GenerateEpcQrQuery $query
      */
     #[Override]
-    public function handle(mixed $query): string
+    public function handle(QueryInterface $query): string
     {
         return "BCD\n001\n1\nSCT\n" .
             $this->config->getString('bic') . "\n" .

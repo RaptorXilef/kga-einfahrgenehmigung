@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Voucher\Application\UseCases\GetVoucherArchive;
 
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
 use Override;
 use PDO;
@@ -25,7 +26,7 @@ final readonly class GetVoucherArchiveHandler implements QueryHandlerInterface
      * @return array<VoucherArchiveItemDto>
      */
     #[Override]
-    public function handle(mixed $query): array
+    public function handle(QueryInterface $query): array
     {
         $stmt = $this->pdo->query('SELECT code, redeemed_at, user_name, user_plot FROM vouchers_archive ORDER BY redeemed_at DESC LIMIT 500');
 

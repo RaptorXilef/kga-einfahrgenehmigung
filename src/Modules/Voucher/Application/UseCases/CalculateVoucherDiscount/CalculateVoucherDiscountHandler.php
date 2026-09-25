@@ -8,6 +8,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use Override;
 
 /**
@@ -25,7 +26,7 @@ final readonly class CalculateVoucherDiscountHandler implements QueryHandlerInte
      * @param CalculateVoucherDiscountQuery $query
      */
     #[Override]
-    public function handle(mixed $query): VoucherDiscountDto
+    public function handle(QueryInterface $query): VoucherDiscountDto
     {
         $voucher = $this->repository->findByCode($query->code);
 

@@ -9,6 +9,7 @@ use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
 use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use App\SharedKernel\Domain\Event\BankPaymentAssignedEvent;
 use DateTimeImmutable;
@@ -36,7 +37,7 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
      * @param ProcessBankImportCommand $command
      */
     #[Override]
-    public function handle(mixed $command): BankImportResultDto
+    public function handle(CommandInterface $command): BankImportResultDto
     {
         $runLogs = [];
 

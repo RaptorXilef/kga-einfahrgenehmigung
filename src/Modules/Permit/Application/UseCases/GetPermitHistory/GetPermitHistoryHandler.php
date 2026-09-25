@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\GetPermitHistory;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use App\SharedKernel\Application\Security\Sanitizer;
 use DateTimeImmutable;
 use Override;
@@ -30,7 +31,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
      * @param GetPermitHistoryQuery $query
      */
     #[Override]
-    public function handle(mixed $query): array
+    public function handle(QueryInterface $query): array
     {
         $normalizedSearch = Sanitizer::normalizeEmail($query->email);
         $parts = \explode('@', $normalizedSearch);

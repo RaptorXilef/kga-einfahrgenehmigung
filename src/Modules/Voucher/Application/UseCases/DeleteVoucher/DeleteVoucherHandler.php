@@ -6,6 +6,7 @@ namespace App\Modules\Voucher\Application\UseCases\DeleteVoucher;
 
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use Override;
 
 /**
@@ -22,7 +23,7 @@ final readonly class DeleteVoucherHandler implements CommandHandlerInterface
      * @param DeleteVoucherCommand $command
      */
     #[Override]
-    public function handle(mixed $command): void
+    public function handle(CommandInterface $command): void
     {
         // Wir delegieren das Löschen direkt an die Infrastruktur.
         // Ist idempotent: Wenn er nicht existiert, passiert nichts.

@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\GetDashboardPermits;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
 use Override;
 use PDO;
@@ -27,7 +28,7 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
      * @param GetDashboardPermitsQuery $query
      */
     #[Override]
-    public function handle(mixed $query): DashboardPermitsResultDto
+    public function handle(QueryInterface $query): DashboardPermitsResultDto
     {
         // 1. Template-Filter auflösen
         $validTplKeys = [];

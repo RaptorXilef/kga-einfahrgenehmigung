@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
 use App\Modules\Identity\Domain\Role;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
 use Override;
@@ -23,7 +24,7 @@ final readonly class RenameRoleHandler implements CommandWithResultHandlerInterf
      * @param RenameRoleCommand $command
      */
     #[Override]
-    public function handle(mixed $command): string
+    public function handle(CommandInterface $command): string
     {
         $role = $this->repository->findById($command->roleId);
         if (!$role instanceof Role) {

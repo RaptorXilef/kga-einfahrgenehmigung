@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\GetGeneratorToolsData;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use Override;
 use PDO;
 
@@ -26,7 +27,7 @@ final readonly class GetGeneratorToolsDataHandler implements QueryHandlerInterfa
      * @param GetGeneratorToolsDataQuery $query
      */
     #[Override]
-    public function handle(mixed $query): GeneratorToolsViewDto
+    public function handle(QueryInterface $query): GeneratorToolsViewDto
     {
         // 1. Templates basierend auf Berechtigungen auflösen
         $allowedTemplates = [];

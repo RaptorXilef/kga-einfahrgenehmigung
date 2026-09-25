@@ -9,6 +9,7 @@ use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Modules\Identity\Presentation\View\PermissionTreePresenter;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use Override;
 use PDO;
 
@@ -29,7 +30,7 @@ final readonly class GetUserManagementDataHandler implements QueryHandlerInterfa
      * @param GetUserManagementDataQuery $query
      */
     #[Override]
-    public function handle(mixed $query): UserManagementViewDto
+    public function handle(QueryInterface $query): UserManagementViewDto
     {
         // 1. Rollen speicherschonend laden & parsen
         $stmtRoles = $this->pdo->query('SELECT * FROM roles ORDER BY name ASC');

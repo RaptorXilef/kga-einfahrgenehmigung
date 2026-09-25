@@ -6,6 +6,7 @@ namespace App\Modules\Finance\Application\UseCases\AnalyzeBankImport;
 
 use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use Exception;
 use League\Csv\Reader;
 use Override;
@@ -26,7 +27,7 @@ final readonly class AnalyzeBankImportHandler implements QueryHandlerInterface
      * @param AnalyzeBankImportQuery $query
      */
     #[Override]
-    public function handle(mixed $query): BankImportAnalysisDto
+    public function handle(QueryInterface $query): BankImportAnalysisDto
     {
         $csv = $this->infrastructure->normalizeAndOpenCsv($query->tempFilePath);
 

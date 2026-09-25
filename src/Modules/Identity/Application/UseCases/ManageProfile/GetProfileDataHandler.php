@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageProfile;
 
 use App\Contracts\System\ImageStorageInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use Override;
 use PDO;
 
@@ -26,7 +27,7 @@ final readonly class GetProfileDataHandler implements QueryHandlerInterface
      * @param GetProfileDataQuery $query
      */
     #[Override]
-    public function handle(mixed $query): ProfileViewDto
+    public function handle(QueryInterface $query): ProfileViewDto
     {
         $sql = '
             SELECT u.username, u.role_id, r.name AS role_name

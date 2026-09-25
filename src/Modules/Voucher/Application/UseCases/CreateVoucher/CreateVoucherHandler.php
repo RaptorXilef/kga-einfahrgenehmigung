@@ -8,6 +8,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use DateTimeImmutable;
 use DomainException;
 use InvalidArgumentException;
@@ -31,7 +32,7 @@ final readonly class CreateVoucherHandler implements CommandHandlerInterface
      * @param CreateVoucherCommand $command
      */
     #[Override]
-    public function handle(mixed $command): void
+    public function handle(CommandInterface $command): void
     {
         // 1. Validierung
         if ($command->value < 0) {

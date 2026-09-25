@@ -7,6 +7,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\Identity\Domain\UserUniquenessChecker;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
 use Override;
@@ -28,7 +29,7 @@ final readonly class RenameUserHandler implements CommandWithResultHandlerInterf
      * @param RenameUserCommand $command
      */
     #[Override]
-    public function handle(mixed $command): string
+    public function handle(CommandInterface $command): string
     {
         $user = $this->repository->findById($command->userId);
         if (!$user instanceof User) {

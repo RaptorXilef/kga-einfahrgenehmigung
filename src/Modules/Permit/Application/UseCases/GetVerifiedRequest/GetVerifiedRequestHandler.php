@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\GetVerifiedRequest;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use Override;
 
 /**
@@ -22,7 +23,7 @@ final readonly class GetVerifiedRequestHandler implements QueryHandlerInterface
      * @param GetVerifiedRequestQuery $query
      */
     #[Override]
-    public function handle(mixed $query): ?array
+    public function handle(QueryInterface $query): ?array
     {
         if ($query->token === '') {
             return null;

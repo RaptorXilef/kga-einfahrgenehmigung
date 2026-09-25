@@ -6,6 +6,7 @@ namespace App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers;
 
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use Override;
 use PDO;
 
@@ -24,7 +25,7 @@ final readonly class CheckAvailableVouchersHandler implements QueryHandlerInterf
      * @param CheckAvailableVouchersQuery $query
      */
     #[Override]
-    public function handle(mixed $query): bool
+    public function handle(QueryInterface $query): bool
     {
         // Hochperformanter Check: Finde 1 aktiven, nicht abgelaufenen und nicht aufgebrauchten Gutschein
         $sql = "SELECT 1 FROM vouchers

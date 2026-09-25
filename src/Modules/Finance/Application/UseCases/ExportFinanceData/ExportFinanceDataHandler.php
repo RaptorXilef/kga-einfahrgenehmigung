@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\CsvExporterInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
 use Generator;
 use Override;
@@ -32,7 +33,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
      * @param ExportFinanceDataQuery $query
      */
     #[Override]
-    public function handle(mixed $query): FinanceExportResultDto
+    public function handle(QueryInterface $query): FinanceExportResultDto
     {
         // Den Generator anwerfen (es werden noch keine Daten aus MySQL geladen)
         $rowStream = $this->yieldFilteredData($query);

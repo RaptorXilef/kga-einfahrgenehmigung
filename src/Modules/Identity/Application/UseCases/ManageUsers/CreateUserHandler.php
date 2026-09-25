@@ -9,6 +9,7 @@ use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\Identity\Domain\UserUniquenessChecker;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use Override;
 
@@ -30,7 +31,7 @@ final readonly class CreateUserHandler implements CommandWithResultHandlerInterf
      * @param CreateUserCommand $command
      */
     #[Override]
-    public function handle(mixed $command): CreateUserResult
+    public function handle(CommandInterface $command): CreateUserResult
     {
         $this->uniquenessChecker->check($command->username);
 

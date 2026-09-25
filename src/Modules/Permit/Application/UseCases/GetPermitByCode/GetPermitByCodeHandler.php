@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\GetPermitByCode;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
 use Exception;
 use Override;
@@ -31,7 +32,7 @@ final readonly class GetPermitByCodeHandler implements QueryHandlerInterface
      * @param GetPermitByCodeQuery $query
      */
     #[Override]
-    public function handle(mixed $query): ?PermitReadDto
+    public function handle(QueryInterface $query): ?PermitReadDto
     {
         $hash = \strtoupper(\trim($query->code));
         if ($hash === '') {

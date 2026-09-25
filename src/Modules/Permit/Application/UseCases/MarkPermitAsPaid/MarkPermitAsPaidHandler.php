@@ -8,6 +8,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use DateTimeImmutable;
 use DomainException;
 use Override;
@@ -29,7 +30,7 @@ final readonly class MarkPermitAsPaidHandler implements CommandHandlerInterface
      * @throws DomainException Wenn das Permit nicht gefunden wird.
      */
     #[Override]
-    public function handle(mixed $command): void
+    public function handle(CommandInterface $command): void
     {
         $permit = $this->repository->findByCode($command->code);
 
@@ -58,8 +59,6 @@ final readonly class MarkPermitAsPaidHandler implements CommandHandlerInterface
         }
 
         // Wir verändern den Zustand der Domänen-Entität über Methoden, nicht über Konstruktor-Magie!
-        // Hier greifen wir temporär in die "interner_kommentar" Eigenschaft ein (via Reflection oder Neuzuweisung im Repo)
-        // Aber die Domain Methode `markAsPaid` regelt den Hauptstatus:
         $permit->markAsPaid($neuerKommentar, $dtBezahltAm);
 
         $this->repository->save($permit);

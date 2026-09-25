@@ -8,6 +8,7 @@ use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherArchiveRepositoryInterface;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use DomainException;
 use Override;
 
@@ -26,7 +27,7 @@ final readonly class RedeemVoucherHandler implements CommandHandlerInterface
      * @param RedeemVoucherCommand $command
      */
     #[Override]
-    public function handle(mixed $command): void
+    public function handle(CommandInterface $command): void
     {
         $voucher = $this->repository->findByCode($command->code);
 

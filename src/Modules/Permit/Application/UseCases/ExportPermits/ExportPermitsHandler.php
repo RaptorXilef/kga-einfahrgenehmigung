@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\CsvExporterInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
 use Generator;
 use Override;
@@ -32,7 +33,7 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
      * @param ExportPermitsQuery $query
      */
     #[Override]
-    public function handle(mixed $query): ExportPermitsResultDto
+    public function handle(QueryInterface $query): ExportPermitsResultDto
     {
         // 1. Data-Stream anstoßen (Generator)
         $rowStream = $this->yieldFilteredData($query);

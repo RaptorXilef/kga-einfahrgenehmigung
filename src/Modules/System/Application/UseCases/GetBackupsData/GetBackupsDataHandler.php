@@ -9,6 +9,7 @@ use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use Override;
 
 /**
@@ -30,7 +31,7 @@ final readonly class GetBackupsDataHandler implements QueryHandlerInterface
      * @param GetBackupsDataQuery $query
      */
     #[Override]
-    public function handle(mixed $query): BackupsResultDto
+    public function handle(QueryInterface $query): BackupsResultDto
     {
         $backupCfg = $this->config->getArray('backup_settings');
         $ftpEnabled = (bool) ($backupCfg['ftp']['enabled'] ?? false);

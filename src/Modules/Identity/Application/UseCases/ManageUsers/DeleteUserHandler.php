@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
 use Override;
@@ -26,7 +27,7 @@ final readonly class DeleteUserHandler implements CommandWithResultHandlerInterf
      * @param DeleteUserCommand $command
      */
     #[Override]
-    public function handle(mixed $command): string
+    public function handle(CommandInterface $command): string
     {
         if ($command->userId === $command->initiatorId) {
             throw new DomainException('Fehler: Selbstausschluss nicht möglich.');

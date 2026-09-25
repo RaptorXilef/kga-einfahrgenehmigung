@@ -6,6 +6,7 @@ namespace App\Modules\System\Application\UseCases\ManageBackups;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
 use Override;
@@ -29,7 +30,7 @@ final readonly class TruncateTargetHandler implements CommandWithResultHandlerIn
      * @param TruncateTargetCommand $command
      */
     #[Override]
-    public function handle(mixed $command): string
+    public function handle(CommandInterface $command): string
     {
         $storageConfig = $this->config->getArray('storage_config');
         $targetKey = $command->targetKey;

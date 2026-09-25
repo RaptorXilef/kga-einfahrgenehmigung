@@ -12,6 +12,7 @@ use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitHandler
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
 use Override;
@@ -39,7 +40,7 @@ final readonly class ConfirmPermitEmailHandler implements CommandWithResultHandl
      * @throws DomainException Wenn der Code ungültig ist.
      */
     #[Override]
-    public function handle(mixed $command): string
+    public function handle(CommandInterface $command): string
     {
         $pendingReq = $this->verificationRepository->findPendingByTokenOrCode($command->tokenOrCode);
 

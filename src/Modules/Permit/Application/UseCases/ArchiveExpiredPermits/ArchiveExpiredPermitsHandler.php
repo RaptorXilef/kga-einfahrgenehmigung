@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\ArchiveExpiredPermits;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\PermitArchiveRepositoryInterface;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use Override;
 
@@ -30,7 +31,7 @@ final readonly class ArchiveExpiredPermitsHandler implements CommandWithResultHa
      * @return int Anzahl der DSGVO-konform anonymisierten Alt-Datensätze.
      */
     #[Override]
-    public function handle(mixed $command): int
+    public function handle(CommandInterface $command): int
     {
         $cutoffDate = $this->clock->now()->modify("-{$command->graceDays} days")->setTime(0, 0, 0);
         $chunkSize = 100;

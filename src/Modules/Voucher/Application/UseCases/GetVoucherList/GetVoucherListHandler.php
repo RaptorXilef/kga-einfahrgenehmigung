@@ -7,6 +7,7 @@ namespace App\Modules\Voucher\Application\UseCases\GetVoucherList;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
 use Override;
 use PDO;
@@ -31,7 +32,7 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
      * @return array<VoucherListDto>
      */
     #[Override]
-    public function handle(mixed $query): array
+    public function handle(QueryInterface $query): array
     {
         $sql = 'SELECT * FROM vouchers';
         $params = [];

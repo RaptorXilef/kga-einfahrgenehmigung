@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
 use App\Modules\Identity\Domain\Role;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use Override;
 
@@ -22,7 +23,7 @@ final readonly class SaveRoleHandler implements CommandWithResultHandlerInterfac
      * @param SaveRoleCommand $command
      */
     #[Override]
-    public function handle(mixed $command): SaveRoleResult
+    public function handle(CommandInterface $command): SaveRoleResult
     {
         $role = $command->roleId !== '' ? $this->repository->findById($command->roleId) : null;
         $isUpdate = $role instanceof Role;

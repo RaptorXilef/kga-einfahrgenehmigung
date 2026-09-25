@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
 use Override;
@@ -26,7 +27,7 @@ final readonly class ChangeUserPasswordHandler implements CommandWithResultHandl
      * @param ChangeUserPasswordCommand $command
      */
     #[Override]
-    public function handle(mixed $command): ChangeUserPasswordResult
+    public function handle(CommandInterface $command): ChangeUserPasswordResult
     {
         $user = $this->repository->findById($command->userId);
         if (!$user instanceof User) {

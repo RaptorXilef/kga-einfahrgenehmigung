@@ -7,6 +7,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
 use Override;
@@ -26,7 +27,7 @@ final readonly class ChangeUserRoleHandler implements CommandWithResultHandlerIn
      * @param ChangeUserRoleCommand $command
      */
     #[Override]
-    public function handle(mixed $command): ChangeUserRoleResult
+    public function handle(CommandInterface $command): ChangeUserRoleResult
     {
         $user = $this->repository->findById($command->userId);
         if (!$user instanceof User) {

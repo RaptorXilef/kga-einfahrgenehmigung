@@ -10,6 +10,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\Modules\Identity\Domain\MagicLink;
 use App\Modules\Identity\Domain\MagicLinkRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use DomainException;
 use Override;
 
@@ -30,7 +31,7 @@ final readonly class VerifyMagicLinkHandler implements CommandHandlerInterface
      * @param VerifyMagicLinkCommand $command
      */
     #[Override]
-    public function handle(mixed $command): void
+    public function handle(CommandInterface $command): void
     {
         $now = $this->clock->now();
 

@@ -7,6 +7,7 @@ namespace App\Modules\Permit\Application\UseCases\GetFinanceList;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
 use Override;
 use PDO;
@@ -29,7 +30,7 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
      * @return array<FinancePermitDto>
      */
     #[Override]
-    public function handle(mixed $query): array
+    public function handle(QueryInterface $query): array
     {
         $stmt = $this->pdo->query("SELECT * FROM permits WHERE status = 'offen'");
 

@@ -7,6 +7,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use Override;
 
 /**
@@ -25,7 +26,7 @@ final readonly class MarkChangelogReadHandler implements CommandHandlerInterface
      * @param MarkChangelogReadCommand $command
      */
     #[Override]
-    public function handle(mixed $command): void
+    public function handle(CommandInterface $command): void
     {
         if (\str_starts_with($command->userId, 'sys_')) {
             return;

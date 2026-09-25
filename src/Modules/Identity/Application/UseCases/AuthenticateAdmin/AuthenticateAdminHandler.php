@@ -11,6 +11,7 @@ use App\Contracts\Security\RateLimiterInterface;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use DomainException;
 use Override;
 
@@ -32,7 +33,7 @@ final readonly class AuthenticateAdminHandler implements CommandHandlerInterface
      * @param AuthenticateAdminCommand $command
      */
     #[Override]
-    public function handle(mixed $command): void
+    public function handle(CommandInterface $command): void
     {
         // 1. Brute-Force Schutz
         if ($this->rateLimiter->isBlocked($command->ipAddress)) {

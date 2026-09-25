@@ -12,6 +12,7 @@ use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\PermitReadDto;
 use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
 use Override;
 
@@ -35,7 +36,7 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
      * @param GetPermitCheckDetailsQuery $query
      */
     #[Override]
-    public function handle(mixed $query): PermitCheckDetailsDto
+    public function handle(QueryInterface $query): PermitCheckDetailsDto
     {
         $now = $this->clock->now();
 
@@ -80,8 +81,8 @@ final readonly class GetPermitCheckDetailsHandler implements QueryHandlerInterfa
                 $reason = \htmlspecialchars($permit->suspensionReason);
                 $statusSubTextHtml .= <<<HTML
                     <div class="c-box c-box--danger-soft u-margin-block-start-m u-text-center">
-                        <strong class="u-text-xs u-text-uppercase u-letter-spacing-sm">Grund der Sperrung:</strong><br>
-                        <span class="u-text-lg u-display-block u-margin-block-start-xs">{$reason}</span>
+                    <strong class="u-text-xs u-text-uppercase u-letter-spacing-sm">Grund der Sperrung:</strong><br>
+                    <span class="u-text-lg u-display-block u-margin-block-start-xs">{$reason}</span>
                     </div>
                     HTML;
             }

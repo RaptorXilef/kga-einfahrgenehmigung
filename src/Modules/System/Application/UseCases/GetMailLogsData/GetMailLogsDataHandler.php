@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
+use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
 use Override;
 use PDO;
@@ -32,7 +33,7 @@ final readonly class GetMailLogsDataHandler implements QueryHandlerInterface
      * @param GetMailLogsDataQuery $query
      */
     #[Override]
-    public function handle(mixed $query): MailLogsResultDto
+    public function handle(QueryInterface $query): MailLogsResultDto
     {
         $cfg = $this->config->getArray('storage_config')['mail_log'] ?? [];
         $table = $cfg['table'] ?? 'mail_logs';

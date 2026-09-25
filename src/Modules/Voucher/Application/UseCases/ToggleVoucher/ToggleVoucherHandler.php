@@ -7,6 +7,7 @@ namespace App\Modules\Voucher\Application\UseCases\ToggleVoucher;
 use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Command\CommandHandlerInterface;
+use App\SharedKernel\Application\Command\CommandInterface;
 use DomainException;
 use Override;
 
@@ -24,7 +25,7 @@ final readonly class ToggleVoucherHandler implements CommandHandlerInterface
      * @param ToggleVoucherCommand $command
      */
     #[Override]
-    public function handle(mixed $command): void
+    public function handle(CommandInterface $command): void
     {
         $voucher = $this->repository->findByCode($command->code);
 
