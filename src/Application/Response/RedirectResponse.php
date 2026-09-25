@@ -10,8 +10,6 @@ use Override;
 /**
  * Repräsentiert eine HTTP-Weiterleitung.
  * Kapselt header() und exit() aus den Actions heraus, um Testbarkeit zu gewährleisten.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class RedirectResponse implements ResponseInterface
 {

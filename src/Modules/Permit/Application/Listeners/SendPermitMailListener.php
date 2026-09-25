@@ -73,7 +73,7 @@ final readonly class SendPermitMailListener
 
             $vConfigs = $this->config->getArray('vehicle_types');
             $typ = $permit->getVehicleType();
-            $typLabel = (string) ($vConfigs[$typ]['label'] ?? ('Fahrzeug: ' . \strtoupper($typ)));
+            $typLabel = (string) ($vConfigs[$typ]['label'] ?? 'Fahrzeug: ' . \strtoupper($typ));
 
             $data = [
                 'adminLink' => $checkUrl . "&token={$token}",

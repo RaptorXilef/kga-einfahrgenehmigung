@@ -22,9 +22,10 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
         $users = [];
         $stmt = $this->pdo->query('SELECT * FROM users ORDER BY username ASC');
 
-        // VSA FIX: Memory Safe Unbuffered Loop
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $users[(string) $row['id']] = $this->mapRowToEntity($row);
+        if ($stmt !== false) {
+            while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
+                $users[(string) $row['id']] = $this->mapRowToEntity($row);
+            }
         }
 
         return $users;
@@ -37,7 +38,7 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$row) {
+        if (!\is_array($row)) {
             return null;
         }
 
@@ -51,7 +52,7 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
         $stmt->execute(['username' => $username]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$row) {
+        if (!\is_array($row)) {
             return null;
         }
 

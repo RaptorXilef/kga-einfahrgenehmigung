@@ -26,7 +26,8 @@ final readonly class PdoAuditLogRepository implements AuditLogRepositoryInterfac
     #[Override]
     public function save(AuditLog $log): void
     {
-        $table = $this->config->get('storage_config')['audit_logs']['table'] ?? 'audit_logs';
+        $storageConfig = $this->config->getArray('storage_config');
+        $table = (string) ($storageConfig['audit_logs']['table'] ?? 'audit_logs');
 
         $data = [
             'id' => $log->id,
@@ -45,7 +46,8 @@ final readonly class PdoAuditLogRepository implements AuditLogRepositoryInterfac
     #[Override]
     public function getPaginated(int $page, int $limit, string $actionFilter = ''): array
     {
-        $table = $this->config->get('storage_config')['audit_logs']['table'] ?? 'audit_logs';
+        $storageConfig = $this->config->getArray('storage_config');
+        $table = (string) ($storageConfig['audit_logs']['table'] ?? 'audit_logs');
         $where = '';
         $params = [];
 
@@ -66,14 +68,17 @@ final readonly class PdoAuditLogRepository implements AuditLogRepositoryInterfac
         $stmt->execute($params);
 
         $items = [];
-        while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while (\is_array($r = $stmt->fetch(PDO::FETCH_ASSOC))) {
+            $ipRaw = isset($r['ip_address']) ? \trim((string) $r['ip_address']) : '';
+            $safeIp = $ipRaw !== '' && $ipRaw !== 'unknown' ? $ipRaw : '0.0.0.0';
+
             $items[] = new AuditLog(
                 (string) $r['id'],
                 (string) $r['user_id'],
                 (string) $r['username'],
                 (string) $r['action'],
                 (string) $r['details'],
-                new IpAddress(!empty($r['ip_address']) && $r['ip_address'] !== 'unknown' ? (string) $r['ip_address'] : '0.0.0.0'),
+                new IpAddress($safeIp),
                 new DateTimeImmutable((string) $r['created_at']),
             );
         }

@@ -15,7 +15,6 @@ use PDO;
 
 /**
  * Sammelt die Export-Daten blitzschnell via nativen PDO-Queries.
- * VSA FIX: Nutzt Generatoren für maximalen Speicherschutz und das CsvExporterInterface (0% I/O in Application).
  *
  * @implements QueryHandlerInterface<ExportFinanceDataQuery, FinanceExportResultDto>
  */
@@ -110,7 +109,7 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(\array_merge($binds, $binds));
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
             yield $row;
         }
     }

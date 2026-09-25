@@ -37,8 +37,8 @@ final readonly class PermitRenderAction implements ViewActionInterface
         $successMessage = '';
 
         if ($dto->isSuccess) {
-            if (!empty($flashes['success'])) {
-                $successMessage = $flashes['success'][0];
+            if (isset($flashes['success']) && \is_array($flashes['success']) && $flashes['success'] !== []) {
+                $successMessage = (string) $flashes['success'][0];
             } else {
                 $successMessage = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
             }
@@ -104,25 +104,25 @@ final readonly class PermitRenderAction implements ViewActionInterface
         // Flaches View-DTO für das PHTML erzeugen
         $viewDto = new PermitFormViewDto(
             name: (string) ($formData['name'] ?? $prefillData['name'] ?? ''),
-            isNameLocked: !empty($prefillData['name']),
+            isNameLocked: $this->hasNonEmptyString($prefillData, 'name'),
             email: (string) ($formData['email'] ?? $prefillData['email'] ?? ''),
-            isEmailLocked: !empty($prefillData['email']),
+            isEmailLocked: $this->hasNonEmptyString($prefillData, 'email'),
             parzelle: (string) ($formData['parzelle'] ?? $prefillData['parzelle'] ?? ''),
-            isParzelleLocked: !empty($prefillData['parzelle']),
+            isParzelleLocked: $this->hasNonEmptyString($prefillData, 'parzelle'),
             typ: $activeVehicleType,
-            isTypLocked: !empty($prefillData['typ']),
+            isTypLocked: $this->hasNonEmptyString($prefillData, 'typ'),
             kennzeichen: (string) ($formData['kennzeichen'] ?? $prefillData['kennzeichen'] ?? ''),
-            isKennzeichenLocked: !empty($prefillData['kennzeichen']),
+            isKennzeichenLocked: $this->hasNonEmptyString($prefillData, 'kennzeichen'),
             firma: (string) ($formData['firma'] ?? $prefillData['firma'] ?? ''),
-            isFirmaLocked: !empty($prefillData['firma']),
+            isFirmaLocked: $this->hasNonEmptyString($prefillData, 'firma'),
             zweck: $activePurpose,
-            isZweckLocked: !empty($prefillData['zweck']),
+            isZweckLocked: $this->hasNonEmptyString($prefillData, 'zweck'),
             templateKey: $activeTemplateKey,
-            isTemplateKeyLocked: !empty($prefillDto?->templateKey),
+            isTemplateKeyLocked: $prefillDto instanceof VoucherPrefillResult && $prefillDto->templateKey !== '',
             datumVon: (string) ($formData['datum_von'] ?? $prefillData['datum_von'] ?? $this->clock->now()->format('Y-m-d')),
-            isDatumVonLocked: !empty($prefillData['datum_von']),
+            isDatumVonLocked: $this->hasNonEmptyString($prefillData, 'datum_von'),
             datumBis: (string) ($formData['datum_bis'] ?? $prefillData['datum_bis'] ?? ''),
-            isDatumBisLocked: !empty($prefillData['datum_bis']),
+            isDatumBisLocked: $this->hasNonEmptyString($prefillData, 'datum_bis'),
             voucherInput: (string) ($formData['voucher'] ?? $request->get['voucher'] ?? ''),
             voucherCode: $prefillDto instanceof VoucherPrefillResult ? $prefillDto->code : '',
             voucherReason: $prefillDto instanceof VoucherPrefillResult ? $prefillDto->reason : '',
@@ -146,6 +146,14 @@ final readonly class PermitRenderAction implements ViewActionInterface
         return new HtmlResponse($html);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function hasNonEmptyString(array $data, string $key): bool
+    {
+        return isset($data[$key]) && \trim((string) $data[$key]) !== '';
+    }
+
     private function getParsedAgreements(): array
     {
         $agreementsConfig = $this->config->getArray('agreements');
@@ -153,12 +161,14 @@ final readonly class PermitRenderAction implements ViewActionInterface
         $parsed = [];
 
         foreach ($agreementsConfig as $key => $agree) {
-            $cleanLabel = \htmlspecialchars($agree['label']);
-            if (!empty($agree['link'])) {
-                if (\filter_var($agree['link'], \FILTER_VALIDATE_URL)) {
-                    $finalLink = $agree['link'];
+            $cleanLabel = \htmlspecialchars((string) ($agree['label'] ?? ''));
+            $rawLink = \trim((string) ($agree['link'] ?? ''));
+
+            if ($rawLink !== '') {
+                if (\filter_var($rawLink, \FILTER_VALIDATE_URL)) {
+                    $finalLink = $rawLink;
                 } else {
-                    $finalLink = \rtrim($baseUrl, '/') . '/' . \ltrim($agree['link'], '/');
+                    $finalLink = \rtrim($baseUrl, '/') . '/' . \ltrim($rawLink, '/');
                 }
                 $linkHtml = '<a href="' . \htmlspecialchars($finalLink) .
                     '" target="_blank" style="color: var(--primary-color); text-decoration: underline; font-weight: 500;">$1</a>';
@@ -169,7 +179,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
 
             $parsed[$key] = [
                 'label_html' => $renderedLabel,
-                'required' => $agree['required'] ?? false,
+                'required' => (bool) ($agree['required'] ?? false),
             ];
         }
 

@@ -26,8 +26,6 @@ use Override;
 
 /**
  * Zentraler Event-Verteiler-Provider. Verknüpft alle Domain-Events mit ihren Listenern.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final class EventServiceProvider implements ServiceProviderInterface
 {

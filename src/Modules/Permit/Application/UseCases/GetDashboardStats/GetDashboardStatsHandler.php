@@ -59,7 +59,7 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
 
         // 3. VSA FIX: Ein einziger High-Speed Loop (Unbuffered/Row-by-Row).
         // Wirft fetchAll() komplett raus, um RAM-Leaks bei großen Archiven zu verhindern!
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
             $date = \substr((string) $row['erstellt'], 0, 10);
             $status = (string) $row['status'];
             $typ = (string) $row['typ'];
@@ -126,7 +126,7 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
         \uasort($periodStats['plots'], fn ($a, $b): int => $b['count'] === $a['count'] ? $b['revenue'] <=> $a['revenue'] : $b['count'] <=> $a['count']);
         \uasort($monthlyStats, fn ($a, $b): int => $a['sort_key'] <=> $b['sort_key']);
 
-        $periodStats['max_plot_count'] = !empty($periodStats['plots']) ? \reset($periodStats['plots'])['count'] : 1;
+        $periodStats['max_plot_count'] = $periodStats['plots'] !== [] ? \reset($periodStats['plots'])['count'] : 1;
 
         // 5. Payload für Chart.js aufbereiten
         $chartDataPayload = [
@@ -140,7 +140,7 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
 
         // 6. View-Auflösung der Fahrzeugstatistiken
         $periodVehicleStats = [];
-        foreach (($periodStats['types'] ?? []) as $typeKey => $count) {
+        foreach ($periodStats['types'] as $typeKey => $count) {
             if ($count === 0) {
                 continue;
             }
@@ -179,11 +179,11 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
         $dtEnd = new DateTimeImmutable($query->filterEnd);
 
         return new DashboardStatsDto(
-            $periodStats ?? [],
-            $yearlyStats ?? [],
-            $chartDataPayload ?? [],
-            $periodVehicleStats ?? [],
-            $yearlyVehicleStats ?? [],
+            $periodStats,
+            $yearlyStats,
+            $chartDataPayload,
+            $periodVehicleStats,
+            $yearlyVehicleStats,
             $dtStart->format('d.m.Y'),
             $dtEnd->format('d.m.Y'),
         );

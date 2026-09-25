@@ -15,7 +15,6 @@ use PDO;
 /**
  * Löst einen Genehmigungscode (und optional ein Kfz-Kennzeichen) direkt über PDO
  * über alle Tabellen (Aktiv, Archiv, Storniert) in ein flaches Read-DTO auf.
- * VSA CQRS FIX: Umgeht Repositories und Domain-Entities beim Lesen komplett!
  *
  * @implements QueryHandlerInterface<GetPermitByCodeQuery, ?PermitReadDto>
  */
@@ -121,10 +120,8 @@ final readonly class GetPermitByCodeHandler implements QueryHandlerInterface
         $stmt->execute([$searchPlate]);
 
         $candidates = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            if (\is_array($row)) {
-                $candidates[] = $row;
-            }
+        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
+            $candidates[] = $row;
         }
 
         if ($candidates === []) {

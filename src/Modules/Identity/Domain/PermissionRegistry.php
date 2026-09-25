@@ -7,8 +7,6 @@ namespace App\Modules\Identity\Domain;
 /**
  * Array aller Permissions (Modular & Flach nach TwoKinds-Standard)
  * Emojis entfernt und durch Icon-Keys ersetzt.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final class PermissionRegistry
 {

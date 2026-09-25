@@ -62,9 +62,12 @@ final readonly class PdoVoucherRepository implements VoucherRepositoryInterface
         $stmt->execute(['code' => $code]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$row) {
+        if (!\is_array($row)) {
             return null;
         }
+
+        $expiresAtStr = \trim((string) ($row['expires_at'] ?? ''));
+        $decodedPrefill = \json_decode((string) ($row['prefill_data'] ?? ''), true);
 
         return new Voucher(
             code: (string) $row['code'],
@@ -75,11 +78,11 @@ final readonly class PdoVoucherRepository implements VoucherRepositoryInterface
             isMultiUse: (bool) $row['is_multi_use'],
             maxUses: (int) $row['max_uses'],
             currentUses: (int) $row['current_uses'],
-            expiresAt: $row['expires_at'] ? new DateTimeImmutable($row['expires_at']) : null,
+            expiresAt: $expiresAtStr !== '' ? new DateTimeImmutable($expiresAtStr) : null,
             status: (string) $row['status'],
-            prefillData: \json_decode((string) $row['prefill_data'], true) ?: [],
+            prefillData: \is_array($decodedPrefill) ? $decodedPrefill : [],
             createdBy: (string) $row['created_by'],
-            createdAt: new DateTimeImmutable($row['created_at']),
+            createdAt: new DateTimeImmutable((string) $row['created_at']),
         );
     }
 

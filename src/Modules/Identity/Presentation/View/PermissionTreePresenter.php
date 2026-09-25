@@ -17,34 +17,35 @@ final class PermissionTreePresenter
         $html = '';
         foreach ($nodes as $id => $node) {
             $key = $node['key'] ?? null;
-            $isAllowed = $key && \in_array($key, $rolePerms, true);
-            $hasChildren = !empty($node['children']);
+            $hasKey = \is_string($key) && $key !== '';
+            $isAllowed = $hasKey && \in_array($key, $rolePerms, true);
+            $hasChildren = isset($node['children']) && \is_array($node['children']) && $node['children'] !== [];
             $permissionLabel = \htmlspecialchars((string) ($node['label'] ?? $id));
             $dataKey = \htmlspecialchars((string) ($key ?? $id));
 
             $rootClass = $depth === 0 ? 'c-tree-item--root' : '';
-            $catClass = !$key ? 'c-tree-item--category' : '';
+            $catClass = !$hasKey ? 'c-tree-item--category' : '';
             $labelRootClass = $depth === 0 ? 'c-tree-item__label--root' : '';
 
             $iconHtml = '';
-            if (isset($node['icon'])) {
+            if (isset($node['icon']) && \is_string($node['icon']) && $node['icon'] !== '') {
                 $iconUrl = $asset->url('assets/img/icons/' . $node['icon']);
                 $iconHtml = '<img src="' . $iconUrl . '" class="c-icon c-icon--inline u-margin-inline-end-xs" loading="lazy" alt="">';
             }
 
-            $subLabelHtml = $key
+            $subLabelHtml = $hasKey
                 ? '<span class="c-tree-item__sublabel">' . \htmlspecialchars((string) $key) . '</span>'
                 : '<span class="c-tree-item__sublabel c-tree-item__sublabel--category">Kategorie</span>';
 
             $controlsHtml = '<div class="p-controls">';
-            if ($key) {
+            if ($hasKey) {
                 $checkedAttr = $isAllowed ? 'checked' : '';
                 $keyEscaped = \htmlspecialchars((string) $key);
                 $controlsHtml .= <<<HTML
-                        <label class="c-switch">
-                            <input type="checkbox" name="perms[]" value="{$keyEscaped}" data-perm-check="true" class="c-switch__input" aria-label="Berechtigung: {$permissionLabel}" {$checkedAttr}>
-                            <span class="c-switch__label" aria-hidden="true" data-on="ALLOW" data-off="NONE"></span>
-                        </label>
+                    <label class="c-switch">
+                        <input type="checkbox" name="perms[]" value="{$keyEscaped}" data-perm-check="true" class="c-switch__input" aria-label="Berechtigung: {$permissionLabel}" {$checkedAttr}>
+                        <span class="c-switch__label" aria-hidden="true" data-on="ALLOW" data-off="NONE"></span>
+                    </label>
                     HTML;
             }
             $controlsHtml .= '</div>';

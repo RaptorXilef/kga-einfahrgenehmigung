@@ -51,21 +51,23 @@ final readonly class FinalizePermitHandler implements CommandWithResultHandlerIn
 
             $data = $allVerified[$command->token]->data;
 
-            $startDate = new DateTimeImmutable($data['datum_von']);
-            $customEndDate = !empty($data['datum_bis']) ? new DateTimeImmutable($data['datum_bis']) : null;
+            $startDate = new DateTimeImmutable((string) $data['datum_von']);
+            $datumBisRaw = \trim((string) ($data['datum_bis'] ?? ''));
+            $customEndDate = $datumBisRaw !== '' ? new DateTimeImmutable($datumBisRaw) : null;
             $emailStr = \trim((string) ($data['email'] ?? ''));
+            $firmaRaw = \trim((string) ($data['firma'] ?? ''));
 
             $permit = $this->permitFactory->createNew(
-                templateKey: new TemplateKey($data['template_key']),
-                owner: new Owner(\strip_tags($data['name']), $emailStr !== '' ? new EmailAddress($emailStr) : null, new PlotNumber($data['parzelle'])),
-                vehicle: new Vehicle($data['typ'] ?? 'pkw', new LicensePlate($data['kennzeichen']), $data['firma'] ? \strip_tags($data['firma']) : null),
+                templateKey: new TemplateKey((string) $data['template_key']),
+                owner: new Owner(\strip_tags((string) $data['name']), $emailStr !== '' ? new EmailAddress($emailStr) : null, new PlotNumber($data['parzelle'])),
+                vehicle: new Vehicle((string) ($data['typ'] ?? 'pkw'), new LicensePlate((string) $data['kennzeichen']), $firmaRaw !== '' ? \strip_tags($firmaRaw) : null),
                 startDate: $startDate,
                 customEndDate: $customEndDate,
                 price: new Price((float) ($data['preis'] ?? 0.0)),
-                purpose: $data['zweck'] ?? '',
+                purpose: (string) ($data['zweck'] ?? ''),
                 status: $command->status,
                 internerKommentar: $command->comment,
-                agreements: $data['agreements'] ?? [],
+                agreements: \is_array($data['agreements'] ?? null) ? $data['agreements'] : [],
             );
 
             $this->permitRepository->save($permit);

@@ -2,8 +2,6 @@
 
 /**
  * Path: tests/bootstrap.php
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 
 declare(strict_types=1);

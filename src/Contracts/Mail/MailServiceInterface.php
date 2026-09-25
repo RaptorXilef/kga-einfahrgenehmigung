@@ -10,8 +10,6 @@ namespace App\Contracts\Mail;
  * Erzwingt die standardisierte Verarbeitung von Template-basierten E-Mails
  * sowie den Lese- und Schreibzugriff auf die Versandprotokolle (Logs).
  * Kontext: Kommunikationsschnittstelle für Systembenachrichtigungen (z.B. Queue oder SMTP-Direktversand).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface MailServiceInterface
 {

@@ -16,8 +16,6 @@ use Throwable;
  *
  * Fängt ungeprüfte Ausnahmen sowie klassische PHP-Fehler ab, loggt diese
  * revisionssicher und gibt eine nutzerfreundliche HTML- oder JSON-Fehlerseite zurück.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class GlobalExceptionHandler
 {
@@ -40,7 +38,7 @@ final readonly class GlobalExceptionHandler
 
         // Verwandelt auch klassische PHP-Warnungen/Fehler in Exceptions, damit sie geloggt werden
         \set_error_handler(function (int $errno, string $errstr, string $errfile, int $errline): bool {
-            if (!(\error_reporting() & $errno)) {
+            if ((\error_reporting() & $errno) === 0) {
                 return false;
             }
 
@@ -101,7 +99,6 @@ final readonly class GlobalExceptionHandler
         $errorMessage = 'Das System hat einen unerwarteten Fehler festgestellt. Keine Sorge, die Administratoren wurden automatisch benachrichtigt um das Problem zu beheben.';
         $debugInfo = '';
 
-        // TODO Inline HTML besser lösen!
         if ($isDev) {
             $errorTitle = \sprintf('Dev-Mode: %s', $exception::class);
             $debugInfo = \sprintf(

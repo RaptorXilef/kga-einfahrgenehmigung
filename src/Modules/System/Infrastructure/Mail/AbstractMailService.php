@@ -41,18 +41,18 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
 
         $mailConfig = $this->config->getMailSettings();
         $isTestMode = $this->config->isTestMode();
-        $isDebugMode = $this->config->get('debug_mode', false) === true;
+        $isDebugMode = $this->config->getBool('debug_mode', false);
         $actualRecipient = $recipient;
 
         if ($isTestMode) {
-            $actualRecipient = $mailConfig['catch_all_recipient'] ?? 'sandbox@example.com';
+            $actualRecipient = (string) ($mailConfig['catch_all_recipient'] ?? 'sandbox@example.com');
             $subject = '[TEST] ' . $subject;
         }
 
         $body = $this->render($template, $data);
 
         if ($isDebugMode) {
-            $spoolDir = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/storage/debug_mails';
+            $spoolDir = \rtrim($this->config->getString('root_path'), '/\\') . '/storage/debug_mails';
             if (!\is_dir($spoolDir)) {
                 @\mkdir($spoolDir, 0o755, true);
             }
@@ -92,7 +92,8 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
     #[Override]
     public function saveLogs(array $logs, bool $forceSql = false): void
     {
-        $cfg = $this->config->get('storage_config')['mail_log'];
+        $cfg = $this->config->getArray('storage_config')['mail_log'] ?? [];
+        $table = $cfg['table'] ?? 'mail_logs';
         if (!$this->pdo instanceof PDO) {
             return;
         }
@@ -100,7 +101,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         $this->pdo->beginTransaction();
 
         try {
-            $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id,timestamp,recipient,reply_to,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $this->pdo->prepare("REPLACE INTO `{$table}` (id,timestamp,recipient,reply_to,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
             foreach ($logs as $log) {
                 $stmt->execute([
@@ -125,22 +126,23 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
     #[Override]
     public function loadLogs(): array
     {
-        $cfg = $this->config->get('storage_config')['mail_log'];
+        $cfg = $this->config->getArray('storage_config')['mail_log'] ?? [];
+        $table = $cfg['table'] ?? 'mail_logs';
         $logs = [];
 
         if ($this->pdo instanceof PDO) {
-            $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC");
-            if ($stmt) {
-                while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $stmt = $this->pdo->query("SELECT * FROM `{$table}` ORDER BY timestamp DESC");
+            if ($stmt !== false) {
+                while (\is_array($r = $stmt->fetch(PDO::FETCH_ASSOC))) {
                     $logs[] = new MailLogEntry(
                         (string) $r['id'],
                         new DateTimeImmutable((string) $r['timestamp']),
-                        $r['recipient'] ?? '',
-                        $r['reply_to'] ?? null,
-                        $r['subject'] ?? '',
-                        new TemplateKey($r['template'] ?: 'std_7'),
-                        $r['status'] ?? '',
-                        \is_string($r['data'] ?? null) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
+                        (string) ($r['recipient'] ?? ''),
+                        isset($r['reply_to']) ? (string) $r['reply_to'] : null,
+                        (string) ($r['subject'] ?? ''),
+                        new TemplateKey((string) ($r['template'] ?: 'std_7')),
+                        (string) ($r['status'] ?? ''),
+                        \is_string($r['data'] ?? null) ? $this->jsonHelper->decode($r['data']) : (\is_array($r['data'] ?? null) ? $r['data'] : []),
                     );
                 }
             }
@@ -156,7 +158,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
             return null;
         }
 
-        $path = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/storage/debug_mails/' . $filename;
+        $path = \rtrim($this->config->getString('root_path'), '/\\') . '/storage/debug_mails/' . $filename;
         if (!\file_exists($path)) {
             return null;
         }
@@ -176,7 +178,7 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
 
     protected function render(string $templatePath, array $data): string
     {
-        $root = $this->config->get('root_path');
+        $root = $this->config->getString('root_path');
         $fullPath = $root . "/templates/emails/{$templatePath}.phtml";
 
         if (!\file_exists($fullPath)) {
@@ -193,15 +195,15 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
 
     protected function getTransportConfig(array $mailConfig): array
     {
-        $default = $mailConfig['default'] ?? 'smtp';
+        $default = (string) ($mailConfig['default'] ?? 'smtp');
 
-        return $mailConfig['transports'][$default] ?? [];
+        return \is_array($mailConfig['transports'][$default] ?? null) ? $mailConfig['transports'][$default] : [];
     }
 
     private function logEmail(string $recipient, string $subject, TemplateKey $template, bool|string $status, ?string $replyTo = null, array $data = []): void
     {
         $statusStr = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
-        $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
+        $maxEntries = $this->config->getInt('mail_log_max_entries', 200);
 
         $entry = new MailLogEntry(
             'ml_' . \bin2hex(\random_bytes(8)),

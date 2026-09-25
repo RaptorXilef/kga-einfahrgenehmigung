@@ -9,8 +9,6 @@ use App\Application\Exception\ValidationException;
 /**
  * DTO für das Sperren/Entsperren einer Genehmigung.
  * Kapselt den Code, die gewählte Aktion und den optionalen Begründungstext.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class PermitToggleSuspensionRequest
 {

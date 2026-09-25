@@ -9,8 +9,6 @@ use Override;
 
 /**
  * Repräsentiert eine leere HTTP-Antwort (z.B. 204 No Content oder Status-Codes ohne Body).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class EmptyResponse implements ResponseInterface
 {

@@ -9,8 +9,6 @@ namespace App\Contracts\Security;
  *
  * Definiert die Methoden zur Erfassung, Prüfung und Zurücksetzung von IP-basierten
  * Blockaden bei zu vielen Fehlversuchen (z.B. Logins).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface RateLimiterInterface
 {

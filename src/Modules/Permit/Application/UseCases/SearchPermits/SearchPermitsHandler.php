@@ -21,6 +21,9 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
     ) {
     }
 
+    /**
+     * @param SearchPermitsQuery $query
+     */
     #[Override]
     public function handle(mixed $query): array
     {
@@ -52,7 +55,7 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
             $binds[] = '%' . \strtolower(\trim($query->query)) . '%';
         }
 
-        $whereStr = empty($whereParts) ? '1=1' : \implode(' AND ', $whereParts);
+        $whereStr = $whereParts === [] ? '1=1' : \implode(' AND ', $whereParts);
 
         $sqlParts = [];
         $allBinds = [];
@@ -70,13 +73,12 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
             $allBinds = \array_merge($allBinds, $binds);
         }
 
-        // Archivierte (aus der Archiv-Tabelle) - FIX: Leerzeichen nach WHERE ergänzt
         if (\in_array($query->tab, ['all', 'archive'], true)) {
             $sqlParts[] = "SELECT $baseCols, 1 AS is_archived FROM permits_archive WHERE $whereStr";
             $allBinds = \array_merge($allBinds, $binds);
         }
 
-        if (empty($sqlParts)) {
+        if ($sqlParts === []) {
             return ['items' => [], 'total' => 0];
         }
 

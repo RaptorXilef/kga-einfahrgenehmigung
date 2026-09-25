@@ -10,8 +10,6 @@ use PDOStatement;
 /**
  * Debugging-Wrapper für PDOStatement.
  * Fängt execute() Aufrufe ab, um sie inkl. Parametern und der genauen Dauer ins Log zu schreiben.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 class DebugPDOStatement extends PDOStatement
 {

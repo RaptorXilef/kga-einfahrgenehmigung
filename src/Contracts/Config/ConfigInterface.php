@@ -9,8 +9,6 @@ namespace App\Contracts\Config;
  *
  * Definiert Methoden für den Zugriff auf geschachtelte Konfigurations-Arrays,
  * die System-URLs, Testmodi sowie spezifische Preis- und Mail-Einstellungen.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface ConfigInterface
 {

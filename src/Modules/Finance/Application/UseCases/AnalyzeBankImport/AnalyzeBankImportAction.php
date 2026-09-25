@@ -41,14 +41,14 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
     public function execute(ServerRequest $request): ResponseInterface
     {
         $file = $request->files['bank_csv'] ?? null;
-        if (!$file || (isset($file['error']) && $file['error'] !== 0)) {
+        if (!\is_array($file) || (isset($file['error']) && $file['error'] !== 0)) {
             $this->sessionManager->addFlash('error', 'Fehler beim Datei-Upload.');
 
             return new RedirectResponse('admin');
         }
 
         try {
-            $tempPath = $this->infrastructure->storeTempFile($file['tmp_name']);
+            $tempPath = $this->infrastructure->storeTempFile((string) ($file['tmp_name'] ?? ''));
         } catch (Throwable) {
             $this->sessionManager->addFlash('error', 'Datei konnte nicht verarbeitet werden.');
 
@@ -71,16 +71,16 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
         foreach ($headers as $index => $header) {
             $h = \strtolower(\trim((string) $header));
             if (\str_contains($h, 'zweck') || \str_contains($h, 'remittance')) {
-                $guessedId = $index;
+                $guessedId = (int) $index;
             }
             if (\str_contains($h, 'betrag') || \str_contains($h, 'amount')) {
-                $guessedAmount = $index;
+                $guessedAmount = (int) $index;
             }
             if (!\str_contains($h, 'buchungstag') && !\str_contains($h, 'valuta') && !\str_contains($h, 'date')) {
                 continue;
             }
 
-            $guessedDate = $index;
+            $guessedDate = (int) $index;
         }
 
         $mode = $this->config->getString('bank_import_mode', 'simple');

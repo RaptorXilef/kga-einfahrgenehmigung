@@ -16,8 +16,6 @@ use Throwable;
 
 /**
  * Web-Cron-Endpunkt für automatisierte tägliche Datenbank-Backups & FIFO-Rotation.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/api/cron/backup')]
 #[Route('POST', '/api/cron/backup')]

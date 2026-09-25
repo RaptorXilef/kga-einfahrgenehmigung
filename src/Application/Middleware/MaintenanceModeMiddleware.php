@@ -16,8 +16,6 @@ use Override;
 /**
  * Überwacht globale und feingranulare Wartungsmodi für die Anwendung.
  * Kapselt das Routing-Sicherheitsnetz sauber ab (SRP).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
 {

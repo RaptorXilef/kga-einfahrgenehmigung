@@ -18,8 +18,6 @@ use DateTimeZone;
  * Berechnet Schließtage und dynamische Feiertage (Osterzyklus für Berlin) und gleicht sie
  * mit den in der Konfiguration hinterlegten Öffnungszeiten-Slots ab.
  * Kontext: Kern-Validierungskomponente für temporäre Einfahrtsrechte und Kontrollanzeigen.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class HolidayService
 {
@@ -168,7 +166,7 @@ final readonly class HolidayService
      */
     public function getOpeningHoursDataForDateRange(DateTimeInterface $startDate, DateTimeInterface $endDate): array
     {
-        $blocks = $this->getOpeningHoursForDateRange($startDate, $endDate);
+        $blocks = $this->getOpeningHoursForDateRange($startDate, DateTimeImmutable::createFromInterface($endDate));
         foreach ($blocks as &$block) {
             $block['hours_text'] = $this->formatHoursArrayToText($block['hours']);
         }
@@ -221,31 +219,31 @@ final readonly class HolidayService
     public function getOpeningHoursForDate(?DateTimeInterface $date = null): array
     {
         $date ??= $this->clock->now();
-        $seasons = $this->config->get('seasons', []);
+        $seasons = $this->config->getArray('seasons');
 
         // Wenn Seasons existieren, prüfen in welche wir fallen
-        if (!empty($seasons)) {
+        if ($seasons !== []) {
             $currentDayMonth = $date->format('m-d');
 
             foreach ($seasons as $season) {
-                $start = $season['start'] ?? '01-01';
-                $end = $season['end'] ?? '12-31';
+                $start = (string) ($season['start'] ?? '01-01');
+                $end = (string) ($season['end'] ?? '12-31');
 
                 // Normales Jahr
                 if ($start <= $end) {
                     if ($currentDayMonth >= $start && $currentDayMonth <= $end) {
-                        return $season['opening_hours'] ?? [];
+                        return \is_array($season['opening_hours'] ?? null) ? $season['opening_hours'] : [];
                     }
                 }
                 // Jahresübergreifend (z.B. 11-01 bis 02-28)
                 elseif ($currentDayMonth >= $start || $currentDayMonth <= $end) {
-                    return $season['opening_hours'] ?? [];
+                    return \is_array($season['opening_hours'] ?? null) ? $season['opening_hours'] : [];
                 }
             }
         }
 
         // Fallback: Wenn keine Saison zutrifft oder keine definiert ist
-        return $this->config->get('default_opening_hours', []);
+        return $this->config->getArray('default_opening_hours');
     }
 
     /**
@@ -260,24 +258,25 @@ final readonly class HolidayService
     public function getOpeningHoursForDateRange(DateTimeInterface $startDate, DateTimeInterface $endDate): array
     {
         $intervals = [];
-        $current = clone $startDate;
+        $current = DateTimeImmutable::createFromInterface($startDate);
+        $end = DateTimeImmutable::createFromInterface($endDate);
 
-        $currentIntervalStart = clone $current;
+        $currentIntervalStart = $current;
         $lastHours = null;
 
         // Wir iterieren Tag für Tag durch die Genehmigung (performant und exakt, auch bei Schaltjahren)
-        while ($current <= $endDate) {
+        while ($current <= $end) {
             $hoursForDay = $this->getOpeningHoursForDate($current);
-            $hoursHash = \json_encode($hoursForDay); // Einfacher Text-Vergleich der Arrays
+            $hoursHash = (string) \json_encode($hoursForDay); // Einfacher Text-Vergleich der Arrays
 
             // Wenn sich die Zeiten ändern (Saisonwechsel!) UND wir nicht am allerersten Tag sind
             if ($lastHours !== null && $hoursHash !== $lastHours) {
                 $intervals[] = [
                     'from' => $currentIntervalStart->format('d.m.Y'),
-                    'to' => (clone $current)->modify('-1 day')->format('d.m.Y'),
+                    'to' => $current->modify('-1 day')->format('d.m.Y'),
                     'hours' => $this->jsonHelper->decode($lastHours),
                 ];
-                $currentIntervalStart = clone $current; // Start für die neue Saison merken
+                $currentIntervalStart = $current;
             }
 
             $lastHours = $hoursHash;
@@ -288,7 +287,7 @@ final readonly class HolidayService
         if ($lastHours !== null) {
             $intervals[] = [
                 'from' => $currentIntervalStart->format('d.m.Y'),
-                'to' => $endDate->format('d.m.Y'),
+                'to' => $end->format('d.m.Y'),
                 'hours' => $this->jsonHelper->decode($lastHours),
             ];
         }
@@ -311,17 +310,18 @@ final readonly class HolidayService
         $holidays = [];
 
         // 1. Automatische Feiertage des Bundeslandes laden
-        if ($this->config->get('use_auto_holidays', true)) {
+        if ($this->config->getBool('use_auto_holidays', true)) {
             $holidays = $this->getStateHolidays($year);
         }
 
         // 2. Eigene Feiertage aus der Config laden (Fehlerrobustes Parsing)
-        $customHolidays = $this->config->get('custom_holidays', []);
+        $customHolidays = $this->config->getArray('custom_holidays');
         foreach ($customHolidays as $customDate) {
+            $customDateStr = (string) $customDate;
             // Wir prüfen auf Y-m-d und alternativ d.m.Y Format ohne native Zeit-Funktionen
-            $parsedDate = DateTimeImmutable::createFromFormat('Y-m-d', $customDate);
+            $parsedDate = DateTimeImmutable::createFromFormat('Y-m-d', $customDateStr);
             if ($parsedDate === false) {
-                $parsedDate = DateTimeImmutable::createFromFormat('d.m.Y', $customDate);
+                $parsedDate = DateTimeImmutable::createFromFormat('d.m.Y', $customDateStr);
             }
             if ($parsedDate === false) {
                 continue;
@@ -356,67 +356,55 @@ final readonly class HolidayService
         $base = new DateTimeImmutable("$year-03-21", new DateTimeZone('UTC'));
         $easter = $base->modify('+' . \easter_days($year) . ' days');
 
-        // Bundesweit einheitliche Feiertage (Sauber getrennt, kein Auskommentieren durch Zeilenumbruch-Fehler)
-        $holidays = [$year . '-01-01', // Neujahr
-            $year . '-05-01', // Tag der Arbeit$year . '-10-03', // Tag der Deutschen Einheit
-            $year . '-12-25', // 1. Weihnachtstag$year . '-12-26', // 2. Weihnachtstag
-            $easter->modify('-2 days')->format('Y-m-d'),  // Karfreitag$easter->modify('+1 day')->format('Y-m-d'),   // Ostermontag
-            $easter->modify('+39 days')->format('Y-m-d'), // Christi Himmelfahrt$easter->modify('+50 days')->format('Y-m-d'), // Pfingstmontag
+        $holidays = [
+            $year . '-01-01', // Neujahr
+            $year . '-05-01', // Tag der Arbeit
+            $year . '-10-03', // Tag der Deutschen Einheit
+            $year . '-12-25', // 1. Weihnachtstag
+            $year . '-12-26', // 2. Weihnachtstag
+            $easter->modify('-2 days')->format('Y-m-d'),  // Karfreitag
+            $easter->modify('+1 day')->format('Y-m-d'),   // Ostermontag
+            $easter->modify('+39 days')->format('Y-m-d'), // Christi Himmelfahrt
+            $easter->modify('+50 days')->format('Y-m-d'), // Pfingstmontag
         ];
 
         // Bundeslandspezifische Feiertage
-        $state = $this->config->get('holiday_check', 'Berlin');
+        $state = $this->config->getString('holiday_check', 'Berlin');
 
         if (
-            \in_array(
-                $state,
-                [
-                    'Baden-Württemberg',
-                    'Bayern',
-                    'Sachsen-Anhalt',
-                ],
-                true,
-            )
+            \in_array($state, [
+            'Baden-Württemberg',
+            'Bayern',
+            'Sachsen-Anhalt',
+            ], true)
         ) {
             $holidays[] = $year . '-01-06'; // Heilige Drei Könige
         }
         if (
-            \in_array(
-                $state,
-                [
-                    'Berlin',
-                    'Mecklenburg-Vorpommern',
-                ],
-                true,
-            )
+            \in_array($state, [
+            'Berlin',
+            'Mecklenburg-Vorpommern',
+            ], true)
         ) {
             $holidays[] = $year . '-03-08'; // Frauentag
         }
         if (
-            \in_array(
-                $state,
-                [
-                    'Baden-Württemberg',
-                    'Bayern',
-                    'Hessen',
-                    'Nordrhein-Westfalen',
-                    'Rheinland-Pfalz',
-                    'Saarland',
-                ],
-                true,
-            )
+            \in_array($state, [
+            'Baden-Württemberg',
+            'Bayern',
+            'Hessen',
+            'Nordrhein-Westfalen',
+            'Rheinland-Pfalz',
+            'Saarland',
+            ], true)
         ) {
             $holidays[] = $easter->modify('+60 days')->format('Y-m-d'); // Fronleichnam
         }
         if (
-            \in_array(
-                $state,
-                [
-                    'Saarland',
-                    'Bayern',
-                ],
-                true,
-            )
+            \in_array($state, [
+            'Saarland',
+            'Bayern',
+            ], true)
         ) {
             $holidays[] = $year . '-08-15'; // Mariä Himmelfahrt
         }
@@ -424,45 +412,34 @@ final readonly class HolidayService
             $holidays[] = $year . '-09-20'; // Weltkindertag
         }
         if (
-            \in_array(
-                $state,
-                [
-                    'Brandenburg',
-                    'Bremen',
-                    'Hamburg',
-                    'Mecklenburg-Vorpommern',
-                    'Niedersachsen',
-                    'Sachsen',
-                    'Sachsen-Anhalt',
-                    'Schleswig-Holstein',
-                    'Thüringen',
-                ],
-                true,
-            )
+            \in_array($state, [
+            'Brandenburg',
+            'Bremen',
+            'Hamburg',
+            'Mecklenburg-Vorpommern',
+            'Niedersachsen',
+            'Sachsen',
+            'Sachsen-Anhalt',
+            'Schleswig-Holstein',
+            'Thüringen',
+            ], true)
         ) {
             $holidays[] = $year . '-10-31'; // Reformationstag
         }
         if (
-            \in_array(
-                $state,
-                [
-                    'Baden-Württemberg',
-                    'Bayern',
-                    'Nordrhein-Westfalen',
-                    'Rheinland-Pfalz',
-                    'Saarland',
-                ],
-                true,
-            )
+            \in_array($state, [
+            'Baden-Württemberg',
+            'Bayern',
+            'Nordrhein-Westfalen',
+            'Rheinland-Pfalz',
+            'Saarland',
+            ], true)
         ) {
             $holidays[] = $year . '-11-01'; // Allerheiligen
         }
         if ($state === 'Sachsen') {
             // Buß- und Bettag: Mittwoch vor dem 23. November
-            $holidays[] = (new DateTimeImmutable(
-                "$year-11-23",
-                new DateTimeZone('UTC'),
-            ))->modify('last wednesday')->format('Y-m-d');
+            $holidays[] = (new DateTimeImmutable("$year-11-23", new DateTimeZone('UTC')))->modify('last wednesday')->format('Y-m-d');
         }
 
         return $holidays;
@@ -484,11 +461,11 @@ final readonly class HolidayService
         }
 
         $ranges = [];
-        $start = $current = new DateTimeImmutable($dates[0]);
+        $start = $current = new DateTimeImmutable((string) $dates[0]);
         $counter = \count($dates);
 
         for ($i = 1; $i <= $counter; ++$i) {
-            $next = isset($dates[$i]) ? new DateTimeImmutable($dates[$i]) : null;
+            $next = isset($dates[$i]) ? new DateTimeImmutable((string) $dates[$i]) : null;
 
             // Prüfen, ob der nächste Tag direkt auf den aktuellen folgt
             if ($next instanceof DateTimeImmutable && $next->modify('-1 day')->format('Y-m-d') === $current->format('Y-m-d')) {
@@ -520,13 +497,13 @@ final readonly class HolidayService
             return ['nach Vereinbarung'];
         }
 
-        $useFullList = (bool) $this->config->get('holiday_service_use_full_list', false);
+        $useFullList = $this->config->getBool('holiday_service_use_full_list', false);
         $daysMap = ['mon' => 'Mo', 'tue' => 'Di', 'wed' => 'Mi', 'thu' => 'Do', 'fri' => 'Fr', 'sat' => 'Sa', 'sun' => 'So'];
 
         if ($useFullList) {
             $resultStrings = [];
             foreach ($daysMap as $key => $label) {
-                $slots = $hours[$key] ?? [];
+                $slots = \is_array($hours[$key] ?? null) ? $hours[$key] : [];
                 if ($slots === []) {
                     $resultStrings[] = "{$label}: Keine Einfahrt";
 
@@ -542,8 +519,8 @@ final readonly class HolidayService
         $chronologicalGroups = [];
         $currentGroup = null;
         foreach ($daysMap as $key => $label) {
-            $slots = $hours[$key] ?? [];
-            $slotKey = empty($slots) ? 'none' : \implode(',', \array_map(fn (array $s): string => $s[0] . '-' . $s[1], $slots));
+            $slots = \is_array($hours[$key] ?? null) ? $hours[$key] : [];
+            $slotKey = $slots === [] ? 'none' : \implode(',', \array_map(fn (array $s): string => $s[0] . '-' . $s[1], $slots));
             if ($currentGroup === null || $currentGroup['slotKey'] !== $slotKey) {
                 if ($currentGroup !== null) {
                     $chronologicalGroups[] = $currentGroup;

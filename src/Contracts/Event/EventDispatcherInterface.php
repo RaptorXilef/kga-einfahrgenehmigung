@@ -7,8 +7,6 @@ namespace App\Contracts\Event;
 /**
  * Interface für den Event Dispatcher.
  * Leitet aufgetretene Ereignisse (Events) an die registrierten Lauscher (Listeners) weiter.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface EventDispatcherInterface
 {

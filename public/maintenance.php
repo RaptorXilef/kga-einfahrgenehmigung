@@ -20,7 +20,7 @@ if (!isset($settings)) {
 }
 
 // 2. Fallback-Logik für base_url, falls sie im Array fehlt (wichtig für Ressourcen)
-if (empty($settings['base_url'])) {
+if (($settings['base_url'] ?? '') === '') {
     // Fallback auf relativen Pfad, niemals HTTP_HOST vertrauen
     // Und wir ermitteln den Pfad zum Root-Verzeichnis
     $scriptPath = \str_replace('\\', '/', \dirname((string) $_SERVER['SCRIPT_NAME']));

@@ -6,8 +6,6 @@ namespace App\Contracts\System;
 
 /**
  * Interface zur Generierung von PDF-Dokumenten aus HTML.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface PdfGeneratorInterface
 {

@@ -34,14 +34,15 @@ final readonly class PermitSendReminderAction implements ActionInterface, Requir
     #[Override]
     public function execute(ServerRequest $request): ResponseInterface
     {
-        $codes = $request->post['codes'] ?? [];
-        $singleCode = $request->post['code'] ?? '';
+        $rawCodes = $request->post['codes'] ?? [];
+        $codes = \is_array($rawCodes) ? $rawCodes : [];
+        $singleCode = \trim((string) ($request->post['code'] ?? ''));
 
         if ($singleCode !== '') {
             $codes[] = $singleCode;
         }
 
-        if (empty($codes)) {
+        if ($codes === []) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Genehmigungen ausgewählt.');
 
             return new RedirectResponse('admin');

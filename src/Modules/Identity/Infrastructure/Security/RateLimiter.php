@@ -16,8 +16,6 @@ use Override;
  *
  * Speichert Fehlversuche je IP-Adresse (in MySQL oder JSON) und sperrt den
  * Zugang temporär nach Überschreiten der definierten Limits (Lockout-Time).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class RateLimiter implements RateLimiterInterface
 {

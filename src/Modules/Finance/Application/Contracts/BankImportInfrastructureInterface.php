@@ -8,8 +8,6 @@ use League\Csv\Reader;
 
 /**
  * Entkoppelt die Application-Schicht von nativen Dateisystem- und I/O-Funktionen.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface BankImportInfrastructureInterface
 {

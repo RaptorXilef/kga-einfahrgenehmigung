@@ -12,8 +12,6 @@ namespace App\Contracts\Payment;
  * Kontext: Abstraktion der Zahlungs-Gateway-API (z.B. für PayPal-Integrationen).
  *
  * Definiert die notwendigen Methoden zur Verifizierung und Abwicklung von Zahlungen.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface PaymentProviderInterface
 {

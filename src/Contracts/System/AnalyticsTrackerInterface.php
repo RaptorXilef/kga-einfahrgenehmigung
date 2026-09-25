@@ -7,8 +7,6 @@ namespace App\Contracts\System;
 /**
  * Port für das serverseitige Senden von Webanalyse-Events (z.B. Google Analytics 4 Measurement Protocol).
  * Entkoppelt die HTTP-Middlewares von nativen cURL-Netzwerkaufrufen.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface AnalyticsTrackerInterface
 {

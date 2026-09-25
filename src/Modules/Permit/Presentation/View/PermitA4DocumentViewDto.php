@@ -6,8 +6,6 @@ namespace App\Modules\Permit\Presentation\View;
 
 /**
  * 100% logikfreies View-DTO für das A4-Genehmigungsdokument (templates/emails/permit_a4_document.phtml).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class PermitA4DocumentViewDto
 {

@@ -19,8 +19,6 @@ use Throwable;
 
 /**
  * Erstellt manuell ein neues ZIP-Datenbank-Backup über das Admin-Dashboard.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('POST', '/create_backup')]
 #[RequiresAuth]

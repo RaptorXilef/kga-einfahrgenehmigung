@@ -37,7 +37,7 @@ final readonly class PdoMagicLinkRepository implements MagicLinkRepositoryInterf
         $stmt->execute(['input' => $input]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$row) {
+        if (!\is_array($row)) {
             return null;
         }
 

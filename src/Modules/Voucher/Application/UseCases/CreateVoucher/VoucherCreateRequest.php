@@ -11,8 +11,6 @@ use InvalidArgumentException;
 
 /**
  * DTO für das Erstellen von Gutscheinen.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class VoucherCreateRequest
 {

@@ -8,8 +8,6 @@ use App\Application\Http\ServerRequest;
 
 /**
  * Interface für Action-Klassen, die direkt Views/HTML rendern (Read-Only).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface ViewActionInterface
 {

@@ -9,8 +9,6 @@ use Override;
 
 /**
  * Repräsentiert eine einfache Klartext-HTTP-Antwort (text/plain).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class TextResponse implements ResponseInterface
 {

@@ -20,8 +20,6 @@ use Throwable;
 /**
  * Stellt einen Datenbank-Snapshot aus einem ZIP-Archiv wieder her.
  * Erzeugt vorab immer ein automatisches Sicherheits-Backup des Ist-Zustands.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('POST', '/restore_data')]
 #[RequiresAuth]

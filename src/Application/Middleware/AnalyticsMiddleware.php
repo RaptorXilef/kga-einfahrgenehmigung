@@ -17,7 +17,6 @@ use Throwable;
 /**
  * Sendet serverseitige Events an Google Analytics (GA4).
  * Asynchron im Terminate-Prozess (nachdem der Request beantwortet wurde).
- * VSA FIX: 100% frei von direktem cURL - delegiert den Netzwerk-Aufruf an AnalyticsTrackerInterface.
  */
 final readonly class AnalyticsMiddleware implements MiddlewareInterface
 {
@@ -60,7 +59,7 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
         }
 
         $consent = \json_decode($consentCookie, true);
-        if (!\is_array($consent) || empty($consent['analytics'])) {
+        if (!\is_array($consent) || !isset($consent['analytics']) || (bool) $consent['analytics'] === false) {
             return; // Nutzer hat Analytics abgelehnt -> Nichts tracken
         }
 

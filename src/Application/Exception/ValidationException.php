@@ -8,8 +8,6 @@ use DomainException;
 
 /**
  * Wird geworfen, wenn die Formulardaten (DTO) ungültig sind.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final class ValidationException extends DomainException
 {

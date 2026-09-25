@@ -10,8 +10,6 @@ use App\Application\Http\ServerRequest;
 
 /**
  * Reiht Middlewares aneinander und führt sie sequenziell aus.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final class MiddlewarePipeline
 {

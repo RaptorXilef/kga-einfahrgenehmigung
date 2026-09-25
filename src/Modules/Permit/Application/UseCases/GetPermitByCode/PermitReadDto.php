@@ -9,8 +9,6 @@ use DateTimeImmutable;
 /**
  * Flaches, unveränderliches CQRS Read-Model für eine einzelne Genehmigung.
  * Ersetzt die Domain-Entity bei allen reinen Lese-Operationen (Check, PDF-Druck, Checkout-Success).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class PermitReadDto
 {

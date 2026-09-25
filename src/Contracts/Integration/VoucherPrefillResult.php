@@ -7,8 +7,6 @@ namespace App\Contracts\Integration;
 /**
  * Globales Integrations-DTO für die modulsichere Übergabe von Gutschein-Vorbefüllungen
  * an das Permit-Antragsformular (verhindert direkte Modul-Abhängigkeiten).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class VoucherPrefillResult
 {

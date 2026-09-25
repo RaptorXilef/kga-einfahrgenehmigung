@@ -49,7 +49,7 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
         $baseUrl = \rtrim($this->config->getBaseUrl(), '/');
         $dtos = [];
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
             $code = (string) $row['code'];
             $isMultiUse = (bool) $row['is_multi_use'];
             $currentUses = (int) $row['current_uses'];
@@ -58,8 +58,11 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
             $type = (string) $row['type'];
             $value = (float) $row['value'];
 
-            $expiresAtObj = $row['expires_at'] ? new DateTimeImmutable((string) $row['expires_at']) : null;
-            $prefill = \json_decode((string) $row['prefill_data'], true) ?: [];
+            $expiresAtStr = \trim((string) ($row['expires_at'] ?? ''));
+            $expiresAtObj = $expiresAtStr !== '' ? new DateTimeImmutable($expiresAtStr) : null;
+
+            $decodedPrefill = \json_decode((string) ($row['prefill_data'] ?? ''), true);
+            $prefill = \is_array($decodedPrefill) ? $decodedPrefill : [];
 
             // 1. Logik-Auswertung
             $isDeactivated = $status !== 'aktiv';
@@ -77,6 +80,10 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
                 $discountText = \number_format($value, 2, ',', '.') . ' € Festpreis';
             }
 
+            $datumVonPrefill = \trim((string) ($prefill['datum_von'] ?? ''));
+            $namePrefill = \trim((string) ($prefill['name'] ?? ''));
+            $plotPrefill = \trim((string) ($prefill['parzelle'] ?? ''));
+
             $dtos[] = new VoucherListDto(
                 code: $code,
                 redeemUrl: $baseUrl . '/index?voucher=' . $code,
@@ -87,9 +94,9 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
                 discountBadgeClass: $type === 'free' ? 'c-badge--success' : 'c-badge--primary',
                 usageBadgeText: $isMultiUse ? "Mehrfach ({$currentUses}/" . ($maxUses > 0 ? (string) $maxUses : '&infin;') . ')' : 'Einweg',
                 usageBadgeIcon: $isMultiUse ? 'sync.webp' : null,
-                dateModeText: empty($prefill['datum_von']) ? 'Flexible Datenwahl' : 'Gefixte Daten',
-                prefilledName: !empty($prefill['name']) ? (string) $prefill['name'] : null,
-                prefilledPlot: !empty($prefill['parzelle']) ? (string) $prefill['parzelle'] : null,
+                dateModeText: $datumVonPrefill === '' ? 'Flexible Datenwahl' : 'Gefixte Daten',
+                prefilledName: $namePrefill !== '' ? $namePrefill : null,
+                prefilledPlot: $plotPrefill !== '' ? $plotPrefill : null,
                 expiresText: $expiresAtObj instanceof DateTimeImmutable ? "Gültig bis: <strong class=\"u-color-dark\">{$expiresAtObj->format('d.m.Y H:i')} Uhr</strong>" : null,
                 isDeactivated: $isDeactivated,
                 toggleActionUrl: $isDeactivated ? 'activate_voucher' : 'deactivate_voucher',

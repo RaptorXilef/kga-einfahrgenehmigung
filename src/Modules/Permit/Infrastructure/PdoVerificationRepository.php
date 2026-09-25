@@ -60,14 +60,18 @@ final readonly class PdoVerificationRepository implements VerificationRepository
 
     private function loadSql(string $targetKey): array
     {
-        $cfg = $this->config->get('storage_config')[$targetKey];
+        $cfg = $this->config->getArray('storage_config')[$targetKey] ?? [];
+        $table = $cfg['table'] ?? $targetKey;
         $data = [];
-        $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
-        while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $payload = \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : [];
-            $exp = $r['expires'];
-            $dt = \is_numeric($exp) ? $this->clock->now()->setTimestamp((int) $exp) : new DateTimeImmutable($exp);
-            $data[$r['token']] = new VerificationRequest($r['token'], $dt, $payload);
+        $stmt = $this->pdo->query("SELECT * FROM `{$table}`");
+
+        if ($stmt !== false) {
+            while (\is_array($r = $stmt->fetch(PDO::FETCH_ASSOC))) {
+                $payload = \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : [];
+                $exp = $r['expires'];
+                $dt = \is_numeric($exp) ? $this->clock->now()->setTimestamp((int) $exp) : new DateTimeImmutable((string) $exp);
+                $data[(string) $r['token']] = new VerificationRequest((string) $r['token'], $dt, $payload);
+            }
         }
 
         return $data;
@@ -75,7 +79,7 @@ final readonly class PdoVerificationRepository implements VerificationRepository
 
     private function saveSql(string $targetKey, array $requests): void
     {
-        $table = $this->config->get('storage_config')[$targetKey]['table'];
+        $table = (string) ($this->config->getArray('storage_config')[$targetKey]['table'] ?? $targetKey);
         $this->pdo->beginTransaction();
 
         try {
@@ -95,7 +99,7 @@ final readonly class PdoVerificationRepository implements VerificationRepository
                     $sql = $this->buildReplaceSql($table, $data);
                     $stmt = $this->pdo->prepare($sql);
                 }
-                $stmt->execute($data);
+                $stmt?->execute($data);
             }
             $this->pdo->commit();
         } catch (Exception $e) {

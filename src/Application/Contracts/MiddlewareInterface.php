@@ -8,8 +8,6 @@ use App\Application\Http\ServerRequest;
 
 /**
  * Interface für alle HTTP-Middlewares (Türsteher).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface MiddlewareInterface
 {

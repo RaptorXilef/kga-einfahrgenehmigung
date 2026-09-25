@@ -9,8 +9,6 @@ use Override;
 
 /**
  * Erzwingt den Datei-Download eines generierten Inhalts im Browser.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class FileDownloadResponse implements ResponseInterface
 {

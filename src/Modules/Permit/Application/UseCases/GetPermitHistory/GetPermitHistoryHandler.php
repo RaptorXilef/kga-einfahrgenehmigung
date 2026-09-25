@@ -14,7 +14,6 @@ use PDO;
 
 /**
  * Holt die Pächter-Historie via PDO und mappt sie in flache DTOs (Pragmatic CQRS).
- * Entities werden beim Lesen komplett umgangen.
  *
  * @implements QueryHandlerInterface<GetPermitHistoryQuery, HistoryPermitViewDto[]>
  */
@@ -27,12 +26,15 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
     ) {
     }
 
+    /**
+     * @param GetPermitHistoryQuery $query
+     */
     #[Override]
     public function handle(mixed $query): array
     {
         $normalizedSearch = Sanitizer::normalizeEmail($query->email);
         $parts = \explode('@', $normalizedSearch);
-        $domain = \count($parts) === 2 ? '\%' . $parts[1] : '%';
+        $domain = \count($parts) === 2 ? '%' . $parts[1] : '%';
 
         $binds = ['domain1' => $domain, 'domain2' => $domain];
         $archiveCond = '';
@@ -67,16 +69,16 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
         $dtos = [];
 
         // Nutzt `while` anstelle von fetchAll() um Speicher zu schonen
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
             // Serverseitiger, exakter E-Mail Abgleich (Alias Ignorance)
             if (Sanitizer::normalizeEmail((string) $row['email']) !== $normalizedSearch) {
                 continue;
             }
 
             $isSuspended = (bool) $row['is_suspended'];
-            $erstellt = new DateTimeImmutable($row['erstellt']);
-            $von = new DateTimeImmutable($row['von']);
-            $bis = new DateTimeImmutable($row['bis']);
+            $erstellt = new DateTimeImmutable((string) $row['erstellt']);
+            $von = new DateTimeImmutable((string) $row['von']);
+            $bis = new DateTimeImmutable((string) $row['bis']);
 
             $isExpired = $bis->format('Y-m-d') < $nowDateStr;
             $isFuture = $von->format('Y-m-d') > $nowDateStr;
@@ -85,10 +87,10 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
             $rowClass = $isExpired ? 'u-opacity-50' : '';
             $rowClass .= $isSuspended ? ' c-table__row--danger' : '';
 
-            $vKey = $row['typ'];
+            $vKey = (string) $row['typ'];
             $vCfg = $vConfig[$vKey] ?? null;
-            $vehicleIcon = $vCfg['icon'] ?? 'assets/img/icons/warning.webp';
-            $vehicleLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
+            $vehicleIcon = (string) ($vCfg['icon'] ?? 'assets/img/icons/warning.webp');
+            $vehicleLabel = (string) ($vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey));
 
             $countdownText = '';
             $countdownBadgeClass = 'c-badge--primary';
@@ -97,7 +99,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
                 $countdownText = 'ABGELAUFEN';
                 $countdownBadgeClass = 'c-badge--outline';
             } elseif ($isFuture) {
-                $daysToStart = (int) $now->diff($von)->format('\%r\%a');
+                $daysToStart = (int) $now->diff($von)->format('%r%a');
                 $countdownText = "Startet in {$daysToStart} Tagen";
             } else {
                 $diff = $now->diff($bis);
@@ -142,7 +144,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
                 plotNumber: \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
                 vehicleIcon: $vehicleIcon,
                 vehicleLabel: $vehicleLabel,
-                licensePlate: (string) $row['kennzeichen'] ?: '---',
+                licensePlate: (string) ($row['kennzeichen'] ?: '---'),
                 validFromDate: $von->format('d.m.Y'),
                 validUntilDate: $bis->format('d.m.Y'),
                 isExpired: $isExpired,

@@ -10,8 +10,6 @@ declare(strict_types=1);
  * MySQL ist die exklusive Single Source of Truth.
  *
  * Path: config/storage.php
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 
 return [

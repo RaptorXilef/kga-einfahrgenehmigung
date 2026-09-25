@@ -8,8 +8,6 @@ use App\Contracts\DependencyInjection\ContainerInterface;
 
 /**
  * Interface für alle Service Provider im Dependency Injection Container.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface ServiceProviderInterface
 {

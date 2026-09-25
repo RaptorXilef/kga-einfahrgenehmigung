@@ -33,7 +33,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
         }
 
         $executed = $this->getExecutedMigrations();
-        $migrationsDir = \rtrim((string) $this->config->get('root_path'), '/\\') . '/database/migrations';
+        $migrationsDir = \rtrim($this->config->getString('root_path'), '/\\') . '/database/migrations';
         $executedNow = [];
 
         if (!\is_dir($migrationsDir)) {
@@ -98,15 +98,16 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
 
     private function getExecutedMigrations(): array
     {
-        $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
-        if (!$cfg || !$this->pdo instanceof PDO) {
+        $storageConfig = $this->config->getArray('storage_config');
+        $cfg = $storageConfig['update_migrations'] ?? null;
+        if (!\is_array($cfg) || !isset($cfg['table']) || !$this->pdo instanceof PDO) {
             return [];
         }
 
         try {
             $stmt = $this->pdo->query("SELECT `version` FROM `{$cfg['table']}`");
 
-            return $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
+            return $stmt !== false ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
         } catch (PDOException) {
             return [];
         }
@@ -114,8 +115,9 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
 
     private function markAsExecuted(string $version): void
     {
-        $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
-        if (!$cfg || !$this->pdo instanceof PDO) {
+        $storageConfig = $this->config->getArray('storage_config');
+        $cfg = $storageConfig['update_migrations'] ?? null;
+        if (!\is_array($cfg) || !isset($cfg['table']) || !$this->pdo instanceof PDO) {
             return;
         }
 
@@ -127,8 +129,9 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
     #[Override]
     public function import(array $data): void
     {
-        $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
-        if (!$cfg || !$this->pdo instanceof PDO) {
+        $storageConfig = $this->config->getArray('storage_config');
+        $cfg = $storageConfig['update_migrations'] ?? null;
+        if (!\is_array($cfg) || !isset($cfg['table']) || !$this->pdo instanceof PDO) {
             return;
         }
 
@@ -137,6 +140,10 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
         try {
             $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id, version, executed_at) VALUES (?, ?, ?)");
             foreach ($data as $id => $item) {
+                if (!\is_array($item)) {
+                    continue;
+                }
+
                 $stmt->execute([$id, $item['version'] ?? '', $item['executed_at'] ?? '']);
             }
             $this->pdo->commit();

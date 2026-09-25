@@ -16,8 +16,6 @@ use ZipArchive;
 /**
  * Physische Implementierung der Dateioperationen für den Bank-Import.
  * Kapselt file_get_contents, fopen und ZipArchive sicher ab.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class LocalBankImportInfrastructure implements BankImportInfrastructureInterface
 {

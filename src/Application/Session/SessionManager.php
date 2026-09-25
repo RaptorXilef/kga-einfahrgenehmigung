@@ -46,13 +46,12 @@ final readonly class SessionManager implements AuthSessionInterface
             return;
         }
 
-        // Prüfen, ob der Nutzer gerade authentifizierte Daten in der Session hat
-        $isAuthenticated = !empty($_SESSION['user_id']) || !empty($_SESSION['admin_user']);
+        $userId = $_SESSION['user_id'] ?? '';
+        $adminUser = $_SESSION['admin_user'] ?? '';
+        $isAuthenticated = (\is_string($userId) && $userId !== '') || (\is_string($adminUser) && $adminUser !== '');
 
         // Idle Timeout: User war zu lange inaktiv
-        if ($now - $_SESSION['last_activity'] > self::IDLE_TIMEOUT) {
-            // Wir zerstören die Session nach 30 Min NUR, wenn sensible Admin-Daten drin liegen!
-            // Gast-Sessions (für das CSRF Token auf der Loginseite) lassen wir am Leben.
+        if ($now - (int) ($_SESSION['last_activity'] ?? $now) > self::IDLE_TIMEOUT) {
             if ($isAuthenticated) {
                 $this->destroy();
                 \session_start();
@@ -64,7 +63,7 @@ final readonly class SessionManager implements AuthSessionInterface
         }
 
         // Absolute Timeout: Session existiert insgesamt zu lange
-        if ($now - $_SESSION['session_created'] > self::MAX_LIFETIME) {
+        if ($now - (int) $_SESSION['session_created'] > self::MAX_LIFETIME) {
             $this->destroy();
             \session_start();
             $_SESSION['session_created'] = $now;
@@ -83,7 +82,7 @@ final readonly class SessionManager implements AuthSessionInterface
 
     public function getFormData(): array
     {
-        return $_SESSION['form_data'] ?? [];
+        return \is_array($_SESSION['form_data'] ?? null) ? $_SESSION['form_data'] : [];
     }
 
     public function clearFormData(): void
@@ -99,12 +98,12 @@ final readonly class SessionManager implements AuthSessionInterface
 
     public function getVerifiedEmail(): ?string
     {
-        return $_SESSION['verified_email'] ?? null;
+        return \is_string($_SESSION['verified_email'] ?? null) ? $_SESSION['verified_email'] : null;
     }
 
     public function getEditToken(): ?string
     {
-        return $_SESSION['edit_token'] ?? null;
+        return \is_string($_SESSION['edit_token'] ?? null) ? $_SESSION['edit_token'] : null;
     }
 
     public function clearEditState(): void
@@ -119,7 +118,7 @@ final readonly class SessionManager implements AuthSessionInterface
 
     public function getAdminFilters(): array
     {
-        return $_SESSION['admin_filters'] ?? [];
+        return \is_array($_SESSION['admin_filters'] ?? null) ? $_SESSION['admin_filters'] : [];
     }
 
     public function clearAdminFilters(): void
@@ -136,7 +135,7 @@ final readonly class SessionManager implements AuthSessionInterface
     #[Override]
     public function getHistoryEmail(): ?string
     {
-        return $_SESSION['user_history_email'] ?? null;
+        return \is_string($_SESSION['user_history_email'] ?? null) ? $_SESSION['user_history_email'] : null;
     }
 
     #[Override]
@@ -158,7 +157,7 @@ final readonly class SessionManager implements AuthSessionInterface
 
     public function getCollectiveTransfers(): array
     {
-        return $_SESSION['collective_transfers'] ?? [];
+        return \is_array($_SESSION['collective_transfers'] ?? null) ? $_SESSION['collective_transfers'] : [];
     }
 
     public function removeCollectiveTransfer(string $id): void
@@ -177,19 +176,22 @@ final readonly class SessionManager implements AuthSessionInterface
     public function destroy(): void
     {
         $_SESSION = [];
-        if (\ini_get('session.use_cookies')) {
+        if ((bool) \ini_get('session.use_cookies')) {
             $p = \session_get_cookie_params();
-            \setcookie(
-                \session_name(),
-                '',
-                [
-                    'expires' => $this->clock->now()->getTimestamp() - 42000,
-                    'path' => $p['path'],
-                    'domain' => $p['domain'],
-                    'secure' => $p['secure'],
-                    'httponly' => $p['httponly'],
-                ],
-            );
+            $sessionName = \session_name();
+            if (\is_string($sessionName) && $sessionName !== '') {
+                \setcookie(
+                    $sessionName,
+                    '',
+                    [
+                        'expires' => $this->clock->now()->getTimestamp() - 42000,
+                        'path' => $p['path'],
+                        'domain' => $p['domain'],
+                        'secure' => $p['secure'],
+                        'httponly' => $p['httponly'],
+                    ],
+                );
+            }
         }
         \session_destroy();
     }
@@ -200,7 +202,7 @@ final readonly class SessionManager implements AuthSessionInterface
         $_SESSION['user_id'] = $userId;
         $_SESSION['admin_user'] = $label;
         $_SESSION['admin_group'] = $groupId;
-        if (!$hash) {
+        if ($hash === null || $hash === '') {
             return;
         }
 
@@ -210,7 +212,7 @@ final readonly class SessionManager implements AuthSessionInterface
     #[Override]
     public function getAuthHash(): ?string
     {
-        return $_SESSION['auth_hash'] ?? null;
+        return \is_string($_SESSION['auth_hash'] ?? null) ? $_SESSION['auth_hash'] : null;
     }
 
     #[Override]
@@ -222,7 +224,7 @@ final readonly class SessionManager implements AuthSessionInterface
     #[Override]
     public function getPermissions(): array
     {
-        return $_SESSION['compiled_permissions'] ?? [];
+        return \is_array($_SESSION['compiled_permissions'] ?? null) ? $_SESSION['compiled_permissions'] : [];
     }
 
     #[Override]
@@ -251,12 +253,12 @@ final readonly class SessionManager implements AuthSessionInterface
 
     public function getAnalyticsId(): ?string
     {
-        return $_SESSION['ga4_client_id'] ?? null;
+        return \is_string($_SESSION['ga4_client_id'] ?? null) ? $_SESSION['ga4_client_id'] : null;
     }
 
     public function getAnalyticsSessionId(): ?int
     {
-        return $_SESSION['ga4_session_id'] ?? null;
+        return \is_int($_SESSION['ga4_session_id'] ?? null) ? $_SESSION['ga4_session_id'] : null;
     }
 
     public function setAnalyticsSessionId(int $timestamp): void
@@ -266,7 +268,7 @@ final readonly class SessionManager implements AuthSessionInterface
 
     public function initCsrfToken(): string
     {
-        if (empty($_SESSION['csrf_token'])) {
+        if (!isset($_SESSION['csrf_token']) || !\is_string($_SESSION['csrf_token']) || $_SESSION['csrf_token'] === '') {
             $_SESSION['csrf_token'] = \bin2hex(\random_bytes(32));
         }
 
@@ -275,7 +277,7 @@ final readonly class SessionManager implements AuthSessionInterface
 
     public function getCsrfToken(): string
     {
-        return $_SESSION['csrf_token'] ?? '';
+        return \is_string($_SESSION['csrf_token'] ?? null) ? $_SESSION['csrf_token'] : '';
     }
 
     /**
@@ -316,7 +318,7 @@ final readonly class SessionManager implements AuthSessionInterface
      */
     public function getFlashes(): array
     {
-        $flashes = $_SESSION['flashes'] ?? [];
+        $flashes = \is_array($_SESSION['flashes'] ?? null) ? $_SESSION['flashes'] : [];
         unset($_SESSION['flashes']);
 
         return $flashes;

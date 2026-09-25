@@ -6,8 +6,6 @@ namespace App\Application\Contracts;
 
 /**
  * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface ResponseInterface
 {

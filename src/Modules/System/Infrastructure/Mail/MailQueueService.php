@@ -60,12 +60,12 @@ final readonly class MailQueueService implements MailServiceInterface
     {
         return $this->repository->processBatch($limit, function (string $rec, string $sub, string $tpl, array $dat, ?string $replyTo): void {
             $attachments = [];
-            if (!empty($dat['_attachments'])) {
+            if (isset($dat['_attachments']) && \is_array($dat['_attachments']) && $dat['_attachments'] !== []) {
                 foreach ($dat['_attachments'] as $att) {
                     $attachments[] = [
                         'name' => $att['name'],
                         'mime' => $att['mime'],
-                        'content' => \base64_decode($att['content_base64'], true),
+                        'content' => \base64_decode((string) $att['content_base64'], true),
                     ];
                 }
                 unset($dat['_attachments']);

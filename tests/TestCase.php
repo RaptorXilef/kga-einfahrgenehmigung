@@ -8,8 +8,6 @@ use PHPUnit\Framework\TestCase as BaseTestCase;
 
 /**
  * Path: tests/TestCase.php
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 abstract class TestCase extends BaseTestCase
 {

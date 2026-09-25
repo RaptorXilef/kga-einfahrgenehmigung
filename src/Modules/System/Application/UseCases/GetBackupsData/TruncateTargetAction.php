@@ -21,8 +21,6 @@ use Throwable;
 
 /**
  * Leert eine spezifische Datenbank-Tabelle nach vorherigem Sicherheits-Backup.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('POST', '/truncate_target')]
 #[RequiresAuth]

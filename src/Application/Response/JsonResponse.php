@@ -10,8 +10,6 @@ use Override;
 /**
  * Standardisierte JSON-Antwort.
  * Kapselt die JSON-Codierung und HTTP-Statuscodes ab, ohne den PHP-Prozess hart zu beenden.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class JsonResponse implements ResponseInterface
 {

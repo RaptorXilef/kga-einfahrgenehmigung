@@ -30,7 +30,8 @@ final class PdoFactory
             return null;
         }
 
-        $portStr = !empty($db['port']) ? ";port={$db['port']}" : '';
+        $portRaw = isset($db['port']) ? \trim((string) $db['port']) : '';
+        $portStr = $portRaw !== '' ? ";port={$portRaw}" : '';
         $dsnWithDb = "mysql:host={$db['host']}{$portStr};dbname={$db['dbname']};charset={$db['charset']}";
 
         // Dynamischer Switch zwischen echtem PDO und dem Logging-Wrapper
@@ -46,11 +47,11 @@ final class PdoFactory
         try {
             // Nur dem DebugPDO das 5. Argument übergeben!
             if ($isDebugMode) {
-                $pdo = new DebugPDO($dsnWithDb, $db['user'], $db['pass'], $options, $clock);
+                $pdo = new DebugPDO($dsnWithDb, (string) $db['user'], (string) $db['pass'], $options, $clock);
                 $logPath = \rtrim($config->getString('root_path'), '/\\') . '/logs/sql_debug.log';
                 $pdo->setLogFile($logPath);
             } else {
-                $pdo = new PDO($dsnWithDb, $db['user'], $db['pass'], $options);
+                $pdo = new PDO($dsnWithDb, (string) $db['user'], (string) $db['pass'], $options);
             }
         } catch (PDOException $e) {
             $mysqlErrorCode = $e->errorInfo[1] ?? null;
@@ -67,15 +68,15 @@ final class PdoFactory
                 if ($isDebugMode) {
                     $pdo = new DebugPDO(
                         $dsnWithoutDb,
-                        $db['user'],
-                        $db['pass'],
+                        (string) $db['user'],
+                        (string) $db['pass'],
                         $options,
                         $clock,
                     );
                     $logPath = \rtrim($config->getString('root_path'), '/\\') . '/logs/sql_debug.log';
                     $pdo->setLogFile($logPath);
                 } else {
-                    $pdo = new PDO($dsnWithoutDb, $db['user'], $db['pass'], $options);
+                    $pdo = new PDO($dsnWithoutDb, (string) $db['user'], (string) $db['pass'], $options);
                 }
 
                 $sql = "CREATE DATABASE IF NOT EXISTS `{$db['dbname']}` " .

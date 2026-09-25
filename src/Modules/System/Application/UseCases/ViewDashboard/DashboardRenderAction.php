@@ -192,7 +192,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             typeSelectPermanent: $dto->type === 'permanent' ? 'selected' : '',
             limitOptions: $limitOptions,
             searchValue: $dto->query,
-            showResetButton: !empty($this->sessionManager->getAdminFilters()),
+            showResetButton: $this->sessionManager->getAdminFilters() !== [],
         );
 
         // Sammelüberweisungen für den Finance-Tab
@@ -291,7 +291,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         // Bank Wizard
         $formData = $this->sessionManager->getFormData();
-        $showBankWizard = isset($formData['bank_wizard']['headers']) && !empty($formData['bank_wizard']['headers']);
+        $wizardHeaders = $formData['bank_wizard']['headers'] ?? null;
+        $showBankWizard = \is_array($wizardHeaders) && $wizardHeaders !== [];
         if ($showBankWizard) {
             $tabStates['tab-bank-import'] = new DashboardTabStateDto('is-active', 'true', '0', 'false');
             $focus = 'tab-bank-import';

@@ -6,8 +6,6 @@ namespace App\Contracts\Storage;
 
 /**
  * Kapselt Locking-Mechanismen (Dateisystem, Redis, etc.) für atomare Prozesse.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface LockManagerInterface
 {

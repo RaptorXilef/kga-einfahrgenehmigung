@@ -14,8 +14,6 @@ use RuntimeException;
  *
  * Kommuniziert mit der PayPal REST API v2 zur sicheren Verifizierung von Zahlungen.
  * Gleicht den tatsächlich gezahlten Betrag mit dem erwarteten Betrag ab.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class PayPalService implements PaymentProviderInterface
 {

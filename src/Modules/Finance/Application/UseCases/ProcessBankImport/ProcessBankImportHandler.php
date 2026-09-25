@@ -55,7 +55,6 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
         $unpaidCodes = $permitData->unpaidCodes;
         $unpaidPlates = $permitData->unpaidPlates;
         $prices = $permitData->prices;
-        // -----------------------------
 
         $aggregierteZahlungen = [];
         $letztesDatumPerPermit = [];
@@ -155,7 +154,7 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
             if ($gefundeneCodes === []) {
                 $zweckNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $zweckUpper);
                 foreach ($unpaidPlates as $unpaidCode => $plate) {
-                    if (empty($plate)) {
+                    if (\trim($plate) === '') {
                         continue;
                     }
 
@@ -321,7 +320,7 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
 
         $this->infrastructure->writeLog("Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}\n---", $runLogs);
 
-        if ((bool) $this->config->get('bank_import_archive_enabled', false)) {
+        if ($this->config->getBool('bank_import_archive_enabled', false)) {
             $this->infrastructure->createArchiveZip($command->tempFile, $runLogs);
         }
 

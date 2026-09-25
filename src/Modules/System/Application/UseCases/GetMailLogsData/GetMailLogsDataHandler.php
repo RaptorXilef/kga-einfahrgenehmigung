@@ -38,7 +38,7 @@ final readonly class GetMailLogsDataHandler implements QueryHandlerInterface
         $table = $cfg['table'] ?? 'mail_logs';
 
         $stmtCount = $this->pdo->query("SELECT COUNT(*) FROM `{$table}`");
-        $total = (int) $stmtCount->fetchColumn();
+        $total = $stmtCount !== false ? (int) $stmtCount->fetchColumn() : 0;
 
         $offset = ($query->page - 1) * $query->limit;
         $limit = $query->limit;
@@ -53,14 +53,15 @@ final readonly class GetMailLogsDataHandler implements QueryHandlerInterface
         $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
-            $dt = new DateTimeImmutable($r['timestamp']);
+            $dt = new DateTimeImmutable((string) $r['timestamp']);
             $data = \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : [];
             $status = (string) $r['status'];
             $isSuccess = $status === 'Erfolg' || \str_starts_with($status, 'Erfolg');
 
             $debugUrl = '';
-            if ($isDebugMode && !empty($data['_debug_file'])) {
-                $debugUrl = $baseUrl . 'debug_mail?file=' . \urlencode($data['_debug_file']);
+            $debugFile = \trim((string) ($data['_debug_file'] ?? ''));
+            if ($isDebugMode && $debugFile !== '') {
+                $debugUrl = $baseUrl . 'debug_mail?file=' . \urlencode($debugFile);
             }
 
             $dtos[] = new MailLogViewDto(

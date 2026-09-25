@@ -9,8 +9,6 @@ use Override;
 
 /**
  * Physische Implementierung der IP-Auflösung via Superglobal $_SERVER.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final class ServerIpResolver implements IpResolverInterface
 {

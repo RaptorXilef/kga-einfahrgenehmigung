@@ -16,8 +16,6 @@ use Override;
  * Physische Implementierung der E-Mail-Validierung.
  * Kommuniziert via DNS (MX-Records) und HTTP (GitHub).
  * Darf native I/O Funktionen nutzen, da sie sich nun im Infrastructure-Layer befindet.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class EmailValidationService implements EmailValidationServiceInterface
 {

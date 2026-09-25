@@ -90,9 +90,12 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
         $stmt->execute($binds);
         $countCancelled = (int) $stmt->fetchColumn();
 
-        $countActive = (int) ($counts1['c_active'] ?? 0) + (int) ($counts2['c_active'] ?? 0);
-        $countFuture = (int) ($counts1['c_future'] ?? 0) + (int) ($counts2['c_future'] ?? 0);
-        $countExpired = (int) ($counts1['c_expired'] ?? 0) + (int) ($counts2['c_expired'] ?? 0);
+        $c1 = \is_array($counts1) ? $counts1 : [];
+        $c2 = \is_array($counts2) ? $counts2 : [];
+
+        $countActive = (int) ($c1['c_active'] ?? 0) + (int) ($c2['c_active'] ?? 0);
+        $countFuture = (int) ($c1['c_future'] ?? 0) + (int) ($c2['c_future'] ?? 0);
+        $countExpired = (int) ($c1['c_expired'] ?? 0) + (int) ($c2['c_expired'] ?? 0);
 
         // 4. Nur Items (25 Stück) für die 4 Tabs fetchen
         $activeItems = $this->fetchItems('tab-active', $query, $whereStr, $archiveWhereStr, $binds, $archiveBinds);
@@ -163,9 +166,9 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
 
         foreach ($rows as $row) {
             $isSuspended = (bool) $row['is_suspended'];
-            $erstellt = new DateTimeImmutable($row['erstellt']);
-            $von = new DateTimeImmutable($row['von']);
-            $bis = new DateTimeImmutable($row['bis']);
+            $erstellt = new DateTimeImmutable((string) $row['erstellt']);
+            $von = new DateTimeImmutable((string) $row['von']);
+            $bis = new DateTimeImmutable((string) $row['bis']);
 
             $isExpired = $bis->format('Y-m-d') < $nowDateStr;
             $isFuture = $von->format('Y-m-d') > $nowDateStr;
@@ -178,14 +181,15 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
                 $rowClass = 'u-opacity-75';
             }
 
-            $vKey = $row['typ'];
+            $vKey = (string) $row['typ'];
             $vCfg = $vehicleConfig[$vKey] ?? null;
-            $vehicleIcon = $vCfg['icon'] ?? 'assets/img/icons/warning.webp';
-            $vehicleLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
+            $vehicleIcon = (string) ($vCfg['icon'] ?? 'assets/img/icons/warning.webp');
+            $vehicleLabel = (string) ($vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey));
 
             $emailHtml = '<small class="u-color-muted"><em>keine Angabe</em></small>';
-            if (!empty($row['email'])) {
-                $safeMail = \htmlspecialchars($row['email'], \ENT_QUOTES, 'UTF-8');
+            $rawEmail = \trim((string) ($row['email'] ?? ''));
+            if ($rawEmail !== '' && $rawEmail !== '0') {
+                $safeMail = \htmlspecialchars($rawEmail, \ENT_QUOTES, 'UTF-8');
                 $wbrMail = \str_replace('@', '<wbr>@', $safeMail);
                 $emailHtml = <<<HTML
                     <div class="u-flex u-align-center u-gap-xs">
@@ -209,7 +213,7 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
 
             $statusBadgeHtml = '';
             if ($isSuspended) {
-                $reason = \htmlspecialchars($row['suspension_reason'] ?? '');
+                $reason = \htmlspecialchars((string) ($row['suspension_reason'] ?? ''));
                 $statusBadgeHtml = "<span class=\"c-badge c-badge--danger\" title=\"{$reason}\">GESPERRT</span>";
             } elseif (!$isValid && !$isFuture && !$isExpired) {
                 $statusBadgeHtml = '<span class="c-badge c-badge--warning" title="Zeitraum gültig, aber Zahlung ausstehend">UNBEZAHLT</span>';
@@ -224,10 +228,10 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
             $statusSortValue = $isSuspended ? '2' : ($isFuture ? '1' : '0');
 
             $dtos[] = new DashboardPermitDto(
-                code: $row['code'],
-                ownerName: $row['name'],
+                code: (string) $row['code'],
+                ownerName: (string) $row['name'],
                 plotNumber: \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
-                licensePlate: $row['kennzeichen'] ?: '---',
+                licensePlate: (string) ($row['kennzeichen'] ?: '---'),
                 vehicleIcon: $vehicleIcon,
                 vehicleLabel: $vehicleLabel,
                 emailHtml: $emailHtml,
@@ -245,7 +249,7 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
                 suspendIcon: $isSuspended ? 'unlock.webp' : 'denied.webp',
                 suspendTitle: $isSuspended ? 'Wieder freigeben' : 'Sperren',
                 suspendActionUrl: $isSuspended ? 'unsuspend_permit' : 'suspend_permit',
-                suspensionReason: $row['suspension_reason'],
+                suspensionReason: isset($row['suspension_reason']) ? (string) $row['suspension_reason'] : null,
             );
         }
 

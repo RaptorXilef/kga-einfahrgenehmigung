@@ -8,8 +8,6 @@ use App\Application\Http\ServerRequest;
 
 /**
  * Interface für alle ausführbaren Action-Klassen (Single Action Controller).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface ActionInterface
 {

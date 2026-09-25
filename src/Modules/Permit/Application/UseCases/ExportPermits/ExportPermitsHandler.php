@@ -15,7 +15,6 @@ use PDO;
 
 /**
  * Sammelt die Export-Daten der Permits via nativen PDO-Queries.
- * VSA FIX: 100% frei von direkter Stream-I/O durch Nutzung des CsvExporterInterface.
  *
  * @implements QueryHandlerInterface<ExportPermitsQuery, ExportPermitsResultDto>
  */
@@ -90,7 +89,7 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
             $binds[] = '%' . \strtolower(\trim($query->searchQuery)) . '%';
         }
 
-        $whereStr = empty($whereParts) ? '1=1' : \implode(' AND ', $whereParts);
+        $whereStr = $whereParts === [] ? '1=1' : \implode(' AND ', $whereParts);
         $cols = 'parzelle, kennzeichen, code, name, von, bis';
 
         // State Condition (Zusatzfilter für Aktiv/Future/Expired)
@@ -118,7 +117,7 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(\array_merge($binds, $binds)); // Binds für beide Tabellen
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
             yield $row;
         }
     }

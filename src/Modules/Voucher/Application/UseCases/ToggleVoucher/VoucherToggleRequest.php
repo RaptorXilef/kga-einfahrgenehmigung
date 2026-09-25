@@ -8,8 +8,6 @@ use App\Application\Exception\ValidationException;
 
 /**
  * DTO für das Aktivieren/Deaktivieren eines Gutscheins.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class VoucherToggleRequest
 {

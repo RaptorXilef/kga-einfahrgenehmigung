@@ -6,8 +6,6 @@ namespace App\Contracts\Storage;
 
 /**
  * Vertrag für das Backup-System.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface BackupServiceInterface
 {

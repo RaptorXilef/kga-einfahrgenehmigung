@@ -10,8 +10,6 @@ use Override;
 /**
  * Streamt ein binäres PDF-Dokument direkt in den Browser.
  * Nutzt 'inline', damit es im integrierten PDF-Viewer angezeigt statt sofort heruntergeladen wird.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class PdfStreamResponse implements ResponseInterface
 {

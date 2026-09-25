@@ -21,9 +21,10 @@ final readonly class PdoRoleRepository implements RoleRepositoryInterface
         $roles = [];
         $stmt = $this->pdo->query('SELECT * FROM roles ORDER BY name ASC');
 
-        // VSA FIX: Memory Safe Unbuffered Loop
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $roles[$row['id']] = $this->mapToEntity($row);
+        if ($stmt !== false) {
+            while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
+                $roles[(string) $row['id']] = $this->mapToEntity($row);
+            }
         }
 
         return $roles;
@@ -36,7 +37,7 @@ final readonly class PdoRoleRepository implements RoleRepositoryInterface
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $row ? $this->mapToEntity($row) : null;
+        return \is_array($row) ? $this->mapToEntity($row) : null;
     }
 
     #[Override]
@@ -61,6 +62,6 @@ final readonly class PdoRoleRepository implements RoleRepositoryInterface
     {
         $perms = \is_string($row['permissions']) ? \json_decode($row['permissions'], true) : $row['permissions'];
 
-        return new Role((string) $row['id'], (string) $row['name'], $perms ?? []);
+        return new Role((string) $row['id'], (string) $row['name'], \is_array($perms) ? $perms : []);
     }
 }

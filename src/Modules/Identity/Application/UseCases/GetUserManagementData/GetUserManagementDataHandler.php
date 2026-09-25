@@ -25,6 +25,9 @@ final readonly class GetUserManagementDataHandler implements QueryHandlerInterfa
     ) {
     }
 
+    /**
+     * @param GetUserManagementDataQuery $query
+     */
     #[Override]
     public function handle(mixed $query): UserManagementViewDto
     {
@@ -34,60 +37,64 @@ final readonly class GetUserManagementDataHandler implements QueryHandlerInterfa
         $rolesMap = [];
         $globalRoleOptions = [];
         $roleDtos = [];
-        $structure = $this->config->get('structure', []);
+        $structure = $this->config->getArray('structure');
 
-        while ($r = $stmtRoles->fetch(PDO::FETCH_ASSOC)) {
-            $id = (string) $r['id'];
-            $name = (string) $r['name'];
-            $perms = \is_string($r['permissions']) ? (\json_decode($r['permissions'], true) ?: []) : [];
-            $rolesMap[$id] = $name;
+        if ($stmtRoles !== false) {
+            while (\is_array($r = $stmtRoles->fetch(PDO::FETCH_ASSOC))) {
+                $id = (string) $r['id'];
+                $name = (string) $r['name'];
+                $perms = \is_string($r['permissions']) ? (\json_decode($r['permissions'], true) ?: []) : [];
+                $rolesMap[$id] = $name;
 
-            $globalRoleOptions[] = [
-                'value' => $id,
-                'label' => $name,
-                'selectedAttr' => '',
-            ];
+                $globalRoleOptions[] = [
+                    'value' => $id,
+                    'label' => $name,
+                    'selectedAttr' => '',
+                ];
 
-            $isMasterActive = \in_array('*', $perms, true);
+                $isMasterActive = \in_array('*', $perms, true);
 
-            $roleDtos[] = new RoleListDto(
-                id: $id,
-                idHash: \md5($id),
-                name: $name,
-                iconUrl: $this->imageStorage->getImageUrl('role', $id, 'shield.webp'),
-                canBeDeleted: $id !== 'admin',
-                masterCheckboxAttr: $isMasterActive ? 'checked' : '',
-                treeWrapperClass: $isMasterActive ? 'is-master-active' : '',
-                treeHtml: PermissionTreePresenter::renderTree($structure, $perms, 0, $this->assetHelper),
-            );
+                $roleDtos[] = new RoleListDto(
+                    id: $id,
+                    idHash: \md5($id),
+                    name: $name,
+                    iconUrl: $this->imageStorage->getImageUrl('role', $id, 'shield.webp'),
+                    canBeDeleted: $id !== 'admin',
+                    masterCheckboxAttr: $isMasterActive ? 'checked' : '',
+                    treeWrapperClass: $isMasterActive ? 'is-master-active' : '',
+                    treeHtml: PermissionTreePresenter::renderTree($structure, $perms, 0, $this->assetHelper),
+                );
+            }
         }
 
         // 2. Benutzer speicherschonend laden & DTOs mappen
         $stmtUsers = $this->pdo->query('SELECT * FROM users ORDER BY username ASC');
 
         $userDtos = [];
-        while ($u = $stmtUsers->fetch(PDO::FETCH_ASSOC)) {
-            $uid = (string) $u['id'];
-            $roleId = (string) ($u['role_id'] ?? $u['group'] ?? 'guest');
-            $username = (string) $u['username'];
-            $displayName = $username !== '' ? $username : $uid;
+        if ($stmtUsers !== false) {
+            while (\is_array($u = $stmtUsers->fetch(PDO::FETCH_ASSOC))) {
+                $uid = (string) $u['id'];
+                $roleId = (string) ($u['role_id'] ?? $u['group'] ?? 'guest');
+                $username = (string) $u['username'];
+                $displayName = $username !== '' ? $username : $uid;
 
-            $userRoleOptions = [];
-            foreach ($globalRoleOptions as $opt) {
-                $opt['selectedAttr'] = $opt['value'] === $roleId ? 'selected' : '';
-                $userRoleOptions[] = $opt;
+                $userRoleOptions = [];
+                foreach ($globalRoleOptions as $opt) {
+                    $opt['selectedAttr'] = $opt['value'] === $roleId ? 'selected' : '';
+                    $userRoleOptions[] = $opt;
+                }
+
+                $userDtos[] = new UserListDto(
+                    id: $uid,
+                    idHash: \md5($uid),
+                    username: $username,
+                    displayName: $displayName,
+                    roleName: $rolesMap[$roleId] ?? 'Unbekannt',
+                    avatarUrl: $this->imageStorage->getImageUrl('user', $uid, 'user.webp'),
+                    roleOptions: $userRoleOptions,
+                    confirmDeleteMsg: "Soll der Benutzer '{$displayName}' wirklich gelöscht werden?",
+                );
             }
-
-            $userDtos[] = new UserListDto(
-                id: $uid,
-                idHash: \md5($uid),
-                username: $username,
-                displayName: $displayName,
-                roleName: $rolesMap[$roleId] ?? 'Unbekannt',
-                avatarUrl: $this->imageStorage->getImageUrl('user', $uid, 'user.webp'),
-                roleOptions: $userRoleOptions,
-                confirmDeleteMsg: "Soll der Benutzer '{$displayName}' wirklich gelöscht werden?",
-            );
         }
 
         return new UserManagementViewDto(

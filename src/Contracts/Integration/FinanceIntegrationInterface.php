@@ -6,8 +6,6 @@ namespace App\Contracts\Integration;
 
 /**
  * Port für das Finance-Modul (Bounded Context Kommunikation).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface FinanceIntegrationInterface
 {

@@ -6,8 +6,6 @@ namespace App\Modules\Finance\Application\DTO;
 
 /**
  * Striktes DTO für den Bank-Import, das rohe Arrays ablöst.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class UnpaidPermitsDto
 {

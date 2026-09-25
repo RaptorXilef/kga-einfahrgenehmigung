@@ -85,7 +85,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         $stmt->execute(['code' => $code]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$row) {
+        if (!\is_array($row)) {
             return null;
         }
 
@@ -97,7 +97,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
     {
         $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($plate));
 
-        if ($searchPlate === '') {
+        if ($searchPlate === null || $searchPlate === '') {
             return null;
         }
 
@@ -107,7 +107,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         $stmt->execute([$searchPlate]);
 
         $candidates = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
             $candidates[] = $this->mapRowToEntity($row);
         }
 
@@ -140,7 +140,11 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
     {
         $stmt = $this->pdo->query("SELECT * FROM permits WHERE email IS NOT NULL AND email != '' AND email != '0'");
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        if ($stmt === false) {
+            return;
+        }
+
+        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
             yield $this->mapRowToEntity($row);
         }
     }
@@ -151,7 +155,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         $stmt = $this->pdo->prepare("SELECT * FROM permits WHERE bis < :cutoff AND status IN ('bezahlt', 'storniert')");
         $stmt->execute(['cutoff' => $cutoffDate->format('Y-m-d')]);
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
             yield $this->mapRowToEntity($row);
         }
     }
@@ -161,7 +165,11 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
     {
         $stmt = $this->pdo->query("SELECT * FROM permits WHERE status = 'offen' AND is_suspended = 0");
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        if ($stmt === false) {
+            return;
+        }
+
+        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
             yield $this->mapRowToEntity($row);
         }
     }
@@ -195,7 +203,7 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         $conditions = [];
 
         // Prüfen auf echtes Kennzeichen (Platzhalter XXX-XX 9999 ignorieren)
-        if ($searchPlate !== '' && $searchPlate !== 'XXXXX9999') {
+        if (!\in_array($searchPlate, [null, '', 'XXXXX9999'], true)) {
             $conditions[] = "REPLACE(REPLACE(kennzeichen, ' ', ''), '-', '') = ?";
             $params[] = $searchPlate;
         }
@@ -239,22 +247,27 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
      */
     private function mapRowToEntity(array $row): Permit
     {
+        $emailStr = \trim((string) ($row['email'] ?? ''));
+        $plateStr = \trim((string) ($row['kennzeichen'] ?? ''));
+        $lastRemStr = \trim((string) ($row['last_reminder_at'] ?? ''));
+        $bezahltAmStr = \trim((string) ($row['bezahlt_am'] ?? ''));
+
         return new Permit(
             new PermitCode((string) $row['code']),
             new TemplateKey((string) $row['template_key']),
             new Owner(
                 (string) $row['name'],
-                empty($row['email']) ? null : new EmailAddress((string) $row['email']),
+                $emailStr === '' || $emailStr === '0' ? null : new EmailAddress($emailStr),
                 new PlotNumber((int) $row['parzelle']),
             ),
             new Vehicle(
                 (string) $row['typ'],
-                new LicensePlate(empty($row['kennzeichen']) ? 'XXX-XX 9999' : (string) $row['kennzeichen']),
+                new LicensePlate($plateStr === '' ? 'XXX-XX 9999' : $plateStr),
                 $row['firma'] ?: null,
             ),
             new Validity(
-                new DateTimeImmutable($row['von']),
-                new DateTimeImmutable($row['bis']),
+                new DateTimeImmutable((string) $row['von']),
+                new DateTimeImmutable((string) $row['bis']),
                 new Price((float) $row['preis']),
                 (string) $row['zweck'],
             ),
@@ -262,12 +275,12 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
                 PermitStatus::tryFrom((string) $row['status']) ?? PermitStatus::Offen,
                 (bool) $row['is_suspended'],
                 $row['suspension_reason'] ?: null,
-                $row['last_reminder_at'] ? new DateTimeImmutable($row['last_reminder_at']) : null,
+                $lastRemStr !== '' ? new DateTimeImmutable($lastRemStr) : null,
             ),
-            new DateTimeImmutable($row['erstellt']),
+            new DateTimeImmutable((string) $row['erstellt']),
             $row['interner_kommentar'] ?: null,
             \json_decode((string) $row['agreements'], true) ?: [],
-            $row['bezahlt_am'] ? new DateTimeImmutable($row['bezahlt_am']) : null,
+            $bezahltAmStr !== '' ? new DateTimeImmutable($bezahltAmStr) : null,
         );
     }
 }

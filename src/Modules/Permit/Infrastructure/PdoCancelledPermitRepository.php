@@ -28,13 +28,13 @@ final readonly class PdoCancelledPermitRepository implements CancelledPermitRepo
     public function findByHash(string $hash): ?Permit
     {
         $hash = \strtoupper(\trim($hash));
-        $table = $this->config->get('storage_config')['permits_cancelled']['table'];
+        $table = $this->config->getArray('storage_config')['permits_cancelled']['table'] ?? 'permits_cancelled';
 
         $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE code = ?");
         $stmt->execute([$hash]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($row) {
+        if (\is_array($row)) {
             return $this->mapToEntity($row);
         }
 
@@ -45,13 +45,13 @@ final readonly class PdoCancelledPermitRepository implements CancelledPermitRepo
         $stmt->execute(['%-' . $searchId, $searchId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $row ? $this->mapToEntity($row) : null;
+        return \is_array($row) ? $this->mapToEntity($row) : null;
     }
 
     #[Override]
     public function saveCancelled(Permit $permit): void
     {
-        $table = $this->config->get('storage_config')['permits_cancelled']['table'];
+        $table = (string) ($this->config->getArray('storage_config')['permits_cancelled']['table'] ?? 'permits_cancelled');
         $item = $this->flattenEntity($permit);
 
         $item['is_anonymized'] = 1;
@@ -64,7 +64,7 @@ final readonly class PdoCancelledPermitRepository implements CancelledPermitRepo
     #[Override]
     public function isCodeCancelled(string $code): bool
     {
-        $table = $this->config->get('storage_config')['permits_cancelled']['table'];
+        $table = $this->config->getArray('storage_config')['permits_cancelled']['table'] ?? 'permits_cancelled';
         $stmt = $this->pdo->prepare("SELECT code FROM `{$table}` WHERE code = ?");
         $stmt->execute([$code]);
 
@@ -74,12 +74,14 @@ final readonly class PdoCancelledPermitRepository implements CancelledPermitRepo
     #[Override]
     public function loadAll(): array
     {
-        $table = $this->config->get('storage_config')['permits_cancelled']['table'];
+        $table = $this->config->getArray('storage_config')['permits_cancelled']['table'] ?? 'permits_cancelled';
         $stmt = $this->pdo->query("SELECT * FROM `{$table}` ORDER BY erstellt DESC");
 
         $permits = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $permits[] = $this->mapToEntity($row);
+        if ($stmt !== false) {
+            while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
+                $permits[] = $this->mapToEntity($row);
+            }
         }
 
         return $permits;

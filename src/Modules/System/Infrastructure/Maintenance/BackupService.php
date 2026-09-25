@@ -22,8 +22,9 @@ final readonly class BackupService implements BackupServiceInterface
         private ConfigInterface $config,
         private ClockInterface $clock,
     ) {
-        $root = $this->config->get('root_path', '');
-        $subFolder = $this->config->get('backup_settings')['sub_folder'] ?? 'backups';
+        $root = $this->config->getString('root_path', '');
+        $backupSettings = $this->config->getArray('backup_settings');
+        $subFolder = (string) ($backupSettings['sub_folder'] ?? 'backups');
         $this->backupDir = \rtrim($root, '/\\') . '/storage/' . $subFolder;
 
         if (!\is_dir($this->backupDir)) {
@@ -47,18 +48,18 @@ final readonly class BackupService implements BackupServiceInterface
     #[Override]
     public function createBackup(string $target = 'all'): string
     {
-        $storageConfig = $this->config->get('storage_config', []);
+        $storageConfig = $this->config->getArray('storage_config');
         $tablesToBackup = [];
 
         if ($target === 'all') {
             foreach ($storageConfig as $cfg) {
-                if (!isset($cfg['table'])) {
+                if (!\is_array($cfg) || !isset($cfg['table'])) {
                     continue;
                 }
-                $tablesToBackup[] = $cfg['table'];
+                $tablesToBackup[] = (string) $cfg['table'];
             }
-        } elseif (isset($storageConfig[$target]['table'])) {
-            $tablesToBackup[] = $storageConfig[$target]['table'];
+        } elseif (isset($storageConfig[$target]) && \is_array($storageConfig[$target]) && isset($storageConfig[$target]['table'])) {
+            $tablesToBackup[] = (string) $storageConfig[$target]['table'];
         } else {
             throw new RuntimeException("Unbekanntes Backup-Ziel: {$target}");
         }
@@ -94,11 +95,11 @@ final readonly class BackupService implements BackupServiceInterface
             $stmt = $this->pdo->query("SELECT * FROM `$table`");
             if ($stmt !== false) {
                 $firstRow = true;
-                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
                     if (!$firstRow) {
                         \fwrite($fp, ',');
                     }
-                    \fwrite($fp, \json_encode($row, \JSON_UNESCAPED_UNICODE));
+                    \fwrite($fp, (string) \json_encode($row, \JSON_UNESCAPED_UNICODE));
                     $firstRow = false;
                 }
             }
@@ -109,11 +110,12 @@ final readonly class BackupService implements BackupServiceInterface
         \fclose($fp);
 
         $zip->addFile($tmpJsonFile, 'data.json');
-        $zip->setArchiveComment(\json_encode(['target' => $target, 'tables' => $tablesToBackup]));
+        $zip->setArchiveComment((string) \json_encode(['target' => $target, 'tables' => $tablesToBackup]));
 
-        $backupCfg = $this->config->get('backup_settings', []);
-        if (!empty($backupCfg['zip_password'])) {
-            $zip->setPassword($backupCfg['zip_password']);
+        $backupCfg = $this->config->getArray('backup_settings');
+        $zipPassword = isset($backupCfg['zip_password']) ? (string) $backupCfg['zip_password'] : '';
+        if ($zipPassword !== '') {
+            $zip->setPassword($zipPassword);
             $zip->setEncryptionName('data.json', ZipArchive::EM_AES_256);
         }
         $zip->close();
@@ -121,7 +123,7 @@ final readonly class BackupService implements BackupServiceInterface
         // Temporäre Datei erst nach dem Schließen des ZIP-Archivs löschen!
         @\unlink($tmpJsonFile);
 
-        if (($backupCfg['ftp']['enabled'] ?? false) === true) {
+        if (isset($backupCfg['ftp']) && \is_array($backupCfg['ftp']) && ($backupCfg['ftp']['enabled'] ?? false) === true) {
             $this->uploadToFtp($filepath, $filename, $backupCfg['ftp']);
         }
 
@@ -143,9 +145,10 @@ final readonly class BackupService implements BackupServiceInterface
             throw new RuntimeException('Konnte ZIP-Backup nicht öffnen.');
         }
 
-        $backupCfg = $this->config->get('backup_settings', []);
-        if (!empty($backupCfg['zip_password'])) {
-            $zip->setPassword($backupCfg['zip_password']);
+        $backupCfg = $this->config->getArray('backup_settings');
+        $zipPassword = isset($backupCfg['zip_password']) ? (string) $backupCfg['zip_password'] : '';
+        if ($zipPassword !== '') {
+            $zip->setPassword($zipPassword);
         }
 
         $json = $zip->getFromName('data.json');
@@ -156,12 +159,14 @@ final readonly class BackupService implements BackupServiceInterface
         }
 
         $data = \json_decode($json, true);
-        if (!isset($data['tables']) || !\is_array($data['tables'])) {
+        if (!\is_array($data) || !isset($data['tables']) || !\is_array($data['tables'])) {
             throw new RuntimeException('Ungültiges Backup-Format.');
         }
 
-        $storageConfig = $this->config->get('storage_config', []);
-        $targetTable = $target !== 'all' && isset($storageConfig[$target]['table']) ? $storageConfig[$target]['table'] : null;
+        $storageConfig = $this->config->getArray('storage_config');
+        $targetTable = $target !== 'all' && isset($storageConfig[$target]) && \is_array($storageConfig[$target]) && isset($storageConfig[$target]['table'])
+            ? (string) $storageConfig[$target]['table']
+            : null;
 
         $this->pdo->beginTransaction();
 
@@ -172,7 +177,11 @@ final readonly class BackupService implements BackupServiceInterface
                 if ($targetTable !== null && $table !== $targetTable) {
                     continue;
                 }
-                $this->restoreTableData($table, $rows, $mode);
+                if (!\is_array($rows)) {
+                    continue;
+                }
+
+                $this->restoreTableData((string) $table, $rows, $mode);
             }
 
             $this->pdo->exec('SET FOREIGN_KEY_CHECKS=1');
@@ -213,7 +222,7 @@ final readonly class BackupService implements BackupServiceInterface
             }
         }
 
-        $columns = \array_keys($rows[0]);
+        $columns = \array_keys((array) $rows[0]);
         $colNames = \implode(', ', \array_map(fn (int|string $col): string => "`$col`", $columns));
         $placeholders = \implode(', ', \array_map(fn (int|string $col): string => ":$col", $columns));
 
@@ -226,6 +235,10 @@ final readonly class BackupService implements BackupServiceInterface
 
         $stmt = $this->pdo->prepare($sql);
         foreach ($rows as $row) {
+            if (!\is_array($row)) {
+                continue;
+            }
+
             $stmt->execute($row);
         }
     }
@@ -234,7 +247,7 @@ final readonly class BackupService implements BackupServiceInterface
     {
         $stmt = $this->pdo->query("SHOW KEYS FROM `$table` WHERE Key_name = 'PRIMARY'");
 
-        return $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
+        return $stmt !== false ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
     }
 
     #[Override]
@@ -244,7 +257,12 @@ final readonly class BackupService implements BackupServiceInterface
             return [];
         }
 
-        $files = \array_diff(\scandir($this->backupDir), ['.', '..', '.htaccess']);
+        $scanned = \scandir($this->backupDir);
+        if ($scanned === false) {
+            return [];
+        }
+
+        $files = \array_diff($scanned, ['.', '..', '.htaccess']);
         $backups = [];
 
         foreach ($files as $file) {
@@ -257,8 +275,9 @@ final readonly class BackupService implements BackupServiceInterface
             $meta = [];
             if ($zip->open($path) === true) {
                 $comment = $zip->getArchiveComment();
-                if ($comment) {
-                    $meta = \json_decode($comment, true) ?? [];
+                if (\is_string($comment) && $comment !== '') {
+                    $decoded = \json_decode($comment, true);
+                    $meta = \is_array($decoded) ? $decoded : [];
                 }
                 $zip->close();
             }
@@ -299,11 +318,15 @@ final readonly class BackupService implements BackupServiceInterface
         }
 
         $timeout = 60;
-        $connId = $ftpCfg['ssl'] ?? false
-            ? @\ftp_ssl_connect($ftpCfg['host'], (int) $ftpCfg['port'], $timeout)
-            : @\ftp_connect($ftpCfg['host'], (int) $ftpCfg['port'], $timeout);
+        $useSsl = ($ftpCfg['ssl'] ?? false) === true;
+        $host = (string) ($ftpCfg['host'] ?? '');
+        $port = (int) ($ftpCfg['port'] ?? 21);
 
-        if (!$connId || !@\ftp_login($connId, $ftpCfg['user'], $ftpCfg['pass'])) {
+        $connId = $useSsl
+            ? @\ftp_ssl_connect($host, $port, $timeout)
+            : @\ftp_connect($host, $port, $timeout);
+
+        if ($connId === false || !@\ftp_login($connId, (string) ($ftpCfg['user'] ?? ''), (string) ($ftpCfg['pass'] ?? ''))) {
             \error_log('Off-Site Backup fehlgeschlagen: FTP Login-Fehler.');
 
             return;
@@ -311,7 +334,7 @@ final readonly class BackupService implements BackupServiceInterface
 
         \ftp_pasv($connId, true);
 
-        $path = \rtrim($ftpCfg['path'] ?? '', '/\\') . '/';
+        $path = \rtrim((string) ($ftpCfg['path'] ?? ''), '/\\') . '/';
         foreach (\explode('/', \trim($path, '/')) as $part) {
             if ($part === '' || @\ftp_chdir($connId, $part)) {
                 continue;
@@ -322,6 +345,7 @@ final readonly class BackupService implements BackupServiceInterface
 
         if (!@\ftp_put($connId, $filename, $filepath, \FTP_BINARY)) {
             \error_log('Off-Site Backup fehlgeschlagen: Upload verweigert.');
-        }         \ftp_close($connId);
+        }
+        \ftp_close($connId);
     }
 }

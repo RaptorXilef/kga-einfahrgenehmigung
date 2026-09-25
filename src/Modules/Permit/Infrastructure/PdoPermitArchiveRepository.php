@@ -30,13 +30,13 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
     public function findByHash(string $hash): ?Permit
     {
         $hash = \strtoupper(\trim($hash));
-        $table = $this->config->get('storage_config')['permits_archive']['table'];
+        $table = $this->config->getArray('storage_config')['permits_archive']['table'] ?? 'permits_archive';
 
         $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE code = ?");
         $stmt->execute([$hash]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($row) {
+        if (\is_array($row)) {
             return $this->mapToEntity($row);
         }
 
@@ -47,13 +47,13 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
         $stmt->execute(['%-' . $searchId, $searchId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $row ? $this->mapToEntity($row) : null;
+        return \is_array($row) ? $this->mapToEntity($row) : null;
     }
 
     #[Override]
     public function isCodeInArchive(string $code): bool
     {
-        $table = $this->config->get('storage_config')['permits_archive']['table'];
+        $table = $this->config->getArray('storage_config')['permits_archive']['table'] ?? 'permits_archive';
         $stmt = $this->pdo->prepare("SELECT code FROM `{$table}` WHERE code = ?");
         $stmt->execute([$code]);
 
@@ -67,7 +67,7 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
             return;
         }
 
-        $table = $this->config->get('storage_config')['permits_archive']['table'] ?? 'permits_archive';
+        $table = (string) ($this->config->getArray('storage_config')['permits_archive']['table'] ?? 'permits_archive');
 
         foreach ($permitsToArchive as $permit) {
             $item = $this->flattenEntity($permit);
@@ -79,7 +79,7 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
     #[Override]
     public function anonymizeOldRecords(int $yearsThreshold = 10): int
     {
-        $table = $this->config->get('storage_config')['permits_archive']['table'];
+        $table = $this->config->getArray('storage_config')['permits_archive']['table'] ?? 'permits_archive';
         $cutoffDate = $this->clock->now()->modify("-{$yearsThreshold} years")->format('Y-m-d H:i:s');
 
         $sql = "UPDATE `{$table}` SET name = '[ANONYMISIERT]', email = '', kennzeichen = 'XXX-XX 9999', parzelle = 0, is_anonymized = 1 WHERE erstellt <= ? AND is_anonymized = 0";
@@ -92,12 +92,12 @@ final readonly class PdoPermitArchiveRepository implements PermitArchiveReposito
     #[Override]
     public function getArchivedPermits(int $minYear): array
     {
-        $table = $this->config->get('storage_config')['permits_archive']['table'];
+        $table = $this->config->getArray('storage_config')['permits_archive']['table'] ?? 'permits_archive';
         $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE YEAR(erstellt) >= ? OR YEAR(von) >= ?");
         $stmt->execute([$minYear, $minYear]);
 
         $permits = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
             $permits[] = $this->mapToEntity($row);
         }
 

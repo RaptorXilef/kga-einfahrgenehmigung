@@ -7,8 +7,6 @@ namespace App\Modules\Permit\Presentation\View;
 /**
  * Presenter für die Aufbereitung von Feiertagen und Öffnungszeiten.
  * Strikt BEM-konform. Nutzt ausschließlich SCSS Utility-Klassen.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final class HolidayHtmlPresenter
 {

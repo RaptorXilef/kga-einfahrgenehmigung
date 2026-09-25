@@ -8,8 +8,6 @@ use DateTimeImmutable;
 
 /**
  * Zustandslose Hilfsklasse für mathematische Datums- und Zeit-Operationen.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final class DateRangeHelper
 {

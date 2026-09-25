@@ -9,8 +9,6 @@ use Override;
 
 /**
  * Streamt beliebige Binärdaten (z.B. PNG-Bilder für QR-Codes) mit konfigurierbaren Headern.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class BinaryResponse implements ResponseInterface
 {
