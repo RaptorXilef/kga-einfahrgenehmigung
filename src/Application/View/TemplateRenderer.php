@@ -90,7 +90,7 @@ final readonly class TemplateRenderer
                 continue;
             }
             $gid = (string) ($group['id'] ?? '');
-            $isRequired = !empty($group['required']);
+            $isRequired = (bool) ($group['required'] ?? false);
             $consentGroups[] = [
                 'id' => $gid,
                 'title' => (string) ($group['title'] ?? ''),
@@ -129,7 +129,7 @@ final readonly class TemplateRenderer
             'isTestMode' => $isTestMode,
             'isDebugMode' => $isDebugMode,
             'testCatchAllRecipient' => $testCatchAllRecipient,
-            'consentEnabled' => !empty($consentConfig['enabled']),
+            'consentEnabled' => (bool) ($consentConfig['enabled'] ?? false),
             'consentConfigJson' => $consentConfigJson,
             'consentTitle' => (string) ($consentTexts['title'] ?? ''),
             'consentDescription' => (string) ($consentTexts['description'] ?? ''),

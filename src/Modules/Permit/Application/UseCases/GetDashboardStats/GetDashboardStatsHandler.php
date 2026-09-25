@@ -220,12 +220,12 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
 
             $yearlyVehicleStats[$year] = $statsForYear;
 
-            $paid = (float) $data['paid'];
-            $unpaid = (float) $data['unpaid'];
+            $paid = $data['paid'];
+            $unpaid = $data['unpaid'];
 
             $yearlyStatItems[] = new YearlyStatItemDto(
                 year: $year,
-                count: (int) $data['count'],
+                count: $data['count'],
                 paidShortFormatted: \number_format($paid, 0, ',', '.') . ' €',
                 paidFormatted: \number_format($paid, 2, ',', '.') . ' €',
                 unpaidFormatted: \number_format($unpaid, 2, ',', '.') . ' €',
@@ -237,8 +237,8 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
         $dtStart = new DateTimeImmutable($query->filterStart);
         $dtEnd = new DateTimeImmutable($query->filterEnd);
 
-        $revPaid = (float) $periodStats['revenue_paid'];
-        $revUnpaid = (float) $periodStats['revenue_unpaid'];
+        $revPaid = $periodStats['revenue_paid'];
+        $revUnpaid = $periodStats['revenue_unpaid'];
 
         return new DashboardStatsDto(
             periodStats: $periodStats,
@@ -248,7 +248,7 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
             yearlyVehicleStats: $yearlyVehicleStats,
             filterStartFormatted: $dtStart->format('d.m.Y'),
             filterEndFormatted: $dtEnd->format('d.m.Y'),
-            periodTotalCount: (int) $periodStats['count'],
+            periodTotalCount: $periodStats['count'],
             periodRevenuePaidFormatted: \number_format($revPaid, 2, ',', '.') . ' €',
             periodRevenueUnpaidFormatted: \number_format($revUnpaid, 2, ',', '.') . ' €',
             periodRevenueTotalFormatted: \number_format($revPaid + $revUnpaid, 2, ',', '.') . ' €',

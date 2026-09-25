@@ -30,14 +30,16 @@ final readonly class GetVoucherArchiveHandler implements QueryHandlerInterface
         $stmt = $this->pdo->query('SELECT code, redeemed_at, user_name, user_plot FROM vouchers_archive ORDER BY redeemed_at DESC LIMIT 500');
 
         $dtos = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $dt = new DateTimeImmutable((string) $row['redeemed_at']);
-            $dtos[] = new VoucherArchiveItemDto(
-                code: (string) $row['code'],
-                redeemedAtFormatted: $dt->format('d.m.y'),
-                userName: (string) ($row['user_name'] ?? 'Unbekannt'),
-                userPlot: (string) ($row['user_plot'] ?? '0000'),
-            );
+        if ($stmt !== false) {
+            while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
+                $dt = new DateTimeImmutable((string) $row['redeemed_at']);
+                $dtos[] = new VoucherArchiveItemDto(
+                    code: (string) $row['code'],
+                    redeemedAtFormatted: $dt->format('d.m.y'),
+                    userName: (string) ($row['user_name'] ?? 'Unbekannt'),
+                    userPlot: (string) ($row['user_plot'] ?? '0000'),
+                );
+            }
         }
 
         return $dtos;
