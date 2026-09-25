@@ -20,6 +20,7 @@ use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandl
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\PermitReadDto;
 use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
+use App\Modules\Permit\Presentation\View\PermitA4Presenter;
 use App\SharedKernel\Application\Security\Sanitizer;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
@@ -69,32 +70,34 @@ final readonly class HistoryPrintAction implements ViewActionInterface
             $writer = new PngWriter();
             $checkQrBase64 = $writer->write($qrCode)->getDataUri();
 
-            $pdfData = [
-                'bis_formatted' => $permit->validUntilFormatted,
-                'checkUrl' => $checkUrl,
-                'checkQrBase64' => $checkQrBase64,
-                'erstellt' => $permit->createdAtFormatted,
-                'firma' => $permit->company ?? '',
-                'fullIdentifier' => $permit->code,
-                'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
-                    $this->holidayService->getHolidaysInRange($permit->validFrom, $permit->validUntil),
-                ),
-                'jahresFarbe' => $this->config->getString('jahresFarbe'),
-                'kennzeichen' => $permit->licensePlate,
-                'name' => $permit->ownerName,
-                'opening_html' => HolidayHtmlPresenter::formatOpeningHours(
-                    $this->holidayService->getOpeningHoursDataForDateRange($permit->validFrom, $permit->validUntil),
-                ),
-                'parzelle' => $permit->plotNumber,
-                'settings' => ['base_url' => $safeBaseUrl],
-                'template_key' => $permit->templateKey,
-                'terminkalenderUrl' => $this->config->getString('terminkalender_url'),
-                'vereinsName' => $this->config->getString('vereins_name'),
-                'von_formatted' => $permit->validFromFormatted,
-                'zweck' => $permit->purpose,
-            ];
+            $openingHtml = HolidayHtmlPresenter::formatOpeningHours(
+                $this->holidayService->getOpeningHoursDataForDateRange($permit->validFrom, $permit->validUntil),
+            );
+            $holidayNoticeHtml = HolidayHtmlPresenter::formatHolidayNotice(
+                $this->holidayService->getHolidaysInRange($permit->validFrom, $permit->validUntil),
+            );
 
-            $a4Html = $this->renderer->render('emails/permit_a4_document', $pdfData);
+            $docDto = PermitA4Presenter::createViewDto(
+                fullIdentifier: $permit->code,
+                templateKey: $permit->templateKey,
+                jahresFarbe: $this->config->getString('jahresFarbe'),
+                vereinsName: $this->config->getString('vereins_name'),
+                checkQrBase64: $checkQrBase64,
+                openingHtml: $openingHtml,
+                holidayNoticeHtml: $holidayNoticeHtml,
+                name: $permit->ownerName,
+                validFrom: $permit->validFrom,
+                validUntil: $permit->validUntil,
+                kennzeichen: $permit->licensePlate,
+                firma: $permit->company ?? '',
+                parzelle: $permit->plotNumber,
+                zweck: $permit->purpose,
+                terminkalenderUrl: $this->config->getString('terminkalender_url'),
+                erstelltFormatted: $permit->createdAtFormatted,
+                baseUrl: $safeBaseUrl,
+            );
+
+            $a4Html = $this->renderer->render('emails/permit_a4_document', ['docDto' => $docDto]);
             $pdfBinary = $this->pdfGenerator->generateFromHtml($a4Html);
 
             return new PdfStreamResponse($pdfBinary, "Genehmigung_{$permit->code}.pdf");

@@ -11,12 +11,13 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
+use App\Application\View\PaginationViewDto;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Modules\Identity\Application\Services\AuthService;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\GetDashboardPermitsHandler;
@@ -49,7 +50,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 {
     public function __construct(
         private AuditLogRepositoryInterface $auditLogRepository,
-        private AuthService $auth,
+        private AuthorizationInterface $auth,
         private ConfigInterface $config,
         private SystemInfoInterface $systemInfo,
         private SessionManager $sessionManager,
@@ -81,7 +82,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $filterStartYear = (int) (new DateTimeImmutable($dto->start))->format('Y');
         $requestedDepth = (int) ($request->get['archive_depth'] ?? $filterStartYear);
         $minArchiveYear = \min($filterStartYear, $requestedDepth);
-        $focus = $request->get['focus'] ?? 'tab-active';
+        $focus = (string) ($request->get['focus'] ?? 'tab-active');
 
         // 1. Core-Queries abfeuern
         $permitsResult = $this->getDashboardPermitsHandler->handle(new GetDashboardPermitsQuery(
@@ -105,7 +106,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         $html = $this->renderer->render('admin/dashboard', [
             'viewDto' => $dashboardViewDto,
-            'formData' => $this->sessionManager->getFormData() ?? [],
+            'formData' => $this->sessionManager->getFormData(),
         ]);
 
         $this->sessionManager->clearFormData();
@@ -122,7 +123,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         ?object $statsDto,
         ServerRequest $request,
     ): DashboardViewDto {
-
         $hasAnyPermitExport = $this->auth->hasPermission('permits.export.active')
             || $this->auth->hasPermission('permits.export.future')
             || $this->auth->hasPermission('permits.export.expired')
@@ -179,7 +179,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $limitOptions = [];
         $paginationCfg = $this->config->getArray('pagination');
         foreach ($paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250] as $l) {
-            $limitOptions[] = new LimitOptionDto($l, $dto->limit === $l ? 'selected' : '');
+            $limitOptions[] = new LimitOptionDto((int) $l, $dto->limit === (int) $l ? 'selected' : '');
         }
 
         $controlBar = new ControlBarViewDto(
@@ -200,30 +200,29 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         foreach ($this->sessionManager->getCollectiveTransfers() as $ct) {
             $typeLabel = ($ct['type'] ?? 'sammel') === 'kennzeichen' ? 'Kennzeichen-Match:' : 'Mehrere Codes:';
             $collectiveTransfers[] = new CollectiveTransferViewDto(
-                id: $ct['id'],
-                date: $ct['date'],
+                id: (string) $ct['id'],
+                date: (string) $ct['date'],
                 amountFormatted: \number_format((float) $ct['amount'], 2, ',', '.'),
-                purpose: $ct['purpose'],
+                purpose: (string) $ct['purpose'],
                 typeLabel: $typeLabel,
-                codes: $ct['codes'] ?? [],
+                codes: (array) ($ct['codes'] ?? []),
             );
         }
 
-        // Pagination HTML Generierung
+        // Pagination HTML Generierung über das neue logikfreie PaginationViewDto
         $renderPagination = function (int $total, string $tabId, string $pageParam = 'page') use ($dto, $focus, $request): string {
-            $limit = $dto->limit;
             $page = $tabId === $focus ? (int) ($request->get[$pageParam] ?? $dto->page) : 1;
-            $totalPages = \max(1, (int) \ceil($total / $limit));
-            $offset = ($page - 1) * $limit;
+            $paginationDto = PaginationViewDto::fromParameters(
+                page: $page,
+                totalCount: $total,
+                limit: $dto->limit,
+                queryParams: $request->get,
+                paginationParam: $pageParam,
+                tabFocusId: $tabId,
+            );
 
             return $this->renderer->render('partials/admin/pagination', [
-                'page' => $page,
-                'totalPages' => $totalPages,
-                'totalCount' => $total,
-                'limit' => $limit,
-                'offset' => $offset,
-                'paginationParam' => $pageParam,
-                'tabFocusId' => $tabId,
+                'paginationDto' => $paginationDto,
             ]);
         };
 
@@ -235,7 +234,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $finOffset = ($finPage - 1) * $dto->limit;
         $slicedFinancePermits = \array_slice($financePermitsDto, $finOffset, $dto->limit);
 
-        // Daten für die neuen Dumb View Handler
+        // Daten für die Dumb View Handler
         $generatorToolsDto = $permissions->canCreatePermits || $permissions->canManageVouchers
             ? $this->generatorToolsHandler->handle(new GetGeneratorToolsDataQuery($this->auth))
             : null;
@@ -257,7 +256,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $auditPage = (int) ($request->get['audit_page'] ?? 1);
         $auditData = $permissions->canViewLogs ? $this->auditLogRepository->getPaginated($auditPage, $dto->limit, $auditFilter) : ['items' => [], 'total' => 0];
 
-        // Map AuditLog Entities to AuditLogViewDto to keep the view 100% logic-free
         $auditLogsDto = [];
         if ($permissions->canViewLogs) {
             foreach ($auditData['items'] as $log) {
@@ -292,7 +290,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $queryParams['focus'] = 'tab-expired';
 
         // Bank Wizard
-        $formData = $this->sessionManager->getFormData() ?? [];
+        $formData = $this->sessionManager->getFormData();
         $showBankWizard = isset($formData['bank_wizard']['headers']) && !empty($formData['bank_wizard']['headers']);
         if ($showBankWizard) {
             $tabStates['tab-bank-import'] = new DashboardTabStateDto('is-active', 'true', '0', 'false');

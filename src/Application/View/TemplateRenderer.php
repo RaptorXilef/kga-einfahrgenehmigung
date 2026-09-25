@@ -31,11 +31,11 @@ final readonly class TemplateRenderer
     }
 
     /**
-     * Gibt nun das fertige HTML als String zurück, anstatt es mit 'echo' auszugeben!
+     * Gibt das fertige HTML als String zurück, anstatt es mit 'echo' auszugeben!
      */
     public function render(string $templatePath, array $data = []): string
     {
-        $appRoot = \rtrim((string) $this->config->get('root_path'), '/\\');
+        $appRoot = \rtrim($this->config->getString('root_path'), '/\\');
 
         // 1. Sichere Routen-Ermittlung aus dem gekapselten ServerRequest (Kein $_SERVER mehr!)
         $path = \parse_url($this->request->getPath(), \PHP_URL_PATH);
@@ -47,7 +47,7 @@ final readonly class TemplateRenderer
 
         // 2. Metriken für den Footer vorbereiten (Logik aus PHTML entfernt)
         $debugMetrics = null;
-        if ($this->config->get('debug_mode', false)) {
+        if ($this->config->getBool('debug_mode', false)) {
             $reqTimeRaw = $this->request->server['REQUEST_TIME_FLOAT'] ?? null;
             $requestTime = \is_numeric($reqTimeRaw) ? (float) $reqTimeRaw : (float) (\defined('APP_REQUEST_TIME') ? APP_REQUEST_TIME : \microtime(true));
             $timeMs = \round((\microtime(true) - $requestTime) * 1000, 2);
@@ -55,7 +55,7 @@ final readonly class TemplateRenderer
             $debugMetrics = ['timeMs' => $timeMs, 'memoryMb' => $memoryMb];
         }
 
-        // VSA FIX: Globale Layout-Variablen auflösen, um HeaderNav & Footer logikfrei zu machen
+        // Globale Layout- & Footer-Variablen auflösen, um HeaderNav & Footer 100% logikfrei zu machen
         $adminUserId = $this->sessionManager->getUserId();
         $adminRoleRaw = $this->sessionManager->getAdminGroup();
         $adminRoleName = \ucfirst(\str_replace('role_', '', $adminRoleRaw));
@@ -66,6 +66,11 @@ final readonly class TemplateRenderer
         $hasGodMode = ($globalPermissions['*'] ?? false) || $isSysAdmin;
         $canManageSystem = ($globalPermissions['system.manage'] ?? false) || $hasGodMode;
         $canAccessAdmin = ($globalPermissions['admin.access'] ?? false) || $hasGodMode;
+
+        $currentYear = $this->clock->now()->format('Y');
+        $startYear = 2026;
+        $footerYearDisplay = (int) $currentYear > $startYear ? "{$startYear} - {$currentYear}" : (string) $startYear;
+        $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
 
         // 3. Systemvariablen bereitstellen
         $systemVars = [
@@ -81,7 +86,12 @@ final readonly class TemplateRenderer
             'csrfToken' => $this->sessionManager->getCsrfToken(),
             'currentRoute' => $currentRoute,
             'appVersion' => $this->systemInfo->getCurrentVersion(),
-            'currentYear' => $this->clock->now()->format('Y'),
+            'currentYear' => $currentYear,
+            'footerYearDisplay' => $footerYearDisplay,
+            'footerSoftwareName' => 'KGA-Einfahrts-Manager',
+            'footerIssuesUrl' => 'https://github.com/RaptorXilef/kga-einfahrgenehmigung/issues',
+            'footerImpressumUrl' => $safeBaseUrl . 'impressum',
+            'footerDatenschutzUrl' => $safeBaseUrl . 'datenschutz',
             'debugMetrics' => $debugMetrics,
             // Globale Admin Layout Variablen
             'adminUserId' => $adminUserId,

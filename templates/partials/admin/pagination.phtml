@@ -1,80 +1,23 @@
 <?php
 
+use App\Application\View\PaginationViewDto;
+
 /**
  * Partial: Generic Pagination Component
- * VSA FIX: Nutzt das vom TemplateRenderer injizierte `$queryParams` anstelle von `$_GET`.
+ * VSA FIX: 100% Dumme View - konsumiert ausschließlich das vorberechnete PaginationViewDto.
  *
- * @var int $page             Aktuelle Seite
- * @var int $totalPages       Gesamtanzahl der Seiten
- * @var int $totalCount       Gesamtanzahl der Datensätze
- * @var int $limit            Einträge pro Seite
- * @var int $offset           Aktueller Offset
- * @var array<string, mixed> $queryParams Bereitgestellt durch TemplateRenderer ($request->get)
- * @var string $paginationParam Der GET-Parameter für die Seite (Standard: 'page', bei Audit-Log z.B. 'audit_page')
- * @var string|null $tabFocusId Die explizite Tab-ID (z.B. 'tab-active'), um URL-Leaks zu verhindern
+ * @var PaginationViewDto $paginationDto
  */
-$paginationParam ??= 'page';
-
-if ($totalPages > 1) {
-    $params = $queryParams ?? [];
-
-    // ARCHITEKTUR-FIX: Verhindert "Parameter Leakage" und kryptische URLs.
-    // 1. Wir löschen pauschal alle bekannten Paginierungs-Parameter aus der URL-Basis
-    unset($params['page'], $params['audit_page']);
-
-    // 2. Wenn wir nicht in einem Tab sind, der das Archiv nutzt, werfen wir das auch raus
-    if (isset($tabFocusId) && !\in_array($tabFocusId, ['tab-expired', 'tab-stats'], true)) {
-        unset($params['archive_depth']);
-    }
-
-    // 3. Jeder Paginierungs-Link bekommt zwingend die ID seines eigenen Tabs aufgestempelt.
-    if (isset($tabFocusId)) {
-        $params['focus'] = $tabFocusId;
-    } else {
-        unset($params['focus']);
-    }
-
-    $baseUrlStr = '?' . \http_build_query($params) . '&' . $paginationParam . '=';
-
-    $adjacents = 2;
-    $pagesToShow = [];
-    if ($totalPages <= (1 + ($adjacents * 2) + 2)) {
-        for ($i = 1; $i <= $totalPages; ++$i) {
-            $pagesToShow[] = $i;
-        }
-    } else {
-        if ($page <= $adjacents + 2) {
-            for ($i = 1; $i <= 1 + ($adjacents * 2); ++$i) {
-                $pagesToShow[] = $i;
-            }
-            $pagesToShow[] = '...';
-            $pagesToShow[] = $totalPages;
-        } elseif ($totalPages - $page <= $adjacents + 1) {
-            $pagesToShow[] = 1;
-            $pagesToShow[] = '...';
-            for ($i = $totalPages - ($adjacents * 2); $i <= $totalPages; ++$i) {
-                $pagesToShow[] = $i;
-            }
-        } else {
-            $pagesToShow[] = 1;
-            $pagesToShow[] = '...';
-            for ($i = $page - $adjacents; $i <= $page + $adjacents; ++$i) {
-                $pagesToShow[] = $i;
-            }
-            $pagesToShow[] = '...';
-            $pagesToShow[] = $totalPages;
-        }
-    }
-    ?>
+if ($paginationDto->hasMultiplePages) { ?>
 <div class="c-pagination">
     <div class="c-pagination__info">
-        Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von
-        <strong><?php echo $totalCount; ?></strong>
+        Zeige <?php echo $paginationDto->startEntry; ?> bis <?php echo $paginationDto->endEntry; ?> von
+        <strong><?php echo $paginationDto->totalCount; ?></strong>
     </div>
     <div class="c-pagination__controls">
-        <?php if ($page > 1) { ?>
+        <?php if ($paginationDto->hasPrev) { ?>
         <a
-            href="<?php echo $baseUrlStr . ($page - 1); ?>"
+            href="<?php echo \htmlspecialchars($paginationDto->prevUrl, \ENT_QUOTES, 'UTF-8'); ?>"
             class="c-button c-button--secondary c-button--icon-only"
         >&larr;</a>
         <?php } else { ?>
@@ -84,25 +27,25 @@ if ($totalPages > 1) {
         >&larr;</button>
         <?php } ?>
 
-        <?php foreach ($pagesToShow as $pageNum) {
-            if ($pageNum === '...') { ?>
+        <?php foreach ($paginationDto->items as $item) {
+            if ($item->isEllipsis) { ?>
         <span class="u-color-muted u-padding-inline-s">&hellip;</span>
-        <?php } elseif ($pageNum === $page) { ?>
+        <?php } elseif ($item->isCurrent) { ?>
         <span
             class="c-button c-button--primary"
             aria-current="page"
-        ><?php echo $pageNum; ?></span>
+        ><?php echo \htmlspecialchars($item->label); ?></span>
         <?php } else { ?>
         <a
-            href="<?php echo $baseUrlStr . $pageNum; ?>"
+            href="<?php echo \htmlspecialchars($item->url, \ENT_QUOTES, 'UTF-8'); ?>"
             class="c-button c-button--secondary"
-        ><?php echo $pageNum; ?></a>
+        ><?php echo \htmlspecialchars($item->label); ?></a>
         <?php }
             } ?>
 
-        <?php if ($page < $totalPages) { ?>
+        <?php if ($paginationDto->hasNext) { ?>
         <a
-            href="<?php echo $baseUrlStr . ($page + 1); ?>"
+            href="<?php echo \htmlspecialchars($paginationDto->nextUrl, \ENT_QUOTES, 'UTF-8'); ?>"
             class="c-button c-button--secondary c-button--icon-only"
         >&rarr;</a>
         <?php } else { ?>
@@ -113,8 +56,8 @@ if ($totalPages > 1) {
         <?php } ?>
     </div>
 </div>
-<?php } elseif ($totalCount > 0) { ?>
+<?php } elseif ($paginationDto->hasEntries) { ?>
 <div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-block-start u-bg-light">Gesamt:
-    <strong><?php echo $totalCount; ?></strong> Einträge
+    <strong><?php echo $paginationDto->totalCount; ?></strong> Einträge
 </div>
 <?php } ?>

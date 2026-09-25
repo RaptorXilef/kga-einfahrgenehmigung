@@ -14,6 +14,7 @@ use App\Modules\Permit\Domain\Events\PermitCreatedEvent;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
+use App\Modules\Permit\Presentation\View\PermitA4Presenter;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
@@ -41,7 +42,7 @@ final readonly class SendPermitMailListener
         $permitCodeStr = $permit->code->value;
 
         $zeitraum = "{$permit->getValidFrom()->format('d.m.Y')} bis {$permit->getValidUntil()->format('d.m.Y')}";
-        $geheimnis = (string) $this->config->get('geheimnis', '');
+        $geheimnis = $this->config->getString('geheimnis');
         $token = \hash_hmac('sha256', $permitCodeStr, $geheimnis);
 
         $opening = HolidayHtmlPresenter::formatOpeningHours(
@@ -70,6 +71,10 @@ final readonly class SendPermitMailListener
             $boardRecipientsRaw = $mailConfig['board_recipients'] ?? '';
             $boardRecipients = \array_filter(\array_map(trim(...), \explode(',', (string) $boardRecipientsRaw)));
 
+            $vConfigs = $this->config->getArray('vehicle_types');
+            $typ = $permit->getVehicleType();
+            $typLabel = (string) ($vConfigs[$typ]['label'] ?? ('Fahrzeug: ' . \strtoupper($typ)));
+
             $data = [
                 'adminLink' => $checkUrl . "&token={$token}",
                 'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
@@ -80,12 +85,8 @@ final readonly class SendPermitMailListener
                 'name' => $permit->getOwnerName(),
                 'parzelle' => $permit->getPlotNumber(),
                 'preis' => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
-                'typLabel' => (function ($typ, $config) {
-                    $vConfigs = $config->get('vehicle_types', []);
-
-                    return $vConfigs[$typ]['label'] ?? 'Fahrzeug: ' . \strtoupper($typ);
-                })($permit->getVehicleType(), $this->config),
-                'vereinsName' => $this->config->get('vereins_name'),
+                'typLabel' => $typLabel,
+                'vereinsName' => $this->config->getString('vereins_name'),
                 'von_formatted' => $permit->getValidFrom()->format('d.m.Y'),
                 'zweck' => $permit->getPurpose(),
             ];
@@ -125,11 +126,11 @@ final readonly class SendPermitMailListener
                     'dueDate' => $this->financialCalculator->calculatePaymentDueDate($permit)->format('d.m.Y'),
                     'epcData' => \urlencode($epcQrData),
                     'fullIdentifier' => $permitCodeStr,
-                    'iban' => $this->config->get('iban'),
-                    'kontoinhaber' => $this->config->get('kontoinhaber'),
+                    'iban' => $this->config->getString('iban'),
+                    'kontoinhaber' => $this->config->getString('kontoinhaber'),
                     'name' => $permit->getOwnerName(),
                     'usage' => $usage,
-                    'vereinsName' => $this->config->get('vereins_name'),
+                    'vereinsName' => $this->config->getString('vereins_name'),
                 ],
             );
         }
@@ -145,44 +146,42 @@ final readonly class SendPermitMailListener
             margin: 0,
         );
         $writer = new PngWriter();
-        $qrResult = $writer->write($qrCode);
-        $checkQrBase64 = $qrResult->getDataUri(); // Gibt data:image/png;base64,... zurück
+        $checkQrBase64 = $writer->write($qrCode)->getDataUri();
 
-        $pdfData = [
-            'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
-            'checkUrl' => $checkUrl,
-            'checkQrBase64' => $checkQrBase64,
-            'erstellt' => $permit->getCreatedAt()->format('d.m.Y H:i'),
-            'firma' => $permit->getCompany() ?? '',
-            'fullIdentifier' => $permitCodeStr,
-            'holidayNotice' => $holidayNotice,
-            'jahresFarbe' => $this->config->get('jahresFarbe'),
-            'kennzeichen' => $permit->getLicensePlate(),
-            'name' => $permit->getOwnerName(),
-            'opening_html' => $opening,
-            'parzelle' => $permit->getPlotNumber(),
-            'settings' => ['base_url' => $safeBaseUrl],
-            'template_key' => $permit->template_key->value,
-            'terminkalenderUrl' => $this->config->get('terminkalender_url'),
-            'vereinsName' => $this->config->get('vereins_name'),
-            'von_formatted' => $permit->getValidFrom()->format('d.m.Y'),
-            'zweck' => $permit->getPurpose(),
-        ];
+        $docDto = PermitA4Presenter::createViewDto(
+            fullIdentifier: $permitCodeStr,
+            templateKey: $permit->template_key->value,
+            jahresFarbe: $this->config->getString('jahresFarbe'),
+            vereinsName: $this->config->getString('vereins_name'),
+            checkQrBase64: $checkQrBase64,
+            openingHtml: $opening,
+            holidayNoticeHtml: $holidayNotice,
+            name: $permit->getOwnerName(),
+            validFrom: $permit->getValidFrom(),
+            validUntil: $permit->getValidUntil(),
+            kennzeichen: $permit->getLicensePlate(),
+            firma: $permit->getCompany() ?? '',
+            parzelle: $permit->getPlotNumber(),
+            zweck: $permit->getPurpose(),
+            terminkalenderUrl: $this->config->getString('terminkalender_url'),
+            erstelltFormatted: $permit->getCreatedAt()->format('d.m.Y H:i'),
+            baseUrl: $safeBaseUrl,
+        );
 
         // 3.2 HTML rendern und in PDF umwandeln
-        $a4Html = $this->renderer->render('emails/permit_a4_document', $pdfData);
+        $a4Html = $this->renderer->render('emails/permit_a4_document', ['docDto' => $docDto]);
         $pdfBinary = $this->pdfGenerator->generateFromHtml($a4Html);
 
         // 3.3 Neue, kurze E-Mail versenden und PDF anhängen
         $this->mailService->sendTemplate(
             $permit->getOwnerEmail(),
-            'Ausnahmegenehmigung: ' . $this->config->get('vereins_name') . ': ' . $permitCodeStr,
+            'Ausnahmegenehmigung: ' . $this->config->getString('vereins_name') . ': ' . $permitCodeStr,
             'permit_approved_with_pdf',
             [
                 'baseUrl' => $safeBaseUrl,
                 'fullIdentifier' => $permitCodeStr,
                 'name' => $permit->getOwnerName(),
-                'vereinsName' => $this->config->get('vereins_name'),
+                'vereinsName' => $this->config->getString('vereins_name'),
             ],
             null,
             50,

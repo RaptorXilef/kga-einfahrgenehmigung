@@ -1,7 +1,7 @@
 <?php
 
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
-use App\Infrastructure\Config\Config;
 
 /**
  * Component: Test Mode & Debug Mode Indicator (Animated)
@@ -9,7 +9,7 @@ use App\Infrastructure\Config\Config;
  * Zeigt einen globalen Warnbanner, wenn PayPal Sandbox oder der Debug-Modus aktiv sind.
  *
  * @var AssetHelperInterface $asset
- * @var Config $config
+ * @var ConfigInterface $config
  * @var array $settings
  */
 ?>
@@ -31,7 +31,7 @@ use App\Infrastructure\Config\Config;
             <code class="c-test-indicator__code"><?php echo \htmlspecialchars($config->getMailSettings()['catch_all_recipient'] ?? 'test@example.com'); ?></code>
         </div>
 
-        <?php if ($config->get('debug_mode', false) === true) { ?>
+        <?php if ($config->getBool('debug_mode', false) === true) { ?>
         <div class="c-test-indicator__admin-badge">
             <img
                 src="<?php echo $asset->url('assets/img/icons/tools.webp'); ?>"

@@ -2,41 +2,30 @@
 
 /**
  * Component: Global Dynamic Footer
- * VSA FIX: PHTML ist jetzt 100% Dumm. Nutzt bereitgestellte System-Variablen!
+ * VSA FIX: PHTML ist 100% dumm und nutzt ausschließlich die vom TemplateRenderer vorbereiteten Variablen.
  *
  * @var array $settings
- * @var string $appVersion   Bereitgestellt durch TemplateRenderer
- * @var string $currentYear  Bereitgestellt durch TemplateRenderer
- * @var array|null $debugMetrics Bereitgestellt durch TemplateRenderer
- * @var bool $canAccessAdmin Bereitgestellt durch TemplateRenderer
- * @var string|null $appRoot (optional, wird berechnet falls nicht vorhanden)
+ * @var string $appRoot
+ * @var string $appVersion
+ * @var string $footerYearDisplay
+ * @var string $footerSoftwareName
+ * @var string $footerIssuesUrl
+ * @var string $footerImpressumUrl
+ * @var string $footerDatenschutzUrl
+ * @var array|null $debugMetrics
+ * @var bool $canAccessAdmin
  */
-
-// 1. Copyright-Jahr Logik (Zeigt "2026" oder "2026 - 2027")
-$startYear = 2026;
-$yearDisplay = (int) $currentYear > $startYear ? "{$startYear} - {$currentYear}" : (string) $startYear;
-
-// TODO URL und Name in Config festlegen
-// 2. Software Details
-$softwareName = 'KGA-Einfahrts-Manager';
-$githubUrl = 'https://github.com/RaptorXilef/kga-einfahrgenehmigung';
-$issuesUrl = $githubUrl . '/issues';
-
-// 3. Rechtliche Links berechnen
-$baseUrl = $settings['base_url'] ?? '/';
-$impressumUrl = \rtrim($baseUrl, '/') . '/impressum';
-$datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
-$isAdmin = $canAccessAdmin ?? false;
 ?>
 
 <footer class="c-footer">
     <div class="c-footer__content">
         <div class="c-footer__copyright">
-            &copy; <?php echo $yearDisplay; ?> <?php echo \htmlspecialchars($softwareName); ?>
+            &copy; <?php echo \htmlspecialchars($footerYearDisplay); ?>
+            <?php echo \htmlspecialchars($footerSoftwareName); ?>
 
-            <?php if ($isAdmin) { ?>
+            <?php if ($canAccessAdmin) { ?>
             <a
-                href="<?php echo \htmlspecialchars($baseUrl); ?>changelog"
+                href="<?php echo \htmlspecialchars($settings['base_url']); ?>changelog"
                 class="c-footer__version c-footer__version--admin"
                 title="Versionshistorie / Changelog ansehen"
             >
@@ -49,10 +38,10 @@ $isAdmin = $canAccessAdmin ?? false;
             <?php } ?>
         </div>
 
-        <?php if ($isAdmin) { ?>
+        <?php if ($canAccessAdmin) { ?>
         <div class="u-margin-block-start-xs">
             <a
-                href="<?php echo \htmlspecialchars($issuesUrl); ?>"
+                href="<?php echo \htmlspecialchars($footerIssuesUrl); ?>"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="u-text-link u-text-xs"
@@ -64,12 +53,12 @@ $isAdmin = $canAccessAdmin ?? false;
 
         <div class="c-footer__links">
             <a
-                href="<?php echo \htmlspecialchars($impressumUrl); ?>"
+                href="<?php echo \htmlspecialchars($footerImpressumUrl); ?>"
                 class="u-text-link"
             >Impressum</a>
             <span class="u-color-muted">&bull;</span>
             <a
-                href="<?php echo \htmlspecialchars($datenschutzUrl); ?>"
+                href="<?php echo \htmlspecialchars($footerDatenschutzUrl); ?>"
                 class="u-text-link"
             >Datenschutzerklärung</a>
         </div>

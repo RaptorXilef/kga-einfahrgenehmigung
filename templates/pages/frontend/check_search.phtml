@@ -1,7 +1,7 @@
 <?php
 
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
-use App\Infrastructure\Config\Config;
 
 /**
  * Page: Manual Code Input (Search)
@@ -13,10 +13,9 @@ use App\Infrastructure\Config\Config;
  *
  * @var array $settings
  * @var AssetHelperInterface $asset
- * @var Config $config
+ * @var ConfigInterface $config
  * @var string $appRoot
  * @var string $cspNonce
- * @var string|null $error  Optionale Fehlermeldung, wenn ein eingegebener Code nicht existiert.
  */
 $layout = 'public';
 $pageTitle = 'Genehmigung prüfen';
