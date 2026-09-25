@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.79.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.4...v0.79.5) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* **quality:** Resolve all 85 PHPStan strict-rules errors (empty and non-boolean conditions) ([619da50](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/619da50e562ab9afc4afdd3fb3f87e5415c06b19))
+
 ## [0.79.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.3...v0.79.4) (2026-09-25)
 
 ### 🐛 Bug Fixes
