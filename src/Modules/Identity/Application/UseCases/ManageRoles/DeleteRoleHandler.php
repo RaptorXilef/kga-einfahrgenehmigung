@@ -46,6 +46,6 @@ final readonly class DeleteRoleHandler implements CommandWithResultHandlerInterf
         // Neues VSA-Event triggern, damit z.B. Icons gelöscht werden
         $this->eventDispatcher->dispatch(new RoleDeletedEvent($command->roleId, $this->clock->now()));
 
-        return $role->name;
+        return $role->getName();
     }
 }

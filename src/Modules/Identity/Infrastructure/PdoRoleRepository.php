@@ -47,8 +47,8 @@ final readonly class PdoRoleRepository implements RoleRepositoryInterface
                 ON DUPLICATE KEY UPDATE name = VALUES(name), permissions = VALUES(permissions)';
         $this->pdo->prepare($sql)->execute([
             'id' => $role->id,
-            'name' => $role->name,
-            'perms' => \json_encode($role->permissions, \JSON_UNESCAPED_UNICODE),
+            'name' => $role->getName(),
+            'perms' => \json_encode($role->getPermissions(), \JSON_UNESCAPED_UNICODE),
         ]);
     }
 

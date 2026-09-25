@@ -34,7 +34,7 @@ final readonly class SaveRoleHandler implements CommandWithResultHandlerInterfac
             if ($command->inheritRoleId !== '') {
                 $inherit = $this->repository->findById($command->inheritRoleId);
                 if ($inherit instanceof Role) {
-                    $perms = $inherit->permissions;
+                    $perms = $inherit->getPermissions();
                 }
             }
             $role = new Role($newId, $command->roleName, $perms);

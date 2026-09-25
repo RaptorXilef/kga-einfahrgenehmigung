@@ -31,7 +31,7 @@ final readonly class RenameRoleHandler implements CommandWithResultHandlerInterf
             throw new DomainException('Rolle nicht gefunden.');
         }
 
-        $oldName = $role->name;
+        $oldName = $role->getName();
         $role->rename($command->newRoleName);
         $this->repository->save($role);
 

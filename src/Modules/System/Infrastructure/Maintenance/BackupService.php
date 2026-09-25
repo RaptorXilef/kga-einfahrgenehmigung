@@ -7,6 +7,7 @@ namespace App\Modules\System\Infrastructure\Maintenance;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Utils\ClockInterface;
+use DomainException;
 use Override;
 use PDO;
 use RuntimeException;
@@ -98,8 +99,7 @@ final readonly class BackupService implements BackupServiceInterface
                 while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
                     if (!$firstRow) {
                         \fwrite($fp, ',');
-                    }
-                    \fwrite($fp, (string) \json_encode($row, \JSON_UNESCAPED_UNICODE));
+                    }                     \fwrite($fp, (string) \json_encode($row, \JSON_UNESCAPED_UNICODE));
                     $firstRow = false;
                 }
             }
@@ -117,8 +117,7 @@ final readonly class BackupService implements BackupServiceInterface
         if ($zipPassword !== '') {
             $zip->setPassword($zipPassword);
             $zip->setEncryptionName('data.json', ZipArchive::EM_AES_256);
-        }
-        $zip->close();
+        }$zip->close();
 
         // Temporäre Datei erst nach dem Schließen des ZIP-Archivs löschen!
         @\unlink($tmpJsonFile);
@@ -192,6 +191,31 @@ final readonly class BackupService implements BackupServiceInterface
 
             throw clone $e;
         }
+    }
+
+    #[Override]
+    public function truncateTarget(string $targetKey): string
+    {
+        $storageConfig = $this->config->getArray('storage_config');
+
+        if (
+            $targetKey === ''
+            || $targetKey === 'all'
+            || !isset($storageConfig[$targetKey])
+            || !\is_array($storageConfig[$targetKey])
+            || !isset($storageConfig[$targetKey]['table'])
+        ) {
+            throw new DomainException('Ungültige oder nicht erlaubte Zieltabelle ausgewählt.');
+        }
+
+        $table = (string) $storageConfig[$targetKey]['table'];
+
+        // Sicherheits-Backup der Tabelle vor dem Leeren erstellen
+        $this->createBackup($targetKey);
+
+        $this->pdo->exec("TRUNCATE TABLE `{$table}`");
+
+        return $table;
     }
 
     private function restoreTableData(string $table, array $rows, int $mode): void
@@ -268,8 +292,7 @@ final readonly class BackupService implements BackupServiceInterface
         foreach ($files as $file) {
             if (!\str_ends_with($file, '.zip')) {
                 continue;
-            }
-            $path = $this->backupDir . '/' . $file;
+            }$path = $this->backupDir . '/' . $file;
 
             $zip = new ZipArchive();
             $meta = [];
@@ -345,7 +368,6 @@ final readonly class BackupService implements BackupServiceInterface
 
         if (!@\ftp_put($connId, $filename, $filepath, \FTP_BINARY)) {
             \error_log('Off-Site Backup fehlgeschlagen: Upload verweigert.');
-        }
-        \ftp_close($connId);
+        }         \ftp_close($connId);
     }
 }

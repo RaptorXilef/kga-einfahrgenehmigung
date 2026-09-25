@@ -2,7 +2,6 @@
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
-use App\Modules\Identity\Application\Services\AuthService;
 
 /**
  * Page: Changelog / Versionshistorie
@@ -10,15 +9,15 @@ use App\Modules\Identity\Application\Services\AuthService;
  * Rendert die CHANGELOG.md Datei im System-Layout mittels DOMPurify und marked.js.
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth
  * @var ConfigInterface $config
  * @var array $settings Globale Einstellungen inkl. base_url und vereins_name
+ * @var string $vereinsName
  * @var string $appRoot Absoluter Pfad zum Installationsverzeichnis
  * @var string $cspNonce
  * @var string $markdownContent Der rohe Markdown-Inhalt der CHANGELOG.md
  */
 $layout = 'admin';
-$pageTitle = 'Versionshistorie - ' . ($settings['vereins_name'] ?? '');
+$pageTitle = 'Versionshistorie - ' . $vereinsName;
 ?>
 
 <!-- DOMPurify (Sicherheit) + Marked.js (Markdown Parser) -->

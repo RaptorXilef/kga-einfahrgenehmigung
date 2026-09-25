@@ -38,7 +38,7 @@ final readonly class RenameUserHandler implements CommandWithResultHandlerInterf
 
         $this->uniquenessChecker->check($command->newUsername, $user->id);
 
-        $oldName = $user->username;
+        $oldName = $user->getUsername();
         $user->rename($command->newUsername);
         $this->repository->save($user);
 

@@ -48,7 +48,7 @@ final readonly class CreateUserHandler implements CommandWithResultHandlerInterf
         $this->repository->save($user);
 
         $role = $this->roleRepository->findById($command->roleId);
-        $roleName = $role instanceof Role ? $role->name : $command->roleId;
+        $roleName = $role instanceof Role ? $role->getName() : $command->roleId;
 
         return new CreateUserResult(
             roleName: $roleName,

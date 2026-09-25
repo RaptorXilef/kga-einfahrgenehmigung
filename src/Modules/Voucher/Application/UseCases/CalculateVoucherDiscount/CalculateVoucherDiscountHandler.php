@@ -5,19 +5,21 @@ declare(strict_types=1);
 namespace App\Modules\Voucher\Application\UseCases\CalculateVoucherDiscount;
 
 use App\Contracts\Utils\ClockInterface;
-use App\Modules\Voucher\Domain\Voucher;
-use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use App\SharedKernel\Application\Query\QueryInterface;
+use DateTimeImmutable;
 use Override;
+use PDO;
 
 /**
+ * Berechnet den Gutschein-Rabatt direkt über PDO ohne Entity-Hydrierung (Pragmatic CQRS).
+ *
  * @implements QueryHandlerInterface<CalculateVoucherDiscountQuery, VoucherDiscountDto>
  */
 final readonly class CalculateVoucherDiscountHandler implements QueryHandlerInterface
 {
     public function __construct(
-        private VoucherRepositoryInterface $repository,
+        private PDO $pdo,
         private ClockInterface $clock,
     ) {
     }
@@ -28,43 +30,54 @@ final readonly class CalculateVoucherDiscountHandler implements QueryHandlerInte
     #[Override]
     public function handle(QueryInterface $query): VoucherDiscountDto
     {
-        $voucher = $this->repository->findByCode($query->code);
+        $stmt = $this->pdo->prepare(
+            'SELECT type, value, is_multi_use, max_uses, current_uses, expires_at, status FROM vouchers WHERE code = :code LIMIT 1',
+        );
+        $stmt->execute(['code' => \strtoupper(\trim($query->code))]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // 1. Existenz-Prüfung
-        if (!$voucher instanceof Voucher) {
+        if (!\is_array($row)) {
             return new VoucherDiscountDto($query->originalPrice, false, '', 'Ungültiger Code');
         }
 
         // 2. Status-Prüfung
-        if ($voucher->isDeactivated()) {
+        if ((string) ($row['status'] ?? '') === 'deaktiviert') {
             return new VoucherDiscountDto($query->originalPrice, false, '', 'Code gesperrt');
         }
 
-        if ($voucher->isExpired($this->clock->now())) {
+        $expiresAtStr = \trim((string) ($row['expires_at'] ?? ''));
+        if ($expiresAtStr !== '' && new DateTimeImmutable($expiresAtStr) < $this->clock->now()) {
             return new VoucherDiscountDto($query->originalPrice, false, '', 'Code abgelaufen');
         }
 
         // 3. Nutzungs-Prüfung
-        $isDepleted = ($voucher->isMultiUse && $voucher->getCurrentUses() >= $voucher->maxUses)
-            || (!$voucher->isMultiUse && $voucher->getCurrentUses() > 0);
+        $isMultiUse = (bool) ($row['is_multi_use'] ?? false);
+        $currentUses = (int) ($row['current_uses'] ?? 0);
+        $maxUses = (int) ($row['max_uses'] ?? 1);
+
+        $isDepleted = ($isMultiUse && $currentUses >= $maxUses)
+            || (!$isMultiUse && $currentUses > 0);
 
         if ($isDepleted) {
             return new VoucherDiscountDto($query->originalPrice, false, '', 'Code aufgebraucht');
         }
 
         // 4. Rabatt berechnen
+        $type = (string) ($row['type'] ?? 'free');
+        $value = (float) ($row['value'] ?? 0.0);
         $finalPrice = $query->originalPrice;
         $discountText = '';
 
-        if ($voucher->type === 'free') {
+        if ($type === 'free') {
             $finalPrice = 0.0;
             $discountText = '100% Rabatt (Kostenlos)';
-        } elseif ($voucher->type === 'percent') {
-            $discount = $query->originalPrice * $voucher->value / 100;
+        } elseif ($type === 'percent') {
+            $discount = $query->originalPrice * $value / 100;
             $finalPrice = \max(0.0, $query->originalPrice - $discount);
-            $discountText = $voucher->value . '% Rabatt';
-        } elseif ($voucher->type === 'fixed') {
-            $finalPrice = \max(0.0, $query->originalPrice - $voucher->value);
+            $discountText = $value . '% Rabatt';
+        } elseif ($type === 'fixed') {
+            $finalPrice = \max(0.0, $query->originalPrice - $value);
             $discountText = 'Sonderpreis aktiviert';
         }
 

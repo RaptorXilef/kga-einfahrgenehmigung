@@ -27,9 +27,12 @@ final readonly class DatenschutzAction implements ViewActionInterface
     public function execute(ServerRequest $request): ResponseInterface
     {
         $legalData = $this->config->getArray('datenschutz');
+        $title = (string) ($legalData['title'] ?? 'Datenschutz');
+        $vereinsName = $this->config->getString('vereins_name', 'KGA');
 
         $html = $this->renderer->render('frontend/datenschutz', [
             'legal' => $legalData,
+            'pageTitle' => $title . ' - ' . $vereinsName,
         ]);
 
         return new HtmlResponse($html);

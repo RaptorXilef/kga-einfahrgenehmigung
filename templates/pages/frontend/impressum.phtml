@@ -11,9 +11,9 @@ use App\Contracts\System\AssetHelperInterface;
  * @var array $settings Basis-Konfigurationen (vereins_name, base_url).
  * @var string $appRoot Root-Pfad der Anwendung.
  * @var string $cspNonce
+ * @var string $pageTitle
  */
 $layout = 'public';
-$pageTitle = ($legal['title'] ?? 'Impressum') . ' - ' . ($settings['vereins_name'] ?? '');
 ?>
 
 <div class="c-tab-content-container o-container o-container--large u-padding-block-xl">

@@ -70,7 +70,7 @@ final readonly class AuthenticateAdminHandler implements CommandHandlerInterface
         $user = $this->repository->findByUsername($command->username);
 
         if ($user instanceof User && $user->verifyPassword($command->password)) {
-            $this->loginSuccess($user->id, $user->roleId, $user->username, $user->getPasswordHash(), $command->ipAddress);
+            $this->loginSuccess($user->id, $user->getRoleId(), $user->getUsername(), $user->getPasswordHash(), $command->ipAddress);
 
             return;
         }

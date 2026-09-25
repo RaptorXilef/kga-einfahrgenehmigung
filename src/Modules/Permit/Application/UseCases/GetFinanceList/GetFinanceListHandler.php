@@ -144,7 +144,7 @@ final readonly class GetFinanceListHandler implements QueryHandlerInterface
                     sortSuspendedValue: $sortSuspendedValue,
                     isOnCooldown: $isOnCooldown,
                     isSuspended: $isSuspended,
-                    suspensionReason: isset($row['suspension_reason']) ? (string) $row['suspension_reason'] : null,
+                    suspensionReason: isset($row['suspension_reason']) ? (string) $row['suspension_reason'] : '',
                 );
             }
         }

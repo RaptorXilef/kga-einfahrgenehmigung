@@ -20,6 +20,10 @@ interface AuthorizationInterface
 
     public function getRole(): string;
 
+    public function getLastSeenChangelog(): string;
+
+    public function bootstrapDefaultIdentityData(): void;
+
     public function refreshSessionPermissions(string $roleId): void;
 
     public function logout(): void;

@@ -18,7 +18,7 @@ use App\Modules\Identity\Application\UseCases\GetUserManagementData\UserManageme
  * @var string $cspNonce
  */
 $layout = 'admin';
-$pageTitle = 'Benutzer & Rechte - ' . ($settings['vereins_name'] ?? '');
+$pageTitle = 'Benutzer & Rechte - ' . $vereinsName;
 
 if ($viewDto->canManageSystem) { ?>
 <main class="c-tab-content-container u-padding-block-l js-permission-matrix js-admin-dashboard">

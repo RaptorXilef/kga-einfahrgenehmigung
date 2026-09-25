@@ -189,7 +189,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
 
         // --- FINANCE DDD REPOSITORY BINDINGS ---
         $container->bind(UnpaidPermitProviderInterface::class, fn (): PdoUnpaidPermitProvider => new PdoUnpaidPermitProvider(
-            $container->get(PDO::class),
+            $container->get(PermitIntegrationInterface::class),
         ));
         $container->bind(BankImportInfrastructureInterface::class, fn (): LocalBankImportInfrastructure => new LocalBankImportInfrastructure(
             $container->get(ConfigInterface::class),

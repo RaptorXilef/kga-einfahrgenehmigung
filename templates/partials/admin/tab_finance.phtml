@@ -297,7 +297,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                             <?php if ($permit->isSuspended) { ?>
                             <span
                                 class="c-badge c-badge--danger"
-                                title="<?php echo \htmlspecialchars($permit->suspensionReason ?? ''); ?>"
+                                title="<?php echo \htmlspecialchars($permit->suspensionReason); ?>"
                             >GESPERRT</span>
                             <?php } else { ?>
                             <span class="c-badge c-badge--success">AKTIV</span>

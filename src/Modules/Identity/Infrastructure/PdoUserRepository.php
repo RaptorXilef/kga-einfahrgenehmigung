@@ -70,8 +70,8 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
 
         $this->pdo->prepare($sql)->execute([
             'id' => $user->id,
-            'username' => $user->username,
-            'role' => $user->roleId,
+            'username' => $user->getUsername(),
+            'role' => $user->getRoleId(),
             'pass' => $user->getPasswordHash(),
             'changelog' => $user->getLastSeenChangelog(),
         ]);

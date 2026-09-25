@@ -20,8 +20,6 @@ use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Modules\Identity\Domain\User;
-use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitsResultDto;
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\GetDashboardPermitsHandler;
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\GetDashboardPermitsQuery;
@@ -59,7 +57,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface, Requi
         private SystemInfoInterface $systemInfo,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
-        private UserRepositoryInterface $userRepository,
         private ImageStorageInterface $imageStorage,
         private AssetHelperInterface $assetHelper,
         private GetVoucherListHandler $getVoucherListHandler,
@@ -302,10 +299,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface, Requi
         $unreadReleaseNotes = [];
         $userId = $this->auth->getUserId();
         if (!\str_starts_with($userId, 'sys_')) {
-            $user = $this->userRepository->findById($userId);
-            if ($user instanceof User) {
-                $unreadReleaseNotes = $this->systemInfo->getUnreadReleaseNotes($user->getLastSeenChangelog());
-            }
+            $unreadReleaseNotes = $this->systemInfo->getUnreadReleaseNotes($this->auth->getLastSeenChangelog());
         }
 
         // Archiv URL

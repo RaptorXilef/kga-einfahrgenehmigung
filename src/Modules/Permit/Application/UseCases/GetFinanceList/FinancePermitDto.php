@@ -32,7 +32,7 @@ final readonly class FinancePermitDto
         public string $sortSuspendedValue,
         public bool $isOnCooldown,
         public bool $isSuspended,
-        public ?string $suspensionReason,
+        public string $suspensionReason = '',
     ) {
     }
 }

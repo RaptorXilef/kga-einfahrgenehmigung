@@ -43,7 +43,7 @@ final readonly class ChangeUserPasswordHandler implements CommandWithResultHandl
 
         return new ChangeUserPasswordResult(
             passwordHash: $user->getPasswordHash(),
-            username: $user->username,
+            username: $user->getUsername(),
         );
     }
 }

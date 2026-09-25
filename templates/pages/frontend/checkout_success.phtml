@@ -15,7 +15,7 @@ use App\Modules\Permit\Application\UseCases\FinalizePermit\CheckoutSuccessViewDt
  * @var string $cspNonce
  */
 $layout = 'public';
-$pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
+$pageTitle = 'Antrag erfolgreich - ' . $vereinsName;
 ?>
 
 <!-- Tracking Hook für EventTracker.js -->

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Finance\Application\UseCases\ExportFinanceData;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Integration\PermitIntegrationInterface;
 use App\Contracts\System\CsvExporterInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
@@ -12,17 +13,16 @@ use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
 use Generator;
 use Override;
-use PDO;
 
 /**
- * Sammelt die Export-Daten blitzschnell via nativen PDO-Queries.
+ * Sammelt die Export-Daten modulsicher über das PermitIntegrationInterface (ohne Fremd-Tabellen-SQL).
  *
  * @implements QueryHandlerInterface<ExportFinanceDataQuery, FinanceExportResultDto>
  */
 final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
 {
     public function __construct(
-        private PDO $pdo,
+        private PermitIntegrationInterface $permitIntegration,
         private ConfigInterface $config,
         private ClockInterface $clock,
         private CsvExporterInterface $csvExporter,
@@ -35,8 +35,12 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
     #[Override]
     public function handle(QueryInterface $query): FinanceExportResultDto
     {
-        // Den Generator anwerfen (es werden noch keine Daten aus MySQL geladen)
-        $rowStream = $this->yieldFilteredData($query);
+        $rowStream = $this->permitIntegration->yieldPermitsForFinanceExport(
+            $query->start,
+            $query->end,
+            $query->type,
+            $query->searchQuery,
+        );
         $filename = $this->generateFilename($query->format, $query->start, $query->end);
 
         if ($query->format === 'json') {
@@ -60,59 +64,6 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
             filename: $filename,
             contentType: 'text/csv; charset=utf-8',
         );
-    }
-
-    /**
-     * @return Generator<int, array<string, mixed>>
-     */
-    private function yieldFilteredData(ExportFinanceDataQuery $query): Generator
-    {
-        $validTplKeys = [];
-        $permitTemplates = $this->config->getArray('permit_templates');
-
-        if ($query->type !== 'all') {
-            foreach ($permitTemplates as $k => $tpl) {
-                if (!(($tpl['type'] ?? 'standard') === $query->type)) {
-                    continue;
-                }
-
-                $validTplKeys[] = $k;
-            }
-            if ($validTplKeys === []) {
-                return;
-            }
-        }
-
-        $whereParts = ['DATE(erstellt) >= ? AND DATE(erstellt) <= ?'];
-        $binds = [$query->start, $query->end];
-
-        if ($validTplKeys !== []) {
-            $in = \str_repeat('?,', \count($validTplKeys) - 1) . '?';
-            $whereParts[] = "template_key IN ($in)";
-            $binds = \array_merge($binds, $validTplKeys);
-        }
-
-        if ($query->searchQuery !== '') {
-            $whereParts[] = "CONCAT_WS(' ', code, name, IFNULL(email, ''), kennzeichen, LPAD(parzelle, 4, '0'), zweck) LIKE ?";
-            $binds[] = '%' . \strtolower(\trim($query->searchQuery)) . '%';
-        }
-
-        $whereStr = \implode(' AND ', $whereParts);
-        $cols = 'code, template_key, name, parzelle, kennzeichen, zweck, preis, status, erstellt, bezahlt_am';
-
-        $sql = "
-            SELECT {$cols} FROM permits WHERE {$whereStr}
-            UNION ALL
-            SELECT {$cols} FROM permits_archive WHERE {$whereStr}
-            ORDER BY erstellt ASC
-        ";
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(\array_merge($binds, $binds));
-
-        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            yield $row;
-        }
     }
 
     /**
@@ -161,7 +112,6 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
             'vorlagen' => [],
         ];
 
-        // Wir aggregieren den Stream, speichern die Einzelzeilen aber nicht zwischen!
         foreach ($rowStream as $row) {
             $status = (string) $row['status'];
             $price = (float) $row['preis'];
@@ -218,8 +168,6 @@ final readonly class ExportFinanceDataHandler implements QueryHandlerInterface
 
         $transactions = [];
 
-        // Bei JSON müssen wir leider ein Array aufbauen, da json_encode() keinen Stream akzeptiert.
-        // Dennoch sparen wir massiv RAM, da PDO die Zeilen nun abräumt.
         foreach ($rowStream as $row) {
             $status = (string) $row['status'];
             $price = (float) $row['preis'];

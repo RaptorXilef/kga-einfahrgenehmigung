@@ -15,5 +15,7 @@ interface BackupServiceInterface
 
     public function restoreBackup(string $filename, int $mode, string $target = 'all'): void;
 
+    public function truncateTarget(string $targetKey): string;
+
     public function listBackups(): array;
 }

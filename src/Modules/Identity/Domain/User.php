@@ -13,8 +13,8 @@ final class User
 {
     public function __construct(
         public readonly string $id,
-        public string $username,
-        public string $roleId,
+        private string $username,
+        private string $roleId,
         private string $passwordHash,
         private string $lastSeenChangelog,
     ) {
@@ -30,6 +30,9 @@ final class User
 
     public function changeRole(string $newRoleId): void
     {
+        if (\trim($newRoleId) === '') {
+            throw new DomainException('Die Rollen-ID darf nicht leer sein.');
+        }
         $this->roleId = \trim($newRoleId);
     }
 
@@ -55,6 +58,16 @@ final class User
     public function markChangelogAsRead(string $version): void
     {
         $this->lastSeenChangelog = $version;
+    }
+
+    public function getUsername(): string
+    {
+        return $this->username;
+    }
+
+    public function getRoleId(): string
+    {
+        return $this->roleId;
     }
 
     public function getPasswordHash(): string

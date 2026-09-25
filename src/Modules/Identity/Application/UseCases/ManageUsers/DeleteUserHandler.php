@@ -40,6 +40,6 @@ final readonly class DeleteUserHandler implements CommandWithResultHandlerInterf
 
         $this->repository->delete($command->userId);
 
-        return $user->username;
+        return $user->getUsername();
     }
 }

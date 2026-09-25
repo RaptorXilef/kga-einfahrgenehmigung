@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\VerifyMagicLink;
 
-use App\Application\Session\SessionManager;
+use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Identity\Domain\MagicLink;
@@ -21,7 +21,7 @@ final readonly class VerifyMagicLinkHandler implements CommandHandlerInterface
 {
     public function __construct(
         private MagicLinkRepositoryInterface $repository,
-        private SessionManager $sessionManager,
+        private AuthSessionInterface $session,
         private RateLimiterInterface $rateLimiter,
         private ClockInterface $clock,
     ) {
@@ -52,7 +52,7 @@ final readonly class VerifyMagicLinkHandler implements CommandHandlerInterface
 
         // Login vollziehen
         $this->rateLimiter->clearAttempts($command->ipAddress);
-        $this->sessionManager->regenerate();
-        $this->sessionManager->setHistoryEmail($magicLink->email->value);
+        $this->session->regenerate();
+        $this->session->setHistoryEmail($magicLink->email->value);
     }
 }

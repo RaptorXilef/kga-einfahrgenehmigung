@@ -4,50 +4,30 @@ declare(strict_types=1);
 
 namespace App\Modules\Finance\Infrastructure;
 
+use App\Contracts\Integration\PermitIntegrationInterface;
 use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
 use App\Modules\Finance\Application\DTO\UnpaidPermitsDto;
 use Override;
-use PDO;
 
 /**
- * Die Infrastruktur darf auf die Tabellen übergreifend zugreifen,
- * aber liefert der Application-Schicht nur saubere DTOs.
+ * Bezieht die für den Bankabgleich relevanten Permit-Daten modulsicher über das PermitIntegrationInterface.
  */
 final readonly class PdoUnpaidPermitProvider implements UnpaidPermitProviderInterface
 {
-    public function __construct(private PDO $pdo)
+    public function __construct(private PermitIntegrationInterface $permitIntegration)
     {
     }
 
     #[Override]
     public function getPermitDataForImport(): UnpaidPermitsDto
     {
-        $stmt = $this->pdo->query('SELECT code, name, kennzeichen, status, preis FROM permits');
-        $allCodes = [];
-        $unpaidCodes = [];
-        $unpaidPlates = [];
-        $prices = [];
-
-        if ($stmt !== false) {
-            while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-                $c = (string) $row['code'];
-                $allCodes[$c] = true;
-                $prices[$c] = (float) $row['preis'];
-
-                if ($row['status'] === 'bezahlt') {
-                    continue;
-                }
-
-                $unpaidCodes[$c] = (string) $row['name'];
-                $unpaidPlates[$c] = (string) $row['kennzeichen'];
-            }
-        }
+        $data = $this->permitIntegration->getPermitDataForBankImport();
 
         return new UnpaidPermitsDto(
-            allCodes: $allCodes,
-            unpaidCodes: $unpaidCodes,
-            unpaidPlates: $unpaidPlates,
-            prices: $prices,
+            allCodes: $data['allCodes'],
+            unpaidCodes: $data['unpaidCodes'],
+            unpaidPlates: $data['unpaidPlates'],
+            prices: $data['prices'],
         );
     }
 }

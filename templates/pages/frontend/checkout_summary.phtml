@@ -15,7 +15,7 @@ use App\Modules\Permit\Application\UseCases\GetVerifiedRequest\CheckoutSummaryVi
  * @var string $csrfToken
  */
 $layout = 'public';
-$pageTitle = 'Zusammenfassung - ' . ($settings['vereins_name'] ?? '');
+$pageTitle = 'Zusammenfassung - ' . $vereinsName;
 ?>
 
 <?php if ($viewDto->isPayPalEnabled && $viewDto->preisRaw > 0.0) { ?>

@@ -6,23 +6,18 @@ namespace App\Modules\System\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
-use App\Modules\Identity\Domain\Role;
-use App\Modules\Identity\Domain\RoleRepositoryInterface;
-use App\Modules\Identity\Domain\User;
-use App\Modules\Identity\Domain\UserRepositoryInterface;
 use Override;
 use PDO;
 use PDOException;
-use Throwable;
 
 final readonly class StorageBootstrapper implements StorageBootstrapperInterface
 {
     public function __construct(
         private ?PDO $pdo,
         private ConfigInterface $config,
-        private RoleRepositoryInterface $roleRepository,
-        private UserRepositoryInterface $userRepository,
+        private AuthorizationInterface $auth,
         private UpdateMigrationServiceInterface $migrationService,
     ) {
     }
@@ -45,8 +40,7 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
             }
         }
 
-        $this->initDefaultRolesAndUsers();
-        $this->cleanupOrphanedPermissions();
+        $this->auth->bootstrapDefaultIdentityData();
         $this->ensureStorageSecurity();
     }
 
@@ -70,165 +64,5 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
         }
 
         @\file_put_contents($htaccessPath, $expectedContent, \LOCK_EX);
-    }
-
-    private function cleanupOrphanedPermissions(): void
-    {
-        $roles = $this->roleRepository->loadAll();
-        if ($roles === []) {
-            return;
-        }
-
-        $validKeys = \array_keys($this->config->getArray('permissions'));
-        $validKeys[] = '*';
-
-        $changed = false;
-        foreach ($roles as $role) {
-            $originalCount = \count($role->permissions);
-            $cleanedPerms = [];
-
-            foreach ($role->permissions as $perm) {
-                $permStr = (string) $perm;
-                $basePerm = \ltrim($permStr, '-');
-                if (!\in_array($basePerm, $validKeys, true)) {
-                    continue;
-                }
-                $cleanedPerms[] = $permStr;
-            }
-
-            if (\count($cleanedPerms) === $originalCount) {
-                continue;
-            }
-
-            $updatedRole = new Role($role->id, $role->name, \array_values($cleanedPerms));
-            $this->roleRepository->save($updatedRole);
-            $changed = true;
-        }
-
-        if (!$changed) {
-            return;
-        }
-
-        \error_log('Bootstrap: Veraltete Berechtigungen (Orphaned Permissions) wurden erfolgreich bereinigt.');
-    }
-
-    private function initDefaultRolesAndUsers(): void
-    {
-        try {
-            $currentRoles = $this->roleRepository->loadAll();
-        } catch (Throwable) {
-            $currentRoles = [];
-        }
-
-        if ($currentRoles === []) {
-            \error_log('Bootstrap: Initialisiere Standard-Rollen.');
-            foreach ($this->getDefaultRoles() as $role) {
-                $this->roleRepository->save($role);
-            }
-        }
-
-        try {
-            $userCheck = $this->userRepository->findById('usr_7c13b491');
-        } catch (Throwable) {
-            $userCheck = null;
-        }
-
-        if ($userCheck instanceof User) {
-            return;
-        }
-
-        \error_log('Bootstrap: Initialisiere Standard-Admin.');
-        foreach ($this->getDefaultUsers() as $user) {
-            $this->userRepository->save($user);
-        }
-    }
-
-    /**
-     * @return array<string, User>
-     */
-    private function getDefaultUsers(): array
-    {
-        return [
-            'usr_7c13b491' => new User(
-                'usr_7c13b491',
-                'Admin',
-                'role_admin',
-                '$2y$12$DHelEqSuvcbbGPYWqnIrIOfs/PYaMVfyahWHkW.aRM43syMd5ASoW',
-                'v0.0.0',
-            ),
-        ];
-    }
-
-    /**
-     * @return array<string, Role>
-     */
-    private function getDefaultRoles(): array
-    {
-        return [
-            'role_admin' => new Role('role_admin', 'Administrator', ['*']),
-            'role_finance' => new Role('role_finance', 'Finanzen', [
-                'admin.access',
-                'finance.export',
-                'finance.mark_paid',
-                'finance.view',
-                'permits.create',
-                'permits.print',
-                'permits.suspend',
-                'permits.view',
-                'privacy.emails.view',
-                'privacy.finance.view',
-                'stats.charts',
-                'stats.ranking',
-                'stats.view',
-                'template.custom_perm',
-                'template.custom_std',
-                'template.manage',
-                'template.perm_12',
-                'template.perm_3',
-                'template.perm_6',
-                'template.perm_9',
-                'template.std_14',
-                'template.std_30',
-                'template.std_7',
-                'vouchers.create',
-                'vouchers.delete',
-                'vouchers.suspend',
-                'vouchers.view',
-                'permits.export.active',
-                'permits.export.future',
-                'permits.export.expired',
-                'permits.export.active_future',
-                'permits.export.all',
-            ]),
-            'role_support' => new Role('role_support', 'Sachbearbeitung', [
-                'admin.access',
-                'finance.view',
-                'permits.create',
-                'permits.print',
-                'permits.view',
-                'privacy.emails.view',
-                'system.logs.view',
-                'template.custom_perm',
-                'template.custom_std',
-                'template.manage',
-                'template.perm_12',
-                'template.perm_3',
-                'template.perm_6',
-                'template.perm_9',
-                'template.std_14',
-                'template.std_30',
-                'template.std_7',
-                'vouchers.create',
-                'vouchers.suspend',
-                'vouchers.view',
-                'permits.export.active',
-                'permits.export.future',
-                'permits.export.active_future',
-            ]),
-            'role_inspector' => new Role('role_inspector', 'Prüfer vor Ort', [
-                'admin.access',
-                'permits.view',
-            ]),
-        ];
     }
 }

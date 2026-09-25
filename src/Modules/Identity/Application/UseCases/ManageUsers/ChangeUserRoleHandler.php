@@ -34,15 +34,15 @@ final readonly class ChangeUserRoleHandler implements CommandWithResultHandlerIn
             throw new DomainException('Fehler: Benutzer nicht gefunden.');
         }
 
-        $oldRoleId = $user->roleId;
-        $username = $user->username;
+        $oldRoleId = $user->getRoleId();
+        $username = $user->getUsername();
 
         $user->changeRole($command->newRoleId);
         $this->repository->save($user);
 
         $roles = $this->roleRepository->loadAll();
-        $oldRoleName = isset($roles[$oldRoleId]) ? $roles[$oldRoleId]->name : $oldRoleId;
-        $newRoleName = isset($roles[$command->newRoleId]) ? $roles[$command->newRoleId]->name : $command->newRoleId;
+        $oldRoleName = isset($roles[$oldRoleId]) ? $roles[$oldRoleId]->getName() : $oldRoleId;
+        $newRoleName = isset($roles[$command->newRoleId]) ? $roles[$command->newRoleId]->getName() : $command->newRoleId;
 
         return new ChangeUserRoleResult(
             newRoleName: $newRoleName,
