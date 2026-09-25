@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.79.7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.6...v0.79.7) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* **core:** Consolidate backup slices, enforce RBAC/Auth guards, and eliminate SQL native time calls ([ad4311a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ad4311ad13ef5bfe3dc0d3255b0ad79ac7edd9ac))
+* **stats,stan:** Resolve YearlyStatItemDto int-key TypeError ([11c5873](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/11c587382a5bf69fc1a605b7d445641cb083faf0))
+
+### ⚙️ Refactoring
+
+* **arch:** Seal module boundaries, unify domain events and decouple actions ([b944aa9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b944aa955be7d6c721e3e5c6a2773482aee49ac7))
+* **core:** eliminate mail log memory leak, purge dead repository methods, ... ([123c29a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/123c29a0fd184913cad246ca401a7a0a117ec60e))
+* **cqrs:** Enforce strict CommandInterface & QueryInterface parameter types across all handlers ([adca2a7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/adca2a71373044479e3518d749c844ccd12ba224))
+* **view:** Eliminate remaining inline logic and fallbacks from PHTML templates ([489d6da](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/489d6da94773c8dd2684ce8213657e2101ad7800))
+* **vsa:** finalize dumb phtml views, view dtos, maintenance encapsulation, and action contracts ([972f68f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/972f68f2f5943946f956664093640678f0f3079c))
+
 ## [0.79.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.5...v0.79.6) (2026-09-25)
 
 ### 🐛 Bug Fixes
