@@ -5,53 +5,13 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - System Maintenance & Cronjobs
- * VSA FIX: Nutzt `$csrfToken` statt `$_SESSION['csrf_token']`.
+ * VSA FIX: 100% Dumme View - Konsumiert die Cronjobs direkt über CronJobViewDto aus dem DashboardViewDto.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
  * @var array $settings
  * @var string $csrfToken
  */
-$cronSecret = $viewDto->cronSecret;
-$baseUrl = \rtrim($settings['base_url'] ?? '', '/');
-
-$crons = [
-    [
-        'label' => 'Mail-Warteschlange abarbeiten',
-        'desc' => 'Versendet zwischengespeicherte Mails (falls Queue-Limit im Web erreicht wird).',
-        'url' => $baseUrl . '/api/process_mail_queue?token=' . $cronSecret,
-        'interval' => 'Alle 1 - 5 Minuten',
-        'icon' => 'envelope.webp',
-    ],
-    [
-        'label' => 'Zahlungserinnerungen versenden',
-        'desc' => 'Prüft auf überfällige Anträge und versendet Mahnungen.',
-        'url' => $baseUrl . '/api/cron/reminders?token=' . $cronSecret,
-        'interval' => 'Täglich (z.B. morgens um 08:00)',
-        'icon' => 'bell.webp',
-    ],
-    [
-        'label' => 'Archivierung & DSGVO',
-        'desc' => 'Verschiebt alte Genehmigungen ins Archiv und anonymisiert >10 Jahre alte Daten.',
-        'url' => $baseUrl . '/api/cron/archive?token=' . $cronSecret,
-        'interval' => 'Täglich (z.B. nachts um 02:00)',
-        'icon' => 'archive.webp',
-    ],
-    [
-        'label' => 'Auto-Backup & Rotation',
-        'desc' => 'Erstellt einen MySQL-Dump und löscht ältere Backups nach dem FIFO-Prinzip.',
-        'url' => $baseUrl . '/api/cron/backup?token=' . $cronSecret,
-        'interval' => 'Täglich (z.B. nachts um 03:00)',
-        'icon' => 'package.webp',
-    ],
-    [
-        'label' => 'Spam-Filter synchronisieren',
-        'desc' => 'Lädt die tagesaktuellen Trashmail-Domains über GitHub in den Cache herunter.',
-        'url' => $baseUrl . '/api/cron/spam_sync?token=' . $cronSecret,
-        'interval' => 'Einmal Wöchentlich',
-        'icon' => 'shield.webp',
-    ],
-];
 ?>
 
 <div class="c-tab-content-container">
@@ -209,7 +169,7 @@ $crons = [
             </div>
         </header>
 
-        <?php if ($cronSecret === '') { ?>
+        <?php if ($viewDto->cronSecret === '') { ?>
         <div class="c-alert c-alert--danger u-margin-block-end-m">
             <div class="c-alert__content">
                 <strong>Achtung:</strong> Es wurde kein <code>cron_secret</code> in der Konfiguration definiert.
@@ -219,21 +179,22 @@ $crons = [
         <?php } ?>
 
         <div class="u-flex u-flex-column u-gap-m">
-            <?php foreach ($crons as $index => $cron) { ?>
+            <?php foreach ($viewDto->cronJobs as $index => $cron) { ?>
             <div class="c-box c-box--highlight u-flex u-flex-column u-gap-m u-margin-block-none">
                 <div>
                     <h4 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
                         <span><img
-                                src="<?php echo $asset->url('assets/img/icons/' . $cron['icon']); ?>"
+                                src="<?php echo $cron->iconUrl; ?>"
                                 class="c-icon"
                                 alt=""
-                            ></span> <?php echo $cron['label']; ?>
+                            ></span> <?php echo \htmlspecialchars($cron->label); ?>
                     </h4>
                     <p class="u-text-sm u-color-muted u-margin-block-start-xs u-margin-block-end-none">
-                        <?php echo $cron['desc']; ?>
+                        <?php echo \htmlspecialchars($cron->description); ?>
                     </p>
                     <div class="u-margin-block-start-s">
-                        <span class="c-badge c-badge--outline">Empfohlen: <?php echo $cron['interval']; ?></span>
+                        <span class="c-badge c-badge--outline">Empfohlen:
+                            <?php echo \htmlspecialchars($cron->interval); ?></span>
                     </div>
                 </div>
 
@@ -246,13 +207,13 @@ $crons = [
                         type="text"
                         id="cron_url_<?php echo $index; ?>"
                         readonly
-                        value="<?php echo \htmlspecialchars($cron['url']); ?>"
+                        value="<?php echo \htmlspecialchars($cron->url); ?>"
                         class="c-form-input u-text-sm js-select-on-click u-color-muted u-font-mono u-flex-grow-1"
                     >
                     <button
                         type="button"
                         class="c-button c-button--secondary c-button--icon-only js-copy-btn"
-                        data-url="<?php echo \htmlspecialchars($cron['url']); ?>"
+                        data-url="<?php echo \htmlspecialchars($cron->url); ?>"
                         title="In Zwischenablage kopieren"
                         data-target="#cron_url_<?php echo $index; ?>"
                     >
@@ -266,7 +227,7 @@ $crons = [
                     <button
                         type="button"
                         class="c-button c-button--primary js-cron-btn"
-                        data-url="<?php echo \htmlspecialchars($cron['url']); ?>"
+                        data-url="<?php echo \htmlspecialchars($cron->url); ?>"
                         title="Jetzt manuell ausführen"
                     >
                         <img

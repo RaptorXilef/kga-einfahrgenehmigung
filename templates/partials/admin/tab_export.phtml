@@ -5,6 +5,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Data Export
+ * VSA FIX: 100% Dumme View - Nutzt `$viewDto->controlBar->activeTypeValue` ohne verschachtelte Ternary-Operatoren.
  *
  * CSV und JSON Export-Schnittstellen für Buchhaltungs-Software und Listen.
  *
@@ -34,8 +35,8 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
         <div class="c-card__body">
 
             <?php if ($viewDto->permissions->canExport) { ?>
-            <h4 class="u-margin-block-start-none u-margin-block-end-m u-text-uppercase u-color-muted u-text-sm">Finanz-
-                & Buchhaltungsdaten</h4>
+            <h4 class="u-margin-block-start-none u-margin-block-end-m u-text-uppercase u-color-muted u-text-sm">
+                Finanz- & Buchhaltungsdaten</h4>
             <div class="c-action-grid u-margin-block-end-xl">
                 <!-- CSV Export Card (Transaktionen) -->
                 <a
@@ -103,7 +104,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
                 <?php if ($viewDto->permissions->canExportPermitsActive) { ?>
                 <a
-                    href="<?php echo $settings['base_url']; ?>export_permits?state=active&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->typeSelectStandard !== '' ? 'standard' : ($viewDto->controlBar->typeSelectPermanent !== '' ? 'permanent' : 'all'); ?>"
+                    href="<?php echo $settings['base_url']; ?>export_permits?state=active&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->activeTypeValue; ?>"
                     class="c-action-card c-action-card--csv"
                 >
                     <div class="c-action-card__icon">
@@ -123,7 +124,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
                 <?php if ($viewDto->permissions->canExportPermitsFuture) { ?>
                 <a
-                    href="<?php echo $settings['base_url']; ?>export_permits?state=future&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->typeSelectStandard !== '' ? 'standard' : ($viewDto->controlBar->typeSelectPermanent !== '' ? 'permanent' : 'all'); ?>"
+                    href="<?php echo $settings['base_url']; ?>export_permits?state=future&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->activeTypeValue; ?>"
                     class="c-action-card c-action-card--csv"
                 >
                     <div class="c-action-card__icon">
@@ -143,7 +144,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
                 <?php if ($viewDto->permissions->canExportPermitsActiveFuture) { ?>
                 <a
-                    href="<?php echo $settings['base_url']; ?>export_permits?state=active_future&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->typeSelectStandard !== '' ? 'standard' : ($viewDto->controlBar->typeSelectPermanent !== '' ? 'permanent' : 'all'); ?>"
+                    href="<?php echo $settings['base_url']; ?>export_permits?state=active_future&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->activeTypeValue; ?>"
                     class="c-action-card c-action-card--csv"
                 >
                     <div class="c-action-card__icon">
@@ -164,7 +165,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
                 <?php if ($viewDto->permissions->canExportPermitsExpired) { ?>
                 <a
-                    href="<?php echo $settings['base_url']; ?>export_permits?state=expired&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->typeSelectStandard !== '' ? 'standard' : ($viewDto->controlBar->typeSelectPermanent !== '' ? 'permanent' : 'all'); ?>"
+                    href="<?php echo $settings['base_url']; ?>export_permits?state=expired&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->activeTypeValue; ?>"
                     class="c-action-card c-action-card--csv"
                 >
                     <div class="c-action-card__icon">
@@ -184,7 +185,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
                 <?php if ($viewDto->permissions->canExportPermitsAll) { ?>
                 <a
-                    href="<?php echo $settings['base_url']; ?>export_permits?state=all&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->typeSelectStandard !== '' ? 'standard' : ($viewDto->controlBar->typeSelectPermanent !== '' ? 'permanent' : 'all'); ?>"
+                    href="<?php echo $settings['base_url']; ?>export_permits?state=all&start=<?php echo $viewDto->controlBar->startValue; ?>&end=<?php echo $viewDto->controlBar->endValue; ?>&type=<?php echo $viewDto->controlBar->activeTypeValue; ?>"
                     class="c-action-card c-action-card--csv"
                 >
                     <div class="c-action-card__icon">

@@ -30,6 +30,9 @@ final readonly class SendPaymentRemindersHandler implements CommandHandlerInterf
     ) {
     }
 
+    /**
+     * @param SendPaymentRemindersCommand $command
+     */
     #[Override]
     public function handle(mixed $command): void
     {

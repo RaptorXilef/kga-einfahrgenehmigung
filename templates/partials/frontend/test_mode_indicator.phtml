@@ -1,19 +1,20 @@
 <?php
 
-use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
 
 /**
  * Component: Test Mode & Debug Mode Indicator (Animated)
+ * VSA FIX: 100% Dumme View - Nutzt ausschließlich die vom TemplateRenderer vorberechneten Variablen.
  *
  * Zeigt einen globalen Warnbanner, wenn PayPal Sandbox oder der Debug-Modus aktiv sind.
  *
  * @var AssetHelperInterface $asset
- * @var ConfigInterface $config
- * @var array $settings
+ * @var bool $isTestMode
+ * @var bool $isDebugMode
+ * @var string $testCatchAllRecipient
  */
 ?>
-<?php if ($config->isTestMode()) { ?>
+<?php if ($isTestMode) { ?>
 <div class="c-test-indicator">
     <div class="o-container o-container--large c-test-indicator__content">
 
@@ -28,10 +29,10 @@ use App\Contracts\System\AssetHelperInterface;
 
         <div class="c-test-indicator__text">
             PayPal Sandbox aktiv &bull; Test-E-Mail:
-            <code class="c-test-indicator__code"><?php echo \htmlspecialchars($config->getMailSettings()['catch_all_recipient'] ?? 'test@example.com'); ?></code>
+            <code class="c-test-indicator__code"><?php echo \htmlspecialchars($testCatchAllRecipient); ?></code>
         </div>
 
-        <?php if ($config->getBool('debug_mode', false) === true) { ?>
+        <?php if ($isDebugMode) { ?>
         <div class="c-test-indicator__admin-badge">
             <img
                 src="<?php echo $asset->url('assets/img/icons/tools.webp'); ?>"

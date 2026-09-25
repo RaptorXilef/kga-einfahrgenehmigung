@@ -32,6 +32,8 @@ final readonly class TemplateRenderer
 
     /**
      * Gibt das fertige HTML als String zurück, anstatt es mit 'echo' auszugeben!
+     *
+     * @param array<string, mixed> $data
      */
     public function render(string $templatePath, array $data = []): string
     {
@@ -46,8 +48,9 @@ final readonly class TemplateRenderer
         $currentRoute = $path === '' ? 'index' : $path;
 
         // 2. Metriken für den Footer vorbereiten (Logik aus PHTML entfernt)
+        $isDebugMode = $this->config->getBool('debug_mode', false);
         $debugMetrics = null;
-        if ($this->config->getBool('debug_mode', false)) {
+        if ($isDebugMode) {
             $reqTimeRaw = $this->request->server['REQUEST_TIME_FLOAT'] ?? null;
             $requestTime = \is_numeric($reqTimeRaw) ? (float) $reqTimeRaw : (float) (\defined('APP_REQUEST_TIME') ? APP_REQUEST_TIME : \microtime(true));
             $timeMs = \round((\microtime(true) - $requestTime) * 1000, 2);
@@ -55,7 +58,7 @@ final readonly class TemplateRenderer
             $debugMetrics = ['timeMs' => $timeMs, 'memoryMb' => $memoryMb];
         }
 
-        // Globale Layout- & Footer-Variablen auflösen, um HeaderNav & Footer 100% logikfrei zu machen
+        // Globale Layout-, Test-Mode-, Consent- & Footer-Variablen auflösen (100% logikfreie Partials)
         $adminUserId = $this->sessionManager->getUserId();
         $adminRoleRaw = $this->sessionManager->getAdminGroup();
         $adminRoleName = \ucfirst(\str_replace('role_', '', $adminRoleRaw));
@@ -71,6 +74,36 @@ final readonly class TemplateRenderer
         $startYear = 2026;
         $footerYearDisplay = (int) $currentYear > $startYear ? "{$startYear} - {$currentYear}" : (string) $startYear;
         $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
+
+        $isTestMode = $this->config->isTestMode();
+        $mailSettings = $this->config->getMailSettings();
+        $testCatchAllRecipient = (string) ($mailSettings['catch_all_recipient'] ?? 'test@example.com');
+
+        $consentConfig = $this->config->getArray('consent');
+        $consentTexts = \is_array($consentConfig['texts'] ?? null) ? $consentConfig['texts'] : [];
+        $gaCfg = $this->config->getArray('ga4_server_side');
+        $gaId = (string) ($gaCfg['measurement_id'] ?? '');
+
+        $consentGroups = [];
+        foreach ((array) ($consentConfig['groups'] ?? []) as $group) {
+            if (!\is_array($group)) {
+                continue;
+            }
+            $gid = (string) ($group['id'] ?? '');
+            $isRequired = !empty($group['required']);
+            $consentGroups[] = [
+                'id' => $gid,
+                'title' => (string) ($group['title'] ?? ''),
+                'description' => (string) ($group['description'] ?? ''),
+                'checkboxClass' => $gid === 'analytics' ? 'js-consent-chk-analytics' : '',
+                'requiredAttr' => $isRequired ? 'checked disabled' : '',
+            ];
+        }
+
+        $consentConfigJson = \json_encode([
+            'gaId' => $gaId,
+            'texts' => $consentTexts,
+        ], \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT) ?: '{}';
 
         // 3. Systemvariablen bereitstellen
         $systemVars = [
@@ -93,6 +126,20 @@ final readonly class TemplateRenderer
             'footerImpressumUrl' => $safeBaseUrl . 'impressum',
             'footerDatenschutzUrl' => $safeBaseUrl . 'datenschutz',
             'debugMetrics' => $debugMetrics,
+            'isTestMode' => $isTestMode,
+            'isDebugMode' => $isDebugMode,
+            'testCatchAllRecipient' => $testCatchAllRecipient,
+            'consentEnabled' => !empty($consentConfig['enabled']),
+            'consentConfigJson' => $consentConfigJson,
+            'consentTitle' => (string) ($consentTexts['title'] ?? ''),
+            'consentDescription' => (string) ($consentTexts['description'] ?? ''),
+            'consentLinkDatenschutz' => (string) ($consentTexts['link_datenschutz'] ?? 'Datenschutzerklärung'),
+            'consentLinkImpressum' => (string) ($consentTexts['link_impressum'] ?? 'Impressum'),
+            'consentAcceptAll' => (string) ($consentTexts['accept_all'] ?? ''),
+            'consentAcceptEssential' => (string) ($consentTexts['accept_essential'] ?? ''),
+            'consentShowDetails' => (string) ($consentTexts['show_details'] ?? ''),
+            'consentSaveSelection' => (string) ($consentTexts['save_selection'] ?? ''),
+            'consentGroups' => $consentGroups,
             // Globale Admin Layout Variablen
             'adminUserId' => $adminUserId,
             'adminUserName' => $this->sessionManager->getAdminUser(),
@@ -106,7 +153,6 @@ final readonly class TemplateRenderer
         ];
 
         // Lade alle Flashes automatisch in die View-Daten!
-        // Nutzt vorhandene Flashes oder holt sie aus der Session
         $data['flashes'] ??= $this->sessionManager->getFlashes();
 
         \extract($systemVars);
@@ -147,12 +193,14 @@ final readonly class TemplateRenderer
         return null;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getGlobalSettings(): array
     {
         $templates = (array) $this->config->get('permit_templates', []);
 
         return [
-            // FALLBACK FÜR KGA-TEMPLATES: Wir erzwingen hier den Slash am Ende!
             'base_url' => \rtrim($this->config->getBaseUrl(), '/') . '/',
             'bic' => $this->config->get('bic'),
             'iban' => $this->config->get('iban'),
@@ -164,7 +212,7 @@ final readonly class TemplateRenderer
             'terminkalender_url' => $this->config->get('terminkalender_url'),
             'vehicle_types' => $this->config->get('vehicle_types'),
             'vereins_name' => $this->config->get('vereins_name'),
-            'debug_mode' => $this->config->get('debug_mode', false), // Wird vom Footer für Metriken genutzt
+            'debug_mode' => $this->config->get('debug_mode', false),
             'consent' => $this->config->getArray('consent'),
             'ga4_server_side' => $this->config->getArray('ga4_server_side'),
         ];

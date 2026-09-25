@@ -93,9 +93,11 @@ class Container implements ContainerInterface
      * Erstellt das Objekt beim ersten Aufruf über die hinterlegte Closure (Lazy Loading)
      * und cached es für nachfolgende Zugriffe im System.
      *
-     * @param string $id Die vollqualifizierte Klasse oder der Identifikations-String des Services.
+     * @template T of object
      *
-     * @return mixed Die instanziierte Service- oder Controller-Komponente.
+     * @param class-string<T>|string $id Die vollqualifizierte Klasse oder der Identifikations-String des Services.
+     *
+     * @return ($id is class-string<T> ? T : mixed) Die instanziierte Service- oder Controller-Komponente.
      */
     #[Override]
     public function get(string $id): mixed
@@ -124,6 +126,12 @@ class Container implements ContainerInterface
 
     /**
      * Löst Abhängigkeiten einer Klasse automatisch über PHP Reflection auf.
+     *
+     * @template T of object
+     *
+     * @param class-string<T> $className
+     *
+     * @return T
      */
     private function autowire(string $className): object
     {

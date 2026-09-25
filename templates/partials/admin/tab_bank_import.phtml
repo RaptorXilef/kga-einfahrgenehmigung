@@ -7,23 +7,14 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Bank Import
- * VSA FIX: Nutzt `$csrfToken` statt `$_SESSION['csrf_token']`.
+ * VSA FIX: 100% Dumme View - Nutzt ausschließlich das vorberechnete BankImportWizardViewDto.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
- * @var array<string, mixed> $formData
  * @var array $settings
  * @var string $cspNonce
  * @var string $csrfToken
  */
-$bankWizard = $formData['bank_wizard'] ?? null;
-$bank_headers = $bankWizard['headers'] ?? [];
-$bank_row_preview = $bankWizard['previewRow'] ?? [];
-$bank_temp_file = $bankWizard['tempFile'] ?? '';
-$headersExist = !empty($bank_headers) && \is_array($bank_headers);
-$guess_id = (int) ($bankWizard['guessId'] ?? 4);
-$guess_amount = (int) ($bankWizard['guessAmount'] ?? 14);
-$guess_date = (int) ($bankWizard['guessDate'] ?? 1);
 ?>
 <div class="c-tab-content-container">
     <section class="c-card c-card--success">
@@ -40,12 +31,7 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
                 "bezahlt" zu setzen.</p>
         </header>
         <div class="c-card__body u-padding-around-l">
-            <?php
-            $importMode = $viewDto->bankImportMode;
-
-if (!$headersExist) {
-    ?>
-            <!-- Formular benötigt ID für a11y focus und JS class für das Verhalten -->
+            <?php if (!$viewDto->bankWizard->hasHeaders) { ?>
             <form
                 method="POST"
                 action="<?php echo $settings['base_url']; ?>bank_import_analyze"
@@ -77,7 +63,7 @@ if (!$headersExist) {
                     <!-- Modus-Indikator für die Nutzer -->
                     <div class="u-margin-block-start-m u-color-muted u-text-sm">
                         Unterstützt Standard-Bank-CSV (Semikolon-getrennt).<br>
-                        <?php if ($importMode === 'simple') { ?>
+                        <?php if ($viewDto->bankWizard->isSimpleMode) { ?>
                         <span class="u-color-success u-font-bold">Einfacher Modus aktiv:</span>
                         Der Daten-Abgleich und die Freischaltung starten sofort nach dem Hochladen!
                         <?php } else { ?>
@@ -113,7 +99,7 @@ if (!$headersExist) {
                 class="js-bank-preview-data"
                 nonce="<?php echo $cspNonce; ?>"
             >
-            <?php echo \json_encode($bank_row_preview, \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT) ?: '[]'; ?>
+            <?php echo $viewDto->bankWizard->previewJson; ?>
 
             </script>
 
@@ -131,7 +117,7 @@ if (!$headersExist) {
                 <input
                     type="hidden"
                     name="temp_file"
-                    value="<?php echo \htmlspecialchars($bank_temp_file); ?>"
+                    value="<?php echo \htmlspecialchars($viewDto->bankWizard->tempFile); ?>"
                 >
 
                 <div class="o-grid o-grid--auto-fit u-gap-m">
@@ -140,7 +126,6 @@ if (!$headersExist) {
                             class="c-form-label"
                             for="col_id"
                         >Permit-ID / Verwendungszweck</label>
-                        <!-- Klassen-Verknüpfung für JS -->
                         <select
                             id="col_id"
                             name="col_id"
@@ -148,12 +133,12 @@ if (!$headersExist) {
                             data-preview-target="js-preview-id"
                             autocomplete="off"
                         >
-                            <?php foreach ($bank_headers as $idx => $name) { ?>
+                            <?php foreach ($viewDto->bankWizard->idColumnOptions as $opt) { ?>
                             <option
-                                value="<?php echo $idx; ?>"
-                                <?php echo $idx === $guess_id ? 'selected' : ''; ?>
+                                value="<?php echo $opt['index']; ?>"
+                                <?php echo $opt['selectedAttr']; ?>
                             >
-                                Spalte <?php echo $idx + 1; ?>: <?php echo \htmlspecialchars($name); ?>
+                                Spalte <?php echo $opt['number']; ?>: <?php echo \htmlspecialchars($opt['label']); ?>
                             </option>
                             <?php } ?>
                         </select>
@@ -165,7 +150,6 @@ if (!$headersExist) {
                                 loading="lazy"
                                 alt=""
                             >
-                            <!-- ID für Anchor, Klasse für JS -->
                             <strong
                                 id="preview_id"
                                 class="u-color-primary js-preview-id"
@@ -185,12 +169,12 @@ if (!$headersExist) {
                             data-preview-target="js-preview-amount"
                             autocomplete="off"
                         >
-                            <?php foreach ($bank_headers as $idx => $name) { ?>
+                            <?php foreach ($viewDto->bankWizard->amountColumnOptions as $opt) { ?>
                             <option
-                                value="<?php echo $idx; ?>"
-                                <?php echo $idx === $guess_amount ? 'selected' : ''; ?>
+                                value="<?php echo $opt['index']; ?>"
+                                <?php echo $opt['selectedAttr']; ?>
                             >
-                                Spalte <?php echo $idx + 1; ?>: <?php echo \htmlspecialchars($name); ?>
+                                Spalte <?php echo $opt['number']; ?>: <?php echo \htmlspecialchars($opt['label']); ?>
                             </option>
                             <?php } ?>
                         </select>
@@ -221,12 +205,12 @@ if (!$headersExist) {
                             data-preview-target="js-preview-date"
                             autocomplete="off"
                         >
-                            <?php foreach ($bank_headers as $idx => $name) { ?>
+                            <?php foreach ($viewDto->bankWizard->dateColumnOptions as $opt) { ?>
                             <option
-                                value="<?php echo $idx; ?>"
-                                <?php echo $idx === $guess_date ? 'selected' : ''; ?>
+                                value="<?php echo $opt['index']; ?>"
+                                <?php echo $opt['selectedAttr']; ?>
                             >
-                                Spalte <?php echo $idx + 1; ?>: <?php echo \htmlspecialchars($name); ?>
+                                Spalte <?php echo $opt['number']; ?>: <?php echo \htmlspecialchars($opt['label']); ?>
                             </option>
                             <?php } ?>
                         </select>

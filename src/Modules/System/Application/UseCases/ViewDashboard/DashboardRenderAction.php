@@ -15,13 +15,16 @@ use App\Application\View\PaginationViewDto;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthorizationInterface;
+use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
+use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitsResultDto;
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\GetDashboardPermitsHandler;
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\GetDashboardPermitsQuery;
+use App\Modules\Permit\Application\UseCases\GetDashboardStats\DashboardStatsDto;
 use App\Modules\Permit\Application\UseCases\GetDashboardStats\GetDashboardStatsHandler;
 use App\Modules\Permit\Application\UseCases\GetDashboardStats\GetDashboardStatsQuery;
 use App\Modules\Permit\Application\UseCases\GetFinanceList\GetFinanceListHandler;
@@ -57,6 +60,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
         private ImageStorageInterface $imageStorage,
+        private AssetHelperInterface $assetHelper,
         private GetVoucherListHandler $getVoucherListHandler,
         private GetVoucherArchiveHandler $getVoucherArchiveHandler,
         private GetFinanceListHandler $financeListHandler,
@@ -118,9 +122,9 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         DashboardViewRequest $dto,
         string $focus,
         int $minArchiveYear,
-        object $permitsResult,
+        DashboardPermitsResultDto $permitsResult,
         array $financePermitsDto,
-        ?object $statsDto,
+        ?DashboardStatsDto $statsDto,
         ServerRequest $request,
     ): DashboardViewDto {
         $hasAnyPermitExport = $this->auth->hasPermission('permits.export.active')
@@ -159,6 +163,16 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             hasAnyPermitExport: $hasAnyPermitExport,
         );
 
+        // Bank Wizard DTO vorab aufbauen (steuert ggf. den aktiven Tab)
+        $bankImportMode = $this->config->getString('bank_import_mode', 'simple');
+        $formData = $this->sessionManager->getFormData();
+        $bankWizard = $this->buildBankWizardDto($formData, $bankImportMode);
+        $showBankWizard = $bankWizard->hasHeaders;
+
+        if ($showBankWizard) {
+            $focus = 'tab-bank-import';
+        }
+
         // Tab States (Aktive CSS Klassen ohne if-Logik im PHTML)
         $tabIds = ['tab-active', 'tab-future', 'tab-expired', 'tab-cancelled', 'tab-ranking', 'tab-finance', 'tab-stats', 'tab-bank-import', 'tab-export', 'tab-tools', 'tab-vouchers', 'tab-logs', 'tab-audit-log', 'tab-system', 'tab-backup'];
         $tabStates = [];
@@ -182,14 +196,17 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $limitOptions[] = new LimitOptionDto((int) $l, $dto->limit === (int) $l ? 'selected' : '');
         }
 
+        $activeTypeValue = \in_array($dto->type, ['standard', 'permanent'], true) ? $dto->type : 'all';
+
         $controlBar = new ControlBarViewDto(
             startValue: $dto->start,
             endValue: $dto->end,
             startValueFormatted: $dtStart->format('d.m.Y'),
             endValueFormatted: $dtEnd->format('d.m.Y'),
-            typeSelectAll: $dto->type === 'all' ? 'selected' : '',
-            typeSelectStandard: $dto->type === 'standard' ? 'selected' : '',
-            typeSelectPermanent: $dto->type === 'permanent' ? 'selected' : '',
+            activeTypeValue: $activeTypeValue,
+            typeSelectAll: $activeTypeValue === 'all' ? 'selected' : '',
+            typeSelectStandard: $activeTypeValue === 'standard' ? 'selected' : '',
+            typeSelectPermanent: $activeTypeValue === 'permanent' ? 'selected' : '',
             limitOptions: $limitOptions,
             searchValue: $dto->query,
             showResetButton: $this->sessionManager->getAdminFilters() !== [],
@@ -209,7 +226,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             );
         }
 
-        // Pagination HTML Generierung über das neue logikfreie PaginationViewDto
+        // Pagination HTML Generierung über das logikfreie PaginationViewDto
         $renderPagination = function (int $total, string $tabId, string $pageParam = 'page') use ($dto, $focus, $request): string {
             $page = $tabId === $focus ? (int) ($request->get[$pageParam] ?? $dto->page) : 1;
             $paginationDto = PaginationViewDto::fromParameters(
@@ -272,6 +289,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             }
         }
 
+        $auditFilterOptions = $this->buildAuditFilterOptions($auditFilter);
         $paginationHtmlAudit = $permissions->canViewLogs ? $renderPagination($auditData['total'], 'tab-audit-log', 'audit_page') : '';
 
         $unreadReleaseNotes = [];
@@ -289,14 +307,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $queryParams['archive_depth'] = $minArchiveYear - 1;
         $queryParams['focus'] = 'tab-expired';
 
-        // Bank Wizard
-        $formData = $this->sessionManager->getFormData();
-        $wizardHeaders = $formData['bank_wizard']['headers'] ?? null;
-        $showBankWizard = \is_array($wizardHeaders) && $wizardHeaders !== [];
-        if ($showBankWizard) {
-            $tabStates['tab-bank-import'] = new DashboardTabStateDto('is-active', 'true', '0', 'false');
-            $focus = 'tab-bank-import';
-        }
+        $cronSecret = $this->config->getString('cron_secret', '');
+        $cronJobs = $this->buildCronJobsDto($cronSecret);
 
         $financeTableColspan = 5 + ($permissions->showPrivacyEmails ? 1 : 0) + ($permissions->showPrivacyFinance ? 1 : 0) + ($permissions->canMarkPaid ? 1 : 0);
 
@@ -325,6 +337,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             financeTableColspan: $financeTableColspan,
             focus: $focus,
             showBankWizard: $showBankWizard,
+            bankWizard: $bankWizard,
             minArchiveYear: $minArchiveYear,
             expiredLoadArchiveUrl: '?' . \http_build_query($queryParams),
             stats: $statsDto,
@@ -336,9 +349,158 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             auditLogs: $auditLogsDto,
             auditTotal: $auditData['total'],
             auditFilter: $auditFilter,
+            auditFilterOptions: $auditFilterOptions,
             unreadReleaseNotes: $unreadReleaseNotes,
-            bankImportMode: $this->config->getString('bank_import_mode', 'simple'),
-            cronSecret: $this->config->getString('cron_secret', ''),
+            bankImportMode: $bankImportMode,
+            cronSecret: $cronSecret,
+            cronJobs: $cronJobs,
         );
+    }
+
+    /**
+     * @param array<string, mixed> $formData
+     */
+    private function buildBankWizardDto(array $formData, string $bankImportMode): BankImportWizardViewDto
+    {
+        $rawWizard = \is_array($formData['bank_wizard'] ?? null) ? $formData['bank_wizard'] : [];
+        $headers = \is_array($rawWizard['headers'] ?? null) ? $rawWizard['headers'] : [];
+        $previewRow = \is_array($rawWizard['previewRow'] ?? null) ? $rawWizard['previewRow'] : [];
+        $tempFile = (string) ($rawWizard['tempFile'] ?? '');
+
+        $guessId = (int) ($rawWizard['guessId'] ?? 4);
+        $guessAmount = (int) ($rawWizard['guessAmount'] ?? 14);
+        $guessDate = (int) ($rawWizard['guessDate'] ?? 1);
+
+        $idColumnOptions = [];
+        $amountColumnOptions = [];
+        $dateColumnOptions = [];
+
+        foreach ($headers as $idx => $name) {
+            $index = (int) $idx;
+            $label = (string) $name;
+
+            $idColumnOptions[] = [
+                'index' => $index,
+                'number' => $index + 1,
+                'label' => $label,
+                'selectedAttr' => $index === $guessId ? 'selected' : '',
+            ];
+            $amountColumnOptions[] = [
+                'index' => $index,
+                'number' => $index + 1,
+                'label' => $label,
+                'selectedAttr' => $index === $guessAmount ? 'selected' : '',
+            ];
+            $dateColumnOptions[] = [
+                'index' => $index,
+                'number' => $index + 1,
+                'label' => $label,
+                'selectedAttr' => $index === $guessDate ? 'selected' : '',
+            ];
+        }
+
+        $previewJson = \json_encode(
+            $previewRow,
+            \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT,
+        ) ?: '[]';
+
+        return new BankImportWizardViewDto(
+            isSimpleMode: $bankImportMode === 'simple',
+            hasHeaders: $headers !== [],
+            tempFile: $tempFile,
+            previewJson: $previewJson,
+            idColumnOptions: $idColumnOptions,
+            amountColumnOptions: $amountColumnOptions,
+            dateColumnOptions: $dateColumnOptions,
+        );
+    }
+
+    /**
+     * @return array<int, array{value: string, label: string, selectedAttr: string}>
+     */
+    private function buildAuditFilterOptions(string $activeFilter): array
+    {
+        $rawOptions = [
+            '' => 'Alle Aktionen',
+            'LOGIN' => 'Erfolgreiche Logins (Admin)',
+            'LOGOUT' => 'Abmeldungen (Admin)',
+            'PERMIT_CREATE' => 'Genehmigung erstellt',
+            'PERMIT_PAID' => 'Zahlung bestätigt',
+            'PERMIT_SUSPENSION' => 'Sperre / Freigabe',
+            'PERMIT_PRINT' => 'Genehmigung gedruckt',
+            'BANK_IMPORT' => 'Autom. Bankabgleich',
+            'VOUCHER_CREATE' => 'Gutschein erstellt',
+            'VOUCHER_TOGGLE' => 'Gutschein umgeschaltet',
+            'VOUCHER_DELETE' => 'Gutschein gelöscht',
+            'USER_CREATE' => 'Benutzer angelegt',
+            'USER_RENAME' => 'Benutzer umbenannt',
+            'USER_CHANGE_ROLE' => 'Rechte geändert',
+            'USER_DELETE' => 'Benutzer gelöscht',
+            'ROLE_CREATE' => 'Rollenmatrix erstellt',
+            'ROLE_UPDATE' => 'Rollenmatrix bearbeitet',
+            'ROLE_DELETE' => 'Rollenmatrix gelöscht',
+            'SYSTEM_BACKUP_CREATE' => 'Backup ausgelöst',
+            'DATA_EXPORT' => 'Daten exportiert',
+            'USER_HISTORY_LOGIN' => 'Pächter-Logins (Verlauf)',
+            'USER_HISTORY_LOGOUT' => 'Pächter-Logouts',
+            'USER_PERMIT_CANCEL' => 'Pächter-Stornos',
+        ];
+
+        $options = [];
+        foreach ($rawOptions as $val => $label) {
+            $options[] = [
+                'value' => $val,
+                'label' => $label,
+                'selectedAttr' => $activeFilter === $val ? 'selected' : '',
+            ];
+        }
+
+        return $options;
+    }
+
+    /**
+     * @return CronJobViewDto[]
+     */
+    private function buildCronJobsDto(string $cronSecret): array
+    {
+        $baseUrl = \rtrim($this->config->getBaseUrl(), '/');
+
+        return [
+            new CronJobViewDto(
+                label: 'Mail-Warteschlange abarbeiten',
+                description: 'Versendet zwischengespeicherte Mails (falls Queue-Limit im Web erreicht wird).',
+                url: $baseUrl . '/api/process_mail_queue?token=' . $cronSecret,
+                interval: 'Alle 1 - 5 Minuten',
+                iconUrl: $this->assetHelper->url('assets/img/icons/envelope.webp'),
+            ),
+            new CronJobViewDto(
+                label: 'Zahlungserinnerungen versenden',
+                description: 'Prüft auf überfällige Anträge und versendet Mahnungen.',
+                url: $baseUrl . '/api/cron/reminders?token=' . $cronSecret,
+                interval: 'Täglich (z.B. morgens um 08:00)',
+                iconUrl: $this->assetHelper->url('assets/img/icons/bell.webp'),
+            ),
+            new CronJobViewDto(
+                label: 'Archivierung & DSGVO',
+                description: 'Verschiebt alte Genehmigungen ins Archiv und anonymisiert >10 Jahre alte Daten.',
+                url: $baseUrl . '/api/cron/archive?token=' . $cronSecret,
+                interval: 'Täglich (z.B. nachts um 02:00)',
+                iconUrl: $this->assetHelper->url('assets/img/icons/archive.webp'),
+            ),
+            new CronJobViewDto(
+                label: 'Auto-Backup & Rotation',
+                description: 'Erstellt einen MySQL-Dump und löscht ältere Backups nach dem FIFO-Prinzip.',
+                url: $baseUrl . '/api/cron/backup?token=' . $cronSecret,
+                interval: 'Täglich (z.B. nachts um 03:00)',
+                iconUrl: $this->assetHelper->url('assets/img/icons/package.webp'),
+            ),
+            new CronJobViewDto(
+                label: 'Spam-Filter synchronisieren',
+                description: 'Lädt die tagesaktuellen Trashmail-Domains über GitHub in den Cache herunter.',
+                url: $baseUrl . '/api/cron/spam_sync?token=' . $cronSecret,
+                interval: 'Einmal Wöchentlich',
+                iconUrl: $this->assetHelper->url('assets/img/icons/shield.webp'),
+            ),
+        ];
     }
 }

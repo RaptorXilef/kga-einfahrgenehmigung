@@ -36,6 +36,9 @@ final readonly class CancelPermitHandler implements CommandHandlerInterface
     ) {
     }
 
+    /**
+     * @param CancelPermitCommand $command
+     */
     #[Override]
     public function handle(mixed $command): void
     {

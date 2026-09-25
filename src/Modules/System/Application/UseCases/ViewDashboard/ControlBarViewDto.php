@@ -9,17 +9,18 @@ namespace App\Modules\System\Application\UseCases\ViewDashboard;
  */
 final readonly class ControlBarViewDto
 {
+    /**
+     * @param LimitOptionDto[] $limitOptions
+     */
     public function __construct(
         public string $startValue,
         public string $endValue,
         public string $startValueFormatted,
         public string $endValueFormatted,
+        public string $activeTypeValue,     // 'all', 'standard' oder 'permanent'
         public string $typeSelectAll,       // 'selected' oder ''
         public string $typeSelectStandard,  // 'selected' oder ''
         public string $typeSelectPermanent, // 'selected' oder ''
-        /**
-         * @var LimitOptionDto[]
-         */
         public array $limitOptions,
         public string $searchValue,
         public bool $showResetButton,

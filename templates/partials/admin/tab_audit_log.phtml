@@ -5,39 +5,13 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Audit Log
- * VSA FIX: PHTML ist jetzt 100% dumm. Keine $_GET Fallbacks mehr, nutzt reines DTO.
+ * VSA FIX: 100% Dumme View - Keine lokalen Array-Definitionen oder Vergleiche mehr im PHTML.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
  * @var array $settings
  * @var string $appRoot
  */
-$filterOptions = [
-    '' => 'Alle Aktionen',
-    'LOGIN' => 'Erfolgreiche Logins (Admin)',
-    'LOGOUT' => 'Abmeldungen (Admin)',
-    'PERMIT_CREATE' => 'Genehmigung erstellt',
-    'PERMIT_PAID' => 'Zahlung bestätigt',
-    'PERMIT_SUSPENSION' => 'Sperre / Freigabe',
-    'PERMIT_PRINT' => 'Genehmigung gedruckt',
-    'BANK_IMPORT' => 'Autom. Bankabgleich',
-    'VOUCHER_CREATE' => 'Gutschein erstellt',
-    'VOUCHER_TOGGLE' => 'Gutschein umgeschaltet',
-    'VOUCHER_DELETE' => 'Gutschein gelöscht',
-    'USER_CREATE' => 'Benutzer angelegt',
-    'USER_RENAME' => 'Benutzer umbenannt',
-    'USER_CHANGE_GROUP' => 'Rechte geändert',
-    'USER_DELETE' => 'Benutzer gelöscht',
-    'GROUP_CREATE' => 'Rollenmatrix erstellt',
-    'GROUP_UPDATE' => 'Rollenmatrix bearbeitet',
-    'GROUP_DELETE' => 'Rollenmatrix gelöscht',
-    'SYSTEM_BACKUP_CREATE' => 'Backup ausgelöst',
-    'DATA_EXPORT' => 'Daten exportiert',
-    'USER_HISTORY_LOGIN' => 'Pächter-Logins (Verlauf)',
-    'USER_HISTORY_LOGOUT' => 'Pächter-Logouts',
-    'USER_PERMIT_CANCEL' => 'Pächter-Stornos',
-];
-
 if ($viewDto->permissions->canViewLogs) {
     ?>
 <div class="c-tab-content-container">
@@ -75,11 +49,11 @@ if ($viewDto->permissions->canViewLogs) {
                     id="audit_filter_select"
                     class="c-form-select js-auto-submit-select c-button--small"
                 >
-                    <?php foreach ($filterOptions as $val => $label) { ?>
+                    <?php foreach ($viewDto->auditFilterOptions as $opt) { ?>
                     <option
-                        value="<?php echo $val; ?>"
-                        <?php echo $viewDto->auditFilter === $val ? 'selected' : ''; ?>
-                    ><?php echo $label; ?></option>
+                        value="<?php echo \htmlspecialchars($opt['value']); ?>"
+                        <?php echo $opt['selectedAttr']; ?>
+                    ><?php echo \htmlspecialchars($opt['label']); ?></option>
                     <?php } ?>
                 </select>
                 <?php if ($viewDto->auditFilter !== '') { ?>

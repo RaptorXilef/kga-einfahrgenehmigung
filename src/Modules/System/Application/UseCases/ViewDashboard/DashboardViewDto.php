@@ -17,36 +17,27 @@ use App\Modules\System\Application\UseCases\GetMailLogsData\MailLogsResultDto;
  */
 final readonly class DashboardViewDto
 {
+    /**
+     * @param array<string, DashboardTabStateDto> $tabStates
+     * @param CollectiveTransferViewDto[] $collectiveTransfers
+     * @param DashboardPermitDto[] $activePermitsDto
+     * @param DashboardPermitDto[] $futurePermitsDto
+     * @param DashboardPermitDto[] $expiredPermitsDto
+     * @param DashboardPermitDto[] $cancelledPermitsDto
+     * @param FinancePermitDto[] $financePermitsDto
+     * @param AuditLogViewDto[] $auditLogs
+     * @param array<int, array{value: string, label: string, selectedAttr: string}> $auditFilterOptions
+     * @param CronJobViewDto[] $cronJobs
+     */
     public function __construct(
         public DashboardPermissionsDto $permissions,
-        /**
-         * @var array<string, DashboardTabStateDto>
-         */
         public array $tabStates,
         public ControlBarViewDto $controlBar,
-        /**
-         * @var CollectiveTransferViewDto[]
-         */
         public array $collectiveTransfers,
-        /**
-         * @var DashboardPermitDto[]
-         */
         public array $activePermitsDto,
-        /**
-         * @var DashboardPermitDto[]
-         */
         public array $futurePermitsDto,
-        /**
-         * @var DashboardPermitDto[]
-         */
         public array $expiredPermitsDto,
-        /**
-         * @var DashboardPermitDto[]
-         */
         public array $cancelledPermitsDto,
-        /**
-         * @var FinancePermitDto[]
-         */
         public array $financePermitsDto,
         public int $totalActive,
         public int $totalFuture,
@@ -63,25 +54,23 @@ final readonly class DashboardViewDto
         public int $financeTableColspan,
         public string $focus,
         public bool $showBankWizard,
+        public BankImportWizardViewDto $bankWizard,
         public int $minArchiveYear,
         public string $expiredLoadArchiveUrl,
-        // --- Komplexe DTOs für die anderen Tabs ---
         public ?DashboardStatsDto $stats,
         public ?GeneratorToolsViewDto $generatorTools,
         public ?MailLogsResultDto $mailLogs,
         public ?BackupsResultDto $backups,
-        // --- VSA FIX: Legacy Variablen als reine Arrays/Strings ins DTO gehoben ---
         public ?array $vouchers,
         public ?array $voucherArchive,
-        /**
-         * @var AuditLogViewDto[]
-         */
         public array $auditLogs,
         public int $auditTotal,
         public string $auditFilter,
+        public array $auditFilterOptions,
         public array $unreadReleaseNotes,
         public string $bankImportMode,
         public string $cronSecret,
+        public array $cronJobs,
     ) {
     }
 }

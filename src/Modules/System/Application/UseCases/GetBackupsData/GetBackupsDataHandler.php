@@ -86,12 +86,12 @@ final readonly class GetBackupsDataHandler implements QueryHandlerInterface
             }
 
             $items[] = new BackupItemViewDto(
-                tables: $tables,
-                dateFormatted: $dateFormatted,
                 filename: (string) ($raw['filename'] ?? ''),
+                dateFormatted: $dateFormatted,
                 sizeMb: $sizeMb,
-                targetIconUrl: $this->assetHelper->url('assets/img/icons/' . $iconFile),
                 targetLabel: $isFull ? 'Voll-Backup' : $targetKey,
+                targetIconUrl: $this->assetHelper->url('assets/img/icons/' . $iconFile),
+                tables: $tables,
             );
         }
 

@@ -18,6 +18,9 @@ final readonly class GenerateEpcQrHandler implements QueryHandlerInterface
     ) {
     }
 
+    /**
+     * @param GenerateEpcQrQuery $query
+     */
     #[Override]
     public function handle(mixed $query): string
     {

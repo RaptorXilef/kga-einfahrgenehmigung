@@ -3,10 +3,9 @@
 use App\Contracts\System\AssetHelperInterface;
 use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
-
 /**
  * Partial: Dashboard Tab - Statistics & Charts
- * VSA FIX: Nutzt komplett aufbereitete View-Daten ohne \strtotime Logik.
+ * VSA FIX: 100% Dumme View - Nutzt ausschließlich fertig formatierte Strings und YearlyStatItemDto-Objekte.
  *
  * Chart.js Integration und Kennzahlen-Auswertung (Umsatz, Fahrzeuge).
  *
@@ -15,11 +14,9 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
  * @var array $settings
  * @var string $cspNonce
  */
-$periodStats = $viewDto->stats->periodStats ?? [];
-$yearlyStats = $viewDto->stats->yearlyStats ?? [];
 ?>
 
-<?php if ($viewDto->permissions->canViewStats) { ?>
+<?php if ($viewDto->permissions->canViewStats && $viewDto->stats !== null) { ?>
 <div class="c-tab-content-container">
 
     <div class="u-flex u-align-center u-gap-s u-margin-block-end-m">
@@ -46,7 +43,7 @@ $yearlyStats = $viewDto->stats->yearlyStats ?? [];
             <div class="c-stat-card c-card__body u-padding-around-m">
                 <span class="c-stat-card__label">BEREITS BEZAHLT</span>
                 <div class="c-stat-card__value c-stat-card__value--success">
-                    <?php echo \number_format($periodStats['revenue_paid'] ?? 0, 2, ',', '.'); ?> €
+                    <?php echo $viewDto->stats->periodRevenuePaidFormatted; ?>
                 </div>
             </div>
         </div>
@@ -55,7 +52,7 @@ $yearlyStats = $viewDto->stats->yearlyStats ?? [];
             <div class="c-stat-card c-card__body u-padding-around-m">
                 <span class="c-stat-card__label">NOCH OFFEN</span>
                 <div class="c-stat-card__value c-stat-card__value--warning">
-                    <?php echo \number_format($periodStats['revenue_unpaid'] ?? 0, 2, ',', '.'); ?> €
+                    <?php echo $viewDto->stats->periodRevenueUnpaidFormatted; ?>
                 </div>
             </div>
         </div>
@@ -64,13 +61,13 @@ $yearlyStats = $viewDto->stats->yearlyStats ?? [];
             <div class="c-stat-card c-card__body u-padding-around-m">
                 <span class="c-stat-card__label">GENEHMIGUNGEN</span>
                 <div class="c-stat-card__value c-stat-card__value--primary">
-                    <?php echo $periodStats['count'] ?? 0; ?>
+                    <?php echo $viewDto->stats->periodTotalCount; ?>
                 </div>
 
                 <div class="c-stat-card__footer">
                     <?php foreach ($viewDto->stats->periodVehicleStats as $vStat) { ?>
                     <div class="c-badge c-badge--success u-font-bold u-text-xs">
-                        <?php if ($vStat['icon']) { ?>
+                        <?php if ($vStat['icon'] !== '') { ?>
                         <img
                             src="<?php echo $settings['base_url'] . $vStat['icon']; ?>"
                             loading="lazy"
@@ -91,8 +88,7 @@ $yearlyStats = $viewDto->stats->yearlyStats ?? [];
             <div class="c-stat-card c-card__body u-padding-around-m">
                 <span class="c-stat-card__label">GESAMTUMSATZ (SOLL)</span>
                 <div class="c-stat-card__value c-stat-card__value--primary">
-                    <?php echo \number_format(($periodStats['revenue_paid'] ?? 0) + ($periodStats['revenue_unpaid'] ?? 0), 2, ',', '.'); ?>
-                    €
+                    <?php echo $viewDto->stats->periodRevenueTotalFormatted; ?>
                 </div>
             </div>
         </div>
@@ -157,7 +153,7 @@ $yearlyStats = $viewDto->stats->yearlyStats ?? [];
         > Historische Jahresabschlüsse
     </h3>
 
-    <?php foreach ($yearlyStats as $year => $data) { ?>
+    <?php foreach ($viewDto->stats->yearlyStatItems as $yearItem) { ?>
     <details class="c-accordion">
         <summary class="c-accordion__summary">
             <span class="c-accordion__title">
@@ -166,12 +162,11 @@ $yearlyStats = $viewDto->stats->yearlyStats ?? [];
                     class="c-icon"
                     loading="lazy"
                     alt=""
-                > Geschäftsjahr <strong><?php echo $year; ?></strong>
+                > Geschäftsjahr <strong><?php echo $yearItem->year; ?></strong>
             </span>
             <div class="c-accordion__meta">
-                <span class="u-color-success u-font-bold">+ <?php echo \number_format($data['paid'], 0, ',', '.'); ?>
-                    €</span>
-                <span class="c-badge c-badge--outline u-font-extrabold"><?php echo $data['count']; ?> Anträge</span>
+                <span class="u-color-success u-font-bold">+ <?php echo $yearItem->paidShortFormatted; ?></span>
+                <span class="c-badge c-badge--outline u-font-extrabold"><?php echo $yearItem->count; ?> Anträge</span>
             </div>
         </summary>
         <div class="c-accordion__body o-grid o-grid--auto-fit-sm u-gap-m">
@@ -179,29 +174,22 @@ $yearlyStats = $viewDto->stats->yearlyStats ?? [];
                 <div class="c-stat-card c-card__body u-padding-around-s">
                     <span class="c-stat-card__label">BEREITS BEZAHLT</span>
                     <div class="u-font-bold u-color-success u-text-lg">
-                        <?php echo \number_format($data['paid'], 2, ',', '.'); ?> €</div>
+                        <?php echo $yearItem->paidFormatted; ?></div>
                 </div>
             </div>
             <div class="c-card c-card--danger u-margin-block-none">
                 <div class="c-stat-card c-card__body u-padding-around-s">
                     <span class="c-stat-card__label">Noch offen</span>
                     <div class="u-font-bold u-color-danger u-text-lg">
-                        <?php echo \number_format($data['unpaid'], 2, ',', '.'); ?> €</div>
+                        <?php echo $yearItem->unpaidFormatted; ?></div>
                 </div>
             </div>
             <div class="c-card c-card--primary u-margin-block-none">
                 <div class="c-stat-card c-card__body u-padding-around-s">
                     <span class="c-stat-card__label">GENEHMIGUNGEN</span>
-                    <div class="u-font-bold u-text-lg u-margin-block-end-xs"><?php echo $data['count']; ?></div>
+                    <div class="u-font-bold u-text-lg u-margin-block-end-xs"><?php echo $yearItem->count; ?></div>
                     <div class="u-text-xs u-color-muted u-flex u-justify-center u-gap-s u-flex-wrap u-align-center">
-                        <?php
-                                    $typeItems = [];
-                foreach ($viewDto->stats->yearlyVehicleStats[$year] ?? [] as $vStat) {
-                    $imgHtml = $vStat['icon'] ? '<img src="' . $settings['base_url'] . $vStat['icon'] . '" alt="" class="c-icon c-icon--inline u-margin-inline-end-xs">' : '';
-                    $typeItems[] = '<span>' . $imgHtml . ' ' . $vStat['count'] . ' ' . \htmlspecialchars($vStat['label']) . '</span>';
-                }
-                echo \implode(' <span class="u-opacity-50">|</span> ', $typeItems);
-                ?>
+                        <?php echo $yearItem->vehicleSummaryHtml; ?>
                     </div>
                 </div>
             </div>
@@ -209,7 +197,7 @@ $yearlyStats = $viewDto->stats->yearlyStats ?? [];
                 <div class="c-stat-card c-card__body u-padding-around-s">
                     <span class="c-stat-card__label">Jahres-Umsatz (Soll)</span>
                     <div class="u-font-bold u-text-lg">
-                        <?php echo \number_format($data['paid'] + $data['unpaid'], 2, ',', '.'); ?> €</div>
+                        <?php echo $yearItem->totalFormatted; ?></div>
                 </div>
             </div>
         </div>
