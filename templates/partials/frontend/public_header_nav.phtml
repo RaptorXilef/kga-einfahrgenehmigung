@@ -4,13 +4,16 @@ use App\Contracts\System\AssetHelperInterface;
 
 /**
  * Component: Public Header Navigation
- * VSA FIX: PHTML ist jetzt 100% dumm. Nutzt `$currentRoute`.
+ * VSA FIX: PHTML ist jetzt 100% dumm. Nutzt die vorberechneten Navigations-Klassen des TemplateRenderers.
  *
  * Navigation für Pächter (Antrag, Verlauf, Prüfen, Login).
  *
  * @var AssetHelperInterface $asset
- * @var array $settings
- * @var string $currentRoute
+ * @var array<string, mixed> $settings
+ * @var string $vereinsName
+ * @var string $navActiveIndexClass
+ * @var string $navActiveHistoryClass
+ * @var string $navActiveCheckClass
  */
 ?>
 <nav class="c-header-nav">
@@ -27,7 +30,7 @@ use App\Contracts\System\AssetHelperInterface;
                     >
                 </div>
                 <span class="c-header-nav__title">
-                    <?php echo \htmlspecialchars($settings['vereins_name'] ?? 'KGA'); ?>
+                    <?php echo \htmlspecialchars($vereinsName); ?>
                 </span>
             </div>
 
@@ -64,7 +67,7 @@ use App\Contracts\System\AssetHelperInterface;
         <div class="c-header-nav__bottom">
             <a
                 href="index"
-                class="c-tabs__btn <?php echo $currentRoute === 'index' ? 'is-active' : ''; ?>"
+                class="c-tabs__btn <?php echo $navActiveIndexClass; ?>"
             >
                 <img
                     src="<?php echo $asset->url('assets/img/icons/memo.webp'); ?>"
@@ -75,7 +78,7 @@ use App\Contracts\System\AssetHelperInterface;
             </a>
             <a
                 href="history"
-                class="c-tabs__btn <?php echo $currentRoute === 'history' ? 'is-active' : ''; ?>"
+                class="c-tabs__btn <?php echo $navActiveHistoryClass; ?>"
             >
                 <img
                     src="<?php echo $asset->url('assets/img/icons/document.webp'); ?>"
@@ -86,7 +89,7 @@ use App\Contracts\System\AssetHelperInterface;
             </a>
             <a
                 href="check"
-                class="c-tabs__btn u-margin-inline-start-auto <?php echo $currentRoute === 'check' ? 'is-active' : ''; ?>"
+                class="c-tabs__btn u-margin-inline-start-auto <?php echo $navActiveCheckClass; ?>"
             >
                 <img
                     src="<?php echo $asset->url('assets/img/icons/search.webp'); ?>"

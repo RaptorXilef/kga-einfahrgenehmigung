@@ -7,23 +7,23 @@ use App\Modules\Permit\Application\UseCases\CheckPermit\PermitCheckDetailsDto;
  * Page: Verification Details (Admin View)
  *
  * Erweiterte Prüfseite für Schrankenpersonal und Vorstand.
- * VSA FIX: Nutzt `$csrfToken` statt `$_SESSION['csrf_token']`.
+ * VSA FIX: 100% Dumme View - Nutzt `$details` und `$csrfToken` ohne Inline-Ternaries.
  *
  * @var AssetHelperInterface $asset
- * @var PermitCheckDetailsDto|null $details Das DTO aus dem CQRS Read-Model.
- * @var array $settings
+ * @var PermitCheckDetailsDto $details Das DTO aus dem CQRS Read-Model.
+ * @var array<string, mixed> $settings
  * @var string $csrfToken
  */
-$pageStateClass = $details ? $details->pageStateClass : 'is-state-error';
+$pageStateClass = $details->pageStateClass;
 $layout = 'admin';
-$pageTitle = 'Vorstands-Prüfung - ' . ($details ? $details->code : 'Fehler');
+$pageTitle = 'Vorstands-Prüfung - ' . $details->code;
 ?>
 
 <main class="c-tab-content-container u-padding-block-l">
 
     <!-- GROSSER STATUS-BANNER -->
     <div class="c-box u-margin-block-end-l u-text-center">
-        <?php if ($details && $details->isFound) { ?>
+        <?php if ($details->isFound) { ?>
         <div class="<?php echo $details->statusColorClass; ?>">
             <?php if ($details->statusHeadline === 'AKTUELL RUHEZEIT') { ?>
             <div class="c-badge c-badge--success u-margin-block-end-m u-font-bold u-text-sm">GENEHMIGUNG GÜLTIG
@@ -67,7 +67,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($details ? $details->code : 'Fehler');
         <div>
             <h1 class="u-margin-block-none u-text-start">Detailprüfung (Vorstand)</h1>
             <p class="u-color-muted">Interne Daten für Code:
-                <code><?php echo $details ? $details->code : '---'; ?></code>
+                <code><?php echo $details->code; ?></code>
             </p>
         </div>
         <div class="u-flex u-gap-s">
@@ -82,7 +82,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($details ? $details->code : 'Fehler');
                     alt=""
                 > Neue Prüfung
             </a>
-            <?php if ($details && $details->isFound) { ?>
+            <?php if ($details->isFound) { ?>
             <a
                 href="admin_print?code=<?php echo $details->code; ?>"
                 target="_blank"
@@ -99,7 +99,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($details ? $details->code : 'Fehler');
         </div>
     </header>
 
-    <?php if ($details && $details->isFound) { ?>
+    <?php if ($details->isFound) { ?>
     <section class="c-card c-card--primary u-shadow-highlight">
         <header class="c-card__header u-flex u-justify-between u-align-center">
             <h3 class="u-margin-block-none">

@@ -7,19 +7,20 @@ use App\Contracts\System\AssetHelperInterface;
  * Layout: Public (Frontend)
  *
  * Rahmen für alle öffentlichen Pächter-Seiten (Antrag, Verlauf, Impressum etc.).
- * VSA FIX: Nutzt `$csrfToken` statt `$_SESSION['csrf_token']`.
+ * VSA FIX: 100% Dumme View - Nutzt die vom TemplateRenderer aufgelösten Variablen ohne Fallbacks.
  *
  * @var AssetHelperInterface $asset
  * @var ConfigInterface $config
- * @var array $settings
+ * @var array<string, mixed> $settings
  * @var string $appRoot
- * @var string $content  Der fertig gerenderte Inhalt der Unterseite.
+ * @var string $baseUrl
+ * @var string $vehicleConfigJson
+ * @var string $content Der fertig gerenderte Inhalt der Unterseite.
  * @var string $cspNonce
  * @var string $csrfToken
- * @var string $pageTitle Optionaler Titel der Unterseite
- * @var string|null $pageStateClass
+ * @var string $pageTitle
+ * @var string $pageStateClass
  */
-$pageTitle ??= $settings['vereins_name'] ?? 'KGA';
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -62,15 +63,15 @@ $pageTitle ??= $settings['vereins_name'] ?? 'KGA';
 
     <script nonce="<?php echo $cspNonce; ?>">
     window.KGA_CONFIG = {
-        baseUrl: '<?php echo \htmlspecialchars($settings['base_url'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>',
-        vehicleConfig: <?php echo \json_encode($settings['vehicle_types'] ?? [], \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>,
+        baseUrl: '<?php echo \htmlspecialchars($baseUrl, \ENT_QUOTES, 'UTF-8'); ?>',
+        vehicleConfig: <?php echo $vehicleConfigJson; ?>,
         csrfToken: '<?php echo \htmlspecialchars($csrfToken, \ENT_QUOTES, 'UTF-8'); ?>'
     };
 
     </script>
 </head>
 
-<body class="js-permit-form l-public-body <?php echo $pageStateClass ?? ''; ?>">
+<body class="js-permit-form l-public-body <?php echo $pageStateClass; ?>">
 
     <?php include $appRoot . '/templates/partials/frontend/test_mode_indicator.phtml'; ?>
     <?php include $appRoot . '/templates/partials/frontend/public_header_nav.phtml'; ?>

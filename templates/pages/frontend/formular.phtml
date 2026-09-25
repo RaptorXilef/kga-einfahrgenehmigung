@@ -9,23 +9,20 @@ use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\PermitFormViewDt
  * Das interaktive Antragsformular für neue Genehmigungen inkl. Code-Einlösung.
  * Komplett logikbefreites Template (Dumb View).
  *
- * Öffentliches Beantragungs-Formular (wird von PermitController & PaymentController genutzt).
- * Erfasst Anträge für Ausnahmegenehmigungen. Integriert PayPal-Smart-Buttons für Online-Zahlungen,
- * falls ein Tarif kostenpflichtig ist und unterstützt Vorbefüllungen durch Gutscheincodes.
- *
  * @var AssetHelperInterface $asset
  * @var PermitFormViewDto $viewDto Enthält den vollständig aufgelösten Formulardaten-Status.
- * @var array $settings  Enthält gefilterte Templates.
- * @var bool $hasActiveVouchers  True, falls einlösbare Gutscheine existieren.
- * @var bool $success  True, wenn der Vorab-Antrag erfolgreich ausgelöst wurde.
- * @var string $appRoot  System-Root-Pfad.
+ * @var array<string, mixed> $settings Enthält gefilterte Templates.
+ * @var string $vereinsName
+ * @var bool $hasActiveVouchers True, falls einlösbare Gutscheine existieren.
+ * @var bool $success True, wenn der Vorab-Antrag erfolgreich ausgelöst wurde.
+ * @var string $appRoot System-Root-Pfad.
  * @var string $cspNonce
  * @var string $csrfToken
  * @var string|null $logoUrl Bereitgestellt durch TemplateRenderer.
- * @var string $message  Erfolgs- oder Fehlermeldungen nach dem Absenden.
+ * @var string $message Erfolgs- oder Fehlermeldungen nach dem Absenden.
  */
 $layout = 'public';
-$pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
+$pageTitle = 'Antrag - ' . $vereinsName;
 ?>
 
 <div class="c-tab-content-container o-container o-container--large u-padding-block-l">
@@ -35,7 +32,7 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
             <div class="u-margin-block-end-m u-flex u-justify-center">
                 <img
                     src="<?php echo $logoUrl; ?>"
-                    alt="<?php echo \htmlspecialchars($settings['vereins_name'] ?? ''); ?>"
+                    alt="<?php echo \htmlspecialchars($vereinsName); ?>"
                     loading="lazy"
                     class="c-logo"
                 >
@@ -214,7 +211,7 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                                 placeholder="Vorname Nachname"
                                 autocomplete="name"
                                 value="<?php echo \htmlspecialchars($viewDto->name); ?>"
-                                <?php echo $viewDto->isNameLocked ? 'readonly' : ''; ?>
+                                <?php echo $viewDto->nameReadonlyAttr; ?>
                             >
                         </div>
                         <div class="c-form-group">
@@ -231,7 +228,7 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                                 placeholder="Nr."
                                 autocomplete="off"
                                 value="<?php echo \htmlspecialchars($viewDto->parzelle); ?>"
-                                <?php echo $viewDto->isParzelleLocked ? 'readonly' : ''; ?>
+                                <?php echo $viewDto->parzelleReadonlyAttr; ?>
                             >
                         </div>
                     </div>
@@ -249,7 +246,7 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                             placeholder="ihre@mail.de"
                             autocomplete="email"
                             value="<?php echo \htmlspecialchars($viewDto->email); ?>"
-                            <?php echo $viewDto->isEmailLocked ? 'readonly' : ''; ?>
+                            <?php echo $viewDto->emailReadonlyAttr; ?>
                         >
                         <small class="u-text-muted u-margin-block-start-xs">An diese Adresse senden wir die
                             Ausnahmegenehmigung.</small>
@@ -271,12 +268,12 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                                 id="typ"
                                 class="c-form-select js-pf-typ"
                                 autocomplete="off"
-                                <?php echo $viewDto->isTypLocked ? 'readonly tabindex="-1"' : ''; ?>
+                                <?php echo $viewDto->typReadonlyAttr; ?>
                             >
                                 <?php foreach ($viewDto->vehicleOptions as $opt) { ?>
                                 <option
                                     value="<?php echo \htmlspecialchars($opt['value']); ?>"
-                                    <?php echo $opt['selected'] ? 'selected' : ''; ?>
+                                    <?php echo $opt['selectedAttr']; ?>
                                 >
                                     <?php echo \htmlspecialchars($opt['label']); ?>
                                 </option>
@@ -301,7 +298,7 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                                 placeholder="B-HD 123"
                                 autocomplete="off"
                                 value="<?php echo \htmlspecialchars($viewDto->kennzeichen); ?>"
-                                <?php echo $viewDto->isKennzeichenLocked ? 'readonly' : ''; ?>
+                                <?php echo $viewDto->kennzeichenReadonlyAttr; ?>
                             >
                         </div>
                     </div>
@@ -324,7 +321,7 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                             placeholder="Name der Firma"
                             autocomplete="organization"
                             value="<?php echo \htmlspecialchars($viewDto->firma); ?>"
-                            <?php echo $viewDto->isFirmaLocked ? 'readonly' : ''; ?>
+                            <?php echo $viewDto->firmaReadonlyAttr; ?>
                         >
                     </div>
 
@@ -338,12 +335,12 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                             id="zweck"
                             class="c-form-select"
                             autocomplete="off"
-                            <?php echo $viewDto->isZweckLocked ? 'readonly tabindex="-1"' : ''; ?>
+                            <?php echo $viewDto->zweckReadonlyAttr; ?>
                         >
                             <?php foreach ($viewDto->purposeOptions as $opt) { ?>
                             <option
                                 value="<?php echo \htmlspecialchars($opt['value']); ?>"
-                                <?php echo $opt['selected'] ? 'selected' : ''; ?>
+                                <?php echo $opt['selectedAttr']; ?>
                             >
                                 <?php echo \htmlspecialchars($opt['label']); ?>
                             </option>
@@ -355,7 +352,7 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                 <!-- SCHRITT 3: ZEITRAUM -->
                 <div class="c-form-section">
                     <h4 class="c-form-section__title"><span class="c-form-section__step">3</span> Gültigkeit</h4>
-                    <?php if (\count($viewDto->templateOptions) > 1) { ?>
+                    <?php if ($viewDto->hasMultipleTemplates) { ?>
                     <!-- Mehrere Optionen: Auswahl anzeigen -->
                     <div class="c-form-group u-margin-block-end-m">
                         <label
@@ -367,12 +364,12 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                             id="template_key"
                             class="c-form-select js-pf-template"
                             autocomplete="off"
-                            <?php echo $viewDto->isTemplateKeyLocked ? 'readonly tabindex="-1"' : ''; ?>
+                            <?php echo $viewDto->templateKeyReadonlyAttr; ?>
                         >
                             <?php foreach ($viewDto->templateOptions as $opt) { ?>
                             <option
                                 value="<?php echo \htmlspecialchars($opt['value']); ?>"
-                                <?php echo $opt['selected'] ? 'selected' : ''; ?>
+                                <?php echo $opt['selectedAttr']; ?>
                             >
                                 <?php echo \htmlspecialchars($opt['label']); ?>
                             </option>
@@ -381,13 +378,12 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                     </div>
                     <?php } else { ?>
                     <!-- Nur eine Option: Feld verstecken, Wert für JS/Backend bereitstellen -->
-                    <?php $singleKey = $viewDto->templateOptions[0]['value'] ?? ''; ?>
                     <input
                         type="hidden"
                         name="template_key"
                         id="template_key"
                         class="js-pf-template"
-                        value="<?php echo $singleKey; ?>"
+                        value="<?php echo \htmlspecialchars($viewDto->singleTemplateKey); ?>"
                     >
                     <?php } ?>
 
@@ -405,7 +401,7 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                                 required
                                 autocomplete="off"
                                 value="<?php echo \htmlspecialchars($viewDto->datumVon); ?>"
-                                <?php echo $viewDto->isDatumVonLocked ? 'readonly' : ''; ?>
+                                <?php echo $viewDto->datumVonReadonlyAttr; ?>
                             >
                         </div>
                         <div class="c-form-group">
@@ -421,7 +417,7 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                                 required
                                 autocomplete="off"
                                 value="<?php echo \htmlspecialchars($viewDto->datumBis); ?>"
-                                <?php echo $viewDto->isDatumBisLocked ? 'readonly' : ''; ?>
+                                <?php echo $viewDto->datumBisReadonlyAttr; ?>
                             >
                         </div>
                     </div>
@@ -464,8 +460,8 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                                 value="1"
                                 id="agree_<?php echo $key; ?>"
                                 class="c-checkbox__input"
-                                <?php echo $agree['required'] ? 'required' : ''; ?>
-                                <?php echo isset($viewDto->agreementsChecked[$key]) ? 'checked' : ''; ?>
+                                <?php echo $agree['requiredAttr']; ?>
+                                <?php echo $agree['checkedAttr']; ?>
                             >
                             <span class="c-checkbox__label">
                                 <?php echo $agree['label_html']; ?>
@@ -503,7 +499,7 @@ $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
                     type="submit"
                     class="c-button c-button--primary c-button--submit u-inline-size-100 u-margin-block-start-l"
                 >
-                    <?php echo $viewDto->hasActiveVoucher ? 'Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
+                    <?php echo \htmlspecialchars($viewDto->submitButtonText); ?>
                 </button>
 
                 <?php if (!$viewDto->hasActiveVoucher) { ?>

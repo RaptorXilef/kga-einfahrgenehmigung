@@ -74,6 +74,11 @@ final readonly class TemplateRenderer
         $startYear = 2026;
         $footerYearDisplay = (int) $currentYear > $startYear ? "{$startYear} - {$currentYear}" : (string) $startYear;
         $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
+        $vereinsName = $this->config->getString('vereins_name', 'KGA');
+        $vehicleConfigJson = \json_encode(
+            $this->config->getArray('vehicle_types'),
+            \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT,
+        ) ?: '{}';
 
         $isTestMode = $this->config->isTestMode();
         $mailSettings = $this->config->getMailSettings();
@@ -118,11 +123,19 @@ final readonly class TemplateRenderer
             'jsonHelper' => $this->jsonHelper,
             'asset' => $this->assetHelper,
             'settings' => $this->getGlobalSettings(),
+            'baseUrl' => $safeBaseUrl,
+            'vereinsName' => $vereinsName,
+            'vehicleConfigJson' => $vehicleConfigJson,
             'logoUrl' => $this->resolveLogoUrl($appRoot),
             'queryParams' => $this->request->get,
             'cspNonce' => \defined('CSP_NONCE') ? CSP_NONCE : '',
             'csrfToken' => $this->sessionManager->getCsrfToken(),
             'currentRoute' => $currentRoute,
+            'navActiveUsersClass' => $currentRoute === 'users' ? 'is-active' : '',
+            'navActiveAdminClass' => $currentRoute === 'admin' ? 'is-active' : '',
+            'navActiveIndexClass' => $currentRoute === 'index' ? 'is-active' : '',
+            'navActiveHistoryClass' => $currentRoute === 'history' ? 'is-active' : '',
+            'navActiveCheckClass' => $currentRoute === 'check' ? 'is-active' : '',
             'appVersion' => $this->systemInfo->getCurrentVersion(),
             'currentYear' => $currentYear,
             'footerYearDisplay' => $footerYearDisplay,
@@ -172,8 +185,12 @@ final readonly class TemplateRenderer
         include $fullPath;
         $content = \ob_get_clean();
 
-        // 2. Layout Rendern
+        // 2. Layout Rendern (inkl. aufgelöster Defaults für pageTitle & pageStateClass)
         if (isset($layout) && \is_string($layout) && \file_exists($appRoot . "/templates/layouts/{$layout}.phtml")) {
+            $defaultTitle = $layout === 'admin' ? 'Admin - ' . $vereinsName : $vereinsName;
+            $pageTitle = isset($pageTitle) && \is_string($pageTitle) && $pageTitle !== '' ? $pageTitle : $defaultTitle;
+            $pageStateClass = isset($pageStateClass) && \is_string($pageStateClass) ? $pageStateClass : '';
+
             \ob_start();
             include $appRoot . "/templates/layouts/{$layout}.phtml";
 
@@ -248,7 +265,7 @@ final readonly class TemplateRenderer
             'purposes' => $this->config->get('purposes'),
             'terminkalender_url' => $this->config->get('terminkalender_url'),
             'vehicle_types' => $this->config->get('vehicle_types'),
-            'vereins_name' => $this->config->get('vereins_name'),
+            'vereins_name' => $this->config->getString('vereins_name', 'KGA'),
             'debug_mode' => $this->config->get('debug_mode', false),
             'consent' => $this->config->getArray('consent'),
             'ga4_server_side' => $this->config->getArray('ga4_server_side'),

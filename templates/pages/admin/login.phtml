@@ -4,24 +4,22 @@ use App\Contracts\System\AssetHelperInterface;
 
 /**
  * Page: Admin Login
- * VSA FIX: PHTML ist 100% dumm. Kein $_SESSION-Zugriff mehr, nutzt injiziertes `$formData`, `$csrfToken` und `$redirectCode`.
+ * VSA FIX: PHTML ist 100% dumm. Kein $_SESSION-Zugriff und keine Fallbacks mehr, nutzt injiziertes `$savedUser`, `$csrfToken` und `$redirectCode`.
  *
  * Template für die Admin-Login-Maske.
  * Zeigt das Anmeldeformular für Systembetreuer und Administratoren an.
  *
  * @var AssetHelperInterface $asset
- * @var array $settings
- * @var array $formData
+ * @var array<string, mixed> $settings
+ * @var string $vereinsName
+ * @var string $savedUser
  * @var string $appRoot
  * @var string $cspNonce
  * @var string $csrfToken
  * @var string $redirectCode
  */
-
-// Aktiviere das Public-Layout (weil der Body u-bg-light l-public-body benötigt)
 $layout = 'public';
-$pageTitle = 'Admin Login - ' . ($settings['vereins_name'] ?? '');
-$savedUser = (string) ($formData['user'] ?? '');
+$pageTitle = 'Admin Login - ' . $vereinsName;
 ?>
 
 <div class="c-tab-content-container o-container o-container--small u-padding-block-xl">
@@ -36,7 +34,7 @@ $savedUser = (string) ($formData['user'] ?? '');
             <h2 class="u-margin-none u-margin-block-start-s">Vorstands-Login</h2>
             <p class="u-color-muted u-margin-block-start-s">
                 Bitte loggen Sie sich ein, um den Verwaltungsbereich von
-                <?php echo \htmlspecialchars($settings['vereins_name']); ?> zu betreten.
+                <?php echo \htmlspecialchars($vereinsName); ?> zu betreten.
             </p>
         </header>
 

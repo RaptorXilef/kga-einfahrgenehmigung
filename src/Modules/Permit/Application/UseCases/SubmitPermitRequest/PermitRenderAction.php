@@ -70,10 +70,12 @@ final readonly class PermitRenderAction implements ViewActionInterface
         $templateOptions = [];
         $tplMetadata = [];
         foreach ($publicTemplates as $key => $tpl) {
+            $isSelected = $activeTemplateKey === $key;
             $templateOptions[] = [
-                'value' => $key,
-                'label' => $tpl['label'],
-                'selected' => $activeTemplateKey === $key,
+                'value' => (string) $key,
+                'label' => (string) $tpl['label'],
+                'selected' => $isSelected,
+                'selectedAttr' => $isSelected ? 'selected' : '',
             ];
             $tplMetadata[$key] = ['days' => $tpl['days'], 'type' => $tpl['type']];
         }
@@ -85,53 +87,83 @@ final readonly class PermitRenderAction implements ViewActionInterface
             if (!($vData['active'] ?? true) && $activeVehicleType !== $val) {
                 continue;
             }
+            $isSelected = $activeVehicleType === $val;
             $vehicleOptions[] = [
-                'value' => $val,
-                'label' => $vData['label'],
-                'selected' => $activeVehicleType === $val,
+                'value' => (string) $val,
+                'label' => (string) $vData['label'],
+                'selected' => $isSelected,
+                'selectedAttr' => $isSelected ? 'selected' : '',
             ];
         }
 
         $purposeOptions = [];
         foreach ($this->config->getArray('purposes') as $val => $label) {
+            $isSelected = $activePurpose === $val;
             $purposeOptions[] = [
-                'value' => $val,
-                'label' => $label,
-                'selected' => $activePurpose === $val,
+                'value' => (string) $val,
+                'label' => (string) $label,
+                'selected' => $isSelected,
+                'selectedAttr' => $isSelected ? 'selected' : '',
             ];
         }
+
+        $isNameLocked = $this->hasNonEmptyString($prefillData, 'name');
+        $isEmailLocked = $this->hasNonEmptyString($prefillData, 'email');
+        $isParzelleLocked = $this->hasNonEmptyString($prefillData, 'parzelle');
+        $isTypLocked = $this->hasNonEmptyString($prefillData, 'typ');
+        $isKennzeichenLocked = $this->hasNonEmptyString($prefillData, 'kennzeichen');
+        $isFirmaLocked = $this->hasNonEmptyString($prefillData, 'firma');
+        $isZweckLocked = $this->hasNonEmptyString($prefillData, 'zweck');
+        $isTemplateKeyLocked = $prefillDto instanceof VoucherPrefillResult && $prefillDto->templateKey !== '';
+        $isDatumVonLocked = $this->hasNonEmptyString($prefillData, 'datum_von');
+        $isDatumBisLocked = $this->hasNonEmptyString($prefillData, 'datum_bis');
+        $hasActiveVoucher = $prefillDto instanceof VoucherPrefillResult;
+        $agreementsChecked = (array) ($formData['agreements'] ?? []);
 
         // Flaches View-DTO für das PHTML erzeugen
         $viewDto = new PermitFormViewDto(
             name: (string) ($formData['name'] ?? $prefillData['name'] ?? ''),
-            isNameLocked: $this->hasNonEmptyString($prefillData, 'name'),
+            isNameLocked: $isNameLocked,
+            nameReadonlyAttr: $isNameLocked ? 'readonly' : '',
             email: (string) ($formData['email'] ?? $prefillData['email'] ?? ''),
-            isEmailLocked: $this->hasNonEmptyString($prefillData, 'email'),
+            isEmailLocked: $isEmailLocked,
+            emailReadonlyAttr: $isEmailLocked ? 'readonly' : '',
             parzelle: (string) ($formData['parzelle'] ?? $prefillData['parzelle'] ?? ''),
-            isParzelleLocked: $this->hasNonEmptyString($prefillData, 'parzelle'),
+            isParzelleLocked: $isParzelleLocked,
+            parzelleReadonlyAttr: $isParzelleLocked ? 'readonly' : '',
             typ: $activeVehicleType,
-            isTypLocked: $this->hasNonEmptyString($prefillData, 'typ'),
+            isTypLocked: $isTypLocked,
+            typReadonlyAttr: $isTypLocked ? 'readonly tabindex="-1"' : '',
             kennzeichen: (string) ($formData['kennzeichen'] ?? $prefillData['kennzeichen'] ?? ''),
-            isKennzeichenLocked: $this->hasNonEmptyString($prefillData, 'kennzeichen'),
+            isKennzeichenLocked: $isKennzeichenLocked,
+            kennzeichenReadonlyAttr: $isKennzeichenLocked ? 'readonly' : '',
             firma: (string) ($formData['firma'] ?? $prefillData['firma'] ?? ''),
-            isFirmaLocked: $this->hasNonEmptyString($prefillData, 'firma'),
+            isFirmaLocked: $isFirmaLocked,
+            firmaReadonlyAttr: $isFirmaLocked ? 'readonly' : '',
             zweck: $activePurpose,
-            isZweckLocked: $this->hasNonEmptyString($prefillData, 'zweck'),
+            isZweckLocked: $isZweckLocked,
+            zweckReadonlyAttr: $isZweckLocked ? 'readonly tabindex="-1"' : '',
             templateKey: $activeTemplateKey,
-            isTemplateKeyLocked: $prefillDto instanceof VoucherPrefillResult && $prefillDto->templateKey !== '',
+            isTemplateKeyLocked: $isTemplateKeyLocked,
+            templateKeyReadonlyAttr: $isTemplateKeyLocked ? 'readonly tabindex="-1"' : '',
             datumVon: (string) ($formData['datum_von'] ?? $prefillData['datum_von'] ?? $this->clock->now()->format('Y-m-d')),
-            isDatumVonLocked: $this->hasNonEmptyString($prefillData, 'datum_von'),
+            isDatumVonLocked: $isDatumVonLocked,
+            datumVonReadonlyAttr: $isDatumVonLocked ? 'readonly' : '',
             datumBis: (string) ($formData['datum_bis'] ?? $prefillData['datum_bis'] ?? ''),
-            isDatumBisLocked: $this->hasNonEmptyString($prefillData, 'datum_bis'),
+            isDatumBisLocked: $isDatumBisLocked,
+            datumBisReadonlyAttr: $isDatumBisLocked ? 'readonly' : '',
             voucherInput: (string) ($formData['voucher'] ?? $request->get['voucher'] ?? ''),
             voucherCode: $prefillDto instanceof VoucherPrefillResult ? $prefillDto->code : '',
             voucherReason: $prefillDto instanceof VoucherPrefillResult ? $prefillDto->reason : '',
-            hasActiveVoucher: $prefillDto instanceof VoucherPrefillResult,
-            agreementsChecked: (array) ($formData['agreements'] ?? []),
+            hasActiveVoucher: $hasActiveVoucher,
+            submitButtonText: $hasActiveVoucher ? 'Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen',
+            hasMultipleTemplates: \count($templateOptions) > 1,
+            singleTemplateKey: $templateOptions[0]['value'] ?? '',
+            agreementsChecked: $agreementsChecked,
             templateOptions: $templateOptions,
             vehicleOptions: $vehicleOptions,
             purposeOptions: $purposeOptions,
-            agreements: $this->getParsedAgreements(),
+            agreements: $this->getParsedAgreements($agreementsChecked),
             tplMetadataJson: $tplMetadataJson,
         );
 
@@ -154,7 +186,12 @@ final readonly class PermitRenderAction implements ViewActionInterface
         return isset($data[$key]) && \trim((string) $data[$key]) !== '';
     }
 
-    private function getParsedAgreements(): array
+    /**
+     * @param array<string, mixed> $agreementsChecked
+     *
+     * @return array<string, array{label_html: string, required: bool, requiredAttr: string, checkedAttr: string}>
+     */
+    private function getParsedAgreements(array $agreementsChecked): array
     {
         $agreementsConfig = $this->config->getArray('agreements');
         $baseUrl = $this->config->getBaseUrl();
@@ -172,14 +209,19 @@ final readonly class PermitRenderAction implements ViewActionInterface
                 }
                 $linkHtml = '<a href="' . \htmlspecialchars($finalLink) .
                     '" target="_blank" class="u-text-link u-font-semibold">$1</a>';
-                $renderedLabel = \preg_replace('/\[(.*?)\]/', $linkHtml, $cleanLabel);
+                $renderedLabel = (string) \preg_replace('/\[(.*?)\]/', $linkHtml, $cleanLabel);
             } else {
-                $renderedLabel = \preg_replace('/\[(.*?)\]/', '$1', $cleanLabel);
+                $renderedLabel = (string) \preg_replace('/\[(.*?)\]/', '$1', $cleanLabel);
             }
 
-            $parsed[$key] = [
+            $isRequired = (bool) ($agree['required'] ?? false);
+            $keyStr = (string) $key;
+
+            $parsed[$keyStr] = [
                 'label_html' => $renderedLabel,
-                'required' => (bool) ($agree['required'] ?? false),
+                'required' => $isRequired,
+                'requiredAttr' => $isRequired ? 'required' : '',
+                'checkedAttr' => isset($agreementsChecked[$keyStr]) ? 'checked' : '',
             ];
         }
 

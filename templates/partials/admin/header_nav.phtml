@@ -4,14 +4,15 @@ use App\Contracts\System\AssetHelperInterface;
 
 /**
  * Component: Administrative Header Navigation
- * VSA FIX: PHTML ist jetzt 100% dumm. Bezieht alle User-Daten vom TemplateRenderer.
+ * VSA FIX: PHTML ist jetzt 100% dumm. Bezieht alle User-Daten und Aktiv-Klassen vom TemplateRenderer.
  *
  * Beinhaltet das Top-Menü für eingeloggte Administratoren, Profil-Shortcuts und System-Links.
  *
  * @var AssetHelperInterface $asset
- * @var array $settings
- * @var array $allReleaseNotes
- * @var string $currentRoute
+ * @var array<string, mixed> $settings
+ * @var array<int, mixed> $allReleaseNotes
+ * @var string $navActiveUsersClass
+ * @var string $navActiveAdminClass
  * @var string $csrfToken
  * @var string $adminUserId
  * @var string $adminUserName
@@ -59,7 +60,7 @@ use App\Contracts\System\AssetHelperInterface;
                 <?php if ($canManageSystem) { ?>
                 <a
                     href="users"
-                    class="c-tabs__btn <?php echo $currentRoute === 'users' ? 'is-active' : ''; ?>"
+                    class="c-tabs__btn <?php echo $navActiveUsersClass; ?>"
                 >
                     <img
                         src="<?php echo $asset->url('assets/img/icons/user.webp'); ?>"
@@ -136,7 +137,7 @@ use App\Contracts\System\AssetHelperInterface;
             <?php if ($canAccessAdmin) { ?>
             <a
                 href="admin"
-                class="c-tabs__btn <?php echo $currentRoute === 'admin' ? 'is-active' : ''; ?>"
+                class="c-tabs__btn <?php echo $navActiveAdminClass; ?>"
             >
                 <img
                     src="<?php echo $asset->url('assets/img/icons/stats.webp'); ?>"

@@ -57,6 +57,7 @@ final readonly class AdminLoginAction implements ActionInterface
 
         $html = $this->renderer->render('admin/login', [
             'formData' => $formData,
+            'savedUser' => (string) ($formData['user'] ?? ''),
             'redirectCode' => $redirectCode,
         ]);
 

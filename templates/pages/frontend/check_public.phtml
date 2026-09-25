@@ -8,15 +8,17 @@ use App\Modules\Permit\Application\UseCases\CheckPermit\PermitCheckDetailsDto;
  *
  * Öffentliche Kontrollansicht (z.B. bei QR-Code-Scan durch externe Personen oder Wachpersonal).
  * Zeigt reduzierte, datenschutzkonforme Status-Informationen einer Genehmigung an.
+ * VSA FIX: 100% Dumme View - Frei von Inline-Ternaries und Fallbacks.
  *
  * @var AssetHelperInterface $asset
- * @var PermitCheckDetailsDto|null $details Das DTO aus dem CQRS Read-Model.
- * @var array $settings Globale UI- und App-Einstellungen.
+ * @var PermitCheckDetailsDto $details Das DTO aus dem CQRS Read-Model.
+ * @var array<string, mixed> $settings Globale UI- und App-Einstellungen.
+ * @var string $vereinsName
  * @var string|null $logoUrl Bereitgestellt durch TemplateRenderer.
  */
-$pageStateClass = $details ? $details->pageStateClass : 'is-state-error';
+$pageStateClass = $details->pageStateClass;
 $layout = 'public';
-$pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
+$pageTitle = 'Status-Check - ' . $vereinsName;
 ?>
 
 <main class="c-tab-content-container o-container o-container--small u-padding-block-l">
@@ -32,11 +34,11 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
             >
             <?php } ?>
             <p class="u-color-muted u-text-sm u-margin-block-none">
-                <?php echo \htmlspecialchars($settings['vereins_name']); ?></p>
+                <?php echo \htmlspecialchars($vereinsName); ?></p>
         </header>
 
         <div class="c-card__body u-text-center">
-            <?php if ($details && $details->isFound) { ?>
+            <?php if ($details->isFound) { ?>
             <div class="<?php echo $details->statusColorClass; ?>">
                 <?php if ($details->statusHeadline === 'AKTUELL RUHEZEIT') { ?>
                 <div class="c-badge c-badge--success u-margin-block-end-m u-font-bold u-text-sm">GENEHMIGUNG
@@ -92,7 +94,7 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
             <?php } ?>
         </div>
 
-        <?php if ($details && $details->isFound) { ?>
+        <?php if ($details->isFound) { ?>
         <footer class="c-card__footer u-text-center">
             <p class="u-color-muted u-margin-block-end-s">SmartCode: <strong
                     class="u-color-dark"><?php echo $details->code; ?></strong>
