@@ -11,9 +11,9 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\PermitStatus;
-use App\Modules\System\Application\Services\AuditLoggerService;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use App\SharedKernel\Domain\ValueObject\LicensePlate;
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
@@ -26,7 +26,7 @@ use Override;
 final readonly class PermitCreateManualAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private SessionManager $sessionManager,
         private CreateManualPermitHandler $createHandler,
         private ClockInterface $clock,

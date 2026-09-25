@@ -15,18 +15,22 @@ use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
+use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use App\SharedKernel\Application\Security\Sanitizer;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use App\SharedKernel\Domain\ValueObject\VoucherCode;
 use DateTimeImmutable;
 use InvalidArgumentException;
+use Override;
 
 /**
  * Da der Handler den generierten Token-String (ID) für den Controller-Flow zurückgeben muss,
  * verzichten wir pragmatisch auf das strikte (void) CommandHandlerInterface.
+ *
+ * @implements CommandWithResultHandlerInterface<SubmitPermitRequestCommand, string>
  */
-final readonly class SubmitPermitRequestHandler
+final readonly class SubmitPermitRequestHandler implements CommandWithResultHandlerInterface
 {
     public function __construct(
         private ConfigInterface $config,
@@ -38,7 +42,11 @@ final readonly class SubmitPermitRequestHandler
     ) {
     }
 
-    public function handle(SubmitPermitRequestCommand $command): string
+    /**
+     * @param SubmitPermitRequestCommand $command
+     */
+    #[Override]
+    public function handle(mixed $command): string
     {
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
 
@@ -139,12 +147,13 @@ final readonly class SubmitPermitRequestHandler
 
         $allPending = $this->verificationRepository->loadPending();
         $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($licensePlate));
+        $todayStr = $this->clock->now()->format('Y-m-d');
 
         foreach ($allPending as $pendingReq) {
             $pendingData = $pendingReq->data;
             $pPlot = (int) ($pendingData['parzelle'] ?? 0);
-            $pStart = new DateTimeImmutable((string) ($pendingData['datum_von'] ?? 'now'));
-            $pEnd = new DateTimeImmutable((string) ($pendingData['datum_bis'] ?? 'now'));
+            $pStart = new DateTimeImmutable((string) ($pendingData['datum_von'] ?? $todayStr));
+            $pEnd = new DateTimeImmutable((string) ($pendingData['datum_bis'] ?? $todayStr));
 
             if ($pPlot !== $parzelleId || !DateRangeHelper::overlaps($pStart, $pEnd, $start, $end)) {
                 continue;

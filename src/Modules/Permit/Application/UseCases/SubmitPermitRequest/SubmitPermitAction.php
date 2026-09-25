@@ -10,10 +10,10 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Security\BotProtectionInterface;
+use App\Contracts\Security\EmailValidationInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\Exceptions\PermitCollisionException;
-use App\Modules\System\Application\Contracts\EmailValidationServiceInterface;
-use App\Modules\System\Application\Services\BotProtectionService;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use App\SharedKernel\Domain\ValueObject\LicensePlate;
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
@@ -33,8 +33,8 @@ final readonly class SubmitPermitAction implements ViewActionInterface
     public function __construct(
         private SubmitPermitRequestHandler $submitHandler,
         private SessionManager $sessionManager,
-        private BotProtectionService $botProtection,
-        private EmailValidationServiceInterface $emailValidation,
+        private BotProtectionInterface $botProtection,
+        private EmailValidationInterface $emailValidation,
         private ClockInterface $clock,
     ) {
     }

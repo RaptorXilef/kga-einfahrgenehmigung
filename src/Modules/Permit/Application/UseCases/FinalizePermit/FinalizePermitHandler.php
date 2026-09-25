@@ -12,15 +12,20 @@ use App\Modules\Permit\Domain\PermitFactory;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\Vehicle;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
+use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use App\SharedKernel\Domain\ValueObject\LicensePlate;
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use App\SharedKernel\Domain\ValueObject\Price;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
+use Override;
 use RuntimeException;
 
-final readonly class FinalizePermitHandler
+/**
+ * @implements CommandWithResultHandlerInterface<FinalizePermitCommand, string>
+ */
+final readonly class FinalizePermitHandler implements CommandWithResultHandlerInterface
 {
     public function __construct(
         private LockManagerInterface $lockManager,
@@ -32,9 +37,10 @@ final readonly class FinalizePermitHandler
     }
 
     /**
-     * VSA CQRS FIX: Gibt nur noch die ID (den Code) als String zurück, nicht die Entity.
+     * @param FinalizePermitCommand $command
      */
-    public function handle(FinalizePermitCommand $command): string
+    #[Override]
+    public function handle(mixed $command): string
     {
         return $this->lockManager->executeWithLock('checkout', function () use ($command): string {
             $allVerified = $this->verificationRepository->loadVerified();
@@ -49,7 +55,6 @@ final readonly class FinalizePermitHandler
             $customEndDate = !empty($data['datum_bis']) ? new DateTimeImmutable($data['datum_bis']) : null;
             $emailStr = \trim((string) ($data['email'] ?? ''));
 
-            // VSA FIX: Nutzt die reine Domain Factory statt Business Logic im Handler!
             $permit = $this->permitFactory->createNew(
                 templateKey: new TemplateKey($data['template_key']),
                 owner: new Owner(\strip_tags($data['name']), $emailStr !== '' ? new EmailAddress($emailStr) : null, new PlotNumber($data['parzelle'])),

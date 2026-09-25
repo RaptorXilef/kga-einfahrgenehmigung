@@ -6,27 +6,37 @@ namespace App\Modules\Finance\Application\UseCases\ProcessBankImport;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Finance\Application\Contracts\BankImportInfrastructureInterface;
 use App\Modules\Finance\Application\Contracts\UnpaidPermitProviderInterface;
+use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use App\SharedKernel\Domain\Event\BankPaymentAssignedEvent;
 use DateTimeImmutable;
 use DomainException;
 use League\Csv\Reader;
+use Override;
 
 /**
  * Orchestriert den Bank-Import als Application Service und gibt direkt das Report-DTO zurück.
+ *
+ * @implements CommandWithResultHandlerInterface<ProcessBankImportCommand, BankImportResultDto>
  */
-final readonly class ProcessBankImportHandler
+final readonly class ProcessBankImportHandler implements CommandWithResultHandlerInterface
 {
     public function __construct(
         private UnpaidPermitProviderInterface $unpaidPermitProvider,
         private ConfigInterface $config,
         private EventDispatcherInterface $eventDispatcher,
         private BankImportInfrastructureInterface $infrastructure,
+        private ClockInterface $clock,
     ) {
     }
 
-    public function handle(ProcessBankImportCommand $command): BankImportResultDto
+    /**
+     * @param ProcessBankImportCommand $command
+     */
+    #[Override]
+    public function handle(mixed $command): BankImportResultDto
     {
         $runLogs = [];
 
@@ -257,7 +267,12 @@ final readonly class ProcessBankImportHandler
                 $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . $istFormatted . ')';
 
                 try {
-                    $this->eventDispatcher->dispatch(new BankPaymentAssignedEvent($permitId, $grund, $formatierterTag));
+                    $this->eventDispatcher->dispatch(new BankPaymentAssignedEvent(
+                        $permitId,
+                        $grund,
+                        $formatierterTag,
+                        $this->clock->now(),
+                    ));
                     $this->infrastructure->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).", $runLogs);
                     $erfolgreichDetails[] = "{$permitId} ({$ownerName})";
                 } catch (DomainException) {

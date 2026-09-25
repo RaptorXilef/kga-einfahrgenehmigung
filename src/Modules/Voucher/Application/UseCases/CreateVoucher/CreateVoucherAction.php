@@ -12,8 +12,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
-use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\Security\AuthorizationInterface;
+use App\Contracts\System\AuditLoggerInterface;
 use Override;
 
 /**
@@ -24,8 +24,8 @@ use Override;
 final readonly class CreateVoucherAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
-        private AuthService $auth,
+        private AuditLoggerInterface $auditLogger,
+        private AuthorizationInterface $auth,
         private ConfigInterface $config,
         private SessionManager $sessionManager,
         private CreateVoucherHandler $createHandler,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Infrastructure;
 
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\Owner;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
@@ -17,14 +18,17 @@ use App\SharedKernel\Domain\ValueObject\PermitCode;
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use App\SharedKernel\Domain\ValueObject\Price;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
+use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use DateTimeImmutable;
 use Override;
 use PDO;
 
 final readonly class PdoPermitRepository implements PermitRepositoryInterface
 {
-    public function __construct(private PDO $pdo)
-    {
+    public function __construct(
+        private PDO $pdo,
+        private ClockInterface $clock = new SystemClock(),
+    ) {
     }
 
     #[Override]
@@ -111,10 +115,12 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
             return null;
         }
 
+        $now = $this->clock->now();
+
         // Sortierung: 1. Aktive Genehmigungen zuerst, 2. nach dem Enddatum (neueste zuerst)
-        \usort($candidates, function (Permit $a, Permit $b): int {
-            $aValid = $a->isValid();
-            $bValid = $b->isValid();
+        \usort($candidates, function (Permit $a, Permit $b) use ($now): int {
+            $aValid = $a->isValid(false, $now);
+            $bValid = $b->isValid(false, $now);
 
             if ($aValid && !$bValid) {
                 return -1;

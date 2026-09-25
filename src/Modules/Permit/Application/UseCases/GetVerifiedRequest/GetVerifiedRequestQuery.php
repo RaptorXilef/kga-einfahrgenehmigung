@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\GetVerifiedRequest;
 
-final readonly class GetVerifiedRequestQuery
+use App\SharedKernel\Application\Query\QueryInterface;
+
+final readonly class GetVerifiedRequestQuery implements QueryInterface
 {
     public function __construct(public string $token)
     {

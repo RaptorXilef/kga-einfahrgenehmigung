@@ -12,9 +12,9 @@ use App\Application\Response\EmptyResponse;
 use App\Application\Response\FileDownloadResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Security\AuthorizationInterface;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Modules\Identity\Application\Services\AuthService;
-use App\Modules\System\Application\Services\AuditLoggerService;
 use Override;
 
 #[Route('GET', '/export_permits')]
@@ -22,11 +22,11 @@ use Override;
 final readonly class ExportPermitsAction implements ViewActionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private SessionManager $sessionManager,
         private ExportPermitsHandler $exportHandler,
         private ClockInterface $clock,
-        private AuthService $auth,
+        private AuthorizationInterface $auth,
     ) {
     }
 

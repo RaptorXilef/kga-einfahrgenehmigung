@@ -9,7 +9,7 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
 use App\Modules\Permit\Domain\Permit;
@@ -21,7 +21,7 @@ use Override;
 final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private AuthService $auth,
+        private AuthorizationInterface $auth,
         private SessionManager $sessionManager,
         private GetPermitByCodeHandler $getPermitByCodeHandler,
     ) {

@@ -11,7 +11,7 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\System\AuditLoggerInterface;
 use Exception;
 use Override;
 
@@ -19,7 +19,7 @@ use Override;
 final readonly class PermitSendReminderAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private SendPaymentRemindersHandler $reminderHandler,
         private SessionManager $sessionManager,
     ) {
@@ -50,7 +50,7 @@ final readonly class PermitSendReminderAction implements ActionInterface, Requir
         $successCount = 0;
         foreach ($codes as $code) {
             try {
-                $this->reminderHandler->handle(new SendPaymentRemindersCommand($code, true));
+                $this->reminderHandler->handle(new SendPaymentRemindersCommand((string) $code, true));
                 ++$successCount;
             } catch (Exception) {
                 // Fehler beim individuellen Senden ignorieren

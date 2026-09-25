@@ -12,12 +12,16 @@ use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitHandler
 use App\Modules\Permit\Domain\PermitStatus;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
+use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
+use Override;
 
 /**
  * Orchestriert die Bestätigung und gibt den resultierenden Identifikator (Token oder Code) zurück.
+ *
+ * @implements CommandWithResultHandlerInterface<ConfirmPermitEmailCommand, string>
  */
-final readonly class ConfirmPermitEmailHandler
+final readonly class ConfirmPermitEmailHandler implements CommandWithResultHandlerInterface
 {
     public function __construct(
         private VerificationRepositoryInterface $verificationRepository,
@@ -29,10 +33,13 @@ final readonly class ConfirmPermitEmailHandler
     }
 
     /**
+     * @param ConfirmPermitEmailCommand $command
+     *
      * @return string Gibt entweder den Checkout-Token oder (bei sofortiger Freischaltung) den Genehmigungscode zurück.
      * @throws DomainException Wenn der Code ungültig ist.
      */
-    public function handle(ConfirmPermitEmailCommand $command): string
+    #[Override]
+    public function handle(mixed $command): string
     {
         $allPending = $this->verificationRepository->loadPending();
         $input = \strtoupper(\trim($command->tokenOrCode));
@@ -51,7 +58,7 @@ final readonly class ConfirmPermitEmailHandler
             foreach ($allVerified as $t => $req) {
                 $strToken = (string) $t;
                 if (\strtoupper($strToken) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
-                    return $strToken; // Bereits verifiziert, Checkout Token zurückgeben
+                    return $strToken;
                 }
             }
 

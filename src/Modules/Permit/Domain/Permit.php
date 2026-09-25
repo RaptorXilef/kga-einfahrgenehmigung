@@ -65,12 +65,10 @@ final class Permit
         );
     }
 
-    // --- Domain Validation ---
+    // --- Domain Validation (100% ClockInterface-pure, kein implizites new DateTimeImmutable) ---
 
-    public function isValid(bool $requirePayment = false, ?DateTimeImmutable $now = null): bool
+    public function isValid(bool $requirePayment, DateTimeImmutable $now): bool
     {
-        $now ??= new DateTimeImmutable();
-
         if ($this->status->is_suspended) {
             return false;
         }

@@ -14,13 +14,13 @@ use App\Application\Response\EmptyResponse;
 use App\Application\Response\PdfStreamResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\System\PdfGeneratorInterface;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
-use App\Modules\System\Application\Services\AuditLoggerService;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
@@ -32,7 +32,7 @@ use Override;
 final readonly class AdminPrintAction implements ViewActionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private ConfigInterface $config,
         private HolidayService $holidayService,
         private GetPermitByCodeHandler $getPermitByCodeHandler,

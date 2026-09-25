@@ -6,16 +6,18 @@ namespace App\Modules\System\Application\Services;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthSessionInterface;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\System\IpResolverInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\System\Domain\AuditLog;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
 use App\SharedKernel\Domain\ValueObject\IpAddress;
+use Override;
 
 /**
  * Service for logging domain and system events securely.
  */
-final readonly class AuditLoggerService
+final readonly class AuditLoggerService implements AuditLoggerInterface
 {
     public function __construct(
         private AuthSessionInterface $session,
@@ -32,6 +34,7 @@ final readonly class AuditLoggerService
      * @param string $action A short identifier for the action (e.g., 'PERMIT_CREATE')
      * @param string $details A detailed description of the event
      */
+    #[Override]
     public function log(string $action, string $details): void
     {
         $userId = $this->session->getUserId();

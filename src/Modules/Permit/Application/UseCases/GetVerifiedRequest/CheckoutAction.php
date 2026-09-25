@@ -12,6 +12,7 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
 use DateTimeImmutable;
@@ -26,6 +27,7 @@ final readonly class CheckoutAction implements ViewActionInterface
         private HolidayService $holidayService,
         private GetVerifiedRequestHandler $getVerifiedHandler,
         private TemplateRenderer $renderer,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -45,8 +47,9 @@ final readonly class CheckoutAction implements ViewActionInterface
             return new RedirectResponse('/');
         }
 
-        $dtVon = new DateTimeImmutable($tempData['datum_von'] ?? 'now');
-        $dtBis = new DateTimeImmutable($tempData['datum_bis'] ?? 'now');
+        $todayStr = $this->clock->now()->format('Y-m-d');
+        $dtVon = new DateTimeImmutable((string) ($tempData['datum_von'] ?? $todayStr));
+        $dtBis = new DateTimeImmutable((string) ($tempData['datum_bis'] ?? $todayStr));
 
         $vehicleTypes = $this->config->getArray('vehicle_types');
         $vKey = $tempData['typ'] ?? '';

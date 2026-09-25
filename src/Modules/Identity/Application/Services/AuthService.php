@@ -76,16 +76,19 @@ final readonly class AuthService implements AuthorizationInterface
         $this->sessionManager->setPermissions($compiler->compile(\is_array($structure) ? $structure : [], $rolePerms));
     }
 
+    #[Override]
     public function getUsername(): string
     {
         return $this->sessionManager->getAdminUser();
     }
 
+    #[Override]
     public function getUserId(): string
     {
         return $this->sessionManager->getUserId();
     }
 
+    #[Override]
     public function getRole(): string
     {
         return $this->sessionManager->getAdminGroup();

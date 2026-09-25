@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
-final readonly class SaveRoleCommand
+use App\SharedKernel\Application\Command\CommandInterface;
+
+final readonly class SaveRoleCommand implements CommandInterface
 {
     public function __construct(
         public string $roleId,

@@ -13,14 +13,14 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Contracts\Security\AuthorizationInterface;
 use Override;
 
 #[Route('GET', '/check')]
 final readonly class CheckPermitAction implements ViewActionInterface
 {
     public function __construct(
-        private AuthService $auth,
+        private AuthorizationInterface $auth,
         private ConfigInterface $config,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,

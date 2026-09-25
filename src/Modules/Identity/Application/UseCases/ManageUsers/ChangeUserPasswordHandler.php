@@ -6,9 +6,14 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
+use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
+use Override;
 
-final readonly class ChangeUserPasswordHandler
+/**
+ * @implements CommandWithResultHandlerInterface<ChangeUserPasswordCommand, string>
+ */
+final readonly class ChangeUserPasswordHandler implements CommandWithResultHandlerInterface
 {
     public function __construct(
         private UserRepositoryInterface $repository,
@@ -17,8 +22,11 @@ final readonly class ChangeUserPasswordHandler
 
     /**
      * Gibt den neuen Hash für das Session-Update zurück.
+     *
+     * @param ChangeUserPasswordCommand $command
      */
-    public function handle(ChangeUserPasswordCommand $command): string
+    #[Override]
+    public function handle(mixed $command): string
     {
         $user = $this->repository->findById($command->userId);
         if (!$user instanceof User) {

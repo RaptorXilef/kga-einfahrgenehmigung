@@ -7,9 +7,14 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\Identity\Domain\UserUniquenessChecker;
+use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
+use Override;
 
-final readonly class RenameUserHandler
+/**
+ * @implements CommandWithResultHandlerInterface<RenameUserCommand, string>
+ */
+final readonly class RenameUserHandler implements CommandWithResultHandlerInterface
 {
     public function __construct(
         private UserRepositoryInterface $repository,
@@ -19,8 +24,11 @@ final readonly class RenameUserHandler
 
     /**
      * Gibt den alten Namen für das Audit-Log zurück.
+     *
+     * @param RenameUserCommand $command
      */
-    public function handle(RenameUserCommand $command): string
+    #[Override]
+    public function handle(mixed $command): string
     {
         $user = $this->repository->findById($command->userId);
         if (!$user instanceof User) {

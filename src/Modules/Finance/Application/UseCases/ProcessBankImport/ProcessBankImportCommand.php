@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Finance\Application\UseCases\ProcessBankImport;
 
+use App\SharedKernel\Application\Command\CommandInterface;
+
 /**
  * Ein Transport-DTO für den Bank-Import Batch-Job.
  */
-final readonly class ProcessBankImportCommand
+final readonly class ProcessBankImportCommand implements CommandInterface
 {
     public function __construct(
         public string $tempFile,

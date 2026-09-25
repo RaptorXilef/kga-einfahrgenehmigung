@@ -11,7 +11,7 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\System\AuditLoggerInterface;
 use DomainException;
 use Override;
 
@@ -20,7 +20,7 @@ use Override;
 final readonly class PermitMarkAsPaidAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
         private SessionManager $sessionManager,
         private MarkPermitAsPaidHandler $markPaidHandler,
     ) {
@@ -53,7 +53,7 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
 
         foreach ($codes as $code) {
             try {
-                $command = new MarkPermitAsPaidCommand($code, 'Manuell bestätigt');
+                $command = new MarkPermitAsPaidCommand((string) $code, 'Manuell bestätigt');
                 $this->markPaidHandler->handle($command);
                 ++$successCount;
             } catch (DomainException) {

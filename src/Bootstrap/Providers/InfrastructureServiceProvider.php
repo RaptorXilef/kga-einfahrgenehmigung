@@ -17,10 +17,13 @@ use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\AuthorizationInterface;
 use App\Contracts\Security\AuthSessionInterface;
+use App\Contracts\Security\BotProtectionInterface;
+use App\Contracts\Security\EmailValidationInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\System\AssetHelperInterface;
+use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\IpResolverInterface;
@@ -56,6 +59,8 @@ use App\Modules\Permit\Infrastructure\PdoPermitArchiveRepository;
 use App\Modules\Permit\Infrastructure\PdoPermitRepository;
 use App\Modules\Permit\Infrastructure\PdoVerificationRepository;
 use App\Modules\System\Application\Contracts\EmailValidationServiceInterface;
+use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Modules\System\Application\Services\BotProtectionService;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
 use App\Modules\System\Domain\MailQueueRepositoryInterface;
 use App\Modules\System\Infrastructure\Logging\ErrorLogger;
@@ -107,7 +112,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
     public function register(ContainerInterface $container): void
     {
         // 1. ZUERST CLOCK INITIALISIEREN (Wird von PdoFactory benötigt)
-        $container->bind(ClockInterface::class, fn (): mixed => $container->get(SystemClock::class));
+        $container->bind(ClockInterface::class, fn (): ClockInterface => $container->get(SystemClock::class));
 
         // 2. CORE SYSTEM & DATABASE
         $container->bind(PDO::class, fn (): ?PDO => PdoFactory::create(
@@ -130,11 +135,13 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         // --- PERMIT DDD REPOSITORY BINDINGS ---
         $container->bind(PermitRepositoryInterface::class, fn (): PdoPermitRepository => new PdoPermitRepository(
             $container->get(PDO::class),
+            $container->get(ClockInterface::class),
         ));
         $container->bind(VerificationRepositoryInterface::class, fn (): PdoVerificationRepository => new PdoVerificationRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
+            $container->get(ClockInterface::class),
         ));
         $container->bind(CancelledPermitRepositoryInterface::class, fn (): PdoCancelledPermitRepository => new PdoCancelledPermitRepository(
             $container->get(PDO::class),
@@ -154,6 +161,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         ));
         $container->bind(VoucherArchiveRepositoryInterface::class, fn (): PdoVoucherArchiveRepository => new PdoVoucherArchiveRepository(
             $container->get(PDO::class),
+            $container->get(ClockInterface::class),
         ));
 
         // --- IDENTITY DDD REPOSITORY BINDINGS ---
@@ -186,7 +194,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(VoucherIntegrationInterface::class, fn (): VoucherIntegrationService => $container->get(VoucherIntegrationService::class));
 
         // --- NETWORK & THIRD-PARTY SERVICES ---
-        $container->bind(PaymentProviderInterface::class, fn (): mixed => $container->get(PayPalService::class));
+        $container->bind(PaymentProviderInterface::class, fn (): PaymentProviderInterface => $container->get(PayPalService::class));
 
         $container->bind('mail.transport', function () use ($container): MicrosoftGraphMailService|OAuthSmtpMailService|SmtpMailService {
             $config = $container->get(ConfigInterface::class);
@@ -217,7 +225,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             );
         });
 
-        $container->bind(MailLogInterface::class, fn (): mixed => $container->get('mail.transport'));
+        $container->bind(MailLogInterface::class, fn (): MailLogInterface => $container->get('mail.transport'));
 
         $container->bind(MailServiceInterface::class, fn (): MailQueueService => new MailQueueService(
             $container->get(MailQueueRepositoryInterface::class),
@@ -225,26 +233,31 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(ClockInterface::class),
         ));
 
-        // --- SECURITY ---
-        $container->bind(AuthSessionInterface::class, fn (): object => clone $container->get(SessionManager::class));
-        $container->bind(RateLimiterInterface::class, fn (): mixed => $container->get(RateLimiter::class));
-        $container->bind(AuthorizationInterface::class, fn (): mixed => $container->get(AuthService::class));
-        $container->bind(EmailValidationServiceInterface::class, fn (): EmailValidationService => new EmailValidationService(
+        // --- SECURITY & AUDIT PORTS ---
+        $container->bind(AuthSessionInterface::class, fn (): AuthSessionInterface => clone $container->get(SessionManager::class));
+        $container->bind(RateLimiterInterface::class, fn (): RateLimiterInterface => $container->get(RateLimiter::class));
+        $container->bind(AuthorizationInterface::class, fn (): AuthorizationInterface => $container->get(AuthService::class));
+        $container->bind(AuditLoggerInterface::class, fn (): AuditLoggerInterface => $container->get(AuditLoggerService::class));
+        $container->bind(BotProtectionInterface::class, fn (): BotProtectionInterface => $container->get(BotProtectionService::class));
+
+        $emailValidationResolver = fn (): EmailValidationService => new EmailValidationService(
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
             $container->get(ClockInterface::class),
-        ));
+        );
+        $container->bind(EmailValidationServiceInterface::class, $emailValidationResolver);
+        $container->bind(EmailValidationInterface::class, $emailValidationResolver);
 
         // --- SYSTEM ---
         $container->bind(IpResolverInterface::class, fn (): ServerIpResolver => new ServerIpResolver());
-        $container->bind(LockManagerInterface::class, fn (): mixed => $container->get(FileLockManager::class));
-        $container->bind(BackupServiceInterface::class, fn (): mixed => $container->get(BackupService::class));
-        $container->bind(ErrorLoggerInterface::class, fn (): mixed => $container->get(ErrorLogger::class));
-        $container->bind(ImageStorageInterface::class, fn (): mixed => $container->get(ImageStorageService::class));
+        $container->bind(LockManagerInterface::class, fn (): LockManagerInterface => $container->get(FileLockManager::class));
+        $container->bind(BackupServiceInterface::class, fn (): BackupServiceInterface => $container->get(BackupService::class));
+        $container->bind(ErrorLoggerInterface::class, fn (): ErrorLoggerInterface => $container->get(ErrorLogger::class));
+        $container->bind(ImageStorageInterface::class, fn (): ImageStorageInterface => $container->get(ImageStorageService::class));
         $container->bind(JsonHelperInterface::class, fn (): JsonHelper => new JsonHelper());
-        $container->bind(StorageBootstrapperInterface::class, fn (): mixed => $container->get(StorageBootstrapper::class));
-        $container->bind(SystemInfoInterface::class, fn (): mixed => $container->get(SystemInfoService::class));
-        $container->bind(UpdateMigrationServiceInterface::class, fn (): mixed => $container->get(UpdateMigrationService::class));
+        $container->bind(StorageBootstrapperInterface::class, fn (): StorageBootstrapperInterface => $container->get(StorageBootstrapper::class));
+        $container->bind(SystemInfoInterface::class, fn (): SystemInfoInterface => $container->get(SystemInfoService::class));
+        $container->bind(UpdateMigrationServiceInterface::class, fn (): UpdateMigrationServiceInterface => $container->get(UpdateMigrationService::class));
         $container->bind(PdfGeneratorInterface::class, fn (): DompdfGenerator => new DompdfGenerator());
         $container->bind(RouteCacheInterface::class, fn (): FileRouteCache => new FileRouteCache(
             $container->get(ConfigInterface::class),

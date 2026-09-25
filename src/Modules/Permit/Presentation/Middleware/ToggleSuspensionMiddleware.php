@@ -10,7 +10,7 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Modules\Identity\Application\Services\AuthService;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Modules\Permit\Application\UseCases\TogglePermitSuspension\PermitToggleSuspensionRequest;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
@@ -22,7 +22,7 @@ use Override;
 final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private AuthService $auth,
+        private AuthorizationInterface $auth,
         private SessionManager $sessionManager,
         private PermitRepositoryInterface $repository,
     ) {

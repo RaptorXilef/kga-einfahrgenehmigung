@@ -6,9 +6,14 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
+use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
+use Override;
 
-final readonly class DeleteUserHandler
+/**
+ * @implements CommandWithResultHandlerInterface<DeleteUserCommand, string>
+ */
+final readonly class DeleteUserHandler implements CommandWithResultHandlerInterface
 {
     public function __construct(
         private UserRepositoryInterface $repository,
@@ -17,8 +22,11 @@ final readonly class DeleteUserHandler
 
     /**
      * Gibt den alten Namen für das Audit-Log zurück.
+     *
+     * @param DeleteUserCommand $command
      */
-    public function handle(DeleteUserCommand $command): string
+    #[Override]
+    public function handle(mixed $command): string
     {
         if ($command->userId === $command->initiatorId) {
             throw new DomainException('Fehler: Selbstausschluss nicht möglich.');

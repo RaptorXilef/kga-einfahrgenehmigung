@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Application\Services;
 
+use App\Contracts\Security\BotProtectionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Utils\ClockInterface;
 use InvalidArgumentException;
+use Override;
 
 /**
  * Service zur Abwehr von automatisierten Formular-Einsendungen (Bots).
  */
-final readonly class BotProtectionService
+final readonly class BotProtectionService implements BotProtectionInterface
 {
     public function __construct(
         private RateLimiterInterface $rateLimiter,
@@ -24,6 +26,7 @@ final readonly class BotProtectionService
      *
      * @throws InvalidArgumentException
      */
+    #[Override]
     public function checkRateLimit(string $ip): void
     {
         if ($this->rateLimiter->isBlocked($ip)) {
@@ -34,6 +37,7 @@ final readonly class BotProtectionService
     /**
      * Zählt einen durchgeführten Antrag als "Strike" gegen das IP-Limit.
      */
+    #[Override]
     public function recordStrike(string $ip): void
     {
         $this->rateLimiter->recordFailedAttempt($ip);
@@ -44,6 +48,7 @@ final readonly class BotProtectionService
      *
      * @throws InvalidArgumentException
      */
+    #[Override]
     public function verifyTimeCheck(int $startTime, int $minSeconds = 3): void
     {
         if ($startTime === 0) {
@@ -61,6 +66,7 @@ final readonly class BotProtectionService
      *
      * @throws InvalidArgumentException
      */
+    #[Override]
     public function verifyHoneypot(string $honeypotValue): void
     {
         if (\trim($honeypotValue) !== '') {

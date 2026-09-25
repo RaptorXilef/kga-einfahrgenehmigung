@@ -8,9 +8,14 @@ use App\Contracts\Event\EventDispatcherInterface;
 use App\Modules\Identity\Domain\Events\RoleDeletedEvent;
 use App\Modules\Identity\Domain\Role;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use App\SharedKernel\Application\Command\CommandWithResultHandlerInterface;
 use DomainException;
+use Override;
 
-final readonly class DeleteRoleHandler
+/**
+ * @implements CommandWithResultHandlerInterface<DeleteRoleCommand, string>
+ */
+final readonly class DeleteRoleHandler implements CommandWithResultHandlerInterface
 {
     public function __construct(
         private RoleRepositoryInterface $repository,
@@ -18,7 +23,11 @@ final readonly class DeleteRoleHandler
     ) {
     }
 
-    public function handle(DeleteRoleCommand $command): string
+    /**
+     * @param DeleteRoleCommand $command
+     */
+    #[Override]
+    public function handle(mixed $command): string
     {
         if ($command->roleId === 'admin') {
             throw new DomainException('Die Admin-Rolle kann nicht gelöscht werden.');

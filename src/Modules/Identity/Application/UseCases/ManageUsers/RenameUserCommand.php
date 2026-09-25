@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
-final readonly class RenameUserCommand
+use App\SharedKernel\Application\Command\CommandInterface;
+
+final readonly class RenameUserCommand implements CommandInterface
 {
     public function __construct(
         public string $userId,
