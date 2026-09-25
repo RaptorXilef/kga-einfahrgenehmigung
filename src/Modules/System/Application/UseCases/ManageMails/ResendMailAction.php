@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Application\UseCases\ManageMails;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -15,15 +17,21 @@ use App\Contracts\System\AuditLoggerInterface;
 use DomainException;
 use Override;
 
-#[Route('GET', '/resend_mail')]
 #[Route('POST', '/resend_mail')]
-final readonly class ResendMailAction implements ActionInterface
+#[RequiresAuth]
+final readonly class ResendMailAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerInterface $auditLogger,
         private ResendMailHandler $resendHandler,
         private SessionManager $sessionManager,
     ) {
+    }
+
+    #[Override]
+    public function getRequiredPermission(): string
+    {
+        return 'system.logs.view';
     }
 
     #[Override]

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Application\UseCases\Maintenance;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -16,8 +17,8 @@ use App\Contracts\System\AuditLoggerInterface;
 use Override;
 use Throwable;
 
-#[Route('GET', '/run_update_migrations')]
 #[Route('POST', '/run_update_migrations')]
+#[RequiresAuth]
 final readonly class RunUpdateMigrationsAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

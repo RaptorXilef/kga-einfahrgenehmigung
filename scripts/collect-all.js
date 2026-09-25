@@ -6,33 +6,64 @@ import { fileURLToPath } from 'node:url';
 // =============================================================================
 // SCHNELLE KONFIGURATION (Hier einfach Ordner/Dateien ergänzen)
 // =============================================================================
+// HINWEIS ZU WILDCARDS (*):
+// - Ohne '*' -> Exakter Treffer (z.B. 'backup' ignoriert NUR den Ordner "backup")
+// - Mit '*'  -> Teilstring/Muster (z.B. '*backup*' ignoriert auch "mein_backup_2025")
 
+// 1. GLOBALE IGNORES (Gelten für ALLE Dateiarten)
 const ALWAYS_IGNORE_DIRS = [
-    'backup',
-    'alt',
-    'notizen',
-    'notes',
-    'vendor',
-    'node_modules',
-    '_Commits',
-    'debug',
-    'scripts',
-    '.git',
-    '.cache',
     '.build',
+    '.cache',
+    '.debug',
+    '.git',
+    '.github',
+    '.husky',
+    '.vscode',
+    'backups',
+    'cache',
+    'docs',
+    'logs',
+    'node_modules',
+    'scripts',
+    'tools',
+    'vendor',
 ];
 
 const ALWAYS_IGNORE_PATHS = ['public/assets', 'public/dev'];
 
 const ALWAYS_IGNORE_FILES = [
-    '.lock',
-    '-lock.json',
+    '*.lock',
+    '*-lock.json',
     '.DS_Store',
-    'min.js',
-    'min.css',
+    '*.min.js',
+    '*.min.css',
     '*.local.*',
     'routes_v2.php',
 ];
+
+// 2. IGNORES PRO DATEIART (Werden zusätzlich zu den globalen Ignores beachtet)
+const IGNORE_BY_TYPE = {
+    js: {
+        dirs: ['public/assets'],
+        files: ['svgo.config.*', 'purgecss.config.*', 'eslint.config.*', 'commitlint.config.*'],
+    },
+    php: {
+        dirs: ['tests'],
+        files: ['*php-cs-fixer.dist*', 'rector.php'],
+    },
+    phtml: {
+        dirs: [],
+        files: [],
+    },
+    scss: {
+        dirs: [],
+        files: [],
+    },
+    sql: {
+        dirs: [],
+        files: [],
+    },
+};
 
 // =============================================================================
 
@@ -74,29 +105,29 @@ const configs = {
         name: 'JsCode',
         filter: /\.js$/,
         ext: '.md',
-        exclDirs: ['public/assets'],
-        exclFiles: ['svgo.config', 'purgecss.config', 'eslint.config', 'commitlint.config'],
+        exclDirs: IGNORE_BY_TYPE.js.dirs,
+        exclFiles: IGNORE_BY_TYPE.js.files,
     },
     PHP: {
         name: 'PhpCode',
         filter: /\.php$/,
         ext: '.md',
-        exclDirs: ['tests'],
-        exclFiles: ['php-cs-fixer.dist', 'rector.php'],
+        exclDirs: IGNORE_BY_TYPE.php.dirs,
+        exclFiles: IGNORE_BY_TYPE.php.files,
     },
     PHTML: {
         name: 'PhtmlCode',
         filter: /\.phtml$/,
         ext: '.md',
-        exclDirs: [],
-        exclFiles: [],
+        exclDirs: IGNORE_BY_TYPE.phtml.dirs,
+        exclFiles: IGNORE_BY_TYPE.phtml.files,
     },
     SCSS: {
         name: 'ScssCode',
         filter: /\.scss$/,
         ext: '.md',
-        exclDirs: [],
-        exclFiles: [],
+        exclDirs: IGNORE_BY_TYPE.scss.dirs,
+        exclFiles: IGNORE_BY_TYPE.scss.files,
     },
     PROJECT: {
         name: 'ProjektZusammenfassung',
@@ -113,18 +144,18 @@ const configs = {
             'package.json',
             'deptrac.yaml',
             'phpstan.neon.dist',
-            // '.github/workflows/deploy.yml', // Mit Slashes angeben, wird durch path.normalize systemübergreifend korrekt verarbeitet
+            // '.github/workflows/deploy.yml',
         ],
         ext: '.md',
     },
-    // NEU: 8. Option für SQL Migrations
+    // 8. Option für SQL Migrations
     SQL: {
         name: 'SqlMigrations',
         filter: /\.sql$/,
         ext: '.md',
-        targetDir: 'database/migrations', // Schränkt die Suche direkt auf diesen Ordner ein
-        exclDirs: [],
-        exclFiles: [],
+        targetDir: 'database/migrations',
+        exclDirs: IGNORE_BY_TYPE.sql.dirs,
+        exclFiles: IGNORE_BY_TYPE.sql.files,
     },
 };
 
@@ -136,7 +167,6 @@ const configs = {
 function sanitizeJsonContent(filePath, rawContent) {
     const baseName = path.basename(filePath).toLowerCase();
 
-    // Nur bei composer.json und package.json eingreifen
     if (baseName !== 'composer.json' && baseName !== 'package.json') {
         return rawContent;
     }
@@ -198,22 +228,74 @@ function formatContent(content) {
 // =============================================================================
 
 /**
- * NEU: Prüft, ob ein Ziel-String (Datei/Ordner) auf ein Pattern passt.
- * Unterstützt * als Wildcard (z.B. '*.local.*') oder normale Teilstrings.
+ * Prüft, ob ein Ziel-String (Datei/Ordner) auf ein Pattern passt.
+ * - Mit '*'   : Wildcard-Suche (z.B. '*backup*' -> enthält "backup", 'backup*' -> beginnt mit "backup")
+ * - Ohne '*'  : Exakte Übereinstimmung (z.B. 'backup' -> trifft NUR auf "backup" zu, nicht auf "my_backup")
  */
 function matchPattern(target, pattern) {
-    if (pattern.includes('*')) {
-        // RegEx-Sonderzeichen escapen, außer das Sternchen
+    if (!pattern) return false;
+
+    const cleanTarget = target.toLowerCase();
+    const cleanPattern = pattern.toLowerCase();
+
+    if (cleanPattern.includes('*')) {
+        // RegEx-Sonderzeichen escapen, außer das Sternchen (*)
         const escapeRegex = (s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
-        // Linter-Fix: Template Literal statt String-Konkatenation
-        const regexStr = `^${pattern.split('*').map(escapeRegex).join('.*')}$`;
-        return new RegExp(regexStr, 'i').test(target);
+        const regexStr = `^${cleanPattern.split('*').map(escapeRegex).join('.*')}$`;
+        return new RegExp(regexStr, 'i').test(cleanTarget);
     }
-    // Fallback: Normale Teilstring-Suche (wie bisher)
-    return target.toLowerCase().includes(pattern.toLowerCase());
+
+    // Exakter Treffer, wenn kein Sternchen angegeben wurde
+    return cleanTarget === cleanPattern;
 }
 
-function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = []) {
+/**
+ * Prüft, ob ein relativer Ordnerpfad durch eine Pattern-Liste ausgeschlossen ist.
+ * Unterstützt sowohl reine Ordnernamen ('backup', '*backup*') als auch Pfade ('public/assets').
+ */
+function isDirExcludedByList(relPath, patterns = []) {
+    if (!patterns || patterns.length === 0 || !relPath || relPath === '.') return false;
+
+    const normalizedRelPath = relPath.replace(/\\/g, '/');
+    const segments = normalizedRelPath.split('/');
+    // Bildet alle Teilpfade ab Root (z.B. ['public', 'public/assets', 'public/assets/js'])
+    const subPaths = segments.map((_, idx) => segments.slice(0, idx + 1).join('/'));
+
+    return patterns.some((pattern) => {
+        const normalizedPattern = pattern.replace(/\\/g, '/');
+        if (normalizedPattern.includes('/')) {
+            return subPaths.some((sub) => matchPattern(sub, normalizedPattern));
+        }
+        return segments.some((segment) => matchPattern(segment, normalizedPattern));
+    });
+}
+
+/**
+ * Prüft, ob eine Datei durch eine Pattern-Liste ausgeschlossen ist.
+ * Unterstützt Dateinamen ('*.local.*', 'rector.php') sowie relative Dateipfade ('config/routes.php').
+ */
+function isFileExcludedByList(fileName, relFilePath, patterns = []) {
+    if (!patterns || patterns.length === 0) return false;
+
+    const normalizedRelFile = relFilePath.replace(/\\/g, '/');
+
+    return patterns.some((pattern) => {
+        const normalizedPattern = pattern.replace(/\\/g, '/');
+        if (normalizedPattern.includes('/')) {
+            return matchPattern(normalizedRelFile, normalizedPattern);
+        }
+        return matchPattern(fileName, normalizedPattern);
+    });
+}
+
+function getFiles(
+    dir,
+    filter,
+    exclDirs = [],
+    exclFiles = [],
+    includeRoot = false,
+    currentFiles = []
+) {
     const files = fs.readdirSync(dir);
 
     for (const file of files) {
@@ -222,30 +304,39 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
         const stat = fs.statSync(fullPath);
 
         if (stat.isDirectory()) {
-            const normalizedRelPath = relPath.replace(/\\/g, '/').toLowerCase();
-
-            // matchPattern() verwendet und file.startsWith('.') für bessere Performance vorgezogen
-            const isExcluded =
+            // 1. Globale & aktive Config-Ordner-Ignores prüfen
+            const isExcludedDir =
                 file.startsWith('.') ||
-                ALWAYS_IGNORE_DIRS.some((d) => matchPattern(file, d)) ||
-                ALWAYS_IGNORE_PATHS.some((p) => matchPattern(normalizedRelPath, p)) ||
-                exclDirs.some((d) => matchPattern(normalizedRelPath, d));
+                isDirExcludedByList(relPath, ALWAYS_IGNORE_DIRS) ||
+                isDirExcludedByList(relPath, ALWAYS_IGNORE_PATHS) ||
+                isDirExcludedByList(relPath, exclDirs);
 
-            if (!isExcluded) {
+            if (!isExcludedDir) {
                 getFiles(fullPath, filter, exclDirs, exclFiles, includeRoot, currentFiles);
             }
         } else {
             const isRootFile = path.dirname(fullPath) === basePath;
             if (!includeRoot && isRootFile) continue;
 
-            const matchesFilter = filter.test(file);
+            if (!filter.test(file)) continue;
 
-            // matchPattern() hier für Dateien verwendet, um *.local.* abzufangen
+            // Dateiart bestimmen (z.B. 'js', 'php', 'phtml', 'scss', 'sql')
+            const extKey = path.extname(file).toLowerCase().replace('.', '');
+            const typeIgnores = IGNORE_BY_TYPE[extKey] || { dirs: [], files: [] };
+            const relDir = path.dirname(relPath);
+
+            // 2. Prüfen, ob der Ordner speziell für DIESE Dateiart ignoriert werden soll
+            // (Besonders wichtig bei PROJECT und --mirror, wo mehrere Dateiarten gleichzeitig gesammelt werden)
+            const isExcludedByTypeDir =
+                relDir !== '.' && isDirExcludedByList(relDir, typeIgnores.dirs);
+
+            // 3. Prüfen, ob die Datei global, in der Config oder speziell für diese Dateiart ignoriert wird
             const isExcludedFile =
-                ALWAYS_IGNORE_FILES.some((f) => matchPattern(file, f)) ||
-                exclFiles.some((f) => matchPattern(file, f));
+                isFileExcludedByList(file, relPath, ALWAYS_IGNORE_FILES) ||
+                isFileExcludedByList(file, relPath, exclFiles) ||
+                isFileExcludedByList(file, relPath, typeIgnores.files);
 
-            if (matchesFilter && !isExcludedFile) {
+            if (!isExcludedByTypeDir && !isExcludedFile) {
                 currentFiles.push({
                     fullPath,
                     relPath,

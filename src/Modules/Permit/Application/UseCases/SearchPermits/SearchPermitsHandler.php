@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\SearchPermits;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use DateTimeImmutable;
 use Override;
@@ -18,6 +19,7 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
     public function __construct(
         private PDO $pdo,
         private ConfigInterface $config,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -60,17 +62,21 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
         $sqlParts = [];
         $allBinds = [];
         $baseCols = 'code, template_key, name, email, kennzeichen, parzelle, preis, status, von, bis, zweck, erstellt';
+        $today = $this->clock->now()->format('Y-m-d');
 
-        // Aktive und abgelaufene (aus der Haupt-Tabelle)
+        // Aktive und abgelaufene (aus der Haupt-Tabelle, über ClockInterface statt CURDATE())
         if (\in_array($query->tab, ['all', 'active', 'expired'], true)) {
             $statusCond = '';
+            $statusBinds = [];
             if ($query->tab === 'active') {
-                $statusCond = ' AND bis >= CURDATE()';
+                $statusCond = ' AND bis >= ?';
+                $statusBinds[] = $today;
             } elseif ($query->tab === 'expired') {
-                $statusCond = ' AND bis < CURDATE()';
+                $statusCond = ' AND bis < ?';
+                $statusBinds[] = $today;
             }
             $sqlParts[] = "SELECT $baseCols, 0 AS is_archived FROM permits WHERE $whereStr$statusCond";
-            $allBinds = \array_merge($allBinds, $binds);
+            $allBinds = \array_merge($allBinds, $binds, $statusBinds);
         }
 
         if (\in_array($query->tab, ['all', 'archive'], true)) {

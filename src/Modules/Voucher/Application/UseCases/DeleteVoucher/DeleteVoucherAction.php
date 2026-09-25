@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Voucher\Application\UseCases\DeleteVoucher;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -18,8 +19,8 @@ use Override;
 /**
  * Action zum unwiderruflichen Löschen eines Gutscheins (VSA).
  */
-#[Route('GET', '/delete_voucher')]
 #[Route('POST', '/delete_voucher')]
+#[RequiresAuth]
 final readonly class DeleteVoucherAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
@@ -52,6 +53,6 @@ final readonly class DeleteVoucherAction implements ActionInterface, RequiresPer
         $this->auditLogger->log('VOUCHER_DELETE', "Gutscheincode '{$dto->code}' endgültig gelöscht.");
         $this->sessionManager->addFlash('success', "Gutschein '{$dto->code}' gelöscht.");
 
-        return new RedirectResponse('admin');
+        return new RedirectResponse('admin?focus=tab-vouchers');
     }
 }

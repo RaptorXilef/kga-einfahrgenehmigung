@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\ManageProfile;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
@@ -19,6 +20,7 @@ use DomainException;
 use Override;
 
 #[Route('POST', '/change_own_username')]
+#[RequiresAuth]
 final readonly class ProfileUpdateUsernameAction implements ActionInterface
 {
     public function __construct(

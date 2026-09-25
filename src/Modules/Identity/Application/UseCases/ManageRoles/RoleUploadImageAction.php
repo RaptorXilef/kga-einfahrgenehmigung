@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\ManageRoles;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -16,8 +17,8 @@ use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
 use Override;
 
-#[Route('GET', '/upload_role_image')]
 #[Route('POST', '/upload_role_image')]
+#[RequiresAuth]
 final readonly class RoleUploadImageAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

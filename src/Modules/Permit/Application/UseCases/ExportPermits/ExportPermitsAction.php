@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\ExportPermits;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
@@ -19,6 +20,7 @@ use Override;
 
 #[Route('GET', '/export_permits')]
 #[Route('POST', '/export_permits')]
+#[RequiresAuth]
 final readonly class ExportPermitsAction implements ViewActionInterface
 {
     public function __construct(

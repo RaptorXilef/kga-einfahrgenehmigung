@@ -9,6 +9,7 @@ use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
+use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
@@ -39,15 +40,17 @@ final readonly class TruncateTargetAction implements ActionInterface, RequiresPe
     #[Override]
     public function execute(ServerRequest $request): ResponseInterface
     {
-        $target = \trim((string) ($request->post['target'] ?? ''));
-
         try {
-            $tableName = $this->truncateHandler->handle(new TruncateTargetCommand($target));
+            $dto = TruncateTargetRequest::fromArray($request->post);
+            $tableName = $this->truncateHandler->handle(new TruncateTargetCommand($dto->target));
+
             $this->auditLogger->log(
                 'SYSTEM_TABLE_TRUNCATE',
-                "Tabelle '{$tableName}' (Ziel: {$target}) wurde manuell geleert (inkl. Vorab-Backup).",
+                "Tabelle '{$tableName}' (Ziel: {$dto->target}) wurde manuell geleert (inkl. Vorab-Backup).",
             );
             $this->sessionManager->addFlash('success', "Tabelle '{$tableName}' wurde gesichert und erfolgreich geleert.");
+        } catch (ValidationException $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
         } catch (Throwable $e) {
             $this->sessionManager->addFlash('error', 'Fehler beim Leeren der Tabelle: ' . $e->getMessage());
         }

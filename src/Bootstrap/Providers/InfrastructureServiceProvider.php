@@ -153,6 +153,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
+            $container->get(ClockInterface::class),
         ));
         $container->bind(PermitArchiveRepositoryInterface::class, fn (): PdoPermitArchiveRepository => new PdoPermitArchiveRepository(
             $container->get(PDO::class),
@@ -183,6 +184,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(LoginAttemptRepositoryInterface::class, fn (): PdoLoginAttemptRepository => new PdoLoginAttemptRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
+            $container->get(ClockInterface::class),
         ));
 
         // --- FINANCE DDD REPOSITORY BINDINGS ---
@@ -205,7 +207,8 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
 
         $container->bind('mail.transport', function () use ($container): MicrosoftGraphMailService|OAuthSmtpMailService|SmtpMailService {
             $config = $container->get(ConfigInterface::class);
-            $default = $config->get('mail', [])['default'] ?? 'smtp';
+            $mailCfg = $config->getArray('mail');
+            $default = (string) ($mailCfg['default'] ?? 'smtp');
 
             if ($default === 'graph') {
                 return new MicrosoftGraphMailService(

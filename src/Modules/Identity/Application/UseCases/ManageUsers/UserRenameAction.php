@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -17,6 +18,7 @@ use DomainException;
 use Override;
 
 #[Route('POST', '/rename_user')]
+#[RequiresAuth]
 final readonly class UserRenameAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

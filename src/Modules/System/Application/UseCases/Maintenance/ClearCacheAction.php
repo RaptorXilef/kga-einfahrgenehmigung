@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Application\UseCases\Maintenance;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -17,6 +18,7 @@ use App\Contracts\System\RouteCacheInterface;
 use Override;
 
 #[Route('POST', '/clear_cache')]
+#[RequiresAuth]
 final readonly class ClearCacheAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

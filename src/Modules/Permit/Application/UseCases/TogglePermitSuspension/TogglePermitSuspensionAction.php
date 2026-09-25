@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\TogglePermitSuspension;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -18,17 +20,22 @@ use Override;
 /**
  * Action zum Sperren oder Entsperren einer aktiven Genehmigung (VSA CQRS).
  */
-#[Route('GET', '/suspend_permit')]
 #[Route('POST', '/suspend_permit')]
-#[Route('GET', '/unsuspend_permit')]
 #[Route('POST', '/unsuspend_permit')]
-final readonly class TogglePermitSuspensionAction implements ActionInterface
+#[RequiresAuth]
+final readonly class TogglePermitSuspensionAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerInterface $auditLogger,
         private SessionManager $sessionManager,
         private TogglePermitSuspensionHandler $toggleHandler,
     ) {
+    }
+
+    #[Override]
+    public function getRequiredPermission(): string
+    {
+        return 'permits.suspend';
     }
 
     /**

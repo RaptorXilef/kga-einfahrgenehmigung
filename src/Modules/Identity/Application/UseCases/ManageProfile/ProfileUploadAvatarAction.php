@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\ManageProfile;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
@@ -16,8 +17,8 @@ use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
 use Override;
 
-#[Route('GET', '/change_own_avatar')]
 #[Route('POST', '/change_own_avatar')]
+#[RequiresAuth]
 final readonly class ProfileUploadAvatarAction implements ActionInterface
 {
     public function __construct(

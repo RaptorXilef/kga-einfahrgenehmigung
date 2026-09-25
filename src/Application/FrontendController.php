@@ -9,6 +9,7 @@ use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
+use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\ApiCsrfMiddleware;
 use App\Application\Middleware\AuthMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
@@ -17,6 +18,7 @@ use App\Application\Middleware\JsonBodyParserMiddleware;
 use App\Application\Middleware\MaintenanceModeMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\SecurityHeadersMiddleware;
+use App\Application\Middleware\SystemMaintenanceMiddleware;
 use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\Routing\UniversalActionFactory;
@@ -25,6 +27,8 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthorizationInterface;
 
 /**
+ * Zentraler HTTP-Kernel und Request-Dispatcher der Anwendung.
+ *
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
  */
 final readonly class FrontendController
@@ -33,6 +37,8 @@ final readonly class FrontendController
         private ConfigInterface $config,
         private UniversalActionFactory $actionFactory,
         private SecurityHeadersMiddleware $securityHeaders,
+        private SystemMaintenanceMiddleware $systemMaintenance,
+        private AnalyticsMiddleware $analytics,
         private SessionManager $sessionManager,
         private AuthorizationInterface $authService,
         private JsonBodyParserMiddleware $jsonBodyParser,
@@ -113,6 +119,8 @@ final readonly class FrontendController
         $pipeline = new MiddlewarePipeline();
 
         $pipeline->add($this->securityHeaders);
+        $pipeline->add($this->systemMaintenance);
+        $pipeline->add($this->analytics);
         $pipeline->add($this->jsonBodyParser);
         $pipeline->add($this->formExceptionHandler);
 

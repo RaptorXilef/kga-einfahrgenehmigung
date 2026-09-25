@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\AuthenticateAdmin;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
@@ -13,8 +14,8 @@ use App\Contracts\Security\AuthorizationInterface;
 use App\Contracts\System\AuditLoggerInterface;
 use Override;
 
-#[Route('GET', '/admin_logout')]
 #[Route('POST', '/admin_logout')]
+#[RequiresAuth]
 final readonly class AdminLogoutAction implements ActionInterface
 {
     public function __construct(
@@ -29,6 +30,6 @@ final readonly class AdminLogoutAction implements ActionInterface
         $this->auditLogger->log('LOGOUT', 'Abmeldung aus dem System.');
         $this->auth->logout();
 
-        return new RedirectResponse('admin');
+        return new RedirectResponse('admin_login');
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Application\UseCases\Maintenance;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -16,8 +17,8 @@ use App\Contracts\System\AuditLoggerInterface;
 use Override;
 use Throwable;
 
-#[Route('GET', '/anonymize_archive')]
 #[Route('POST', '/anonymize_archive')]
+#[RequiresAuth]
 final readonly class AnonymizeArchiveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

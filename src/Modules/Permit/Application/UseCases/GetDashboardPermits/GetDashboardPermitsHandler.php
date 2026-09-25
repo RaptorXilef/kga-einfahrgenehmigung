@@ -65,25 +65,29 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
         $archiveWhereStr = $whereStr . ' AND (YEAR(erstellt) >= ? OR YEAR(von) >= ?)';
         $archiveBinds = \array_merge($binds, [$query->minArchiveYear, $query->minArchiveYear]);
 
+        // Deterministisches Heute-Datum via ClockInterface (kein CURDATE() mehr in SQL!)
+        $today = $this->clock->now()->format('Y-m-d');
+        $dateCountBinds = [$today, $today, $today, $today];
+
         // 3. Counts aggregieren (Blitzschnell via SUM CASE)
         $sqlCountPermits = "SELECT
-            SUM(CASE WHEN bis >= CURDATE() AND von <= CURDATE() AND status != 'storniert' THEN 1 ELSE 0 END) as c_active,
-            SUM(CASE WHEN von > CURDATE() AND status != 'storniert' THEN 1 ELSE 0 END) as c_future,
-            SUM(CASE WHEN bis < CURDATE() AND status != 'storniert' THEN 1 ELSE 0 END) as c_expired
+            SUM(CASE WHEN bis >= ? AND von <= ? AND status != 'storniert' THEN 1 ELSE 0 END) as c_active,
+            SUM(CASE WHEN von > ? AND status != 'storniert' THEN 1 ELSE 0 END) as c_future,
+            SUM(CASE WHEN bis < ? AND status != 'storniert' THEN 1 ELSE 0 END) as c_expired
             FROM permits WHERE {$whereStr}";
 
         $stmt = $this->pdo->prepare($sqlCountPermits);
-        $stmt->execute($binds);
+        $stmt->execute(\array_merge($dateCountBinds, $binds));
         $counts1 = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $sqlCountArchive = "SELECT
-            SUM(CASE WHEN bis >= CURDATE() AND von <= CURDATE() AND status != 'storniert' THEN 1 ELSE 0 END) as c_active,
-            SUM(CASE WHEN von > CURDATE() AND status != 'storniert' THEN 1 ELSE 0 END) as c_future,
-            SUM(CASE WHEN bis < CURDATE() AND status != 'storniert' THEN 1 ELSE 0 END) as c_expired
+            SUM(CASE WHEN bis >= ? AND von <= ? AND status != 'storniert' THEN 1 ELSE 0 END) as c_active,
+            SUM(CASE WHEN von > ? AND status != 'storniert' THEN 1 ELSE 0 END) as c_future,
+            SUM(CASE WHEN bis < ? AND status != 'storniert' THEN 1 ELSE 0 END) as c_expired
             FROM permits_archive WHERE {$archiveWhereStr}";
 
         $stmt = $this->pdo->prepare($sqlCountArchive);
-        $stmt->execute($archiveBinds);
+        $stmt->execute(\array_merge($dateCountBinds, $archiveBinds));
         $counts2 = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM permits_cancelled WHERE {$whereStr}");
@@ -98,10 +102,10 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
         $countExpired = (int) ($c1['c_expired'] ?? 0) + (int) ($c2['c_expired'] ?? 0);
 
         // 4. Nur Items (25 Stück) für die 4 Tabs fetchen
-        $activeItems = $this->fetchItems('tab-active', $query, $whereStr, $archiveWhereStr, $binds, $archiveBinds);
-        $futureItems = $this->fetchItems('tab-future', $query, $whereStr, $archiveWhereStr, $binds, $archiveBinds);
-        $expiredItems = $this->fetchItems('tab-expired', $query, $whereStr, $archiveWhereStr, $binds, $archiveBinds);
-        $cancelledItems = $this->fetchItems('tab-cancelled', $query, $whereStr, $archiveWhereStr, $binds, $archiveBinds);
+        $activeItems = $this->fetchItems('tab-active', $query, $whereStr, $archiveWhereStr, $binds, $archiveBinds, $today);
+        $futureItems = $this->fetchItems('tab-future', $query, $whereStr, $archiveWhereStr, $binds, $archiveBinds, $today);
+        $expiredItems = $this->fetchItems('tab-expired', $query, $whereStr, $archiveWhereStr, $binds, $archiveBinds, $today);
+        $cancelledItems = $this->fetchItems('tab-cancelled', $query, $whereStr, $archiveWhereStr, $binds, $archiveBinds, $today);
 
         return new DashboardPermitsResultDto(
             activePermitsDto: $this->mapRowsToDto($activeItems, 'tab-active'),
@@ -116,8 +120,15 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
         );
     }
 
-    private function fetchItems(string $tab, GetDashboardPermitsQuery $query, string $whereStr, string $archiveWhereStr, array $binds, array $archiveBinds): array
-    {
+    private function fetchItems(
+        string $tab,
+        GetDashboardPermitsQuery $query,
+        string $whereStr,
+        string $archiveWhereStr,
+        array $binds,
+        array $archiveBinds,
+        string $today,
+    ): array {
         $page = $query->activeTab === $tab ? $query->page : 1;
         $offset = ($page - 1) * $query->limit;
         $limit = $query->limit;
@@ -133,12 +144,16 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
         }
 
         $tabCond = '';
+        $tabBinds = [];
         if ($tab === 'tab-active') {
-            $tabCond = " AND bis >= CURDATE() AND von <= CURDATE() AND status != 'storniert' ";
+            $tabCond = " AND bis >= ? AND von <= ? AND status != 'storniert' ";
+            $tabBinds = [$today, $today];
         } elseif ($tab === 'tab-future') {
-            $tabCond = " AND von > CURDATE() AND status != 'storniert' ";
+            $tabCond = " AND von > ? AND status != 'storniert' ";
+            $tabBinds = [$today];
         } elseif ($tab === 'tab-expired') {
-            $tabCond = " AND bis < CURDATE() AND status != 'storniert' ";
+            $tabCond = " AND bis < ? AND status != 'storniert' ";
+            $tabBinds = [$today];
         }
 
         $sql = "
@@ -151,7 +166,7 @@ final readonly class GetDashboardPermitsHandler implements QueryHandlerInterface
         ";
 
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(\array_merge($binds, $archiveBinds));
+        $stmt->execute(\array_merge($binds, $tabBinds, $archiveBinds, $tabBinds));
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }

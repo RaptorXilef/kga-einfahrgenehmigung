@@ -4,21 +4,29 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Application\UseCases\ViewDashboard;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use Override;
 
-#[Route('GET', '/filter_dashboard')]
 #[Route('POST', '/filter_dashboard')]
-final readonly class DashboardFilterAction implements ActionInterface
+#[RequiresAuth]
+final readonly class DashboardFilterAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private SessionManager $sessionManager,
     ) {
+    }
+
+    #[Override]
+    public function getRequiredPermission(): string
+    {
+        return 'admin.access';
     }
 
     #[Override]

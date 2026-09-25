@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Finance\Application\UseCases\ExportFinanceData;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
@@ -18,6 +19,7 @@ use Override;
 
 #[Route('GET', '/dashboard_export')]
 #[Route('POST', '/dashboard_export')]
+#[RequiresAuth]
 final readonly class ExportFinanceDataAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
@@ -44,8 +46,8 @@ final readonly class ExportFinanceDataAction implements ViewActionInterface, Req
             $dto->format,
             $dto->start,
             $dto->end,
-            $sessionFilters['type'] ?? 'all',
-            $sessionFilters['q'] ?? '',
+            (string) ($sessionFilters['type'] ?? 'all'),
+            (string) ($sessionFilters['q'] ?? ''),
         );
 
         $result = $this->exportHandler->handle($query);

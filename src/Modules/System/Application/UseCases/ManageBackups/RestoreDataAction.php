@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\System\Application\UseCases\ManageBackups;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -13,17 +14,21 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Storage\BackupServiceInterface;
-use App\Modules\System\Application\Services\AuditLoggerService;
+use App\Contracts\System\AuditLoggerInterface;
 use Override;
 use Throwable;
 
+/**
+ * Action zum Wiederherstellen eines ZIP-Backups (inkl. automatischem Sicherheits-Snapshot vorab).
+ */
 #[Route('POST', '/restore_data')]
+#[RequiresAuth]
 final readonly class RestoreDataAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private BackupServiceInterface $backupService,
         private SessionManager $sessionManager,
-        private AuditLoggerService $auditLogger,
+        private AuditLoggerInterface $auditLogger,
     ) {
     }
 

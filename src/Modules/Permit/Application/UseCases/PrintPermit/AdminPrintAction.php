@@ -6,6 +6,7 @@ namespace App\Modules\Permit\Application\UseCases\PrintPermit;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
+use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Exception\ValidationException;
@@ -27,7 +28,7 @@ use Override;
 
 #[Route('GET', '/admin_print')]
 #[RequiresAuth]
-final readonly class AdminPrintAction implements ViewActionInterface
+final readonly class AdminPrintAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerInterface $auditLogger,
@@ -38,6 +39,12 @@ final readonly class AdminPrintAction implements ViewActionInterface
         private QrCodeGeneratorInterface $qrCodeGenerator,
         private TemplateRenderer $renderer,
     ) {
+    }
+
+    #[Override]
+    public function getRequiredPermission(): string
+    {
+        return 'permits.print';
     }
 
     #[Override]

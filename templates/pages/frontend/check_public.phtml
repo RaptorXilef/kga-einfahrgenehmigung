@@ -98,7 +98,7 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
                     class="u-color-dark"><?php echo $details->code; ?></strong>
             </p>
             <a
-                href="admin?code=<?php echo $details->code; ?>"
+                href="admin_login?code=<?php echo \urlencode($details->code); ?>"
                 class="u-text-link u-text-sm"
             >Login für Details</a>
         </footer>

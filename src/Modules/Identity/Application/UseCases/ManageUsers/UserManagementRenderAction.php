@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
+use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
@@ -18,13 +19,19 @@ use Override;
 
 #[Route('GET', '/users')]
 #[RequiresAuth]
-final readonly class UserManagementRenderAction implements ViewActionInterface
+final readonly class UserManagementRenderAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuthorizationInterface $auth,
         private TemplateRenderer $renderer,
         private GetUserManagementDataHandler $dataHandler,
     ) {
+    }
+
+    #[Override]
+    public function getRequiredPermission(): string
+    {
+        return 'system.manage';
     }
 
     #[Override]

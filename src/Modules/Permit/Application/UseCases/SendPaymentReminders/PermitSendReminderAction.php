@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\SendPaymentReminders;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -16,6 +17,7 @@ use Exception;
 use Override;
 
 #[Route('POST', '/send_reminder')]
+#[RequiresAuth]
 final readonly class PermitSendReminderAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

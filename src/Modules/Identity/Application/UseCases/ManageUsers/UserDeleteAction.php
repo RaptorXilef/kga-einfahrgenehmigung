@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -18,8 +19,8 @@ use App\Contracts\System\ImageStorageInterface;
 use DomainException;
 use Override;
 
-#[Route('GET', '/delete_user')]
 #[Route('POST', '/delete_user')]
+#[RequiresAuth]
 final readonly class UserDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\CreateManualPermit;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -11,6 +12,7 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Contracts\System\AuditLoggerInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\PermitStatus;
@@ -21,12 +23,13 @@ use App\SharedKernel\Domain\ValueObject\Price;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use Override;
 
-#[Route('GET', '/create_manual')]
 #[Route('POST', '/create_manual')]
+#[RequiresAuth]
 final readonly class PermitCreateManualAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerInterface $auditLogger,
+        private AuthorizationInterface $auth,
         private SessionManager $sessionManager,
         private CreateManualPermitHandler $createHandler,
         private ClockInterface $clock,
@@ -42,11 +45,13 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
     #[Override]
     public function execute(ServerRequest $request): ResponseInterface
     {
-        if ($request->getMethod() === 'GET') {
+        $dto = PermitCreateManualRequest::fromArray($request->post, $this->clock);
+
+        if (!$this->auth->hasPermission("template.{$dto->templateKey}")) {
+            $this->sessionManager->addFlash('error', "Fehler: Sie haben keine Berechtigung für die Vorlage '{$dto->templateKey}'.");
+
             return new RedirectResponse('admin?focus=tab-tools');
         }
-
-        $dto = PermitCreateManualRequest::fromArray($request->post, $this->clock);
 
         $command = new CreateManualPermitCommand(
             name: $dto->name,

@@ -21,9 +21,9 @@ final readonly class SendMagicLinkMailListener
 
     public function handle(MagicLinkRequestedEvent $event): void
     {
-        // Garantiert einen sauberen Slash am Ende der URL
+        // Garantiert einen sauberen Slash am Ende der URL und verweist auf die Token-Verifizierungsroute
         $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
-        $link = $safeBaseUrl . 'history?token=' . $event->token;
+        $link = $safeBaseUrl . 'history_verify_token?token=' . \urlencode($event->token);
 
         $this->mailService->sendTemplate(
             $event->email,
@@ -32,9 +32,9 @@ final readonly class SendMagicLinkMailListener
             [
                 'baseUrl' => $safeBaseUrl,
                 'code' => $event->code,
-                'duration' => $this->config->get('magic_link_duration'),
+                'duration' => $this->config->getInt('magic_link_duration', 15),
                 'link' => $link,
-                'vereinsName' => $this->config->get('vereins_name'),
+                'vereinsName' => $this->config->getString('vereins_name'),
             ],
             null,
             100, // Hohe Priorität für Logins

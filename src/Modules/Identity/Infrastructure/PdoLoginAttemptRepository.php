@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Infrastructure;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Identity\Domain\LoginAttempt;
 use App\Modules\Identity\Domain\LoginAttemptRepositoryInterface;
 use App\SharedKernel\Domain\ValueObject\IpAddress;
 use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
+use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use DateTimeImmutable;
 use Override;
 use PDO;
@@ -20,6 +22,7 @@ final readonly class PdoLoginAttemptRepository implements LoginAttemptRepository
     public function __construct(
         private PDO $pdo,
         private ConfigInterface $config,
+        private ClockInterface $clock = new SystemClock(),
     ) {
     }
 
@@ -68,6 +71,7 @@ final readonly class PdoLoginAttemptRepository implements LoginAttemptRepository
     public function deleteOlderThan(int $minutes): void
     {
         $table = $this->config->getArray('storage_config')['login_attempts']['table'] ?? 'login_attempts';
-        $this->pdo->prepare("DELETE FROM `{$table}` WHERE last_attempt < DATE_SUB(NOW(), INTERVAL ? MINUTE)")->execute([$minutes]);
+        $cutoff = $this->clock->now()->modify("-{$minutes} minutes")->format('Y-m-d H:i:s');
+        $this->pdo->prepare("DELETE FROM `{$table}` WHERE last_attempt < ?")->execute([$cutoff]);
     }
 }

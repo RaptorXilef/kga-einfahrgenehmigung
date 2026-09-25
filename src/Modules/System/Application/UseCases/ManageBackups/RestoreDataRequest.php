@@ -6,6 +6,9 @@ namespace App\Modules\System\Application\UseCases\ManageBackups;
 
 use App\Application\Exception\ValidationException;
 
+/**
+ * Validiert die Eingabeparameter für die Wiederherstellung eines Datenbank-Snapshots.
+ */
 final readonly class RestoreDataRequest
 {
     private function __construct(
@@ -15,13 +18,16 @@ final readonly class RestoreDataRequest
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $post
+     */
     public static function fromArray(array $post): self
     {
-        $filename = \trim((string) ($post['filename'] ?? ''));
+        $filename = \basename(\trim((string) ($post['filename'] ?? '')));
         $target = \trim((string) ($post['target'] ?? ''));
         $mode = (int) ($post['mode'] ?? 1);
 
-        if ($filename === '' || $target === '' | !\in_array($mode, [1, 2, 3], true)) {
+        if ($filename === '' || $target === '' || !\in_array($mode, [1, 2, 3], true)) {
             throw ValidationException::withMessage('Ungültige Wiederherstellungs-Parameter.');
         }
 

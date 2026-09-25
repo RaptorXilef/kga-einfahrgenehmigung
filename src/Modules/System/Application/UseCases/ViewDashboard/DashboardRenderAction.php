@@ -6,6 +6,7 @@ namespace App\Modules\System\Application\UseCases\ViewDashboard;
 
 use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
+use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
@@ -49,7 +50,7 @@ use Override;
  */
 #[Route('GET', '/admin')]
 #[RequiresAuth]
-final readonly class DashboardRenderAction implements ViewActionInterface
+final readonly class DashboardRenderAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLogRepositoryInterface $auditLogRepository,
@@ -71,6 +72,12 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private GetBackupsDataHandler $backupsHandler,
         private ClockInterface $clock,
     ) {
+    }
+
+    #[Override]
+    public function getRequiredPermission(): string
+    {
+        return 'admin.access';
     }
 
     #[Override]

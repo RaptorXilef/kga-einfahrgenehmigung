@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Finance\Application\UseCases\ProcessBankImport;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -17,6 +18,7 @@ use Override;
  * Action zum Ausblenden/Erledigen einer manuell geprüften Sammelüberweisung.
  */
 #[Route('POST', '/dismiss_transfer')]
+#[RequiresAuth]
 final readonly class DismissTransferAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

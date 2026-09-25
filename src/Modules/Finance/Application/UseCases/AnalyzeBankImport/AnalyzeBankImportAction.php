@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Finance\Application\UseCases\AnalyzeBankImport;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -18,8 +19,8 @@ use App\Modules\Finance\Application\UseCases\ProcessBankImport\ProcessBankImport
 use Override;
 use Throwable;
 
-#[Route('GET', '/bank_import_analyze')]
 #[Route('POST', '/bank_import_analyze')]
+#[RequiresAuth]
 final readonly class AnalyzeBankImportAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

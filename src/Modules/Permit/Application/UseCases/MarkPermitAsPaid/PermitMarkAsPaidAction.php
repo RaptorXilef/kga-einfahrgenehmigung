@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Application\UseCases\MarkPermitAsPaid;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -15,8 +16,8 @@ use App\Contracts\System\AuditLoggerInterface;
 use DomainException;
 use Override;
 
-#[Route('GET', '/mark_as_paid')]
 #[Route('POST', '/mark_as_paid')]
+#[RequiresAuth]
 final readonly class PermitMarkAsPaidAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

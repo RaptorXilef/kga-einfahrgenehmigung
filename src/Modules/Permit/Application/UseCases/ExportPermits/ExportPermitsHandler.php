@@ -91,15 +91,25 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
 
         $whereStr = $whereParts === [] ? '1=1' : \implode(' AND ', $whereParts);
         $cols = 'parzelle, kennzeichen, code, name, von, bis';
+        $today = $this->clock->now()->format('Y-m-d');
 
-        // State Condition (Zusatzfilter für Aktiv/Future/Expired)
-        $stateCond = match ($query->state) {
-            'active' => "bis >= CURDATE() AND von <= CURDATE() AND status != 'storniert'",
-            'future' => "von > CURDATE() AND status != 'storniert'",
-            'expired' => "bis < CURDATE() AND status != 'storniert'",
-            'active_future' => "bis >= CURDATE() AND status != 'storniert'",
-            default => '1=1'
-        };
+        // State Condition (Zusatzfilter für Aktiv/Future/Expired über ClockInterface statt CURDATE())
+        $stateCond = '1=1';
+        $stateBinds = [];
+
+        if ($query->state === 'active') {
+            $stateCond = "bis >= ? AND von <= ? AND status != 'storniert'";
+            $stateBinds = [$today, $today];
+        } elseif ($query->state === 'future') {
+            $stateCond = "von > ? AND status != 'storniert'";
+            $stateBinds = [$today];
+        } elseif ($query->state === 'expired') {
+            $stateCond = "bis < ? AND status != 'storniert'";
+            $stateBinds = [$today];
+        } elseif ($query->state === 'active_future') {
+            $stateCond = "bis >= ? AND status != 'storniert'";
+            $stateBinds = [$today];
+        }
 
         $orderBy = match ($query->state) {
             'expired' => 'ORDER BY bis DESC, parzelle ASC',
@@ -114,8 +124,9 @@ final readonly class ExportPermitsHandler implements QueryHandlerInterface
             {$orderBy}
         ";
 
+        $partBinds = \array_merge($binds, $stateBinds);
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(\array_merge($binds, $binds)); // Binds für beide Tabellen
+        $stmt->execute(\array_merge($partBinds, $partBinds)); // Binds für beide Tabellen
 
         while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
             yield $row;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Voucher\Application\UseCases\CreateVoucher;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
@@ -19,8 +20,8 @@ use Override;
 /**
  * Action zum Erstellen eines neuen Gutscheins (VSA).
  */
-#[Route('GET', '/create_voucher')]
 #[Route('POST', '/create_voucher')]
+#[RequiresAuth]
 final readonly class CreateVoucherAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
@@ -41,12 +42,14 @@ final readonly class CreateVoucherAction implements ActionInterface, RequiresPer
     #[Override]
     public function execute(ServerRequest $request): ResponseInterface
     {
-        if ($request->getMethod() === 'GET') {
-            return new RedirectResponse('admin?focus=tab-tools');
-        }
-
         $maxPlot = $this->config->getInt('max_plot_number', 9999);
         $dto = VoucherCreateRequest::fromArray($request->post, $maxPlot);
+
+        if (!$this->auth->hasPermission("template.{$dto->templateKey}")) {
+            $this->sessionManager->addFlash('error', "Fehler: Sie haben keine Berechtigung für die Vorlage '{$dto->templateKey}'.");
+
+            return new RedirectResponse('admin?focus=tab-tools');
+        }
 
         $command = new CreateVoucherCommand(
             $dto->reason,
