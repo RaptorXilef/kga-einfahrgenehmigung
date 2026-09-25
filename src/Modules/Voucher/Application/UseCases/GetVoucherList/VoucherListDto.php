@@ -22,10 +22,11 @@ final readonly class VoucherListDto
         public ?string $usageBadgeIcon, // z.B. "sync.webp"
         public string $dateModeText,    // "Flexible Datenwahl"
         public ?string $prefilledName,
-        public ?string $prefilledPlot,
+        public string $prefilledPlot,   // Vorberechneter Parzellen-String (inkl. '?' Fallback)
         public ?string $expiresText,    // "Gültig bis: 12.12.2026 Uhr"
         public bool $isDeactivated,
         public string $toggleActionUrl, // "activate_voucher"
+        public string $toggleButtonClass,  // "c-button--success" oder "c-button--danger"
         public string $toggleIcon,      // "unlock.webp"
         public string $toggleTitle,      // "Aktivieren"
     ) {

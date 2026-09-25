@@ -116,19 +116,23 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         ]);
 
         // Memory-Safe SQL Pruning: Löscht überzählige Alt-Einträge direkt in der DB ohne RAM-Load
-        if ($maxEntries > 0) {
-            $cutoffStmt = $this->pdo->prepare(
-                "SELECT timestamp FROM `{$table}` ORDER BY timestamp DESC LIMIT 1 OFFSET :offset",
-            );
-            $cutoffStmt->bindValue(':offset', $maxEntries, PDO::PARAM_INT);
-            $cutoffStmt->execute();
-            $cutoffTimestamp = $cutoffStmt->fetchColumn();
-
-            if (\is_string($cutoffTimestamp) && $cutoffTimestamp !== '') {
-                $delStmt = $this->pdo->prepare("DELETE FROM `{$table}` WHERE timestamp < :cutoff");
-                $delStmt->execute(['cutoff' => $cutoffTimestamp]);
-            }
+        if ($maxEntries <= 0) {
+            return;
         }
+
+        $cutoffStmt = $this->pdo->prepare(
+            "SELECT timestamp FROM `{$table}` ORDER BY timestamp DESC LIMIT 1 OFFSET :offset",
+        );
+        $cutoffStmt->bindValue(':offset', $maxEntries, PDO::PARAM_INT);
+        $cutoffStmt->execute();
+        $cutoffTimestamp = $cutoffStmt->fetchColumn();
+
+        if (!\is_string($cutoffTimestamp) || $cutoffTimestamp === '') {
+            return;
+        }
+
+        $delStmt = $this->pdo->prepare("DELETE FROM `{$table}` WHERE timestamp < :cutoff");
+        $delStmt->execute(['cutoff' => $cutoffTimestamp]);
     }
 
     #[Override]

@@ -72,6 +72,7 @@ final readonly class GetMailLogsDataHandler implements QueryHandlerInterface
                 subject: (string) $r['subject'],
                 templateKey: (string) $r['template'],
                 isSuccess: $isSuccess,
+                rowClass: !$isSuccess ? 'c-table__row--danger' : '',
                 statusText: $isSuccess ? 'GESENDET' : 'FEHLER',
                 statusBadgeClass: $isSuccess ? 'success' : 'danger',
                 statusIconUrl: $this->assetHelper->url('assets/img/icons/' . ($isSuccess ? 'success.webp' : 'error.webp')),

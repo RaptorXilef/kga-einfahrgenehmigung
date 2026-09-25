@@ -105,6 +105,11 @@ final readonly class TemplateRenderer
             'texts' => $consentTexts,
         ], \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT) ?: '{}';
 
+        // Lade alle Flashes automatisch in die View-Daten und bereite sie logikfrei für alerts.phtml auf!
+        $rawFlashes = \is_array($data['flashes'] ?? null) ? $data['flashes'] : $this->sessionManager->getFlashes();
+        $data['flashes'] = $rawFlashes;
+        $data['flashAlerts'] = $this->prepareFlashAlerts($rawFlashes);
+
         // 3. Systemvariablen bereitstellen
         $systemVars = [
             'appRoot' => $appRoot,
@@ -152,9 +157,6 @@ final readonly class TemplateRenderer
             'allReleaseNotes' => $this->systemInfo->getAllReleaseNotes(),
         ];
 
-        // Lade alle Flashes automatisch in die View-Daten!
-        $data['flashes'] ??= $this->sessionManager->getFlashes();
-
         \extract($systemVars);
         \extract($data); // OHNE EXTR_SKIP, damit Templates lokale Variablen setzen können!
 
@@ -179,6 +181,41 @@ final readonly class TemplateRenderer
         }
 
         return $content ?: '';
+    }
+
+    /**
+     * Bereitet die rohen Flash-Messages aus der Session inkl. BEM-Modifier und HTML-Sanitizing für alerts.phtml auf.
+     *
+     * @param array<string, mixed> $rawFlashes
+     *
+     * @return array<int, array{modifier: string, html: string}>
+     */
+    private function prepareFlashAlerts(array $rawFlashes): array
+    {
+        $alerts = [];
+        $allowedTags = '<div><span><strong><em><b><i><br><ul><li><img>';
+
+        foreach ($rawFlashes as $type => $messages) {
+            if (!\is_array($messages)) {
+                continue;
+            }
+
+            $modifier = match ((string) $type) {
+                'error' => 'danger',
+                'success' => 'success',
+                'warning' => 'warning',
+                default => 'info',
+            };
+
+            foreach ($messages as $msg) {
+                $alerts[] = [
+                    'modifier' => $modifier,
+                    'html' => \strip_tags((string) $msg, $allowedTags),
+                ];
+            }
+        }
+
+        return $alerts;
     }
 
     private function resolveLogoUrl(string $appRoot): ?string

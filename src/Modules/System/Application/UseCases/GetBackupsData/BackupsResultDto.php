@@ -12,10 +12,12 @@ final readonly class BackupsResultDto
     /**
      * @param BackupItemViewDto[] $items
      * @param array<int, array{value: string, label: string}> $targetOptions
+     * @param array<int, array{value: string, label: string}> $truncatableTargetOptions
      */
     public function __construct(
         public array $items,
         public array $targetOptions,
+        public array $truncatableTargetOptions,
         public bool $ftpEnabled,
     ) {
     }

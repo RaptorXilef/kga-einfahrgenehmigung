@@ -14,6 +14,7 @@ final readonly class HistoryPermitViewDto
         public string $ownerName,
         public string $plotNumber,
         public string $vehicleIcon,
+        public string $vehicleIconClass,
         public string $vehicleLabel,
         public string $licensePlate,
         public string $validFromDate,

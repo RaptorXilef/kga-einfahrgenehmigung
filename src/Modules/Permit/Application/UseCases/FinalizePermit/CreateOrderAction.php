@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\FinalizePermit;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
-use App\Application\Contracts\ViewActionInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
@@ -18,7 +18,7 @@ use Override;
 use Throwable;
 
 #[Route('POST', '/api/create_order')]
-final readonly class CreateOrderAction implements ViewActionInterface
+final readonly class CreateOrderAction implements ActionInterface
 {
     public function __construct(
         private PaymentProviderInterface $payment,

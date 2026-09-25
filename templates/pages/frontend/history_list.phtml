@@ -115,8 +115,8 @@ $pageTitle = 'Meine Genehmigungen - ' . ($settings['vereins_name'] ?? '');
                                     <?php echo \htmlspecialchars($permit->ownerName); ?>
                                 </span>
                                 <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs">
-                                            <?php echo $permit->code; ?>
-                                        </code>
+                                    <?php echo $permit->code; ?>
+                                </code>
                                 <div>
                                     <span class="c-badge c-badge--outline">PARZELLE
                                         <?php echo $permit->plotNumber; ?></span>
@@ -130,7 +130,7 @@ $pageTitle = 'Meine Genehmigungen - ' . ($settings['vereins_name'] ?? '');
                             <div>
                                 <img
                                     src="<?php echo $settings['base_url'] . $permit->vehicleIcon; ?>"
-                                    class="c-icon c-table__icon <?php echo $permit->isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
+                                    class="c-icon c-table__icon <?php echo $permit->vehicleIconClass; ?>"
                                     title="<?php echo \htmlspecialchars($permit->vehicleLabel); ?>"
                                     loading="lazy"
                                     alt=""

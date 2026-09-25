@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Application\UseCases\VerifyMagicLink;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
-use App\Application\Contracts\ViewActionInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -18,7 +18,7 @@ use Override;
 
 #[Route('GET', '/history_verify_token')]
 #[Route('POST', '/history_verify_token')]
-final readonly class HistoryVerifyTokenAction implements ViewActionInterface
+final readonly class HistoryVerifyTokenAction implements ActionInterface
 {
     public function __construct(
         private AuditLoggerInterface $auditLogger,

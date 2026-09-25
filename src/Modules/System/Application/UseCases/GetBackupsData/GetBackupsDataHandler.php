@@ -53,16 +53,19 @@ final readonly class GetBackupsDataHandler implements QueryHandlerInterface
         $targetOptions = [
             ['value' => 'all', 'label' => $targetLabels['all']],
         ];
+        $truncatableTargetOptions = [];
 
         foreach ($storageConfig as $key => $cfg) {
             if (!\is_array($cfg) || !isset($cfg['table'])) {
                 continue;
             }
             $label = $targetLabels[$key] ?? \sprintf('%s (%s)', $key, (string) $cfg['table']);
-            $targetOptions[] = [
+            $option = [
                 'value' => (string) $key,
                 'label' => $label,
             ];
+            $targetOptions[] = $option;
+            $truncatableTargetOptions[] = $option;
         }
 
         $rawBackups = $this->backupService->listBackups();
@@ -98,6 +101,7 @@ final readonly class GetBackupsDataHandler implements QueryHandlerInterface
         return new BackupsResultDto(
             items: $items,
             targetOptions: $targetOptions,
+            truncatableTargetOptions: $truncatableTargetOptions,
             ftpEnabled: $ftpEnabled,
         );
     }

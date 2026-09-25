@@ -5,7 +5,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
 /**
  * Partial: Dashboard Tab - Mail Logs
- * VSA FIX: 100% Dumme View - Nutzt native DB-Paginierung und `$csrfToken`.
+ * VSA FIX: 100% Dumme View - Nutzt native DB-Paginierung, vorberechnete `rowClass` und `$csrfToken`.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
@@ -57,7 +57,7 @@ if ($viewDto->permissions->canViewLogs) { ?>
                     </tr>
                     <?php } else { ?>
                     <?php foreach ($viewDto->mailLogs->items as $log) { ?>
-                    <tr class="u-hover-fade <?php echo !$log->isSuccess ? 'c-table__row--danger' : ''; ?>">
+                    <tr class="u-hover-fade <?php echo $log->rowClass; ?>">
                         <!-- 1. Zeitpunkt -->
                         <td class="c-table__data-cell u-text-nowrap">
                             <div class="u-flex u-flex-column">

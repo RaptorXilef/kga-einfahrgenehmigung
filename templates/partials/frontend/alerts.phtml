@@ -1,31 +1,20 @@
 <?php
 
 /**
- * Rendert die Flash-Messages aus der Session.
- * WICHTIG: Erlaubt <img> Tags, damit Controller Icons injizieren können.
+ * Rendert die vom TemplateRenderer vorbereiteten und bereinigten Flash-Messages.
+ * VSA FIX: 100% Dumme View ohne match()-Mapping oder strip_tags()-Aufrufe im Template.
  *
- * @var array $flashes
+ * @var array<int, array{modifier: string, html: string}> $flashAlerts
  */
-if (!empty($flashes)) {
+if (!empty($flashAlerts)) {
     ?>
 <div class="u-margin-block-end-l">
-    <?php foreach ($flashes as $type => $messages) { ?>
-    <?php
-                // Maps flash type to BEM modifier
-                $modifier = match ($type) {
-                    'error' => 'danger',
-                    'success' => 'success',
-                    'warning' => 'warning',
-                    default => 'info',
-                };
-            ?>
-    <?php foreach ($messages as $msg) { ?>
-    <div class="c-alert c-alert--<?php echo $modifier; ?> u-margin-block-end-s">
+    <?php foreach ($flashAlerts as $alert) { ?>
+    <div class="c-alert c-alert--<?php echo $alert['modifier']; ?> u-margin-block-end-s">
         <div class="c-alert__content">
-            <?php echo \strip_tags($msg, '<div><span><strong><em><b><i><br><ul><li><img>'); ?>
+            <?php echo $alert['html']; ?>
         </div>
     </div>
-    <?php } ?>
     <?php } ?>
 </div>
 <?php } ?>

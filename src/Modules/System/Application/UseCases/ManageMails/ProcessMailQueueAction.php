@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\System\Application\UseCases\ManageMails;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
-use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
@@ -16,7 +16,7 @@ use Override;
 
 #[Route('GET', '/api/process_mail_queue')]
 #[Route('POST', '/api/process_mail_queue')]
-final readonly class ProcessMailQueueAction implements ViewActionInterface
+final readonly class ProcessMailQueueAction implements ActionInterface
 {
     public function __construct(
         private ConfigInterface $config,

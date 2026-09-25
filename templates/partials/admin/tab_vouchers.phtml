@@ -103,7 +103,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                                     <?php if ($v->prefilledName) { ?>
                                     Vorbefüllt für: <strong
                                         class="u-color-dark"><?php echo \htmlspecialchars($v->prefilledName); ?></strong>
-                                    (Parz: <?php echo $v->prefilledPlot ?: '?'; ?>)<br>
+                                    (Parz: <?php echo \htmlspecialchars($v->prefilledPlot); ?>)<br>
                                     <?php } ?>
                                     <?php if ($v->expiresText) {
                                         echo $v->expiresText;
@@ -153,7 +153,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
                                         <button
                                             type="submit"
-                                            class="c-button <?php echo $v->isDeactivated ? 'c-button--success' : 'c-button--danger'; ?> c-button--small c-button--icon-only"
+                                            class="c-button <?php echo $v->toggleButtonClass; ?> c-button--small c-button--icon-only"
                                             title="<?php echo $v->toggleTitle; ?>"
                                             aria-label="Gutschein <?php echo $v->code; ?> <?php echo $v->toggleTitle; ?>"
                                         >

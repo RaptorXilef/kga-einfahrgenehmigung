@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\ConfirmPermitEmail;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
-use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Response\RedirectResponse;
@@ -18,7 +18,7 @@ use Override;
 
 #[Route('GET', '/verify')]
 #[Route('POST', '/verify')]
-final readonly class VerificationAction implements ViewActionInterface
+final readonly class VerificationAction implements ActionInterface
 {
     public function __construct(
         private ConfirmPermitEmailHandler $confirmHandler,

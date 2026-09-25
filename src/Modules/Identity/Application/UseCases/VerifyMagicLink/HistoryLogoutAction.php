@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Application\UseCases\VerifyMagicLink;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
-use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
@@ -15,7 +15,7 @@ use Override;
 
 #[Route('GET', '/history_logout')]
 #[Route('POST', '/history_logout')]
-final readonly class HistoryLogoutAction implements ViewActionInterface
+final readonly class HistoryLogoutAction implements ActionInterface
 {
     public function __construct(
         private AuditLoggerInterface $auditLogger,

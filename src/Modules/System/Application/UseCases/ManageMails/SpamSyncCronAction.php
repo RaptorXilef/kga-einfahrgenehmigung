@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\System\Application\UseCases\ManageMails;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
-use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
@@ -15,7 +15,7 @@ use Override;
 
 #[Route('GET', '/api/cron/spam_sync')]
 #[Route('POST', '/api/cron/spam_sync')]
-final readonly class SpamSyncCronAction implements ViewActionInterface
+final readonly class SpamSyncCronAction implements ActionInterface
 {
     public function __construct(
         private EmailValidationServiceInterface $emailValidation,

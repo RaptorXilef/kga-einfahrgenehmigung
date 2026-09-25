@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\SubmitPermitRequest;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
-use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
@@ -28,7 +28,7 @@ use Throwable;
  * Action zur Verarbeitung des abgesendeten Antragsformulars (POST).
  */
 #[Route('POST', '/')]
-final readonly class SubmitPermitAction implements ViewActionInterface
+final readonly class SubmitPermitAction implements ActionInterface
 {
     public function __construct(
         private SubmitPermitRequestHandler $submitHandler,

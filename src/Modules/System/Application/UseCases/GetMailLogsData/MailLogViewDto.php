@@ -17,6 +17,7 @@ final readonly class MailLogViewDto
         public string $subject,
         public string $templateKey,
         public bool $isSuccess,
+        public string $rowClass,
         public string $statusText,
         public string $statusBadgeClass,
         public string $statusIconUrl,

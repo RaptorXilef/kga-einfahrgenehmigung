@@ -124,17 +124,23 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
             return JsonResponse::error($message, 503);
         }
 
+        $rootPath = \rtrim($this->config->getString('root_path'), '/\\');
+        $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
+        $vereinsName = $this->config->getString('vereins_name', 'KGA e.V.');
+        $maintenanceModeAdmin = (bool) ($this->config->getArray('maintenance')['admin'] ?? false);
+        $displayMessage = $message;
+
+        $logoFile = null;
+        foreach (['webp', 'png', 'jpg'] as $ext) {
+            $localPath = $rootPath . '/public/assets/img/logo/kga.' . $ext;
+            if (\file_exists($localPath)) {
+                $logoFile = "assets/img/logo/kga.{$ext}";
+                break;
+            }
+        }
+
         \ob_start();
-        $rootPath = $this->config->getString('root_path');
-
-        $settings = [
-            'base_url' => \rtrim($this->config->getBaseUrl(), '/') . '/',
-            'vereins_name' => $this->config->getString('vereins_name', 'KGA e.V.'),
-            'maintenance_mode_admin' => $this->config->getArray('maintenance')['admin'] ?? false,
-            'maintenance_message' => $message,
-        ];
-
-        require_once \rtrim($rootPath, '/\\') . '/public/maintenance.php';
+        include $rootPath . '/templates/pages/frontend/maintenance.phtml';
         $html = \ob_get_clean();
 
         return new HtmlResponse((string) $html, 503);

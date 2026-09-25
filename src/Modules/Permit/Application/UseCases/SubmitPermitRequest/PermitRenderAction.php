@@ -171,7 +171,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
                     $finalLink = \rtrim($baseUrl, '/') . '/' . \ltrim($rawLink, '/');
                 }
                 $linkHtml = '<a href="' . \htmlspecialchars($finalLink) .
-                    '" target="_blank" style="color: var(--primary-color); text-decoration: underline; font-weight: 500;">$1</a>';
+                    '" target="_blank" class="u-text-link u-font-semibold">$1</a>';
                 $renderedLabel = \preg_replace('/\[(.*?)\]/', $linkHtml, $cleanLabel);
             } else {
                 $renderedLabel = \preg_replace('/\[(.*?)\]/', '$1', $cleanLabel);

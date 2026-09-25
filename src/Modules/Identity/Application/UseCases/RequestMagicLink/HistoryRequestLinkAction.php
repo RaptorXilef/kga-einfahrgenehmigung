@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Application\UseCases\RequestMagicLink;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
-use App\Application\Contracts\ViewActionInterface;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -17,7 +17,7 @@ use Override;
 
 #[Route('GET', '/history_request_link')]
 #[Route('POST', '/history_request_link')]
-final readonly class HistoryRequestLinkAction implements ViewActionInterface
+final readonly class HistoryRequestLinkAction implements ActionInterface
 {
     public function __construct(
         private PermitIntegrationInterface $permitIntegration,

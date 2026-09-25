@@ -96,10 +96,11 @@ final readonly class GetVoucherListHandler implements QueryHandlerInterface
                 usageBadgeIcon: $isMultiUse ? 'sync.webp' : null,
                 dateModeText: $datumVonPrefill === '' ? 'Flexible Datenwahl' : 'Gefixte Daten',
                 prefilledName: $namePrefill !== '' ? $namePrefill : null,
-                prefilledPlot: $plotPrefill !== '' ? $plotPrefill : null,
+                prefilledPlot: $plotPrefill !== '' ? $plotPrefill : '?',
                 expiresText: $expiresAtObj instanceof DateTimeImmutable ? "Gültig bis: <strong class=\"u-color-dark\">{$expiresAtObj->format('d.m.Y H:i')} Uhr</strong>" : null,
                 isDeactivated: $isDeactivated,
                 toggleActionUrl: $isDeactivated ? 'activate_voucher' : 'deactivate_voucher',
+                toggleButtonClass: $isDeactivated ? 'c-button--success' : 'c-button--danger',
                 toggleIcon: $isDeactivated ? 'unlock.webp' : 'denied.webp',
                 toggleTitle: $isDeactivated ? 'Aktivieren' : 'Sperren',
             );

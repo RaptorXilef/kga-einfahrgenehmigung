@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\System\Application\UseCases\ManageBackups;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
-use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
@@ -19,7 +19,7 @@ use Throwable;
  */
 #[Route('GET', '/api/cron/backup')]
 #[Route('POST', '/api/cron/backup')]
-final readonly class BackupCronAction implements ViewActionInterface
+final readonly class BackupCronAction implements ActionInterface
 {
     public function __construct(
         private BackupServiceInterface $backupService,

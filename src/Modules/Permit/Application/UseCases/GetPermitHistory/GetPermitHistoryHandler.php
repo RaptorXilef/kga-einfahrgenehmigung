@@ -90,6 +90,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
             $vKey = (string) $row['typ'];
             $vCfg = $vConfig[$vKey] ?? null;
             $vehicleIcon = (string) ($vCfg['icon'] ?? 'assets/img/icons/warning.webp');
+            $vehicleIconClass = $isExpired ? 'u-grayscale u-opacity-50' : '';
             $vehicleLabel = (string) ($vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey));
 
             $countdownText = '';
@@ -143,6 +144,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
                 ownerName: (string) $row['name'],
                 plotNumber: \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
                 vehicleIcon: $vehicleIcon,
+                vehicleIconClass: $vehicleIconClass,
                 vehicleLabel: $vehicleLabel,
                 licensePlate: (string) ($row['kennzeichen'] ?: '---'),
                 validFromDate: $von->format('d.m.Y'),

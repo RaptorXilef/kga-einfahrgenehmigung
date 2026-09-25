@@ -54,9 +54,11 @@ final readonly class AnalyzeBankImportHandler implements QueryHandlerInterface
                 if (\str_contains($h, 'betrag') || \str_contains($h, 'amount')) {
                     $guessedAmount = (int) $index;
                 }
-                if (\str_contains($h, 'buchungstag') || \str_contains($h, 'valuta') || \str_contains($h, 'date')) {
-                    $guessedDate = (int) $index;
+                if (!\str_contains($h, 'buchungstag') && !\str_contains($h, 'valuta') && !\str_contains($h, 'date')) {
+                    continue;
                 }
+
+                $guessedDate = (int) $index;
             }
 
             return new BankImportAnalysisDto(

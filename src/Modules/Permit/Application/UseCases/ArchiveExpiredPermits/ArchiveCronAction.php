@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\ArchiveExpiredPermits;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
-use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
@@ -14,7 +14,7 @@ use Override;
 
 #[Route('GET', '/api/cron/archive')]
 #[Route('POST', '/api/cron/archive')]
-final readonly class ArchiveCronAction implements ViewActionInterface
+final readonly class ArchiveCronAction implements ActionInterface
 {
     public function __construct(
         private ArchiveExpiredPermitsHandler $archiveHandler,

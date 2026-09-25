@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\SendPaymentReminders;
 
 use App\Application\Attribute\Route;
+use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
-use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
@@ -14,7 +14,7 @@ use Override;
 
 #[Route('GET', '/api/cron/reminders')]
 #[Route('POST', '/api/cron/reminders')]
-final readonly class RemindersCronAction implements ViewActionInterface
+final readonly class RemindersCronAction implements ActionInterface
 {
     public function __construct(
         private SendPaymentRemindersHandler $reminderHandler,

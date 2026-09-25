@@ -136,10 +136,7 @@ if ($viewDto->permissions->canManageBackups) { ?>
                             required
                         >
                             <option value="">Tabelle auswählen...</option>
-                            <?php foreach ($viewDto->backups->targetOptions as $opt) {
-                                if ($opt['value'] === 'all') {
-                                    continue;
-                                } ?>
+                            <?php foreach ($viewDto->backups->truncatableTargetOptions as $opt) { ?>
                             <option value="<?php echo $opt['value']; ?>"><?php echo $opt['label']; ?></option>
                             <?php } ?>
                         </select>
