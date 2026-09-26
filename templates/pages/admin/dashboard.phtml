@@ -188,7 +188,7 @@ $focus = $viewDto->focus;
                 </button>
                 <?php } ?>
 
-                <?php if ($viewDto->permissions->canExport) { ?>
+                <?php if ($viewDto->permissions->canExport || $viewDto->permissions->hasAnyPermitExport) { ?>
                 <button
                     class="c-tabs__btn <?php echo $viewDto->tabStates['tab-export']->isActiveClass; ?>"
                     role="tab"
@@ -203,7 +203,7 @@ $focus = $viewDto->focus;
                         class="c-icon c-tabs__icon"
                         loading="lazy"
                         alt=""
-                    > Daten & Export
+                    > Daten &amp; Export
                 </button>
                 <?php } ?>
 
@@ -320,16 +320,14 @@ $focus = $viewDto->focus;
             </div>
 
             <!-- 2. WERKZEUGE (FILTER) -->
-            <?php if ($viewDto->permissions->canViewPermits) { ?>
+            <?php if ($viewDto->permissions->canViewPermits || $viewDto->permissions->canExport || $viewDto->permissions->hasAnyPermitExport) { ?>
             <?php include $appRoot . '/templates/partials/admin/control_bar.phtml'; ?>
             <?php } ?>
 
             <!-- 4. ALERTS / INFOBOXEN -->
-            <?php if ($viewDto->permissions->canViewPermits) { ?>
             <div class="u-margin-inline-auto u-margin-block-end-m">
                 <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
             </div>
-            <?php } ?>
 
             <!-- 5. CONTENT (TAB PANELS) -->
             <?php if ($viewDto->permissions->canViewPermits) { ?>
@@ -419,7 +417,7 @@ $focus = $viewDto->focus;
             </div>
             <?php } ?>
 
-            <?php if ($viewDto->permissions->canExport) { ?>
+            <?php if ($viewDto->permissions->canExport || $viewDto->permissions->hasAnyPermitExport) { ?>
             <div
                 id="tab-export"
                 role="tabpanel"
@@ -549,7 +547,7 @@ $focus = $viewDto->focus;
                 <button
                     type="button"
                     class="c-button c-button--danger c-button--icon-only js-close-release-notes"
-                    title="Schließen & Gelesen"
+                    title="Schließen &amp; Gelesen"
                 >&times;</button>
             </div>
         </header>
