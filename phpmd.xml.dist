@@ -25,8 +25,6 @@
         <exclude name="ErrorControlOperator" />
         <!-- Verhindert Fehlalarme bei extract() im TemplateRenderer und AbstractMailService -->
         <exclude name="UndefinedVariable" />
-        <!-- Erlaubt bewusste Fallback-Catches (z.B. Analytics Fire-and-Forget oder DateTime-Parsing-Fallbacks) -->
-        <exclude name="EmptyCatchBlock" />
     </rule>
 
     <!-- =================================================================== -->
@@ -100,6 +98,8 @@
         <exclude name="CouplingBetweenObjects" />
         <!-- Wird bereits pfadgenau durch spaze/phpstan-disallowed-calls (nur in Response-Klassen erlaubt) überwacht -->
         <exclude name="ExitExpression" />
+        <!-- Erlaubt bewusste Fallback-Catches (z.B. Analytics Fire-and-Forget oder DateTime-Parsing-Fallbacks) -->
+        <exclude name="EmptyCatchBlock" />
     </rule>
 
     <!-- =================================================================== -->
@@ -122,8 +122,7 @@
     <rule ref="rulesets/unusedcode.xml">
         <!-- ActionInterface::execute($request) und QueryHandlerInterface::handle($query) geben die Signatur zwingend vor -->
         <exclude name="UnusedFormalParameter" />
-        <!-- PHPMD erkennt nicht, wenn lokale Variablen in nachfolgenden PHTML-Includes (maintenance.phtml / system_error.phtml) genutzt werden.
-             Unbenutzte Variablen werden stattdessen durch SlevomatCodingStandard.Variables.UnusedVariable in PHPCS geprüft. -->
+        <!-- Unbenutzte lokale Variablen werden präziser durch SlevomatCodingStandard.Variables.UnusedVariable in PHPCS geprüft -->
         <exclude name="UnusedLocalVariable" />
     </rule>
 </ruleset>

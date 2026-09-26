@@ -229,14 +229,13 @@ final readonly class HolidayService
                 $start = (string) ($season['start'] ?? '01-01');
                 $end = (string) ($season['end'] ?? '12-31');
 
-                // Normales Jahr
                 if ($start <= $end) {
+                    // Normales Jahr
                     if ($currentDayMonth >= $start && $currentDayMonth <= $end) {
                         return \is_array($season['opening_hours'] ?? null) ? $season['opening_hours'] : [];
                     }
-                }
-                // Jahresübergreifend (z.B. 11-01 bis 02-28)
-                elseif ($currentDayMonth >= $start || $currentDayMonth <= $end) {
+                } elseif ($currentDayMonth >= $start || $currentDayMonth <= $end) {
+                    // Jahresübergreifend (z.B. 11-01 bis 02-28)
                     return \is_array($season['opening_hours'] ?? null) ? $season['opening_hours'] : [];
                 }
             }

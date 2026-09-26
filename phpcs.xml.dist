@@ -13,15 +13,11 @@
     <arg name="cache" value=".cache/phpcs/.phpcs.cache" />
 
     <file>src</file>
-    <!--<file>tests</file>-->
-    <file>public</file>
-    <file>config</file>
+    <file>public/index.php</file>
 
     <!-- Entrypoint- und Bootstrap-Dateien dürfen Symbole und Ausführungen mischen -->
     <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
         <exclude-pattern>public/index.php</exclude-pattern>
-        <exclude-pattern>public/maintenance.php</exclude-pattern>
-        <exclude-pattern>public/sw.php</exclude-pattern>
         <exclude-pattern>src/Bootstrap/app.php</exclude-pattern>
         <exclude-pattern>tests/Pest.php</exclude-pattern>
     </rule>
@@ -57,7 +53,7 @@
         </properties>
     </rule>
     <rule ref="SlevomatCodingStandard.Variables.UselessVariable" />
-    <rule ref="SlevomatCodingStandard.Functions.UnusedParameter" />
+    <!-- Hinweis: UnusedParameter ist bewusst deaktiviert, da ActionInterface und QueryHandlerInterface feste Signaturen erzwingen -->
     <rule ref="SlevomatCodingStandard.Functions.UselessParameterDefaultValue" />
     <rule ref="SlevomatCodingStandard.Exceptions.DeadCatch" />
     <rule ref="SlevomatCodingStandard.PHP.UselessParentheses" />

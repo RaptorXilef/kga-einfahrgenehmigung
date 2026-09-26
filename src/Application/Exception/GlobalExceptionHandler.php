@@ -91,8 +91,6 @@ final readonly class GlobalExceptionHandler
      */
     private function renderErrorPage(Throwable $exception, bool $isDev): void
     {
-        $vereinsName = \htmlspecialchars($this->config->getString('vereins_name', 'KGA'));
-        $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
         $appRoot = \rtrim($this->config->getString('root_path'), '/\\');
 
         $errorTitle = 'Ups! Etwas ist schiefgelaufen';
@@ -113,9 +111,17 @@ final readonly class GlobalExceptionHandler
         // Binden wir die PHTML-Datei ein (falls nicht vorhanden -> Ultra Fallback)
         $templatePath = $appRoot . '/templates/pages/frontend/system_error.phtml';
         if (\file_exists($templatePath)) {
+            $viewVars = [
+                'vereinsName' => \htmlspecialchars($this->config->getString('vereins_name', 'KGA')),
+                'baseUrl' => \rtrim($this->config->getBaseUrl(), '/') . '/',
+                'errorTitle' => $errorTitle,
+                'errorMessage' => $errorMessage,
+                'debugInfo' => $debugInfo,
+                'requestState' => '',
+            ];
+            \extract($viewVars);
+
             \ob_start();
-            // Dem Template den Error-State zur Verfügung stellen
-            $requestState = '';
             include $templatePath;
             $html = \ob_get_clean();
         } else {

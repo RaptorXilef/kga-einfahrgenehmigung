@@ -125,10 +125,6 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
         }
 
         $rootPath = \rtrim($this->config->getString('root_path'), '/\\');
-        $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
-        $vereinsName = $this->config->getString('vereins_name', 'KGA e.V.');
-        $maintenanceModeAdmin = (bool) ($this->config->getArray('maintenance')['admin'] ?? false);
-        $displayMessage = $message;
 
         $logoFile = null;
         foreach (['webp', 'png', 'jpg'] as $ext) {
@@ -138,6 +134,15 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
                 break;
             }
         }
+
+        $viewVars = [
+            'baseUrl' => \rtrim($this->config->getBaseUrl(), '/') . '/',
+            'vereinsName' => $this->config->getString('vereins_name', 'KGA e.V.'),
+            'maintenanceModeAdmin' => (bool) ($this->config->getArray('maintenance')['admin'] ?? false),
+            'displayMessage' => $message,
+            'logoFile' => $logoFile,
+        ];
+        \extract($viewVars);
 
         \ob_start();
         include $rootPath . '/templates/pages/frontend/maintenance.phtml';
