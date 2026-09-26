@@ -2,10 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Application\Exception\GlobalExceptionHandler;
 use App\Application\FrontendController;
 use App\Application\Http\ServerRequest;
 use App\Bootstrap\Container;
+use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\ErrorLoggerInterface;
 use Throwable;
+
+$container = null;
 
 try {
     $bootstrapPath = __DIR__ . '/../src/Bootstrap/app.php';
@@ -25,10 +30,44 @@ try {
     $container->bind(ServerRequest::class, fn (): ServerRequest => $req);
 
     $controller = $container->get(FrontendController::class);
+    \assert($controller instanceof FrontendController);
 
     $response = $controller->handleRequest($req);
     $response->send();
-} catch (Throwable) {
+} catch (Throwable $exception) {
+    // 1. Wenn der Container bereits läuft, übernimmt der reguläre GlobalExceptionHandler (inkl. Logging & Dev-Mode)
+    if ($container instanceof Container) {
+        try {
+            $config = $container->get(ConfigInterface::class);
+            $logger = $container->get(ErrorLoggerInterface::class);
+            if ($config instanceof ConfigInterface && $logger instanceof ErrorLoggerInterface) {
+                (new GlobalExceptionHandler($config, $logger))->handleException($exception);
+                exit;
+            }
+        } catch (Throwable) {
+            // Falls auch der Handler wegen fehlender Dateien beim Upload fehlschlägt -> weiter zum Notfall-Logger
+        }
+    }
+
+    // 2. Notfall-Logger: Schreibt den Fehler garantiert in logs/system_error.log, auch wenn die Wartungsseite geladen wird!
+    $logDir = \dirname(__DIR__) . '/logs';
+    if (!\is_dir($logDir)) {
+        @\mkdir($logDir, 0o755, true);
+    }
+
+    $logMessage = \sprintf(
+        "[%s] [BOOTSTRAP/UPLOAD FALLBACK] [%s] %s in %s:%d\nStack Trace:\n%s\n%s\n",
+        \date('Y-m-d H:i:s'),
+        $exception::class,
+        $exception->getMessage(),
+        $exception->getFile(),
+        $exception->getLine(),
+        $exception->getTraceAsString(),
+        \str_repeat('=', 80),
+    );
+    @\file_put_contents($logDir . '/system_error.log', $logMessage, \FILE_APPEND | \LOCK_EX);
+    \error_log(\sprintf('[BOOTSTRAP FALLBACK] [%s] %s in %s:%d', $exception::class, $exception->getMessage(), $exception->getFile(), $exception->getLine()));
+
     while (\ob_get_level() > 0) {
         \ob_end_clean();
     }

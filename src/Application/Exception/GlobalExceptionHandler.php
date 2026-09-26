@@ -64,12 +64,8 @@ final readonly class GlobalExceptionHandler
      */
     public function handleException(Throwable $exception): void
     {
-        // 1. Fehler revisionssicher loggen (fehlertolerant, falls Log-Infrastruktur im Upload ist)
-        try {
-            $this->logger->logThrowable($exception);
-        } catch (Throwable) {
-            // Ignorieren, falls während eines Datei-Uploads das Dateisystem blockiert ist
-        }
+        // 1. Fehler IMMER revisionssicher loggen (auch wenn danach die Wartungsseite gezeigt wird!)
+        $this->logExceptionGuaranteed($exception);
 
         // 2. Prüfen, ob wir im Dev-Modus sind (dann wollen wir die echten Fehler sehen!)
         $isDev = $this->config->getBool('debug_mode', false);
@@ -83,9 +79,9 @@ final readonly class GlobalExceptionHandler
             || \str_contains($httpAccept, 'application/json')
             || \str_contains($contentType, 'application/json');
 
-        // 3. Wenn der Wartungsmodus aktiv ist ODER während eines Datei-Uploads eine Klasse/Datei fehlt:
+        // 3. Nur wenn während eines Datei-Uploads tatsächlich eine Klasse/Datei fehlt:
         //    Liefere die abhängigkeitsfreie Wartungsseite (HTTP 503) statt eines HTTP-500-Fehlers aus!
-        if (!$isDev && $this->shouldServeMaintenanceFallback($exception)) {
+        if (!$isDev && $this->isUploadDependencyError($exception)) {
             $mConfig = $this->config->getArray('maintenance');
             $msg = (string) ($mConfig['message'] ?? 'Wir aktualisieren gerade das System, um Ihnen den bestmöglichen Service zu bieten.');
 
@@ -108,26 +104,52 @@ final readonly class GlobalExceptionHandler
     }
 
     /**
-     * Erkennt, ob der Wartungsmodus konfiguriert ist oder ein typischer Upload-/Deployment-Fehler
-     * (fehlende Klasse, fehlendes Interface, unvollständige Datei beim Upload) vorliegt.
+     * Stellt zu 100 % sicher, dass jede Exception in logs/system_error.log und im PHP-Error-Log landet,
+     * selbst wenn der reguläre ErrorLogger während eines Datei-Uploads ausfallen sollte.
      */
-    private function shouldServeMaintenanceFallback(Throwable $exception): bool
+    private function logExceptionGuaranteed(Throwable $exception): void
     {
-        $mConfig = $this->config->getArray('maintenance');
-        if (
-            (bool) ($mConfig['frontend'] ?? false)
-            || (bool) ($mConfig['admin'] ?? false)
-            || (bool) ($mConfig['api'] ?? false)
-            || (array) ($mConfig['routes'] ?? []) !== []
-        ) {
-            return true;
+        try {
+            $this->logger->logThrowable($exception);
+
+            return;
+        } catch (Throwable) {
+            // Fallback auf direktes Schreiben in logs/system_error.log
         }
 
-        if ($exception instanceof Error) {
+        $appRoot = \rtrim($this->config->getString('root_path', \dirname(__DIR__, 3)), '/\\');
+        $logDir = $appRoot . '/logs';
+        if (!\is_dir($logDir)) {
+            @\mkdir($logDir, 0o755, true);
+        }
+
+        $entry = \sprintf(
+            "[%s] [%s] %s in %s:%d\nStack Trace:\n%s\n%s\n",
+            \defined('APP_REQUEST_TIME_STR') ? (string) APP_REQUEST_TIME_STR : 'Fallback-Log',
+            $exception::class,
+            $exception->getMessage(),
+            $exception->getFile(),
+            $exception->getLine(),
+            $exception->getTraceAsString(),
+            \str_repeat('=', 80),
+        );
+
+        @\file_put_contents($logDir . '/system_error.log', $entry, \FILE_APPEND | \LOCK_EX);
+        \error_log(\sprintf('[%s] %s in %s:%d', $exception::class, $exception->getMessage(), $exception->getFile(), $exception->getLine()));
+    }
+
+    /**
+     * Erkennt typische Upload-/Deployment-Fehler (fehlende Klasse, fehlendes Interface,
+     * unvollständige Datei beim FTP-Upload), bei denen die Wartungsseite statt HTTP 500 greifen soll.
+     */
+    private function isUploadDependencyError(Throwable $exception): bool
+    {
+        if ($exception instanceof Error || $exception instanceof ErrorException) {
             $msg = $exception->getMessage();
             if (
                 \str_contains($msg, 'not found')
                 || \str_contains($msg, 'Failed opening required')
+                || \str_contains($msg, 'Failed to open stream')
                 || \str_contains($msg, 'No such file or directory')
                 || \str_contains($msg, 'syntax error')
             ) {

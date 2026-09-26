@@ -33,8 +33,11 @@ final readonly class PdoMagicLinkRepository implements MagicLinkRepositoryInterf
     #[Override]
     public function findByInput(string $input): ?MagicLink
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM magic_links WHERE token = :input OR code = :input LIMIT 1');
-        $stmt->execute(['input' => $input]);
+        $stmt = $this->pdo->prepare('SELECT * FROM magic_links WHERE token = :token OR code = :code LIMIT 1');
+        $stmt->execute([
+            'token' => $input,
+            'code' => $input,
+        ]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!\is_array($row)) {
