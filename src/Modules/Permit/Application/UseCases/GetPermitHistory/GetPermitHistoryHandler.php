@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Permit\Application\UseCases\GetPermitHistory;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Integration\FinanceIntegrationInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use App\SharedKernel\Application\Query\QueryInterface;
@@ -24,6 +25,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
         private PDO $pdo,
         private ConfigInterface $config,
         private ClockInterface $clock,
+        private FinanceIntegrationInterface $financeIntegration,
     ) {
     }
 
@@ -35,7 +37,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
     {
         $normalizedSearch = Sanitizer::normalizeEmail($query->email);
         $parts = \explode('@', $normalizedSearch);
-        $domain = \count($parts) === 2 ? '%' . $parts[1] : '%';
+        $domain = \count($parts) === 2 ? '\%' . $parts[1] : '%';
 
         $binds = ['domain1' => $domain, 'domain2' => $domain];
         $archiveCond = '';
@@ -48,11 +50,11 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
         }
 
         $sql = "
-            SELECT code, name, email, kennzeichen, parzelle, typ, status, von, bis, erstellt, is_suspended
-            FROM permits WHERE email LIKE :domain1
-            UNION ALL
-            SELECT code, name, email, kennzeichen, parzelle, typ, status, von, bis, erstellt, is_suspended
-            FROM permits_archive WHERE email LIKE :domain2 {$archiveCond}
+        SELECT code, name, email, kennzeichen, parzelle, typ, preis, status, von, bis, erstellt, is_suspended
+        FROM permits WHERE email LIKE :domain1
+        UNION ALL
+        SELECT code, name, email, kennzeichen, parzelle, typ, preis, status, von, bis, erstellt, is_suspended
+        FROM permits_archive WHERE email LIKE :domain2 {$archiveCond}
         ";
 
         $stmt = $this->pdo->prepare($sql);
@@ -66,6 +68,8 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
         $daysBeforeValidity = $this->config->getInt('payment_due_days_before_validity', 2);
         $notifyDays = $this->config->getInt('payment_due_days_notify', 2);
         $allowCancel = $this->config->getBool('allow_user_cancellation', true);
+        $usagePattern = $this->config->getString('usage_pattern', 'EFG-{{code}}-{{nachname}}');
+        $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
 
         $dtos = [];
 
@@ -76,6 +80,10 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
                 continue;
             }
 
+            $code = (string) $row['code'];
+            $ownerName = (string) $row['name'];
+            $price = (float) ($row['preis'] ?? 0.0);
+            $statusRaw = \strtolower(\trim((string) ($row['status'] ?? 'offen')));
             $isSuspended = (bool) $row['is_suspended'];
             $erstellt = new DateTimeImmutable((string) $row['erstellt']);
             $von = new DateTimeImmutable((string) $row['von']);
@@ -83,7 +91,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
 
             $isExpired = $bis->format('Y-m-d') < $nowDateStr;
             $isFuture = $von->format('Y-m-d') > $nowDateStr;
-            $isPaid = $row['status'] === 'bezahlt';
+            $isPaid = $statusRaw === 'bezahlt';
 
             $rowClass = $isExpired ? 'u-opacity-50' : '';
             $rowClass .= $isSuspended ? ' c-table__row--danger' : '';
@@ -101,7 +109,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
                 $countdownText = 'ABGELAUFEN';
                 $countdownBadgeClass = 'c-badge--outline';
             } elseif ($isFuture) {
-                $daysToStart = (int) $now->diff($von)->format('%r%a');
+                $daysToStart = (int) $now->diff($von)->format('\%r\%a');
                 $countdownText = "Startet in {$daysToStart} Tagen";
             } else {
                 $diff = $now->diff($bis);
@@ -110,16 +118,17 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
                 $countdownBadgeClass = $remaining <= 1 ? 'c-badge--danger' : 'c-badge--primary';
             }
 
-            $statusText = \strtoupper((string) $row['status']);
+            // Zahlungsziel (Deadline) berechnen
+            $fallbackDueDate = $erstellt->modify("+{$dueDaysCfg} days")->setTime(23, 59, 59);
+            $dynamicDueDate = $von->modify("-{$daysBeforeValidity} days")->setTime(23, 59, 59);
+            $deadline = $dynamicDueDate > $fallbackDueDate ? $dynamicDueDate : $fallbackDueDate;
+
+            $statusText = \strtoupper($statusRaw);
             $statusBadgeClass = 'c-badge--danger';
 
             if ($isPaid) {
                 $statusBadgeClass = 'c-badge--success';
             } else {
-                // Inline Overdue Calculation (Decoupled from PermitFinancialCalculator Domain Service)
-                $fallbackDueDate = $erstellt->modify("+{$dueDaysCfg} days")->setTime(23, 59, 59);
-                $dynamicDueDate = $von->modify("-{$daysBeforeValidity} days")->setTime(23, 59, 59);
-                $deadline = $dynamicDueDate > $fallbackDueDate ? $dynamicDueDate : $fallbackDueDate;
                 $staffAlertThreshold = $deadline->modify("+{$notifyDays} days");
 
                 $overdueLevel = 0;
@@ -139,10 +148,33 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
             }
 
             $canCancel = $allowCancel && $isFuture && !$isPaid && !$isSuspended;
+            $canShowPaymentInfo = !$isPaid && $statusRaw !== 'storniert' && $price > 0.0;
+
+            $priceFormatted = \number_format($price, 2, ',', '.') . ' €';
+            $paymentDueDateFormatted = $deadline->format('d.m.Y');
+            $paymentUsageText = '';
+            $paymentQrUrl = '';
+
+            if ($canShowPaymentInfo) {
+                $codeParts = \explode('-', $code);
+                $shortCode = (string) \end($codeParts);
+                $nameParts = \explode(' ', $ownerName);
+                $vorname = $nameParts[0] ?? '';
+                $nachname = $nameParts[\count($nameParts) - 1] ?? '';
+
+                $paymentUsageText = \str_replace(
+                    ['{{code}}', '{{nachname}}', '{{vorname}}', '{{name}}'],
+                    [$shortCode, $nachname, $vorname, $ownerName],
+                    $usagePattern,
+                );
+
+                $epcQrData = $this->financeIntegration->generateEpcQrData($price, $paymentUsageText);
+                $paymentQrUrl = $safeBaseUrl . 'api/qr.png?size=180&margin=10&data=' . \urlencode($epcQrData);
+            }
 
             $dtos[] = new HistoryPermitViewDto(
-                code: (string) $row['code'],
-                ownerName: (string) $row['name'],
+                code: $code,
+                ownerName: $ownerName,
                 plotNumber: \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
                 vehicleIcon: $vehicleIcon,
                 vehicleIconClass: $vehicleIconClass,
@@ -157,6 +189,11 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
                 statusText: $statusText,
                 statusBadgeClass: $statusBadgeClass,
                 canCancel: $canCancel,
+                canShowPaymentInfo: $canShowPaymentInfo,
+                priceFormatted: $priceFormatted,
+                paymentDueDateFormatted: $paymentDueDateFormatted,
+                paymentUsageText: $paymentUsageText,
+                paymentQrUrl: $paymentQrUrl,
                 createdAtTimestamp: $erstellt->format('Y-m-d H:i:s'),
             );
         }

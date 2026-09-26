@@ -16,6 +16,7 @@ import {
     CopyAction,
     EventTracker,
     FabRefresh,
+    PaymentInfoModal,
     PrintControls,
     RemoteSubmit,
     SelectOnClick,
@@ -77,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mount('.js-close-window, .js-print-window', PrintControls);
     mount('.js-auto-submit-select', AutoSubmitSelect);
     mount('.js-track-event', EventTracker);
+    mountSingle('.js-payment-modal', PaymentInfoModal);
 
     // Core / UI mounten
     mountSingle('.js-session-timer', SessionTimer);

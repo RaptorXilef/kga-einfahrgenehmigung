@@ -11,6 +11,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\ViewRenderRequest;
 use Override;
@@ -23,6 +24,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private ClockInterface $clock,
+        private ConfigInterface $config,
     ) {
     }
 
@@ -50,6 +52,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
             'email' => $emailInSession,
             'isSuccess' => $dto->isSuccess,
             'permitsDto' => $permitsDto,
+            'requirePaymentForValidity' => $this->config->getBool('require_payment_for_validity', false),
         ]);
 
         return new HtmlResponse($html);

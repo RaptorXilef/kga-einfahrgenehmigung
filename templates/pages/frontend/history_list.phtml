@@ -11,12 +11,13 @@ use App\Modules\Permit\Application\UseCases\GetPermitHistory\HistoryPermitViewDt
  *
  * Historische Antragsübersicht für den Endnutzer.
  * Listet alle Genehmigungen einer verifizierten E-Mail-Adresse auf. Bietet Optionen zum
- * Nachladen von Jahresarchiven sowie Verknüpfungen zur PDF-A4-Druckansicht.
+ * Nachladen von Jahresarchiven, PDF-A4-Druckansicht sowie ein Zahlungs-Modal für offene Beträge.
  *
  * @var AssetHelperInterface $asset
  * @var array $settings
  * @var HistoryPermitViewDto[] $permitsDto
  * @var bool $isSuccess
+ * @var bool $requirePaymentForValidity
  * @var int $currentArchiveYear
  * @var int $lastYear
  * @var string $appRoot
@@ -77,9 +78,9 @@ $pageTitle = 'Meine Genehmigungen - ' . $vereinsName;
             <table class="c-table js-sort-table u-inline-size-100">
                 <thead>
                     <tr>
-                        <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung</th>
+                        <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller &amp; Kennung</th>
                         <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
-                        <th class="c-table__header-cell js-sort-header u-text-center">Gültigkeit & Restzeit</th>
+                        <th class="c-table__header-cell js-sort-header u-text-center">Gültigkeit &amp; Restzeit</th>
                         <th class="c-table__header-cell js-sort-header u-text-center">Finanz-Status</th>
                         <th class="c-table__header-cell u-text-end u-padding-inline-end-m">Aktion</th>
                     </tr>
@@ -178,6 +179,26 @@ $pageTitle = 'Meine Genehmigungen - ' . $vereinsName;
                         </td>
                         <td class="c-table__data-cell u-text-end u-padding-inline-end-m">
                             <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
+                                <?php if ($permit->canShowPaymentInfo) { ?>
+                                <button
+                                    type="button"
+                                    class="c-button c-button--primary c-button--icon-only js-show-payment-info"
+                                    title="Zahlungsinformationen &amp; GiroCode anzeigen"
+                                    aria-label="Zahlungsinformationen für Genehmigung <?php echo \htmlspecialchars($permit->code, \ENT_QUOTES, 'UTF-8'); ?> anzeigen"
+                                    data-code="<?php echo \htmlspecialchars($permit->code, \ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-amount="<?php echo \htmlspecialchars($permit->priceFormatted, \ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-due-date="<?php echo \htmlspecialchars($permit->paymentDueDateFormatted, \ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-usage="<?php echo \htmlspecialchars($permit->paymentUsageText, \ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-qr-url="<?php echo \htmlspecialchars($permit->paymentQrUrl, \ENT_QUOTES, 'UTF-8'); ?>"
+                                >
+                                    <img
+                                        src="<?php echo $asset->url('assets/img/icons/finance.webp'); ?>"
+                                        class="c-icon c-button__icon"
+                                        loading="lazy"
+                                        alt=""
+                                    >
+                                </button>
+                                <?php } ?>
                                 <?php if ($permit->canCancel) { ?>
                                 <form
                                     method="POST"
@@ -277,3 +298,149 @@ $pageTitle = 'Meine Genehmigungen - ' . $vereinsName;
         </a>
     </footer>
 </div>
+
+<!-- ZAHLUNGSINFORMATIONEN MODAL (FÜR OFFENE GENEHMIGUNGEN) -->
+<dialog
+    id="paymentInfoModal"
+    class="c-modal js-payment-modal"
+    aria-labelledby="paymentModalTitle"
+    aria-modal="true"
+>
+    <div class="c-modal__dialog c-modal__dialog--large c-card c-card--warning u-padding-none u-text-start">
+        <header class="c-card__header u-flex u-justify-between u-align-center u-gap-s">
+            <h3
+                id="paymentModalTitle"
+                class="u-margin-none u-flex u-align-center u-gap-s"
+            >
+                <img
+                    src="<?php echo $asset->url('assets/img/icons/finance.webp'); ?>"
+                    class="c-icon c-button__icon"
+                    loading="lazy"
+                    alt=""
+                >
+                <span>Zahlungsinformationen</span>
+            </h3>
+            <button
+                type="button"
+                class="c-button c-button--danger c-button--small c-button--icon-only js-close-payment-modal"
+                title="Schließen"
+                aria-label="Zahlungsfenster schließen"
+            >&times;</button>
+        </header>
+
+        <div class="c-card__body u-overflow-y-auto">
+            <div class="u-text-center u-margin-block-end-m">
+                <span
+                    class="u-color-muted u-text-xs u-font-bold u-text-uppercase u-display-block">Vorgangs-Kennung</span>
+                <code class="u-text-lg u-color-dark u-font-extrabold js-pay-modal-code">---</code>
+            </div>
+
+            <?php if ($requirePaymentForValidity) { ?>
+            <div class="c-box c-box--warning u-margin-block-end-m u-text-sm">
+                <strong>Wichtiger Hinweis:</strong> Ihre Genehmigung wird erst nach vollständigem Zahlungseingang
+                freigeschaltet.
+                Bitte überweisen Sie den Betrag bis spätestens <strong class="js-pay-modal-due">---</strong>.
+            </div>
+            <?php } else { ?>
+            <div class="c-box c-box--highlight u-margin-block-end-m u-text-sm">
+                Bitte überweisen Sie den offenen Betrag bis spätestens <strong class="js-pay-modal-due">---</strong>.
+            </div>
+            <?php } ?>
+
+            <div class="o-grid o-grid--auto-right u-align-center u-gap-l">
+                <div>
+                    <table class="c-table c-table--summary">
+                        <tr class="c-table__row">
+                            <td class="c-table__data-cell c-table__label">Betrag:</td>
+                            <td class="c-table__data-cell c-table__value c-table__value--highlight js-pay-modal-amount">
+                                ---
+                            </td>
+                        </tr>
+                        <tr class="c-table__row">
+                            <td class="c-table__data-cell c-table__label">Empfänger:</td>
+                            <td class="c-table__data-cell c-table__value">
+                                <?php echo \htmlspecialchars((string) ($settings['kontoinhaber'] ?? ''), \ENT_QUOTES, 'UTF-8'); ?>
+                            </td>
+                        </tr>
+                        <tr class="c-table__row">
+                            <td class="c-table__data-cell c-table__label">IBAN:</td>
+                            <td class="c-table__data-cell c-table__value">
+                                <div class="u-flex u-align-center u-gap-s u-flex-wrap">
+                                    <span
+                                        class="u-font-mono"><?php echo \htmlspecialchars((string) ($settings['iban'] ?? ''), \ENT_QUOTES, 'UTF-8'); ?></span>
+                                    <button
+                                        type="button"
+                                        class="c-button c-button--secondary c-button--small c-button--icon-only js-copy-btn"
+                                        data-url="<?php echo \htmlspecialchars((string) ($settings['iban'] ?? ''), \ENT_QUOTES, 'UTF-8'); ?>"
+                                        title="IBAN in Zwischenablage kopieren"
+                                        aria-label="IBAN kopieren"
+                                    >
+                                        <img
+                                            src="<?php echo $asset->url('assets/img/icons/copy.webp'); ?>"
+                                            class="c-icon c-button__icon"
+                                            loading="lazy"
+                                            alt=""
+                                        >
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php if (!empty($settings['bic'])) { ?>
+                        <tr class="c-table__row">
+                            <td class="c-table__data-cell c-table__label">BIC:</td>
+                            <td class="c-table__data-cell c-table__value u-font-mono">
+                                <?php echo \htmlspecialchars((string) $settings['bic'], \ENT_QUOTES, 'UTF-8'); ?>
+                            </td>
+                        </tr>
+                        <?php } ?>
+                        <tr class="c-table__row">
+                            <td class="c-table__data-cell c-table__label">
+                                Verwendungszweck:<br>
+                                <small>(Zwingend exakt angeben!)</small>
+                            </td>
+                            <td class="c-table__data-cell c-table__value">
+                                <div class="u-flex u-align-center u-gap-s u-flex-wrap">
+                                    <span class="c-table__value--danger u-font-mono js-pay-modal-usage">---</span>
+                                    <button
+                                        type="button"
+                                        class="c-button c-button--secondary c-button--small c-button--icon-only js-copy-btn js-pay-modal-copy-usage"
+                                        data-url=""
+                                        title="Verwendungszweck in Zwischenablage kopieren"
+                                        aria-label="Verwendungszweck kopieren"
+                                    >
+                                        <img
+                                            src="<?php echo $asset->url('assets/img/icons/copy.webp'); ?>"
+                                            class="c-icon c-button__icon"
+                                            loading="lazy"
+                                            alt=""
+                                        >
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="u-text-center">
+                    <div
+                        class="c-box u-margin-block-none u-flex u-align-center u-justify-center c-voucher-qr-box js-pay-modal-qr-box">
+                        <div class="u-color-muted u-text-sm js-pay-modal-loader">GiroCode wird geladen...</div>
+                    </div>
+                    <div class="u-text-xs u-color-muted u-font-semibold u-margin-block-start-xs">
+                        Banking-App Scan (GiroCode)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="c-card__footer u-flex u-justify-between u-align-center u-gap-m u-flex-wrap">
+            <small class="u-color-muted">
+                💡 Bereits überwiesen? Bankbuchungen benötigen i.d.R. 2-5 Werktage bis zur Freischaltung.
+            </small>
+            <button
+                type="button"
+                class="c-button c-button--primary js-close-payment-modal"
+            >Schließen</button>
+        </footer>
+    </div>
+</dialog>

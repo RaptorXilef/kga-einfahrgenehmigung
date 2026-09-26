@@ -278,6 +278,9 @@ export class CopyAction {
                 if (this.button.dataset.isCopying) return;
                 this.button.dataset.isCopying = 'true';
 
+                // Unterstützt auch dynamisch aktualisierte data-url Attribute (z.B. im Payment-Modal)
+                const textToCopy = this.button.dataset.url || this.url || '';
+
                 // Speichere den Originalinhalt DOM-sicher (ohne HTML Strings!)
                 const originalChildren = document.createDocumentFragment();
                 while (this.button.firstChild) {
@@ -287,7 +290,7 @@ export class CopyAction {
                 const successAction = () => {
                     // Keine harten SCSS-Utility-Klassen im JS!
                     this.button.classList.add('is-success');
-                    this.button.textContent = '✓ Kopiert';
+                    this.button.textContent = '✓';
 
                     notifier.show('In die Zwischenablage kopiert!', 'success');
 
@@ -302,13 +305,13 @@ export class CopyAction {
                 // Moderne Clipboard API mit Fallback
                 if (navigator.clipboard && window.isSecureContext) {
                     try {
-                        await navigator.clipboard.writeText(this.url);
+                        await navigator.clipboard.writeText(textToCopy);
                         successAction();
                     } catch {
-                        this.fallbackCopyText(this.url, successAction);
+                        this.fallbackCopyText(textToCopy, successAction);
                     }
                 } else {
-                    this.fallbackCopyText(this.url, successAction);
+                    this.fallbackCopyText(textToCopy, successAction);
                 }
             },
             { signal: this.abortController.signal }
@@ -328,6 +331,119 @@ export class CopyAction {
             delete this.button.dataset.isCopying;
         }
         document.body.removeChild(textArea);
+    }
+
+    destroy() {
+        this.abortController.abort();
+    }
+}
+
+/**
+ * Steuert das Zahlungs-Modal im Pächter-Verlauf (history_list.phtml)
+ * und lädt den GiroCode-QR-Code ressourcenschonend erst bei Klick nach.
+ */
+export class PaymentInfoModal {
+    constructor(modalElement) {
+        this.modal = modalElement;
+        this.codeEl = this.modal.querySelector('.js-pay-modal-code');
+        this.amountEl = this.modal.querySelector('.js-pay-modal-amount');
+        this.dueEl = this.modal.querySelector('.js-pay-modal-due');
+        this.usageEl = this.modal.querySelector('.js-pay-modal-usage');
+        this.copyUsageBtn = this.modal.querySelector('.js-pay-modal-copy-usage');
+        this.qrBox = this.modal.querySelector('.js-pay-modal-qr-box');
+        this.loaderEl = this.modal.querySelector('.js-pay-modal-loader');
+        this.closeBtns = this.modal.querySelectorAll('.js-close-payment-modal');
+        this.triggerBtns = document.querySelectorAll('.js-show-payment-info');
+
+        this.abortController = new AbortController();
+        this.init();
+    }
+
+    init() {
+        const options = { signal: this.abortController.signal };
+
+        this.triggerBtns.forEach((btn) => {
+            btn.addEventListener(
+                'click',
+                (e) => {
+                    e.preventDefault();
+                    this.open(btn.dataset);
+                },
+                options
+            );
+        });
+
+        this.closeBtns.forEach((btn) => {
+            btn.addEventListener(
+                'click',
+                (e) => {
+                    e.preventDefault();
+                    this.close();
+                },
+                options
+            );
+        });
+
+        this.modal.addEventListener(
+            'click',
+            (e) => {
+                if (e.target === this.modal) {
+                    this.close();
+                }
+            },
+            options
+        );
+    }
+
+    open(data) {
+        if (this.codeEl) this.codeEl.textContent = data.code || '---';
+        if (this.amountEl) this.amountEl.textContent = data.amount || '---';
+        if (this.dueEl) this.dueEl.textContent = data.dueDate || '---';
+        if (this.usageEl) this.usageEl.textContent = data.usage || '---';
+        if (this.copyUsageBtn) this.copyUsageBtn.dataset.url = data.usage || '';
+
+        if (this.qrBox && this.loaderEl) {
+            const oldImg = this.qrBox.querySelector('img');
+            if (oldImg) oldImg.remove();
+
+            this.loaderEl.hidden = false;
+            this.loaderEl.classList.remove('is-error');
+            this.loaderEl.textContent = 'GiroCode wird geladen...';
+
+            if (data.qrUrl) {
+                const img = document.createElement('img');
+                img.className = 'c-qr-box';
+                img.alt = 'GiroCode für Banking-App';
+                img.hidden = true;
+
+                img.onload = () => {
+                    if (this.abortController.signal.aborted) return;
+                    this.loaderEl.hidden = true;
+                    img.hidden = false;
+                };
+
+                img.onerror = () => {
+                    if (this.abortController.signal.aborted) return;
+                    img.hidden = true;
+                    this.loaderEl.hidden = false;
+                    this.loaderEl.textContent = 'QR-Code konnte nicht geladen werden.';
+                    this.loaderEl.classList.add('is-error');
+                };
+
+                img.src = data.qrUrl;
+                this.qrBox.appendChild(img);
+            }
+        }
+
+        this.modal.showModal();
+    }
+
+    close() {
+        this.modal.close();
+        if (this.qrBox) {
+            const oldImg = this.qrBox.querySelector('img');
+            if (oldImg) oldImg.remove();
+        }
     }
 
     destroy() {

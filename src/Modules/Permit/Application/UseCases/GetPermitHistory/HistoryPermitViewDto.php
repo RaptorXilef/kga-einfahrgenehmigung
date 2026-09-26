@@ -26,6 +26,11 @@ final readonly class HistoryPermitViewDto
         public string $statusText,
         public string $statusBadgeClass,
         public bool $canCancel,
+        public bool $canShowPaymentInfo,
+        public string $priceFormatted,
+        public string $paymentDueDateFormatted,
+        public string $paymentUsageText,
+        public string $paymentQrUrl,
         public string $createdAtTimestamp,
     ) {
     }
