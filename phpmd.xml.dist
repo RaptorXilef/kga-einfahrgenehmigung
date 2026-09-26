@@ -1,70 +1,122 @@
-<?xml version="1.0"?>
-<ruleset name="PHPMD Rules"
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="KGA DDD-VSA PHPMD Ruleset"
     xmlns="http://pmd.sf.net/ruleset/1.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0 http://pmd.sf.net/ruleset_xml_schema.xsd">
-    <description>Modern High-End PHPMD Ruleset (PHP 8.3-8.5+)</description>
 
+    <description>
+        Pragmatisches High-End PHPMD Ruleset für PHP 8.3+ Modular Monoliths (DDD, VSA, CQRS &amp; Dumb Views).
+        Verhindert künstliche Code-Zerstückelung bei flachen View-DTOs und Read-Model-Handlern.
+    </description>
+
+    <!-- =================================================================== -->
+    <!-- 1. CLEAN CODE                                                       -->
+    <!-- =================================================================== -->
     <rule ref="rulesets/cleancode.xml">
+        <!-- Named Constructors (Request::fromArray) und Presenter nutzen bewusst statische Methoden -->
         <exclude name="StaticAccess" />
+        <!-- Optionale Flags in Queries/Interfaces (z.B. allowLicensePlateFallback = false) sind pragmatisch gewollt -->
         <exclude name="BooleanArgumentFlag" />
+        <!-- Imports werden bereits präziser durch PHP-CS-Fixer & Slevomat geprüft -->
         <exclude name="MissingImport" />
+        <!-- In CQRS Read-Model-Loops (z.B. Status-Buckets) ist if/elseif/else lesbarer als künstliche Helper-Methoden -->
+        <exclude name="ElseExpression" />
+        <!-- Die Infrastructure-Schicht nutzt gezielt @ bei Dateisystem/FTP-I/O, da der GlobalExceptionHandler Warnungen in Exceptions wandelt -->
+        <exclude name="ErrorControlOperator" />
+        <!-- Verhindert Fehlalarme bei extract() im TemplateRenderer und AbstractMailService -->
+        <exclude name="UndefinedVariable" />
     </rule>
 
+    <!-- =================================================================== -->
+    <!-- 2. CODE SIZE (Optimiert für PHP 8.3 Property Promotion & View-DTOs) -->
+    <!-- =================================================================== -->
     <rule ref="rulesets/codesize.xml">
         <exclude name="CyclomaticComplexity" />
         <exclude name="NPathComplexity" />
-        <exclude name="ExcessiveClassComplexity" />
-        <exclude name="TooManyMethods" />
+        <exclude name="ExcessiveMethodLength" />
+        <exclude name="ExcessiveClassLength" />
         <exclude name="ExcessiveParameterList" />
+        <exclude name="TooManyFields" />
+        <exclude name="TooManyMethods" />
+        <exclude name="TooManyPublicMethods" />
+        <exclude name="ExcessiveClassComplexity" />
     </rule>
 
+    <!-- Erlaubt flache, logikfreie View-DTOs (wie PermitFormViewDto & DashboardViewDto) mit Constructor Property Promotion -->
     <rule ref="rulesets/codesize.xml/ExcessiveParameterList">
         <properties>
-            <property name="minimum" value="15" />
+            <property name="minimum" value="45" />
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/TooManyFields">
+        <properties>
+            <property name="maxfields" value="45" />
+        </properties>
+    </rule>
+
+    <!-- Erlaubt das Bauen großer View-DTOs via Named Arguments und lineare PDO-Read-Model-Mappings am Stück -->
+    <rule ref="rulesets/codesize.xml/ExcessiveMethodLength">
+        <properties>
+            <property name="minimum" value="250" />
+            <property name="ignore-whitespace" value="true" />
+        </properties>
+    </rule>
+
+    <!-- Jeder ternäre Operator (? :) für CSS-Klassen in View-DTOs zählt als +1. 35 schützt vor echtem Spaghetti-Code, erlaubt aber DTO-Mapping -->
+    <rule ref="rulesets/codesize.xml/CyclomaticComplexity">
+        <properties>
+            <property name="reportLevel" value="35" />
+        </properties>
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/ExcessiveClassComplexity">
+        <properties>
+            <property name="maximum" value="80" />
         </properties>
     </rule>
 
     <rule ref="rulesets/codesize.xml/TooManyMethods">
         <properties>
-            <property name="maxmethods" value="27" />
+            <property name="maxmethods" value="25" />
         </properties>
     </rule>
 
-    <rule ref="rulesets/codesize.xml/CyclomaticComplexity">
+    <rule ref="rulesets/codesize.xml/TooManyPublicMethods">
         <properties>
-            <property name="reportLevel" value="15" />
+            <!-- Aggregate Roots (wie Permit) haben sprechende Domain-Getter + Business-Methoden -->
+            <property name="maxmethods" value="25" />
         </properties>
     </rule>
 
+    <!-- =================================================================== -->
+    <!-- 3. DESIGN (Architektur-Grenzen liegen bei Deptrac & PHPStan)        -->
+    <!-- =================================================================== -->
     <rule ref="rulesets/design.xml">
+        <!-- Deptrac überwacht die Modulgrenzen strikt; DI-Provider & Dashboard-Action verdrahten naturgemäß viele Klassen -->
         <exclude name="CouplingBetweenObjects" />
+        <!-- Wird bereits pfadgenau durch spaze/phpstan-disallowed-calls (nur in Response-Klassen erlaubt) überwacht -->
+        <exclude name="ExitExpression" />
     </rule>
 
-    <rule ref="rulesets/design.xml/CouplingBetweenObjects">
-        <properties>
-            <property name="minimum" value="20" />
-        </properties>
-    </rule>
-
+    <!-- =================================================================== -->
+    <!-- 4. NAMING (DDD bevorzugt sprechende Namen statt Zeichenlimits)      -->
+    <!-- =================================================================== -->
     <rule ref="rulesets/naming.xml">
+        <!-- Verhindert Fehlalarme bei $e (Exception), $r (Row), $u (User), $v (Voucher), $q (Query) -->
         <exclude name="ShortVariable" />
+        <!-- Sprechende DDD-Variablennamen (z.B. $canExportPermitsActiveFuture) dürfen niemals gekürzt werden müssen -->
         <exclude name="LongVariable" />
+        <!-- Erlaubt sprechende Factory-/Builder-Methoden wie id() oder to() -->
+        <exclude name="ShortMethodName" />
     </rule>
 
-    <rule ref="rulesets/naming.xml/ShortVariable">
-        <properties>
-            <property name="minimum" value="3" />
-            <!-- HINZUGEFÜGT: ip, x, y, w, h (Koordinaten), ch (cURL handle), dt (DateTime) -->
-            <property name="exceptions" value="id,em,io,db,qb,or,le,ge,fs,ip,x,y,w,h,ch,dt" />
-        </properties>
+    <!-- =================================================================== -->
+    <!-- 5. UNUSED CODE (Findet echten toten Code, respektiert Interfaces)   -->
+    <!-- =================================================================== -->
+    <rule ref="rulesets/unusedcode.xml">
+        <!-- WICHTIG für VSA/CQRS: ActionInterface::execute($request) und QueryHandlerInterface::handle($query)
+             geben die Signatur zwingend vor, auch wenn eine spezifische Action/Query parameterlos ist! -->
+        <exclude name="UnusedFormalParameter" />
     </rule>
-
-    <rule ref="rulesets/naming.xml/LongVariable">
-        <properties>
-            <property name="maximum" value="37" />
-        </properties>
-    </rule>
-
-    <rule ref="rulesets/unusedcode.xml" />
 </ruleset>
