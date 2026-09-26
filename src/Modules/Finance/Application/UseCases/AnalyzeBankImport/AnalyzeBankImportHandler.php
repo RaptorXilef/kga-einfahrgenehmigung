@@ -72,9 +72,11 @@ final readonly class AnalyzeBankImportHandler implements QueryHandlerInterface
                 ) {
                     $guessedSender = $idx;
                 }
-                if (\str_contains($h, 'waehrung') || \str_contains($h, 'währung') || \str_contains($h, 'currency')) {
-                    $guessedCurrency = $idx;
+                if (!\str_contains($h, 'waehrung') && !\str_contains($h, 'währung') && !\str_contains($h, 'currency')) {
+                    continue;
                 }
+
+                $guessedCurrency = $idx;
             }
 
             return new BankImportAnalysisDto(

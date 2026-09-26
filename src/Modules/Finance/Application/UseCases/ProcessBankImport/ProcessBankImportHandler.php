@@ -107,7 +107,7 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
 
             $parsedDate = $this->parseDate($datumRaw);
             $ueberwiesenerBetrag = $this->parseAmount($betragRaw);
-            $anomalyId = 'sam_' . \md5($datumRaw . $betragRaw . $verwendungszweck . $absenderRaw . (string) $rowNumber);
+            $anomalyId = 'sam_' . \md5($datumRaw . $betragRaw . $verwendungszweck . $absenderRaw . $rowNumber);
 
             // =====================================================================
             // PRIO 1: Direktsuche nach Permit-Codes (6- & 8-stellig + 6er-Suffix)
@@ -387,7 +387,7 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
                 $fehlerhaftPartial[] = "{$permitId} ({$ownerName}: {$istFormatted} statt {$sollFormatted})";
 
                 $sammelTransfers[] = $this->buildTodoItem(
-                    id: 'sam_under_' . \md5($permitId . $formatierterTag . (string) $istBetrag),
+                    id: 'sam_under_' . \md5($permitId . $formatierterTag . $istBetrag),
                     date: $formatierterTag,
                     amount: $istBetrag,
                     currency: 'EUR',
@@ -409,7 +409,7 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
             $fehlerhaftOverpaid[] = "{$permitId} ({$ownerName}: {$istFormatted} statt {$sollFormatted})";
 
             $sammelTransfers[] = $this->buildTodoItem(
-                id: 'sam_over_' . \md5($permitId . $formatierterTag . (string) $istBetrag),
+                id: 'sam_over_' . \md5($permitId . $formatierterTag . $istBetrag),
                 date: $formatierterTag,
                 amount: $istBetrag,
                 currency: 'EUR',
@@ -518,12 +518,14 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
                 continue;
             }
 
-            if (\preg_match('/(?<![A-Z0-9])(?:EFG[\s\-_]*)?' . $shortQuoted . '(?![A-Z0-9])/', $purposeUpper)) {
-                $matches[$fullCode] = [
-                    'extracted' => $shortCode,
-                    'method' => 'PRIO 1: Exakter Code (' . \strlen($shortCode) . '-stellig)',
-                ];
+            if (!\preg_match('/(?<![A-Z0-9])(?:EFG[\s\-_]*)?' . $shortQuoted . '(?![A-Z0-9])/', $purposeUpper)) {
+                continue;
             }
+
+            $matches[$fullCode] = [
+                'extracted' => $shortCode,
+                'method' => 'PRIO 1: Exakter Code (' . \strlen($shortCode) . '-stellig)',
+            ];
         }
 
         // 2. Temporärer 6-Stellen-Suffix-Fix für 8-stellige Codes (falls in Config aktiviert)
@@ -541,12 +543,14 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
                 $suffix6 = \substr($shortCode, -6);
                 $suffixQuoted = \preg_quote($suffix6, '/');
 
-                if (\preg_match('/(?<![A-Z0-9])(?:EFG[\s\-_]*)?' . $suffixQuoted . '(?![A-Z0-9])/', $purposeUpper)) {
-                    $matches[$fullCode] = [
-                        'extracted' => $suffix6,
-                        'method' => "PRIO 1: 6-Stellen-Kurzcode '{$suffix6}' -> '{$shortCode}'",
-                    ];
+                if (!\preg_match('/(?<![A-Z0-9])(?:EFG[\s\-_]*)?' . $suffixQuoted . '(?![A-Z0-9])/', $purposeUpper)) {
+                    continue;
                 }
+
+                $matches[$fullCode] = [
+                    'extracted' => $suffix6,
+                    'method' => "PRIO 1: 6-Stellen-Kurzcode '{$suffix6}' -> '{$shortCode}'",
+                ];
             }
         }
 
@@ -583,9 +587,11 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
                 continue;
             }
 
-            if (\str_contains($purposeNormalized, $plateNormalized)) {
-                $matches[$fullCode] = $plate;
+            if (!\str_contains($purposeNormalized, $plateNormalized)) {
+                continue;
             }
+
+            $matches[$fullCode] = $plate;
         }
 
         return $matches;
@@ -663,9 +669,11 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
             }
 
             $plotInt = (int) $rec['parzelle'];
-            if ($plotInt > 0 && \in_array($plotInt, $foundPlots, true)) {
-                $matches[$fullCode] = 'Parzelle ' . $rec['plotFormatted'];
+            if ($plotInt <= 0 || !\in_array($plotInt, $foundPlots, true)) {
+                continue;
             }
+
+            $matches[$fullCode] = 'Parzelle ' . $rec['plotFormatted'];
         }
 
         return $matches;
@@ -713,7 +721,7 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
             }
 
             $normName = $this->normalizeTextForNameSearch((string) $rec['name']);
-            if ($normName !== '' && $normName !== 'anonymer nutzer' && $normName !== 'anonymisiert') {
+            if (!\in_array($normName, ['', 'anonymer nutzer', 'anonymisiert'], true)) {
                 $targetNames[$normName] = true;
             }
 
@@ -832,7 +840,7 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
     private function extractNameTokens(string $fullName): array
     {
         $normalized = $this->normalizeTextForNameSearch($fullName);
-        if ($normalized === '' || $normalized === 'anonymisiert' || $normalized === 'unbekannt') {
+        if (\in_array($normalized, ['', 'anonymisiert', 'unbekannt'], true)) {
             return [];
         }
 

@@ -119,13 +119,12 @@ final readonly class FrontendController
         $pipeline = new MiddlewarePipeline();
 
         $pipeline->add($this->securityHeaders);
+        // Wartungsmodus-Prüfung greift sofort vor Datenbank-Migrationen und Analytics
+        $pipeline->add($this->maintenanceMode);
         $pipeline->add($this->systemMaintenance);
         $pipeline->add($this->analytics);
         $pipeline->add($this->jsonBodyParser);
         $pipeline->add($this->formExceptionHandler);
-
-        // Wartungsmodus-Prüfung geschieht jetzt in der Middleware-Kette
-        $pipeline->add($this->maintenanceMode);
 
         // Ausnahmen für Server-to-Server oder Cronjobs, die keine Session (und somit kein CSRF-Token) besitzen
         $isCronOrWebhook = \str_starts_with($path, '/api/cron/')

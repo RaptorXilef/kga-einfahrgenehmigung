@@ -439,7 +439,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface, Requi
                     plotFormatted: (string) ($rel['plotFormatted'] ?? '----'),
                     vehicleType: (string) ($rel['typ'] ?? 'PKW'),
                     licensePlate: (string) ($rel['kennzeichen'] ?? '---'),
-                    validityPeriod: (string) ($rel['vonFormatted'] ?? '---') . ' - ' . (string) ($rel['bisFormatted'] ?? '---'),
+                    validityPeriod: ($rel['vonFormatted'] ?? '---') . ' - ' . ($rel['bisFormatted'] ?? '---'),
                     createdAtFormatted: (string) ($rel['erstelltFormatted'] ?? '---'),
                     priceFormatted: \number_format((float) ($rel['preis'] ?? 0.0), 2, ',', '.') . ' €',
                     statusBadgeText: $statusBadgeText,

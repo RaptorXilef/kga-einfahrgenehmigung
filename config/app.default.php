@@ -16,7 +16,7 @@ return [
     'vorlaeufigFarbe' => '#f1c40f',
 
     'pagination' => [
-        'default_limit' => 25,
+        'default_limit' => 10,
         'allowed_limits' => [10, 25, 50, 100, 250],
     ],
 

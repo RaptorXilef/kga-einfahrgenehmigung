@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Application\Exception;
 
+use App\Application\Middleware\MaintenanceModeMiddleware;
 use App\Application\Response\HtmlResponse;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\ErrorLoggerInterface;
+use Error;
 use ErrorException;
 use Throwable;
 
@@ -16,6 +18,8 @@ use Throwable;
  *
  * Fängt ungeprüfte Ausnahmen sowie klassische PHP-Fehler ab, loggt diese
  * revisionssicher und gibt eine nutzerfreundliche HTML- oder JSON-Fehlerseite zurück.
+ * Erkennt fehlende Abhängigkeiten während Datei-Uploads und zeigt in diesem Fall
+ * eine abhängigkeitsfreie Wartungsseite (HTTP 503) statt eines HTTP-500-Fehlers.
  */
 final readonly class GlobalExceptionHandler
 {
@@ -26,6 +30,7 @@ final readonly class GlobalExceptionHandler
         // Preload ins Memory, falls Exception während eines Datei-Updates auftritt
         \class_exists(JsonResponse::class);
         \class_exists(HtmlResponse::class);
+        \class_exists(MaintenanceModeMiddleware::class);
     }
 
     /**
@@ -59,8 +64,12 @@ final readonly class GlobalExceptionHandler
      */
     public function handleException(Throwable $exception): void
     {
-        // 1. Fehler revisionssicher loggen
-        $this->logger->logThrowable($exception);
+        // 1. Fehler revisionssicher loggen (fehlertolerant, falls Log-Infrastruktur im Upload ist)
+        try {
+            $this->logger->logThrowable($exception);
+        } catch (Throwable) {
+            // Ignorieren, falls während eines Datei-Uploads das Dateisystem blockiert ist
+        }
 
         // 2. Prüfen, ob wir im Dev-Modus sind (dann wollen wir die echten Fehler sehen!)
         $isDev = $this->config->getBool('debug_mode', false);
@@ -74,6 +83,21 @@ final readonly class GlobalExceptionHandler
             || \str_contains($httpAccept, 'application/json')
             || \str_contains($contentType, 'application/json');
 
+        // 3. Wenn der Wartungsmodus aktiv ist ODER während eines Datei-Uploads eine Klasse/Datei fehlt:
+        //    Liefere die abhängigkeitsfreie Wartungsseite (HTTP 503) statt eines HTTP-500-Fehlers aus!
+        if (!$isDev && $this->shouldServeMaintenanceFallback($exception)) {
+            $mConfig = $this->config->getArray('maintenance');
+            $msg = (string) ($mConfig['message'] ?? 'Wir aktualisieren gerade das System, um Ihnen den bestmöglichen Service zu bieten.');
+
+            if ($isApi) {
+                JsonResponse::error($msg, 503)->send();
+            }
+
+            $vereinsName = $this->config->getString('vereins_name', 'KGA e.V.');
+            $html = MaintenanceModeMiddleware::renderZeroDependencyHtml($vereinsName, $msg);
+            (new HtmlResponse($html, 503))->send();
+        }
+
         if ($isApi) {
             $msg = $isDev ? $exception->getMessage() : 'Ein interner Serverfehler ist aufgetreten.';
             JsonResponse::error($msg, 500)->send();
@@ -81,6 +105,37 @@ final readonly class GlobalExceptionHandler
 
         // HTML-Fehlerseite für normale Browser-Nutzer
         $this->renderErrorPage($exception, $isDev);
+    }
+
+    /**
+     * Erkennt, ob der Wartungsmodus konfiguriert ist oder ein typischer Upload-/Deployment-Fehler
+     * (fehlende Klasse, fehlendes Interface, unvollständige Datei beim Upload) vorliegt.
+     */
+    private function shouldServeMaintenanceFallback(Throwable $exception): bool
+    {
+        $mConfig = $this->config->getArray('maintenance');
+        if (
+            (bool) ($mConfig['frontend'] ?? false)
+            || (bool) ($mConfig['admin'] ?? false)
+            || (bool) ($mConfig['api'] ?? false)
+            || (array) ($mConfig['routes'] ?? []) !== []
+        ) {
+            return true;
+        }
+
+        if ($exception instanceof Error) {
+            $msg = $exception->getMessage();
+            if (
+                \str_contains($msg, 'not found')
+                || \str_contains($msg, 'Failed opening required')
+                || \str_contains($msg, 'No such file or directory')
+                || \str_contains($msg, 'syntax error')
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

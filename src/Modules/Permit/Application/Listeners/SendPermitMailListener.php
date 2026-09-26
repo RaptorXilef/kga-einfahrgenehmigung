@@ -195,7 +195,6 @@ final readonly class SendPermitMailListener
                 'usage' => $usage,
                 'paymentValidityNotice' => $paymentValidityNotice,
             ],
-            replyTo: null,
             priority: 50,
             attachments: [
                 [

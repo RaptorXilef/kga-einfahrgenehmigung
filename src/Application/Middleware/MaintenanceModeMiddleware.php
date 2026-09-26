@@ -19,7 +19,8 @@ use Throwable;
 
 /**
  * Überwacht globale und feingranulare Wartungsmodi für die Anwendung.
- * Kapselt das Routing-Sicherheitsnetz sauber ab (SRP).
+ * Besitzt einen integrierten Zero-Dependency-HTML-Fallback, falls Template-Dateien
+ * während eines Server-Uploads fehlen oder beschädigt sind.
  */
 final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
 {
@@ -47,6 +48,53 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
         }
 
         return $next($request);
+    }
+
+    /**
+     * Erzeugt eine vollständig autarke HTML5-Wartungsseite ohne jegliche externe Datei-Abhängigkeiten.
+     */
+    public static function renderZeroDependencyHtml(
+        string $vereinsName,
+        string $message,
+        string $headerNavHtml = '',
+        string $footerHtml = '',
+    ): string {
+        $safeClub = \htmlspecialchars($vereinsName, \ENT_QUOTES, 'UTF-8');
+        $safeMsg = \nl2br(\htmlspecialchars($message, \ENT_QUOTES, 'UTF-8'));
+
+        return <<<HTML
+            <!DOCTYPE html>
+            <html lang="de">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Wartungsarbeiten - {$safeClub}</title>
+                <style>
+                    :root { color-scheme: light dark; }
+                    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; display: flex; flex-direction: column; min-height: 100vh; box-sizing: border-box; }
+                    @media (prefers-color-scheme: dark) { body { background: #0f172a; color: #f1f5f9; } .c-fallback-card { background: #1e293b !important; border-color: #334155 !important; } .c-fallback-muted { color: #94a3b8 !important; } }
+                    .c-fallback-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+                    .c-fallback-card { max-width: 34rem; width: 100%; background: #ffffff; border: 1px solid #e2e8f0; border-top: 5px solid #f59e0b; border-radius: 12px; padding: 2.5rem 2rem; text-align: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08); }
+                    .c-fallback-card h1 { margin: 0.75rem 0; font-size: 1.75rem; }
+                    .c-fallback-card p { line-height: 1.6; font-size: 1.05rem; margin: 0.75rem 0; }
+                    .c-fallback-muted { color: #64748b; font-size: 0.9rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(148,163,184,0.25); }
+                </style>
+            </head>
+            <body>
+                {$headerNavHtml}
+                <main class="c-fallback-wrap">
+                    <div class="c-fallback-card">
+                        <div style="font-size: 3rem; line-height: 1;">🛠️</div>
+                        <h1>Kurze Pause!</h1>
+                        <p>{$safeMsg}</p>
+                        <p><strong>In Kürze sind wir wieder für Sie da.</strong></p>
+                        <div class="c-fallback-muted">{$safeClub} &bull; Vielen Dank für Ihr Verständnis.</div>
+                    </div>
+                </main>
+                {$footerHtml}
+            </body>
+            </html>
+            HTML;
     }
 
     /**
@@ -136,35 +184,54 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
         $vereinsName = $this->config->getString('vereins_name', 'KGA e.V.');
         $cspNonce = \defined('CSP_NONCE') ? (string) CSP_NONCE : '';
 
-        $logoFile = null;
-        foreach (['webp', 'png', 'jpg'] as $ext) {
-            $localPath = $rootPath . '/public/assets/img/logo/kga.' . $ext;
-            if (\file_exists($localPath)) {
-                $logoFile = "assets/img/logo/kga.{$ext}";
-                break;
-            }
-        }
-
         $headerNavHtml = $this->renderHeaderNavSafely($rootPath, $baseUrl, $vereinsName, $relativePath);
         $footerHtml = $this->renderFooterSafely($rootPath, $baseUrl, $cspNonce);
 
-        $viewVars = [
-            'baseUrl' => $baseUrl,
-            'vereinsName' => $vereinsName,
-            'maintenanceModeAdmin' => (bool) ($this->config->getArray('maintenance')['admin'] ?? false),
-            'displayMessage' => $message,
-            'logoFile' => $logoFile,
-            'headerNavHtml' => $headerNavHtml,
-            'footerHtml' => $footerHtml,
-            'cspNonce' => $cspNonce,
-        ];
-        \extract($viewVars);
+        $templatePath = $rootPath . '/templates/pages/frontend/maintenance.phtml';
+        if (\is_file($templatePath) && \is_readable($templatePath)) {
+            $logoFile = null;
+            foreach (['webp', 'png', 'jpg'] as $ext) {
+                $localPath = $rootPath . '/public/assets/img/logo/kga.' . $ext;
+                if (\file_exists($localPath)) {
+                    $logoFile = "assets/img/logo/kga.{$ext}";
+                    break;
+                }
+            }
 
-        \ob_start();
-        include $rootPath . '/templates/pages/frontend/maintenance.phtml';
-        $html = \ob_get_clean();
+            $viewVars = [
+                'baseUrl' => $baseUrl,
+                'vereinsName' => $vereinsName,
+                'maintenanceModeAdmin' => (bool) ($this->config->getArray('maintenance')['admin'] ?? false),
+                'displayMessage' => $message,
+                'logoFile' => $logoFile,
+                'headerNavHtml' => $headerNavHtml,
+                'footerHtml' => $footerHtml,
+                'cspNonce' => $cspNonce,
+            ];
 
-        return new HtmlResponse((string) $html, 503);
+            $obLevel = \ob_get_level();
+            \ob_start();
+
+            try {
+                \extract($viewVars);
+                include $templatePath;
+                $html = (string) \ob_get_clean();
+
+                if (\trim($html) !== '') {
+                    return new HtmlResponse($html, 503);
+                }
+            } catch (Throwable) {
+                while (\ob_get_level() > $obLevel) {
+                    \ob_end_clean();
+                }
+            }
+        }
+
+        // Fallback: Wenn maintenance.phtml während eines Uploads fehlt oder abstürzt
+        return new HtmlResponse(
+            self::renderZeroDependencyHtml($vereinsName, $message, $headerNavHtml, $footerHtml),
+            503,
+        );
     }
 
     /**
