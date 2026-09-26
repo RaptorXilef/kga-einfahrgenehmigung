@@ -61,7 +61,8 @@ final readonly class TemplateRenderer
         }
 
         // Globale Layout-, Test-Mode-, Consent- & Footer-Variablen auflösen (100% logikfreie Partials)
-        $adminUserId = $this->sessionManager->getUserId();
+        // $this->auth->getUserId() stößt automatisch die Live-Synchronisation der Session mit der DB an!
+        $adminUserId = $this->auth->getUserId();
         $adminRoleName = $adminUserId !== '' ? $this->auth->getRoleName() : 'Gast';
         $adminAvatarUrl = $adminUserId !== '' ? $this->imageStorage->getImageUrl('user', $adminUserId, 'user.webp') : '';
 
@@ -161,7 +162,7 @@ final readonly class TemplateRenderer
             'consentGroups' => $consentGroups,
             // Globale Admin Layout Variablen
             'adminUserId' => $adminUserId,
-            'adminUserName' => $this->sessionManager->getAdminUser(),
+            'adminUserName' => $this->auth->getUsername(),
             'adminRoleName' => $adminRoleName,
             'adminAvatarUrl' => $adminAvatarUrl,
             'globalPermissions' => $globalPermissions,

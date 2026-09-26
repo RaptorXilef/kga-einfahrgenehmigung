@@ -20,6 +20,7 @@ use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\SystemMaintenanceMiddleware;
 use App\Application\Response\HtmlResponse;
+use App\Application\Response\JsonResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
@@ -140,18 +141,33 @@ final readonly class FrontendController
         }
 
         if ($requiresAuth) {
-            $pipeline->add(new AuthMiddleware($this->sessionManager, $this->config));
+            $pipeline->add(new AuthMiddleware($this->sessionManager, $this->config, $this->authService));
         }
 
-        return $pipeline->process($request, function (ServerRequest $req) use ($className): ResponseInterface {
+        return $pipeline->process($request, function (ServerRequest $req) use ($className, $path): ResponseInterface {
             $action = $this->actionFactory->create($className);
 
             // --- SECURITY FIX: Role-Based Access Control (RBAC) Enforcement ---
             if ($action instanceof RequiresPermissionInterface) {
                 if (!$this->authService->hasPermission($action->getRequiredPermission())) {
+                    if (\str_starts_with($path, '/api/')) {
+                        return JsonResponse::error('Zugriff verweigert: Sie haben nicht die erforderlichen Berechtigungen für diese Aktion.', 403);
+                    }
+
+                    $baseUrl = \rtrim($this->config->getBaseUrl(), '/');
+
+                    // Endlosschleifen-Schutz: Wenn dem Nutzer selbst das Grundrecht 'admin.access' entzogen wurde,
+                    // darf er nicht auf /admin weitergeleitet werden, sondern wird sauber abgemeldet.
+                    if (!$this->authService->hasPermission('admin.access')) {
+                        $this->authService->logout();
+                        $this->sessionManager->addFlash('error', 'Zugriff verweigert: Ihr Konto verfügt über keine Berechtigung für das Admin-Dashboard.');
+
+                        return new RedirectResponse($baseUrl . '/admin_login');
+                    }
+
                     $this->sessionManager->addFlash('error', 'Zugriff verweigert: Sie haben nicht die erforderlichen Berechtigungen für diese Aktion.');
 
-                    return new RedirectResponse(\rtrim($this->config->getBaseUrl(), '/') . '/admin');
+                    return new RedirectResponse($baseUrl . '/admin');
                 }
             }
 
