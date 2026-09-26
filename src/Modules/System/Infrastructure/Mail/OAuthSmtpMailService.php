@@ -42,33 +42,7 @@ final class OAuthSmtpMailService extends AbstractMailService
                 ]),
             );
 
-            $mail->CharSet = PHPMailer::CHARSET_UTF8;
-            $mail->setFrom((string) ($transportConfig['from'] ?? ''), $this->config->getString('vereins_name', 'KGA'));
-            $mail->addAddress($recipient);
-
-            if ($replyTo !== null && \filter_var($replyTo, \FILTER_VALIDATE_EMAIL)) {
-                $mail->addReplyTo($replyTo);
-            }
-
-            foreach ($attachments as $att) {
-                if (!\is_array($att)) {
-                    continue;
-                }
-                $mail->addStringAttachment(
-                    (string) ($att['content'] ?? ''),
-                    (string) ($att['name'] ?? 'attachment.pdf'),
-                    'base64',
-                    (string) ($att['mime'] ?? 'application/pdf'),
-                );
-            }
-
-            $mail->isHTML(true);
-            $mail->Subject = $subject;
-            $mail->Body = $body;
-
-            $mail->send();
-
-            return true;
+            return $this->sendConfiguredPhpMailer($mail, $recipient, $subject, $body, $transportConfig, $replyTo, $attachments);
         } catch (PHPMailerException) {
             return 'PHPMailer OAuth Fehler: ' . $mail->ErrorInfo;
         }

@@ -14,6 +14,8 @@ use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 use Override;
 use PDO;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
+use PHPMailer\PHPMailer\PHPMailer;
 use RuntimeException;
 
 /**
@@ -200,6 +202,51 @@ abstract class AbstractMailService implements MailLogInterface, MailServiceInter
         ?string $replyTo = null,
         array $attachments = [],
     ): bool|string;
+
+    /**
+     * Befüllt eine vorkonfigurierte PHPMailer-Instanz mit Empfänger, Inhalt sowie Anhängen und versendet die E-Mail.
+     *
+     * @param array<string, mixed> $transportConfig
+     * @param array<int, mixed> $attachments
+     *
+     * @throws PHPMailerException
+     */
+    protected function sendConfiguredPhpMailer(
+        PHPMailer $mail,
+        string $recipient,
+        string $subject,
+        string $body,
+        array $transportConfig,
+        ?string $replyTo = null,
+        array $attachments = [],
+    ): true {
+        $mail->CharSet = PHPMailer::CHARSET_UTF8;
+        $mail->setFrom((string) ($transportConfig['from'] ?? ''), $this->config->getString('vereins_name', 'KGA'));
+        $mail->addAddress($recipient);
+
+        if ($replyTo !== null && \filter_var($replyTo, \FILTER_VALIDATE_EMAIL)) {
+            $mail->addReplyTo($replyTo);
+        }
+
+        foreach ($attachments as $att) {
+            if (!\is_array($att)) {
+                continue;
+            }$mail->addStringAttachment(
+                (string) ($att['content'] ?? ''),
+                (string) ($att['name'] ?? 'attachment.pdf'),
+                'base64',
+                (string) ($att['mime'] ?? 'application/pdf'),
+            );
+        }
+
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body = $body;
+
+        $mail->send();
+
+        return true;
+    }
 
     protected function render(string $templatePath, array $data): string
     {

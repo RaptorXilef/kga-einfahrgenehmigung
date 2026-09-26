@@ -6,6 +6,7 @@ namespace App\Modules\System\Application\UseCases\GetAuditLogsData;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\ImageStorageInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\SharedKernel\Application\Query\QueryHandlerInterface;
 use App\SharedKernel\Application\Query\QueryInterface;
 use DateTimeImmutable;
@@ -23,6 +24,7 @@ final readonly class GetAuditLogsDataHandler implements QueryHandlerInterface
         private PDO $pdo,
         private ConfigInterface $config,
         private ImageStorageInterface $imageStorage,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -56,7 +58,8 @@ final readonly class GetAuditLogsDataHandler implements QueryHandlerInterface
 
         $items = [];
         while (\is_array($r = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            $dt = new DateTimeImmutable((string) ($r['created_at'] ?? 'now'));
+            $createdAtRaw = \trim((string) ($r['created_at'] ?? ''));
+            $dt = $createdAtRaw !== '' ? new DateTimeImmutable($createdAtRaw) : $this->clock->now();
             $userId = (string) ($r['user_id'] ?? '');
             $ipRaw = isset($r['ip_address']) ? \trim((string) $r['ip_address']) : '';
             $safeIp = $ipRaw !== '' && $ipRaw !== 'unknown' ? $ipRaw : '0.0.0.0';

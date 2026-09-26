@@ -12,16 +12,9 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\PdfStreamResponse;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Application\View\TemplateRenderer;
-use App\Contracts\Config\ConfigInterface;
-use App\Contracts\System\PdfGeneratorInterface;
-use App\Contracts\System\QrCodeGeneratorInterface;
-use App\Modules\Permit\Application\Services\HolidayService;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeHandler;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\GetPermitByCodeQuery;
 use App\Modules\Permit\Application\UseCases\GetPermitByCode\PermitReadDto;
-use App\Modules\Permit\Presentation\View\HolidayHtmlPresenter;
-use App\Modules\Permit\Presentation\View\PermitA4Presenter;
 use App\SharedKernel\Application\Security\Sanitizer;
 use Override;
 
@@ -30,13 +23,9 @@ use Override;
 final readonly class HistoryPrintAction implements ViewActionInterface
 {
     public function __construct(
-        private ConfigInterface $config,
-        private HolidayService $holidayService,
         private GetPermitByCodeHandler $getPermitByCodeHandler,
         private SessionManager $sessionManager,
-        private PdfGeneratorInterface $pdfGenerator,
-        private QrCodeGeneratorInterface $qrCodeGenerator,
-        private TemplateRenderer $renderer,
+        private GeneratePermitPdfHandler $generatePermitPdfHandler,
     ) {
     }
 
@@ -55,39 +44,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
         $permit = $this->getPermitByCodeHandler->handle(new GetPermitByCodeQuery($code));
 
         if ($permit instanceof PermitReadDto && Sanitizer::normalizeEmail($permit->ownerEmail) === Sanitizer::normalizeEmail($emailInSession)) {
-            $safeBaseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
-            $checkUrl = $safeBaseUrl . 'check?code=' . $permit->code;
-            $checkQrBase64 = $this->qrCodeGenerator->generateDataUri($checkUrl, 160, 0);
-
-            $openingHtml = HolidayHtmlPresenter::formatOpeningHours(
-                $this->holidayService->getOpeningHoursDataForDateRange($permit->validFrom, $permit->validUntil),
-            );
-            $holidayNoticeHtml = HolidayHtmlPresenter::formatHolidayNotice(
-                $this->holidayService->getHolidaysInRange($permit->validFrom, $permit->validUntil),
-            );
-
-            $docDto = PermitA4Presenter::createViewDto(
-                fullIdentifier: $permit->code,
-                templateKey: $permit->templateKey,
-                jahresFarbe: $this->config->getString('jahresFarbe'),
-                vereinsName: $this->config->getString('vereins_name'),
-                checkQrBase64: $checkQrBase64,
-                openingHtml: $openingHtml,
-                holidayNoticeHtml: $holidayNoticeHtml,
-                name: $permit->ownerName,
-                validFrom: $permit->validFrom,
-                validUntil: $permit->validUntil,
-                kennzeichen: $permit->licensePlate,
-                firma: $permit->company ?? '',
-                parzelle: $permit->plotNumber,
-                zweck: $permit->purpose,
-                terminkalenderUrl: $this->config->getString('terminkalender_url'),
-                erstelltFormatted: $permit->createdAtFormatted,
-                baseUrl: $safeBaseUrl,
-            );
-
-            $a4Html = $this->renderer->render('emails/permit_a4_document', ['docDto' => $docDto]);
-            $pdfBinary = $this->pdfGenerator->generateFromHtml($a4Html);
+            $pdfBinary = $this->generatePermitPdfHandler->handle(new GeneratePermitPdfQuery($permit));
 
             return new PdfStreamResponse($pdfBinary, "Genehmigung_{$permit->code}.pdf");
         }
