@@ -11,7 +11,9 @@ use App\Application\Response\HtmlResponse;
 use App\Application\Response\JsonResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\AssetHelperInterface;
 use Override;
+use Throwable;
 
 /**
  * Überwacht globale und feingranulare Wartungsmodi für die Anwendung.
@@ -22,6 +24,7 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
     public function __construct(
         private ConfigInterface $config,
         private SessionManager $sessionManager,
+        private AssetHelperInterface $assetHelper,
     ) {
     }
 
@@ -125,6 +128,8 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
         }
 
         $rootPath = \rtrim($this->config->getString('root_path'), '/\\');
+        $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
+        $vereinsName = $this->config->getString('vereins_name', 'KGA e.V.');
 
         $logoFile = null;
         foreach (['webp', 'png', 'jpg'] as $ext) {
@@ -135,12 +140,16 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
             }
         }
 
+        $headerNavHtml = $this->renderHeaderNavSafely($rootPath, $baseUrl, $vereinsName, $relativePath);
+
         $viewVars = [
-            'baseUrl' => \rtrim($this->config->getBaseUrl(), '/') . '/',
-            'vereinsName' => $this->config->getString('vereins_name', 'KGA e.V.'),
+            'baseUrl' => $baseUrl,
+            'vereinsName' => $vereinsName,
             'maintenanceModeAdmin' => (bool) ($this->config->getArray('maintenance')['admin'] ?? false),
             'displayMessage' => $message,
             'logoFile' => $logoFile,
+            'headerNavHtml' => $headerNavHtml,
+            'cspNonce' => \defined('CSP_NONCE') ? (string) CSP_NONCE : '',
         ];
         \extract($viewVars);
 
@@ -149,5 +158,52 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
         $html = \ob_get_clean();
 
         return new HtmlResponse((string) $html, 503);
+    }
+
+    /**
+     * Rendert die öffentliche Kopfnavigation fehlertolerant.
+     * Falls die Template-Datei während eines System-Updates kurzzeitig fehlt oder nicht lesbar ist,
+     * wird ein leerer String zurückgegeben, damit die Wartungsseite niemals abstürzt.
+     */
+    private function renderHeaderNavSafely(
+        string $rootPath,
+        string $baseUrl,
+        string $vereinsName,
+        string $relativePath,
+    ): string {
+        $navPath = $rootPath . '/templates/partials/frontend/public_header_nav.phtml';
+        if (!\is_file($navPath) || !\is_readable($navPath)) {
+            return '';
+        }
+
+        $currentRoute = \trim($relativePath, '/');
+        if ($currentRoute === '') {
+            $currentRoute = 'index';
+        }
+
+        $navVars = [
+            'asset' => $this->assetHelper,
+            'settings' => ['base_url' => $baseUrl],
+            'vereinsName' => $vereinsName,
+            'navActiveIndexClass' => $currentRoute === 'index' ? 'is-active' : '',
+            'navActiveHistoryClass' => \str_starts_with($currentRoute, 'history') ? 'is-active' : '',
+            'navActiveCheckClass' => $currentRoute === 'check' ? 'is-active' : '',
+        ];
+
+        $obLevel = \ob_get_level();
+        \ob_start();
+
+        try {
+            \extract($navVars);
+            include $navPath;
+
+            return (string) \ob_get_clean();
+        } catch (Throwable) {
+            while (\ob_get_level() > $obLevel) {
+                \ob_end_clean();
+            }
+
+            return '';
+        }
     }
 }
