@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.79.8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.7...v0.79.8) (2026-09-26)
+
+### ⚙️ Refactoring
+
+* **architecture:** DDD/VSA and pragmatic CQRS migration ([7f00d58](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7f00d588944e234f97d039b81fd87a99a652f28b))
+* **architecture:** Seal domain encapsulation, enforce strict CQRS, & remove cross-module leaks ([1228e00](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1228e0071bfd92c60fa9229f9d71bd958f05d705))
+* **core:** Eliminate code clones and enforce ClockInterface ([f685b59](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f685b595d587c8714fe8e013d13c9eadadd32c8f))
+* **qa:** Optimize PHPMD ruleset for DDD, VSA, and strict View-DTOs ([5aa13db](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5aa13db20b3b389e312308469a11409680bc8059))
+* **qa:** Resolve all remaining PHPCS and PHPMD errors across src, public, and config ([dee0db4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dee0db43437524bb67c236bcf046f6a3c2dc3397))
+
+### 🧹 Chore / Maintenance
+
+* **qa:** Silence false-positive PHPMD warnings and disable PHPCS line-length limits ([a69c565](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a69c565078622b20c363fda4a6a326c3da0d46c1))
+
 ## [0.79.7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.6...v0.79.7) (2026-09-25)
 
 ### 🐛 Bug Fixes
