@@ -8,6 +8,7 @@ use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitD
 use App\Modules\Permit\Application\UseCases\GetDashboardStats\DashboardStatsDto;
 use App\Modules\Permit\Application\UseCases\GetFinanceList\FinancePermitDto;
 use App\Modules\Permit\Application\UseCases\GetGeneratorToolsData\GeneratorToolsViewDto;
+use App\Modules\System\Application\UseCases\GetAuditLogsData\AuditLogViewDto;
 use App\Modules\System\Application\UseCases\GetBackupsData\BackupsResultDto;
 use App\Modules\System\Application\UseCases\GetMailLogsData\MailLogsResultDto;
 

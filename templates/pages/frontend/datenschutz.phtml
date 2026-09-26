@@ -1,13 +1,15 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
+use App\Modules\System\Application\UseCases\ViewLegal\DatenschutzViewDto;
 
 /**
  * Page: Datenschutzerklärung
+ * VSA FIX: 100% Dumme View - Konsumiert ausschließlich das stark typisierte DatenschutzViewDto.
  *
  * @var AssetHelperInterface $asset
- * @var array $legal
- * @var array $settings
+ * @var DatenschutzViewDto $viewDto
+ * @var array<string, mixed> $settings
  * @var string $appRoot
  * @var string $cspNonce
  * @var string $pageTitle
@@ -18,25 +20,25 @@ $layout = 'public';
 <div class="c-tab-content-container o-container o-container--large u-padding-block-xl">
     <div class="c-document">
         <h1 class="c-document__title">
-            <?php echo \htmlspecialchars($legal['title']); ?>
+            <?php echo \htmlspecialchars($viewDto->title); ?>
         </h1>
-        <p class="c-document__meta">Stand: <?php echo \htmlspecialchars($legal['letzte_aktualisierung']); ?></p>
+        <p class="c-document__meta">Stand: <?php echo \htmlspecialchars($viewDto->lastUpdated); ?></p>
 
         <div class="c-box c-box--accent u-margin-block-end-l">
             <p class="u-margin-block-none"><strong>Verantwortliche Stelle:</strong><br>
-                <?php echo \htmlspecialchars($legal['verantwortlich']['name']); ?>,
-                <?php echo \htmlspecialchars($legal['verantwortlich']['adresse']); ?><br>
-                E-Mail: <?php echo \htmlspecialchars($legal['verantwortlich']['email']); ?></p>
+                <?php echo \htmlspecialchars($viewDto->responsibleName); ?>,
+                <?php echo \htmlspecialchars($viewDto->responsibleAddress); ?><br>
+                E-Mail: <?php echo \htmlspecialchars($viewDto->responsibleEmail); ?></p>
         </div>
 
         <div class="u-flex u-flex-column u-gap-l">
-            <?php foreach ($legal['sections'] as $section) { ?>
+            <?php foreach ($viewDto->sections as $section) { ?>
             <div class="c-document__section">
                 <h3 class="c-document__subtitle u-margin-block-end-xs">
-                    <?php echo \htmlspecialchars($section['title']); ?>
+                    <?php echo \htmlspecialchars($section->title); ?>
                 </h3>
                 <p class="c-document__text">
-                    <?php echo \htmlspecialchars($section['text']); ?>
+                    <?php echo \htmlspecialchars($section->text); ?>
                 </p>
             </div>
             <?php } ?>
@@ -48,8 +50,8 @@ $layout = 'public';
         <p class="c-document__text">
             Im Falle datenschutzrechtlicher Verstöße steht Ihnen ein Beschwerderecht bei der
             zuständigen Aufsichtsbehörde zu. Für Berlin ist dies:<br>
-            <strong><?php echo \htmlspecialchars($legal['aufsichtsbehoerde']['name']); ?></strong>,
-            <?php echo \htmlspecialchars($legal['aufsichtsbehoerde']['adresse']); ?>
+            <strong><?php echo \htmlspecialchars($viewDto->authorityName); ?></strong>,
+            <?php echo \htmlspecialchars($viewDto->authorityAddress); ?>
         </p>
     </div>
 </div>

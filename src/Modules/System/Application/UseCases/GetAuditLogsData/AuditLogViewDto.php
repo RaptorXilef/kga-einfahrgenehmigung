@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\System\Application\UseCases\ViewDashboard;
+namespace App\Modules\System\Application\UseCases\GetAuditLogsData;
 
 /**
  * 100% logikfreies View-DTO für die Darstellung eines Audit-Log Eintrags.

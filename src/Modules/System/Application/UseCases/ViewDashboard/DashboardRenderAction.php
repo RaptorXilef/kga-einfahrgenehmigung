@@ -17,7 +17,6 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthorizationInterface;
 use App\Contracts\System\AssetHelperInterface;
-use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\UseCases\GetDashboardPermits\DashboardPermitsResultDto;
@@ -30,12 +29,14 @@ use App\Modules\Permit\Application\UseCases\GetFinanceList\GetFinanceListHandler
 use App\Modules\Permit\Application\UseCases\GetFinanceList\GetFinanceListQuery;
 use App\Modules\Permit\Application\UseCases\GetGeneratorToolsData\GetGeneratorToolsDataHandler;
 use App\Modules\Permit\Application\UseCases\GetGeneratorToolsData\GetGeneratorToolsDataQuery;
+use App\Modules\System\Application\UseCases\GetAuditLogsData\AuditLogsResultDto;
+use App\Modules\System\Application\UseCases\GetAuditLogsData\GetAuditLogsDataHandler;
+use App\Modules\System\Application\UseCases\GetAuditLogsData\GetAuditLogsDataQuery;
 use App\Modules\System\Application\UseCases\GetBackupsData\GetBackupsDataHandler;
 use App\Modules\System\Application\UseCases\GetBackupsData\GetBackupsDataQuery;
 use App\Modules\System\Application\UseCases\GetMailLogsData\GetMailLogsDataHandler;
 use App\Modules\System\Application\UseCases\GetMailLogsData\GetMailLogsDataQuery;
 use App\Modules\System\Application\UseCases\GetMailLogsData\MailLogsResultDto;
-use App\Modules\System\Domain\AuditLogRepositoryInterface;
 use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherArchive\GetVoucherArchiveQuery;
 use App\Modules\Voucher\Application\UseCases\GetVoucherList\GetVoucherListHandler;
@@ -51,13 +52,11 @@ use Override;
 final readonly class DashboardRenderAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLogRepositoryInterface $auditLogRepository,
         private AuthorizationInterface $auth,
         private ConfigInterface $config,
         private SystemInfoInterface $systemInfo,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
-        private ImageStorageInterface $imageStorage,
         private AssetHelperInterface $assetHelper,
         private GetVoucherListHandler $getVoucherListHandler,
         private GetVoucherArchiveHandler $getVoucherArchiveHandler,
@@ -66,6 +65,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface, Requi
         private GetDashboardPermitsHandler $getDashboardPermitsHandler,
         private GetGeneratorToolsDataHandler $generatorToolsHandler,
         private GetMailLogsDataHandler $mailLogsHandler,
+        private GetAuditLogsDataHandler $auditLogsHandler,
         private GetBackupsDataHandler $backupsHandler,
         private ClockInterface $clock,
     ) {
@@ -275,26 +275,12 @@ final readonly class DashboardRenderAction implements ViewActionInterface, Requi
 
         $auditFilter = (string) ($request->get['audit_filter'] ?? '');
         $auditPage = (int) ($request->get['audit_page'] ?? 1);
-        $auditData = $permissions->canViewLogs ? $this->auditLogRepository->getPaginated($auditPage, $dto->limit, $auditFilter) : ['items' => [], 'total' => 0];
-
-        $auditLogsDto = [];
-        if ($permissions->canViewLogs) {
-            foreach ($auditData['items'] as $log) {
-                $auditLogsDto[] = new AuditLogViewDto(
-                    dateFormatted: $log->createdAt->format('d.m.Y'),
-                    timeFormatted: $log->createdAt->format('H:i:s'),
-                    action: $log->action,
-                    details: $log->details,
-                    username: $log->username,
-                    userId: $log->userId,
-                    ipAddress: $log->ipAddress->value,
-                    avatarUrl: $this->imageStorage->getImageUrl('user', $log->userId, 'user.webp'),
-                );
-            }
-        }
+        $auditResult = $permissions->canViewLogs
+            ? $this->auditLogsHandler->handle(new GetAuditLogsDataQuery($auditPage, $dto->limit, $auditFilter))
+            : new AuditLogsResultDto(items: [], total: 0);
 
         $auditFilterOptions = $this->buildAuditFilterOptions($auditFilter);
-        $paginationHtmlAudit = $permissions->canViewLogs ? $renderPagination($auditData['total'], 'tab-audit-log', 'audit_page') : '';
+        $paginationHtmlAudit = $permissions->canViewLogs ? $renderPagination($auditResult->total, 'tab-audit-log', 'audit_page') : '';
 
         $unreadReleaseNotes = [];
         $userId = $this->auth->getUserId();
@@ -347,8 +333,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface, Requi
             backups: $backupsDto,
             vouchers: $vouchers,
             voucherArchive: $voucherArchive,
-            auditLogs: $auditLogsDto,
-            auditTotal: $auditData['total'],
+            auditLogs: $auditResult->items,
+            auditTotal: $auditResult->total,
             auditFilter: $auditFilter,
             auditFilterOptions: $auditFilterOptions,
             unreadReleaseNotes: $unreadReleaseNotes,

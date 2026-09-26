@@ -43,10 +43,6 @@ final readonly class ProfileRenderAction implements ViewActionInterface
 
         $html = $this->renderer->render('admin/profile', [
             'viewDto' => $viewDto,
-            'role' => $viewDto->roleName,
-            'userId' => $viewDto->userId,
-            'username' => $viewDto->username,
-            'userImage' => $viewDto->userImage,
         ]);
 
         return new HtmlResponse($html);

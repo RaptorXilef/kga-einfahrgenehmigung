@@ -49,6 +49,7 @@ final readonly class GetProfileDataHandler implements QueryHandlerInterface
 
         return new ProfileViewDto(
             roleName: $roleName,
+            roleNameUpper: \mb_strtoupper($roleName, 'UTF-8'),
             userId: $query->userId,
             userImage: $this->imageStorage->getImageUrl('user', $query->userId, 'user.webp'),
             username: $username,

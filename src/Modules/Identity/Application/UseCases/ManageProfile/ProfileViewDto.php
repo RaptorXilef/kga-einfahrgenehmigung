@@ -11,6 +11,7 @@ final readonly class ProfileViewDto
 {
     public function __construct(
         public string $roleName,
+        public string $roleNameUpper,
         public string $userId,
         public string $userImage,
         public string $username,

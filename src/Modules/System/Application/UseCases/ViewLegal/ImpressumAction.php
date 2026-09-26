@@ -30,8 +30,32 @@ final readonly class ImpressumAction implements ViewActionInterface
         $title = (string) ($legalData['title'] ?? 'Impressum');
         $vereinsName = $this->config->getString('vereins_name', 'KGA');
 
+        $rawBoard = \is_array($legalData['vorstand'] ?? null) ? $legalData['vorstand'] : [];
+        $boardMembers = \array_values(\array_map(strval(...), $rawBoard));
+
+        $kontakt = \is_array($legalData['kontakt'] ?? null) ? $legalData['kontakt'] : [];
+        $register = \is_array($legalData['register'] ?? null) ? $legalData['register'] : [];
+        $mstv = \is_array($legalData['verantwortlich_18_mstv'] ?? null) ? $legalData['verantwortlich_18_mstv'] : [];
+
+        $ustId = \trim((string) ($legalData['ust_id'] ?? ''));
+
+        $viewDto = new ImpressumViewDto(
+            title: $title,
+            clubName: (string) ($legalData['verein'] ?? ''),
+            address: (string) ($legalData['adresse'] ?? ''),
+            boardMembers: $boardMembers,
+            phone: (string) ($kontakt['telefon'] ?? ''),
+            email: (string) ($kontakt['email'] ?? ''),
+            registerCourt: (string) ($register['gericht'] ?? ''),
+            registerNumber: (string) ($register['nummer'] ?? ''),
+            hasUstId: $ustId !== '',
+            ustId: $ustId,
+            responsiblePersonName: (string) ($mstv['name'] ?? ''),
+            responsiblePersonAddress: (string) ($mstv['adresse'] ?? ''),
+        );
+
         $html = $this->renderer->render('frontend/impressum', [
-            'legal' => $legalData,
+            'viewDto' => $viewDto,
             'pageTitle' => $title . ' - ' . $vereinsName,
         ]);
 

@@ -5,15 +5,10 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Domain;
 
 /**
- * Vertrag für das Laden und Speichern von Benutzern.
+ * Vertrag für das gezielte Laden und Speichern von Benutzern (Write-Model).
  */
 interface UserRepositoryInterface
 {
-    /**
-     * @return array<string, User> Alle Benutzer indiziert nach ID.
-     */
-    public function loadAll(): array;
-
     public function findById(string $id): ?User;
 
     public function findByUsername(string $username): ?User;

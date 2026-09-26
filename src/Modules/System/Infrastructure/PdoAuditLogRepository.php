@@ -7,12 +7,13 @@ namespace App\Modules\System\Infrastructure;
 use App\Contracts\Config\ConfigInterface;
 use App\Modules\System\Domain\AuditLog;
 use App\Modules\System\Domain\AuditLogRepositoryInterface;
-use App\SharedKernel\Domain\ValueObject\IpAddress;
 use App\SharedKernel\Infrastructure\Storage\DynamicSqlTrait;
-use DateTimeImmutable;
 use Override;
 use PDO;
 
+/**
+ * PDO-Implementierung des Audit-Log Write-Repositories.
+ */
 final readonly class PdoAuditLogRepository implements AuditLogRepositoryInterface
 {
     use DynamicSqlTrait;
@@ -41,48 +42,5 @@ final readonly class PdoAuditLogRepository implements AuditLogRepositoryInterfac
 
         $sql = $this->buildInsertUpdateSql($table, $data);
         $this->pdo->prepare($sql)->execute($data);
-    }
-
-    #[Override]
-    public function getPaginated(int $page, int $limit, string $actionFilter = ''): array
-    {
-        $storageConfig = $this->config->getArray('storage_config');
-        $table = (string) ($storageConfig['audit_logs']['table'] ?? 'audit_logs');
-        $where = '';
-        $params = [];
-
-        if ($actionFilter !== '') {
-            $where = 'WHERE action = ?';
-            $params[] = $actionFilter;
-        }
-
-        $offset = ($page - 1) * $limit;
-
-        // Total Count holen
-        $stmtCount = $this->pdo->prepare("SELECT COUNT(*) FROM `{$table}` {$where}");
-        $stmtCount->execute($params);
-        $total = (int) $stmtCount->fetchColumn();
-
-        $sql = "SELECT * FROM `{$table}` {$where} ORDER BY created_at DESC LIMIT {$limit} OFFSET {$offset}";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-
-        $items = [];
-        while (\is_array($r = $stmt->fetch(PDO::FETCH_ASSOC))) {
-            $ipRaw = isset($r['ip_address']) ? \trim((string) $r['ip_address']) : '';
-            $safeIp = $ipRaw !== '' && $ipRaw !== 'unknown' ? $ipRaw : '0.0.0.0';
-
-            $items[] = new AuditLog(
-                (string) $r['id'],
-                (string) $r['user_id'],
-                (string) $r['username'],
-                (string) $r['action'],
-                (string) $r['details'],
-                new IpAddress($safeIp),
-                new DateTimeImmutable((string) $r['created_at']),
-            );
-        }
-
-        return ['items' => $items, 'total' => $total];
     }
 }

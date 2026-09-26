@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases\ManageUsers;
 
+use App\Modules\Identity\Domain\Role;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
 use App\Modules\Identity\Domain\User;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
@@ -40,9 +41,11 @@ final readonly class ChangeUserRoleHandler implements CommandWithResultHandlerIn
         $user->changeRole($command->newRoleId);
         $this->repository->save($user);
 
-        $roles = $this->roleRepository->loadAll();
-        $oldRoleName = isset($roles[$oldRoleId]) ? $roles[$oldRoleId]->getName() : $oldRoleId;
-        $newRoleName = isset($roles[$command->newRoleId]) ? $roles[$command->newRoleId]->getName() : $command->newRoleId;
+        $oldRole = $this->roleRepository->findById($oldRoleId);
+        $newRole = $this->roleRepository->findById($command->newRoleId);
+
+        $oldRoleName = $oldRole instanceof Role ? $oldRole->getName() : $oldRoleId;
+        $newRoleName = $newRole instanceof Role ? $newRole->getName() : $command->newRoleId;
 
         return new ChangeUserRoleResult(
             newRoleName: $newRoleName,

@@ -14,7 +14,7 @@ use Override;
 use PDO;
 
 /**
- * Holt die Mail-Logs per SQL-Paginierung.
+ * Holt die Mail-Logs per SQL-Paginierung und Cursor-Iteration.
  * Verhindert, dass Tausende E-Mails auf einmal in den RAM geladen werden.
  *
  * @implements QueryHandlerInterface<GetMailLogsDataQuery, MailLogsResultDto>
@@ -53,7 +53,7 @@ final readonly class GetMailLogsDataHandler implements QueryHandlerInterface
         $isDebugMode = $this->config->getBool('debug_mode', false);
         $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
 
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        while (\is_array($r = $stmt->fetch(PDO::FETCH_ASSOC))) {
             $dt = new DateTimeImmutable((string) $r['timestamp']);
             $data = \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : [];
             $status = (string) $r['status'];

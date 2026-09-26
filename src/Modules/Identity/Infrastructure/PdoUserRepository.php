@@ -17,21 +17,6 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
     }
 
     #[Override]
-    public function loadAll(): array
-    {
-        $users = [];
-        $stmt = $this->pdo->query('SELECT * FROM users ORDER BY username ASC');
-
-        if ($stmt !== false) {
-            while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
-                $users[(string) $row['id']] = $this->mapRowToEntity($row);
-            }
-        }
-
-        return $users;
-    }
-
-    #[Override]
     public function findById(string $id): ?User
     {
         $stmt = $this->pdo->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
@@ -83,6 +68,9 @@ final readonly class PdoUserRepository implements UserRepositoryInterface
         $this->pdo->prepare('DELETE FROM users WHERE id = :id')->execute(['id' => $id]);
     }
 
+    /**
+     * @param array<string, mixed> $row
+     */
     private function mapRowToEntity(array $row): User
     {
         return new User(

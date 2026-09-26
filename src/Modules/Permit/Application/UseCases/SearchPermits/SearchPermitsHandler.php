@@ -13,6 +13,8 @@ use Override;
 use PDO;
 
 /**
+ * Durchsucht den aktiven und archivierten Genehmigungsbestand speicherschonend mittels SQL-Paginierung.
+ *
  * @implements QueryHandlerInterface<SearchPermitsQuery, SearchPermitsResultDto>
  */
 final readonly class SearchPermitsHandler implements QueryHandlerInterface
@@ -89,32 +91,45 @@ final readonly class SearchPermitsHandler implements QueryHandlerInterface
             return new SearchPermitsResultDto(items: [], total: 0);
         }
 
-        $fullSql = \implode(' UNION ALL ', $sqlParts) . ' ORDER BY erstellt DESC';
+        $unionSql = \implode(' UNION ALL ', $sqlParts);
 
-        $stmt = $this->pdo->prepare($fullSql);
+        // 1. Speicherschonende Gesamtzählung direkt in SQL
+        $countSql = "SELECT COUNT(*) FROM ({$unionSql}) AS combined_count";
+        $stmtCount = $this->pdo->prepare($countSql);
+        $stmtCount->execute($allBinds);
+        $total = (int) $stmtCount->fetchColumn();
+
+        if ($total === 0) {
+            return new SearchPermitsResultDto(items: [], total: 0);
+        }
+
+        // 2. Paginiertes Laden der angefragten Seite ohne fetchAll()
+        $safeLimit = \max(1, $query->limit);
+        $safePage = \max(1, $query->page);
+        $offset = ($safePage - 1) * $safeLimit;
+
+        $dataSql = "SELECT * FROM ({$unionSql}) AS combined_data ORDER BY erstellt DESC LIMIT {$safeLimit} OFFSET {$offset}";
+        $stmt = $this->pdo->prepare($dataSql);
         $stmt->execute($allBinds);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-        $total = \count($rows);
-        $offset = ($query->page - 1) * $query->limit;
-        $items = \array_slice($rows, $offset, $query->limit);
-
-        // Daten flach mappen, wie es die API / das Frontend erwartet
-        $formattedItems = \array_map(fn (array $row): array => [
-            'bis' => (new DateTimeImmutable((string) $row['bis']))->format('d.m.Y'),
-            'code' => (string) $row['code'],
-            'email' => (string) $row['email'] ?: '',
-            'erstellt' => (new DateTimeImmutable((string) $row['erstellt']))->format('d.m.Y H:i'),
-            'is_archived' => (bool) $row['is_archived'],
-            'kennzeichen' => (string) $row['kennzeichen'],
-            'name' => (string) $row['name'],
-            'parzelle' => \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
-            'preis' => (float) $row['preis'],
-            'status' => (string) $row['status'],
-            'template_key' => (string) $row['template_key'],
-            'von' => (new DateTimeImmutable((string) $row['von']))->format('d.m.Y'),
-            'zweck' => (string) $row['zweck'],
-        ], $items);
+        $formattedItems = [];
+        while (\is_array($row = $stmt->fetch(PDO::FETCH_ASSOC))) {
+            $formattedItems[] = [
+                'bis' => (new DateTimeImmutable((string) $row['bis']))->format('d.m.Y'),
+                'code' => (string) $row['code'],
+                'email' => (string) $row['email'] ?: '',
+                'erstellt' => (new DateTimeImmutable((string) $row['erstellt']))->format('d.m.Y H:i'),
+                'is_archived' => (bool) $row['is_archived'],
+                'kennzeichen' => (string) $row['kennzeichen'],
+                'name' => (string) $row['name'],
+                'parzelle' => \str_pad((string) $row['parzelle'], 4, '0', \STR_PAD_LEFT),
+                'preis' => (float) $row['preis'],
+                'status' => (string) $row['status'],
+                'template_key' => (string) $row['template_key'],
+                'von' => (new DateTimeImmutable((string) $row['von']))->format('d.m.Y'),
+                'zweck' => (string) $row['zweck'],
+            ];
+        }
 
         return new SearchPermitsResultDto(items: $formattedItems, total: $total);
     }
