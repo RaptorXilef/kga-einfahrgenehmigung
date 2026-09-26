@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.80.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.8...v0.80.0) (2026-09-26)
+
+### 🚀 Features
+
+* **finance:** Implement 4-stage bank import ... ([cf7673c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cf7673cf44caa45af30622e09b8d9bd05184f0ac))
+* **mail:** Merge payment request and permit PDF delivery into a single transactional email ([f97bb44](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f97bb445f54c760bb057dd8a3481f2643151d323))
+* **maintenance:** Render fault-tolerant global footer on maintenance pages ([b333b29](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b333b2975caba948d1f2b5f9aa40010d996c830c))
+* **maintenance:** Render fault-tolerant top navigation bar on maintenance pages ([e5d3dc5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e5d3dc5bd71b5169ab91de6ddb8152096d2c9360))
+
 ## [0.79.8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.7...v0.79.8) (2026-09-26)
 
 ### ⚙️ Refactoring
