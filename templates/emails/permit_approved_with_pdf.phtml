@@ -1,19 +1,35 @@
 <?php
 
 /**
- * Mail Template: Permit Approved with PDF Attachment
+ * Mail Template: Permit Approved with PDF Attachment & Integrated Payment Request
  *
- * Die kurze, freundliche E-Mail, die das PDF als Anhang ausliefert.
+ * Konsolidierte Transaktions-E-Mail: Liefert das A4-PDF als Anhang aus,
+ * zeigt bei offenen Beträgen direkt die Zahlungsaufforderung inkl. GiroCode-QR
+ * und informiert über die Auslagepflicht hinter der Windschutzscheibe.
+ * VSA FIX: 100% Dumme View ohne eigene Berechnungs- oder Fallback-Logik.
  *
  * @var string $baseUrl
  * @var string $fullIdentifier
  * @var string $name
  * @var string $vereinsName
+ * @var string $headline
+ * @var string $introStatusText
+ * @var bool $isPaymentRequired
+ * @var string $betrag
+ * @var string $dueDate
+ * @var string $epcData
+ * @var string $iban
+ * @var string $bic
+ * @var string $kontoinhaber
+ * @var string $usage
+ * @var string $paymentValidityNotice
  */
 ?>
 <div
-    style="font-family: sans-serif; line-height: 1.6; color: #333333; max-width: 600px; margin: auto; border: 1px solid #eeeeee; padding: 20px; border-radius: 10px;">
-    <h2 style="color: #2c3e50;">Ihre Genehmigung ist aktiv</h2>
+    style="font-family: sans-serif; line-height: 1.6; color: #333333; max-width: 600px; margin: auto; border: 1px solid #dddddd; padding: 25px; border-radius: 10px;">
+    <h2 style="color: #2c3e50; margin-top: 0;">
+        <?php echo \htmlspecialchars((string) $headline, \ENT_QUOTES, 'UTF-8'); ?>
+    </h2>
 
     <p>Guten Tag <strong><?php echo \htmlspecialchars((string) $name, \ENT_QUOTES, 'UTF-8'); ?></strong>,</p>
 
@@ -24,12 +40,88 @@
         >
             <?php echo \htmlspecialchars((string) $fullIdentifier, \ENT_QUOTES, 'UTF-8'); ?>
         </a>
-        ist gültig und wurde vom System aktiviert.
+        <?php echo \htmlspecialchars((string) $introStatusText, \ENT_QUOTES, 'UTF-8'); ?>
     </p>
 
+    <?php if ($isPaymentRequired) { ?>
     <div
-        style="background-color: #fff8e1; border-left: 5px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
-        <p style="margin-top: 0; color: #856404; font-weight: bold; font-size: 16px;">Wichtig für die Einfahrt:</p>
+        style="background-color: #fdfbf7; border: 1px solid #f39c12; border-left: 5px solid #f39c12; padding: 18px; margin: 25px 0; border-radius: 6px;">
+        <h3 style="margin-top: 0; margin-bottom: 10px; color: #d35400; font-size: 17px;">
+            1. Zahlungsinformationen (Überweisung erforderlich)
+        </h3>
+        <p style="margin-top: 0; margin-bottom: 15px; font-size: 14px; color: #475569;">
+            Bitte überweisen Sie den Betrag bis spätestens
+            <strong><?php echo \htmlspecialchars((string) $dueDate, \ENT_QUOTES, 'UTF-8'); ?></strong>.<br>
+            <span style="color: #b45309; font-weight: bold;">
+                <?php echo \htmlspecialchars((string) $paymentValidityNotice, \ENT_QUOTES, 'UTF-8'); ?>
+            </span>
+        </p>
+
+        <table
+            style="width: 100%; border-collapse: collapse; margin-bottom: 15px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 4px;"
+        >
+            <tr>
+                <th
+                    style="text-align: left; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-size: 14px;">
+                    Betrag:</th>
+                <td
+                    style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 18px; color: #2c3e50;">
+                    <strong><?php echo \htmlspecialchars((string) $betrag, \ENT_QUOTES, 'UTF-8'); ?></strong>
+                </td>
+            </tr>
+            <tr>
+                <th
+                    style="text-align: left; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-size: 14px;">
+                    Empfänger:</th>
+                <td style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px;">
+                    <?php echo \htmlspecialchars((string) $kontoinhaber, \ENT_QUOTES, 'UTF-8'); ?>
+                </td>
+            </tr>
+            <tr>
+                <th
+                    style="text-align: left; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-size: 14px;">
+                    IBAN:</th>
+                <td style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px;">
+                    <code><?php echo \htmlspecialchars((string) $iban, \ENT_QUOTES, 'UTF-8'); ?></code>
+                </td>
+            </tr>
+            <?php if ($bic !== '') { ?>
+            <tr>
+                <th
+                    style="text-align: left; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-size: 14px;">
+                    BIC:</th>
+                <td style="text-align: right; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px;">
+                    <code><?php echo \htmlspecialchars((string) $bic, \ENT_QUOTES, 'UTF-8'); ?></code>
+                </td>
+            </tr>
+            <?php } ?>
+            <tr>
+                <th style="text-align: left; padding: 8px 12px; color: #64748b; font-size: 14px;">
+                    Verwendungszweck:<br><small style="font-weight: normal;">(Zwingend exakt angeben!)</small></th>
+                <td style="text-align: right; padding: 8px 12px; color: #d32f2f; font-size: 15px;">
+                    <code><strong><?php echo \htmlspecialchars((string) $usage, \ENT_QUOTES, 'UTF-8'); ?></strong></code>
+                </td>
+            </tr>
+        </table>
+
+        <div style="text-align: center; padding-top: 10px;">
+            <p style="font-size: 13px; color: #666666; margin-top: 0; margin-bottom: 8px;">
+                Scannen Sie diesen GiroCode mit Ihrer Banking-App für eine fehlerfreie Überweisung:
+            </p>
+            <img
+                src="<?php echo \htmlspecialchars((string) $baseUrl, \ENT_QUOTES, 'UTF-8'); ?>api/qr.png?size=160&data=<?php echo \htmlspecialchars((string) $epcData, \ENT_QUOTES, 'UTF-8'); ?>"
+                alt="GiroCode"
+                style="border: 1px solid #cccccc; padding: 5px; border-radius: 8px; background-color: #ffffff;"
+            >
+        </div>
+    </div>
+    <?php } ?>
+
+    <div
+        style="background-color: #fff8e1; border-left: 5px solid #ffc107; padding: 18px; margin: 25px 0; border-radius: 6px;">
+        <p style="margin-top: 0; color: #856404; font-weight: bold; font-size: 16px;">
+            <?php if ($isPaymentRequired) { ?>2. <?php } ?>Wichtig für die Einfahrt &amp; das PDF-Dokument:
+        </p>
         <p style="margin-bottom: 10px; color: #856404;">
             Damit Ihre Genehmigung bei Kontrollen gültig ist, muss diese <strong>gut sichtbar hinter der
                 Windschutzscheibe</strong> Ihres Fahrzeugs ausliegen.
@@ -38,14 +130,13 @@
             <li>Drucken Sie das <strong>angehängte PDF-Dokument</strong> aus und legen Sie es in Ihr Fahrzeug.</li>
             <li><em>Kein Drucker?</em> Schreiben Sie die Kennung
                 <strong><?php echo \htmlspecialchars((string) $fullIdentifier, \ENT_QUOTES, 'UTF-8'); ?></strong> mit
-                einem dicken
-                Stift gut leserlich auf ein leeres Blatt Papier und legen Sie dieses aus.
+                einem dicken Stift gut leserlich auf ein leeres Blatt Papier und legen Sie dieses aus.
             </li>
         </ul>
     </div>
 
     <p style="font-size: 14px; color: #475569;">
-        Den aktuellen Status Ihrer Genehmigungen sowie weitere Details können Sie jederzeit bequem in Ihrem
+        Den aktuellen Live-Status Ihrer Genehmigungen sowie alle Dokumente können Sie jederzeit bequem in Ihrem
         <a
             href="<?php echo \htmlspecialchars($baseUrl . 'history', \ENT_QUOTES, 'UTF-8'); ?>"
             style="color: #3498db; text-decoration: underline; font-weight: 500;"
