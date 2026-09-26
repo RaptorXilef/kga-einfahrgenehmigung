@@ -12,6 +12,8 @@ use App\Application\Response\JsonResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
+use App\Contracts\System\SystemInfoInterface;
+use App\Contracts\Utils\ClockInterface;
 use Override;
 use Throwable;
 
@@ -25,6 +27,8 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
         private ConfigInterface $config,
         private SessionManager $sessionManager,
         private AssetHelperInterface $assetHelper,
+        private SystemInfoInterface $systemInfo,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -130,6 +134,7 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
         $rootPath = \rtrim($this->config->getString('root_path'), '/\\');
         $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
         $vereinsName = $this->config->getString('vereins_name', 'KGA e.V.');
+        $cspNonce = \defined('CSP_NONCE') ? (string) CSP_NONCE : '';
 
         $logoFile = null;
         foreach (['webp', 'png', 'jpg'] as $ext) {
@@ -141,6 +146,7 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
         }
 
         $headerNavHtml = $this->renderHeaderNavSafely($rootPath, $baseUrl, $vereinsName, $relativePath);
+        $footerHtml = $this->renderFooterSafely($rootPath, $baseUrl, $cspNonce);
 
         $viewVars = [
             'baseUrl' => $baseUrl,
@@ -149,7 +155,8 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
             'displayMessage' => $message,
             'logoFile' => $logoFile,
             'headerNavHtml' => $headerNavHtml,
-            'cspNonce' => \defined('CSP_NONCE') ? (string) CSP_NONCE : '',
+            'footerHtml' => $footerHtml,
+            'cspNonce' => $cspNonce,
         ];
         \extract($viewVars);
 
@@ -196,6 +203,71 @@ final readonly class MaintenanceModeMiddleware implements MiddlewareInterface
         try {
             \extract($navVars);
             include $navPath;
+
+            return (string) \ob_get_clean();
+        } catch (Throwable) {
+            while (\ob_get_level() > $obLevel) {
+                \ob_end_clean();
+            }
+
+            return '';
+        }
+    }
+
+    /**
+     * Rendert den globalen Footer (inkl. Consent-Banner-Prüfung) fehlertolerant.
+     * Falls eine der Dateien während eines Updates fehlt, wird ein leerer String zurückgegeben.
+     */
+    private function renderFooterSafely(string $rootPath, string $baseUrl, string $cspNonce): string
+    {
+        $footerPath = $rootPath . '/templates/partials/frontend/footer.phtml';
+        $consentPath = $rootPath . '/templates/partials/frontend/consent_banner.phtml';
+
+        if (!\is_file($footerPath) || !\is_readable($footerPath) || !\is_file($consentPath) || !\is_readable($consentPath)) {
+            return '';
+        }
+
+        $obLevel = \ob_get_level();
+        \ob_start();
+
+        try {
+            $currentYear = $this->clock->now()->format('Y');
+            $startYear = 2026;
+            $footerYearDisplay = (int) $currentYear > $startYear ? "{$startYear} - {$currentYear}" : (string) $startYear;
+
+            $adminUserId = $this->sessionManager->getUserId();
+            $globalPermissions = $this->sessionManager->getPermissions();
+            $isSysAdmin = \str_starts_with($adminUserId, 'sys_');
+            $hasGodMode = ($globalPermissions['*'] ?? false) || $isSysAdmin;
+            $canAccessAdmin = ($globalPermissions['admin.access'] ?? false) || $hasGodMode;
+
+            $footerVars = [
+                'settings' => ['base_url' => $baseUrl],
+                'appRoot' => $rootPath,
+                'appVersion' => $this->systemInfo->getCurrentVersion(),
+                'footerYearDisplay' => $footerYearDisplay,
+                'footerSoftwareName' => 'KGA-Einfahrts-Manager',
+                'footerIssuesUrl' => 'https://github.com/RaptorXilef/kga-einfahrgenehmigung/issues',
+                'footerImpressumUrl' => $baseUrl . 'impressum',
+                'footerDatenschutzUrl' => $baseUrl . 'datenschutz',
+                'debugMetrics' => null,
+                'canAccessAdmin' => $canAccessAdmin,
+                'cspNonce' => $cspNonce,
+                'consentEnabled' => false,
+                'consentConfigJson' => '{}',
+                'consentTitle' => '',
+                'consentDescription' => '',
+                'consentLinkDatenschutz' => 'Datenschutzerklärung',
+                'consentLinkImpressum' => 'Impressum',
+                'consentAcceptAll' => '',
+                'consentAcceptEssential' => '',
+                'consentShowDetails' => '',
+                'consentSaveSelection' => '',
+                'consentGroups' => [],
+            ];
+
+            \extract($footerVars);
+            include $footerPath;
 
             return (string) \ob_get_clean();
         } catch (Throwable) {

@@ -2,8 +2,9 @@
 
 /**
  * Page: Maintenance Mode (Wartungsmodus)
- * VSA FIX: 100% Dumme View - Gibt die fehlertolerant vorgerenderte Menüleiste ($headerNavHtml) aus,
- * sodass Nutzer weiterhin zu nicht gesperrten Bereichen (z.B. Verlauf, Check, Verwaltung) wechseln können.
+ * VSA FIX: 100% Dumme View - Gibt die fehlertolerant vorgerenderte Menüleiste ($headerNavHtml)
+ * sowie den globalen Footer ($footerHtml) aus, sodass Nutzer weiterhin zu nicht gesperrten Bereichen
+ * (z.B. Verlauf, Check, Verwaltung, Impressum, Datenschutz) wechseln können.
  *
  * @var string $vereinsName
  * @var string $baseUrl
@@ -11,6 +12,7 @@
  * @var bool $maintenanceModeAdmin
  * @var string|null $logoFile
  * @var string $headerNavHtml
+ * @var string $footerHtml
  * @var string $cspNonce
  */
 ?>
@@ -82,6 +84,8 @@
 
         </div>
     </main>
+
+    <?php echo $footerHtml; ?>
 
     <script
         type="module"

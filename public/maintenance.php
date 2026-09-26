@@ -9,16 +9,18 @@
 
 declare(strict_types=1);
 
+$appRootDir = \dirname(__DIR__);
+
 // 1. Falls das Script über den Bootstrapper (app.php) läuft, ist $settings schon da.
 // Falls nicht (Direktaufruf), laden wir sie hier sicherheitshalber.
 if (!isset($settings)) {
-    $settings = require __DIR__ . '/../config/config.default.php';
-    if (\file_exists(__DIR__ . '/../config/config.php')) {
-        $customSettings = require __DIR__ . '/../config/config.php';
+    $settings = require $appRootDir . '/config/config.default.php';
+    if (\file_exists($appRootDir . '/config/config.php')) {
+        $customSettings = require $appRootDir . '/config/config.php';
         $settings = \array_replace_recursive($settings, $customSettings);
     }
-    if (\file_exists(__DIR__ . '/../config/config.local.php')) {
-        $localSettings = require __DIR__ . '/../config/config.local.php';
+    if (\file_exists($appRootDir . '/config/config.local.php')) {
+        $localSettings = require $appRootDir . '/config/config.local.php';
         $settings = \array_replace_recursive($settings, $localSettings);
     }
 }
@@ -52,7 +54,7 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
 
 // 3. Fehlertolerantes Rendering der oberen Menüleiste (darf bei fehlender Datei während Updates niemals abstürzen)
 $headerNavHtml = '';
-$navPath = __DIR__ . '/../templates/partials/frontend/public_header_nav.phtml';
+$navPath = $appRootDir . '/templates/partials/frontend/public_header_nav.phtml';
 if (\is_file($navPath) && \is_readable($navPath)) {
     $obLevel = \ob_get_level();
     \ob_start();
@@ -82,5 +84,58 @@ if (\is_file($navPath) && \is_readable($navPath)) {
     }
 }
 
+// 4. Fehlertolerantes Rendering des globalen Footers (darf bei fehlender Datei während Updates niemals abstürzen)
+$footerHtml = '';
+$footerPath = $appRootDir . '/templates/partials/frontend/footer.phtml';
+$consentPath = $appRootDir . '/templates/partials/frontend/consent_banner.phtml';
+if (\is_file($footerPath) && \is_readable($footerPath) && \is_file($consentPath) && \is_readable($consentPath)) {
+    $obLevel = \ob_get_level();
+    \ob_start();
+
+    try {
+        $appRoot = $appRootDir;
+        $appVersion = 'v0.0.0';
+        $pkgPath = $appRootDir . '/package.json';
+        if (\is_file($pkgPath) && \is_readable($pkgPath)) {
+            $rawPkg = \file_get_contents($pkgPath);
+            if (\is_string($rawPkg)) {
+                $decodedPkg = \json_decode($rawPkg, true);
+                if (\is_array($decodedPkg) && isset($decodedPkg['version'])) {
+                    $appVersion = 'v' . $decodedPkg['version'];
+                }
+            }
+        }
+
+        $currentYear = (int) \date('Y');
+        $startYear = 2026;
+        $footerYearDisplay = $currentYear > $startYear ? "{$startYear} - {$currentYear}" : (string) $startYear;
+        $footerSoftwareName = 'KGA-Einfahrts-Manager';
+        $footerIssuesUrl = 'https://github.com/RaptorXilef/kga-einfahrgenehmigung/issues';
+        $footerImpressumUrl = $baseUrl . 'impressum';
+        $footerDatenschutzUrl = $baseUrl . 'datenschutz';
+        $debugMetrics = null;
+        $canAccessAdmin = false;
+        $consentEnabled = false;
+        $consentConfigJson = '{}';
+        $consentTitle = '';
+        $consentDescription = '';
+        $consentLinkDatenschutz = 'Datenschutzerklärung';
+        $consentLinkImpressum = 'Impressum';
+        $consentAcceptAll = '';
+        $consentAcceptEssential = '';
+        $consentShowDetails = '';
+        $consentSaveSelection = '';
+        $consentGroups = [];
+
+        include $footerPath;
+        $footerHtml = (string) \ob_get_clean();
+    } catch (\Throwable) {
+        while (\ob_get_level() > $obLevel) {
+            \ob_end_clean();
+        }
+        $footerHtml = '';
+    }
+}
+
 // Binden wir das saubere PHTML-Template ein
-require __DIR__ . '/../templates/pages/frontend/maintenance.phtml';
+require $appRootDir . '/templates/pages/frontend/maintenance.phtml';
