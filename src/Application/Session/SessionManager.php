@@ -240,6 +240,18 @@ final readonly class SessionManager implements AuthSessionInterface
     }
 
     #[Override]
+    public function setAdminRoleName(string $roleName): void
+    {
+        $_SESSION['admin_role_name'] = $roleName;
+    }
+
+    #[Override]
+    public function getAdminRoleName(): string
+    {
+        return \is_string($_SESSION['admin_role_name'] ?? null) ? $_SESSION['admin_role_name'] : '';
+    }
+
+    #[Override]
     public function getAdminUser(): string
     {
         return (string) ($_SESSION['admin_user'] ?? 'Unbekannt');

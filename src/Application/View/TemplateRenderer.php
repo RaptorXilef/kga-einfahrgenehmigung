@@ -7,6 +7,7 @@ namespace App\Application\View;
 use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\JsonHelperInterface;
@@ -27,6 +28,7 @@ final readonly class TemplateRenderer
         private SystemInfoInterface $systemInfo,
         private ClockInterface $clock,
         private ServerRequest $request,
+        private AuthorizationInterface $auth,
     ) {
     }
 
@@ -60,8 +62,7 @@ final readonly class TemplateRenderer
 
         // Globale Layout-, Test-Mode-, Consent- & Footer-Variablen auflösen (100% logikfreie Partials)
         $adminUserId = $this->sessionManager->getUserId();
-        $adminRoleRaw = $this->sessionManager->getAdminGroup();
-        $adminRoleName = \ucfirst(\str_replace('role_', '', $adminRoleRaw));
+        $adminRoleName = $adminUserId !== '' ? $this->auth->getRoleName() : 'Gast';
         $adminAvatarUrl = $adminUserId !== '' ? $this->imageStorage->getImageUrl('user', $adminUserId, 'user.webp') : '';
 
         $globalPermissions = $this->sessionManager->getPermissions();

@@ -20,6 +20,8 @@ interface AuthorizationInterface
 
     public function getRole(): string;
 
+    public function getRoleName(): string;
+
     public function getLastSeenChangelog(): string;
 
     public function bootstrapDefaultIdentityData(): void;

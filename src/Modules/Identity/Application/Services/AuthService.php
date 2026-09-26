@@ -81,6 +81,7 @@ final readonly class AuthService implements AuthorizationInterface
 
         $compiler = new PermissionCompiler();
         $this->sessionManager->setPermissions($compiler->compile($structure, $rolePerms));
+        $this->sessionManager->setAdminRoleName($this->resolveRoleDisplayName($roleId, $roles));
     }
 
     #[Override]
@@ -99,6 +100,30 @@ final readonly class AuthService implements AuthorizationInterface
     public function getRole(): string
     {
         return $this->sessionManager->getAdminGroup();
+    }
+
+    #[Override]
+    public function getRoleName(): string
+    {
+        $cachedName = $this->sessionManager->getAdminRoleName();
+        if ($cachedName !== '') {
+            return $cachedName;
+        }
+
+        $roleId = $this->sessionManager->getAdminGroup();
+        if ($roleId === '' || $roleId === 'guest') {
+            return 'Gast';
+        }
+
+        try {
+            $roles = $this->roleRepository->loadAll();
+            $resolved = $this->resolveRoleDisplayName($roleId, $roles);
+            $this->sessionManager->setAdminRoleName($resolved);
+
+            return $resolved;
+        } catch (Throwable) {
+            return \ucfirst(\str_replace('role_', '', $roleId));
+        }
     }
 
     #[Override]
@@ -124,6 +149,26 @@ final readonly class AuthService implements AuthorizationInterface
     public function generateId(string $prefix = ''): string
     {
         return $prefix . \bin2hex(\random_bytes(8));
+    }
+
+    /**
+     * @param array<string, Role> $roles
+     */
+    private function resolveRoleDisplayName(string $roleId, array $roles): string
+    {
+        if (isset($roles[$roleId])) {
+            return $roles[$roleId]->getName();
+        }
+
+        if ($roleId === 'admin' && isset($roles['role_admin'])) {
+            return $roles['role_admin']->getName();
+        }
+
+        if ($roleId === 'admin' || \str_starts_with($this->sessionManager->getUserId(), 'sys_')) {
+            return 'Administrator';
+        }
+
+        return \ucfirst(\str_replace('role_', '', $roleId));
     }
 
     private function validateActiveSession(): void

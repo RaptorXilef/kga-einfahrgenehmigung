@@ -13,6 +13,7 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Security\AuthorizationInterface;
 use App\Contracts\System\AuditLoggerInterface;
 use DomainException;
 use Override;
@@ -25,6 +26,7 @@ final readonly class RoleRenameAction implements ActionInterface, RequiresPermis
         private SessionManager $sessionManager,
         private AuditLoggerInterface $auditLogger,
         private RenameRoleHandler $renameHandler,
+        private AuthorizationInterface $auth,
     ) {
     }
 
@@ -47,6 +49,10 @@ final readonly class RoleRenameAction implements ActionInterface, RequiresPermis
 
         try {
             $oldName = $this->renameHandler->handle(new RenameRoleCommand($dto->roleId, $dto->newRoleName));
+
+            if ($this->auth->getRole() === $dto->roleId) {
+                $this->auth->refreshSessionPermissions($dto->roleId);
+            }
 
             $this->auditLogger->log('ROLE_RENAME', "Rolle '{$oldName}' wurde umbenannt in '{$dto->newRoleName}'.");
             $this->sessionManager->addFlash('success', "Rolle wurde in '{$dto->newRoleName}' umbenannt.");

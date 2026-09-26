@@ -18,9 +18,13 @@ interface AuthSessionInterface
 
     public function getAdminGroup(): string;
 
+    public function setAdminRoleName(string $roleName): void;
+
+    public function getAdminRoleName(): string;
+
     public function getAdminUser(): string;
 
-    // --- NEU: History Session Methods ---
+    // --- History Session Methods ---
     public function setHistoryEmail(string $email): void;
 
     public function getHistoryEmail(): ?string;
