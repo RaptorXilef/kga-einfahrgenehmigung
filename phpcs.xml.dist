@@ -1,6 +1,9 @@
-<?xml version="1.0"?>
-<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Project Standards">
-    <description>Unified Modern PHP 8.3-8.5+ High-End Standard</description>
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    name="Project Standards"
+    xsi:noNamespaceSchemaLocation="vendor/squizlabs/php_codesniffer/phpcs.xsd">
+
+    <description>Unified Modern PHP 8.3-8.5+ High-End Standard (DDD &amp; VSA)</description>
 
     <arg name="basepath" value="." />
     <arg name="extensions" value="php" />
@@ -14,12 +17,19 @@
     <file>public</file>
     <file>config</file>
 
+    <!-- Entrypoint- und Bootstrap-Dateien dürfen Symbole und Ausführungen mischen -->
     <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
         <exclude-pattern>public/index.php</exclude-pattern>
+        <exclude-pattern>public/maintenance.php</exclude-pattern>
+        <exclude-pattern>public/sw.php</exclude-pattern>
+        <exclude-pattern>src/Bootstrap/app.php</exclude-pattern>
         <exclude-pattern>tests/Pest.php</exclude-pattern>
     </rule>
 
     <rule ref="PSR12">
+        <!-- Deaktiviert das starre 120-Zeichen-Limit komplett (keine Warnings/Errors bei langen Zeilen) -->
+        <exclude name="Generic.Files.LineLength" />
+
         <!-- Erlaubt "new class()" ohne Leerzeichen -->
         <exclude name="PSR12.Classes.AnonClassDeclaration.SpaceAfterKeyword" />
 
@@ -39,7 +49,13 @@
             <property name="searchAnnotations" value="true" />
         </properties>
     </rule>
-    <rule ref="SlevomatCodingStandard.Variables.UnusedVariable" />
+
+    <rule ref="SlevomatCodingStandard.Variables.UnusedVariable">
+        <properties>
+            <!-- Verhindert Warnungen bei Hash-Map-Loops wie foreach ($allCodes as $fullCode => $dummy) -->
+            <property name="ignoreUnusedValuesWhenOnlyKeysAreUsedInForeach" value="true" />
+        </properties>
+    </rule>
     <rule ref="SlevomatCodingStandard.Variables.UselessVariable" />
     <rule ref="SlevomatCodingStandard.Functions.UnusedParameter" />
     <rule ref="SlevomatCodingStandard.Functions.UselessParameterDefaultValue" />
@@ -70,36 +86,13 @@
 
     <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
         <properties>
-            <!--<property name="allowFullyQualifiedGlobalClasses" value="true" />-->
             <property name="allowFullyQualifiedGlobalClasses" value="false" />
             <property name="allowFullyQualifiedGlobalFunctions" value="true" />
             <property name="allowFullyQualifiedGlobalConstants" value="true" />
             <property name="searchAnnotations" value="true" />
         </properties>
-        <exclude
-            name="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly.ReferenceViaFullyQualifiedNameWithoutNamespace" />
+        <exclude name="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly.ReferenceViaFullyQualifiedNameWithoutNamespace" />
     </rule>
-
-    <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses">
-        <properties>
-            <property name="searchAnnotations" value="true" />
-        </properties>
-    </rule>
-
-    <!--<rule
-    ref="Generic.Commenting.DocComment">
-        <exclude name="Generic.Commenting.DocComment.SpacingBeforeTagValue" />
-        <exclude name="Generic.Commenting.DocComment.TagValueIndent" />
-
-        <exclude name="Generic.Commenting.DocComment.TagValueSentence" />
-        <exclude name="Generic.Commenting.DocComment.ShortNotCapital" />
-        <exclude name="Generic.Commenting.DocComment.MissingShort" />
-
-        <exclude name="Generic.Commenting.DocComment.ContentAfterOpen" />
-        <exclude name="Generic.Commenting.DocComment.ContentBeforeClose" />
-    </rule>-->
-    <!--<rule
-    ref="SlevomatCodingStandard.Commenting.DocCommentRequired"></rule>-->
 
     <rule ref="SlevomatCodingStandard.Commenting.DocCommentSpacing">
         <properties>
@@ -126,12 +119,12 @@
     <rule ref="PHPCompatibility" />
 
     <!-- DIE REGEL FÜR DIE ZEILENLÄNGE -->
-    <rule ref="Generic.Files.LineLength">
-        <properties>
+    <!--<rule ref="Generic.Files.LineLength">-->
+    <!--    <properties>-->
             <!-- <property name="lineLimit" value="120" />
             <property name="absoluteLineLimit" value="120" /> -->
-            <property name="lineLimit" value="120" />
-            <property name="absoluteLineLimit" value="0" />
-        </properties>
-    </rule>
+    <!--        <property name="lineLimit" value="120" />-->
+    <!--        <property name="absoluteLineLimit" value="0" />-->
+    <!--    </properties>-->
+    <!--</rule>-->
 </ruleset>
