@@ -216,19 +216,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface, Requi
             showResetButton: $this->sessionManager->getAdminFilters() !== [],
         );
 
-        // Sammelüberweisungen für den Finance-Tab
-        $collectiveTransfers = [];
-        foreach ($this->sessionManager->getCollectiveTransfers() as $ct) {
-            $typeLabel = ($ct['type'] ?? 'sammel') === 'kennzeichen' ? 'Kennzeichen-Match:' : 'Mehrere Codes:';
-            $collectiveTransfers[] = new CollectiveTransferViewDto(
-                id: (string) $ct['id'],
-                date: (string) $ct['date'],
-                amountFormatted: \number_format((float) $ct['amount'], 2, ',', '.'),
-                purpose: (string) $ct['purpose'],
-                typeLabel: $typeLabel,
-                codes: (array) ($ct['codes'] ?? []),
-            );
-        }
+        // Sammelüberweisungen & Prüffälle für den Finance-Tab aufbereiten
+        $collectiveTransfers = $this->buildCollectiveTransfersDto($permissions->canMarkPaid);
 
         // Pagination HTML Generierung über das logikfreie PaginationViewDto
         $renderPagination = function (int $total, string $tabId, string $pageParam = 'page') use ($dto, $focus, $request): string {
@@ -342,6 +331,149 @@ final readonly class DashboardRenderAction implements ViewActionInterface, Requi
             cronSecret: $cronSecret,
             cronJobs: $cronJobs,
         );
+    }
+
+    /**
+     * Mappt die ausgesteuerten Bank-Import-Fälle aus der Session in 100% logikfreie View-DTOs.
+     *
+     * @return CollectiveTransferViewDto[]
+     */
+    private function buildCollectiveTransfersDto(bool $canMarkPaid): array
+    {
+        $dtos = [];
+
+        foreach ($this->sessionManager->getCollectiveTransfers() as $ct) {
+            if (!\is_array($ct)) {
+                continue;
+            }
+
+            $type = (string) ($ct['type'] ?? 'sammel');
+            $amount = (float) ($ct['amount'] ?? 0.0);
+            $expected = (float) ($ct['expectedAmount'] ?? 0.0);
+            $currency = (string) ($ct['currency'] ?? 'EUR');
+            $senderName = \trim((string) ($ct['senderName'] ?? ''));
+
+            [$badgeText, $badgeClass, $typeLabel] = match ($type) {
+                'underpaid' => ['UNTERZAHLUNG', 'c-badge--danger', 'PRIO 1 (Code erkannt):'],
+                'overpaid' => ['ÜBERZAHLUNG', 'c-badge--warning', 'PRIO 1 (Code erkannt):'],
+                'multi_code', 'sammel' => ['MEHRERE CODES IM BETREFF', 'c-badge--warning', 'PRIO 1 (Sammelüberweisung):'],
+                'cancelled_paid' => ['STORNIERTE GENEHMIGUNG!', 'c-badge--danger', 'PRIO 1 (Storno-Warnung):'],
+                'duplicate_paid' => ['DOPPELZAHLUNG / VORLAGE!', 'c-badge--danger', 'PRIO 1 (Bereits bezahlt):'],
+                'currency_mismatch' => ['FREMDWÄHRUNG', 'c-badge--danger', 'PRIO 1 (Währung):'],
+                'kennzeichen' => ['NUR KENNZEICHEN (PRIO 2)', 'c-badge--primary', 'PRIO 2 (Kennzeichen):'],
+                'name' => ['NUR NAME (PRIO 3)', 'c-badge--primary', 'PRIO 3 (Name / Spalte 12):'],
+                'parzelle' => ['NUR PARZELLE (PRIO 4)', 'c-badge--warning', 'PRIO 4 (Parzelle):'],
+                default => ['MANUELLE PRÜFUNG', 'c-badge--warning', 'Erkannte Codes:'],
+            };
+
+            $reasonTitle = (string) ($ct['reasonTitle'] ?? 'Manuelle Zahlungszuordnung erforderlich');
+            $reasonHint = (string) ($ct['reasonHint'] ?? 'Bitte gleichen Sie die Überweisung mit den untenstehenden Genehmigungen ab.');
+
+            $hasExpected = $expected > 0.0;
+            $diff = \round($amount - $expected, 2);
+            $diffBadgeText = 'Betrag stimmt überein';
+            $diffBadgeClass = 'c-badge--success';
+
+            if ($hasExpected && $diff < -0.005) {
+                $diffBadgeText = 'Differenz: -' . \number_format(\abs($diff), 2, ',', '.') . ' € (Zu wenig)';
+                $diffBadgeClass = 'c-badge--danger';
+            } elseif ($hasExpected && $diff > 0.005) {
+                $diffBadgeText = 'Differenz: +' . \number_format($diff, 2, ',', '.') . ' € (Zu viel)';
+                $diffBadgeClass = 'c-badge--warning';
+            }
+
+            $codeMappings = [];
+            foreach ((array) ($ct['extractedPairs'] ?? []) as $pair) {
+                if (!\is_array($pair)) {
+                    continue;
+                }
+                $ext = \trim((string) ($pair['extracted'] ?? ''));
+                $dbCode = \trim((string) ($pair['dbCode'] ?? ''));
+                if ($dbCode === '') {
+                    continue;
+                }
+                $codeMappings[] = [
+                    'extracted' => $ext !== '' ? $ext : $dbCode,
+                    'dbCode' => $dbCode,
+                ];
+            }
+
+            $relatedDtos = [];
+            foreach ((array) ($ct['relatedPermits'] ?? []) as $rel) {
+                if (!\is_array($rel)) {
+                    continue;
+                }
+
+                $relStatus = (string) ($rel['status'] ?? 'offen');
+                $relPaidAt = isset($rel['bezahltAmFormatted']) && \is_string($rel['bezahltAmFormatted'])
+                    ? $rel['bezahltAmFormatted']
+                    : null;
+                $isDirect = (bool) ($rel['isDirectMatch'] ?? false);
+                $extractedInSubj = \trim((string) ($rel['extractedInSubject'] ?? ''));
+                $fullDbCode = (string) ($rel['code'] ?? '');
+
+                $statusBadgeText = match ($relStatus) {
+                    'bezahlt' => $relPaidAt !== null ? "BEZAHLT am {$relPaidAt}" : 'BEZAHLT',
+                    'storniert' => 'STORNIERT (Rückzahlung prüfen!)',
+                    default => 'OFFEN (Unbezahlt)',
+                };
+
+                $statusBadgeClass = match ($relStatus) {
+                    'bezahlt' => 'c-badge--success',
+                    'storniert' => 'c-badge--danger',
+                    default => 'c-badge--warning',
+                };
+
+                $hasExtractedHint = $extractedInSubj !== '' && $extractedInSubj !== $fullDbCode;
+
+                $relatedDtos[] = new CollectiveTransferPermitItemViewDto(
+                    code: $fullDbCode,
+                    shortCode: (string) ($rel['shortCode'] ?? ''),
+                    extractedHint: $hasExtractedHint ? "Im Betreff: {$extractedInSubj}" : '',
+                    hasExtractedHint: $hasExtractedHint,
+                    isDirectMatch: $isDirect,
+                    rowHighlightClass: $isDirect ? 'c-table__row--warning' : '',
+                    relationLabel: (string) ($rel['relationLabel'] ?? 'Kontext'),
+                    relationBadgeClass: $isDirect ? 'c-badge--primary' : 'c-badge--outline',
+                    ownerName: (string) ($rel['name'] ?? 'Unbekannt'),
+                    plotFormatted: (string) ($rel['plotFormatted'] ?? '----'),
+                    vehicleType: (string) ($rel['typ'] ?? 'PKW'),
+                    licensePlate: (string) ($rel['kennzeichen'] ?? '---'),
+                    validityPeriod: (string) ($rel['vonFormatted'] ?? '---') . ' - ' . (string) ($rel['bisFormatted'] ?? '---'),
+                    createdAtFormatted: (string) ($rel['erstelltFormatted'] ?? '---'),
+                    priceFormatted: \number_format((float) ($rel['preis'] ?? 0.0), 2, ',', '.') . ' €',
+                    statusBadgeText: $statusBadgeText,
+                    statusBadgeClass: $statusBadgeClass,
+                    canMarkAsPaid: $canMarkPaid && $relStatus === 'offen' && !(bool) ($rel['isSuspended'] ?? false),
+                );
+            }
+
+            $dtos[] = new CollectiveTransferViewDto(
+                id: (string) ($ct['id'] ?? ''),
+                date: (string) ($ct['date'] ?? ''),
+                amountFormatted: \number_format($amount, 2, ',', '.'),
+                currency: $currency,
+                hasExpectedAmount: $hasExpected,
+                expectedAmountFormatted: \number_format($expected, 2, ',', '.') . ' €',
+                amountDiffBadgeText: $diffBadgeText,
+                amountDiffBadgeClass: $diffBadgeClass,
+                purpose: (string) ($ct['purpose'] ?? ''),
+                hasSenderName: $senderName !== '',
+                senderName: $senderName,
+                reasonBadgeText: $badgeText,
+                reasonBadgeClass: $badgeClass,
+                reasonTitle: $reasonTitle,
+                reasonHint: $reasonHint,
+                typeLabel: $typeLabel,
+                codes: \array_values(\array_map(strval(...), (array) ($ct['codes'] ?? []))),
+                hasCodeMappings: $codeMappings !== [],
+                codeMappings: $codeMappings,
+                hasRelatedPermits: $relatedDtos !== [],
+                relatedPermits: $relatedDtos,
+            );
+        }
+
+        return $dtos;
     }
 
     /**

@@ -16,6 +16,8 @@ final readonly class ProcessBankImportCommand implements CommandInterface
         public int $idColumn,
         public int $amountColumn,
         public int $dateColumn,
+        public int $senderColumn = 11,
+        public int $currencyColumn = 15,
     ) {
     }
 }

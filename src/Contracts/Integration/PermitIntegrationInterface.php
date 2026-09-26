@@ -17,13 +17,29 @@ interface PermitIntegrationInterface
     public function anonymizeArchive(int $yearsThreshold = 10): int;
 
     /**
-     * Liefert alle für den Bankabgleich relevanten Code-Mappings aus dem Permit-Bestand.
+     * Liefert alle für den Bankabgleich relevanten Code-Mappings und Metadaten aus dem Permit-Bestand.
      *
      * @return array{
      *   allCodes: array<string, bool>,
      *   unpaidCodes: array<string, string>,
      *   unpaidPlates: array<string, string>,
-     *   prices: array<string, float>
+     *   prices: array<string, float>,
+     *   records: array<string, array{
+     *     code: string,
+     *     shortCode: string,
+     *     name: string,
+     *     parzelle: int,
+     *     plotFormatted: string,
+     *     kennzeichen: string,
+     *     typ: string,
+     *     preis: float,
+     *     status: string,
+     *     vonFormatted: string,
+     *     bisFormatted: string,
+     *     erstelltFormatted: string,
+     *     bezahltAmFormatted: ?string,
+     *     isSuspended: bool
+     *   }>
      * }
      */
     public function getPermitDataForBankImport(): array;

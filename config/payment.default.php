@@ -8,6 +8,15 @@ return [
     'bic' => 'GENODES1M00',
     'kontoinhaber' => 'KGA e.V.',
     'usage_pattern' => 'EFG-{{code}}-{{nachname}}-{{vorname}}',
+
+    /**
+     * TEMPORÄRER FIX (Für 3 Monate):
+     * Wenn true, werden 8-stellige Genehmigungscodes beim CSV-Bankabgleich auch dann erkannt,
+     * wenn im Verwendungszweck nur die letzten 6 Stellen des Codes angegeben wurden.
+     * Zum Deaktivieren einfach auf false stellen.
+     */
+    'allow_legacy_6char_suffix_match' => true,
+
     /**
      * Genehmigung erst gültig wenn bezahlt oder sofort?
      * true = Erst gültig wenn bezahlt

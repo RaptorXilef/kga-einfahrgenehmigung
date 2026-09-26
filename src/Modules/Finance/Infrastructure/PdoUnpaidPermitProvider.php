@@ -28,6 +28,7 @@ final readonly class PdoUnpaidPermitProvider implements UnpaidPermitProviderInte
             unpaidCodes: $data['unpaidCodes'],
             unpaidPlates: $data['unpaidPlates'],
             prices: $data['prices'],
+            records: $data['records'],
         );
     }
 }

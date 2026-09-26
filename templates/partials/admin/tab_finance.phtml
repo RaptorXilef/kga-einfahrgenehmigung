@@ -6,8 +6,9 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 /**
  * Partial: Dashboard Tab - Finance Monitoring
  *
- * Zahlungsüberwachung für offene und überfällige Überweisungen mit Bulk-Processing.
- * VSA FIX: Kein \strtotime() und kein $_SESSION mehr im PHTML.
+ * Zahlungsüberwachung für offene und überfällige Überweisungen mit Bulk-Processing
+ * sowie erweiterter To-Do-Prüfliste (inkl. Betrugs- & Dubletten-Abgleich).
+ * VSA FIX: 100% Dumme View, 100% XSS-gesichert via htmlspecialchars.
  *
  * @var AssetHelperInterface $asset
  * @var DashboardViewDto $viewDto
@@ -67,13 +68,13 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
 
     <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
 
-        <!-- AUFGABEN-LISTE FÜR SAMMELÜBERWEISUNGEN -->
+        <!-- AUFGABEN-LISTE FÜR MANUELL ZU PRÜFENDE BANKÜBERWEISUNGEN -->
         <?php if (!empty($viewDto->collectiveTransfers)) { ?>
         <div class="u-padding-around-m u-padding-block-end-none">
             <div
                 class="c-alert c-alert--warning c-alert--large u-flex-column u-align-start u-text-start u-margin-block-end-l">
-                <div class="c-alert__content">
-                    <h4 class="u-margin-block-start-none u-margin-block-end-s u-flex u-align-center u-gap-s">
+                <div class="c-alert__content u-inline-size-100">
+                    <h4 class="u-margin-block-start-none u-margin-block-end-xs u-flex u-align-center u-gap-s">
                         <span class="u-text-xl">
                             <img
                                 src="<?php echo $asset->url('assets/img/icons/warning.webp'); ?>"
@@ -82,52 +83,220 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                                 alt=""
                             >
                         </span>
-                        Manuelle Zahlungszuordnung erforderlich
+                        Manuelle Zahlungszuordnung &amp; Betrugsprüfung
+                        (<?php echo \count($viewDto->collectiveTransfers); ?>)
                     </h4>
-                    <p class="u-margin-block-start-none u-margin-block-end-m u-text-sm">Das System hat in der Bankdatei
-                        Überweisungen gefunden, die manuell geprüft werden müssen.</p>
-                    <div class="u-flex u-flex-column u-gap-s u-inline-size-100">
+                    <p class="u-margin-block-start-none u-margin-block-end-m u-text-sm">
+                        Folgende Überweisungen aus dem CSV-Import wurden nicht automatisch verbucht und erfordern eine
+                        manuelle Kontrolle:
+                    </p>
+
+                    <div class="u-flex u-flex-column u-gap-m u-inline-size-100">
                         <?php foreach ($viewDto->collectiveTransfers as $ct) { ?>
-                        <div
-                            class="c-box c-box--warning u-bg-white u-flex u-justify-between u-align-center u-gap-m u-flex-wrap">
-                            <div>
-                                <strong class="u-text-lg u-color-warning"><?php echo $ct->amountFormatted; ?> €</strong>
-                                <span class="u-color-muted u-text-sm u-margin-inline-start-s">am
-                                    <?php echo \htmlspecialchars($ct->date); ?></span>
-                                <div
-                                    class="c-box c-box--subtle u-margin-block-start-xs u-font-mono u-text-sm u-color-warning">
-                                    <?php echo \htmlspecialchars($ct->purpose); ?>
+                        <div class="c-box c-box--warning u-bg-white u-flex u-flex-column u-gap-m u-inline-size-100">
+
+                            <!-- KOPFZEILE DER PRÜFKARTE: GRUND, BETRAG, DATUM & ERLEDIGT-BUTTON -->
+                            <div
+                                class="u-flex u-justify-between u-align-start u-gap-m u-flex-wrap u-border-block-end u-padding-block-end-s">
+                                <div class="u-flex u-flex-column u-gap-xs">
+                                    <div class="u-flex u-align-center u-gap-s u-flex-wrap">
+                                        <span class="c-badge <?php echo $ct->reasonBadgeClass; ?>">
+                                            <?php echo \htmlspecialchars($ct->reasonBadgeText, \ENT_QUOTES, 'UTF-8'); ?>
+                                        </span>
+                                        <strong class="u-color-main u-text-md">
+                                            <?php echo \htmlspecialchars($ct->reasonTitle, \ENT_QUOTES, 'UTF-8'); ?>
+                                        </strong>
+                                    </div>
+                                    <small class="u-color-muted">
+                                        <?php echo \htmlspecialchars($ct->reasonHint, \ENT_QUOTES, 'UTF-8'); ?>
+                                    </small>
                                 </div>
-                                <div class="u-flex u-align-center u-gap-s u-flex-wrap u-margin-block-start-s">
-                                    <span class="u-text-xs u-font-bold u-color-warning u-text-uppercase">
-                                        <?php echo $ct->typeLabel; ?>
-                                    </span>
-                                    <?php foreach ($ct->codes as $c) { ?>
-                                    <span class="c-badge c-badge--outline u-font-mono"><?php echo $c; ?></span>
+
+                                <form
+                                    method="POST"
+                                    action="<?php echo $settings['base_url']; ?>dismiss_transfer"
+                                    class="u-margin-block-none js-dismiss-transfer-form"
+                                >
+                                    <input
+                                        type="hidden"
+                                        name="csrf_token"
+                                        value="<?php echo $csrfToken; ?>"
+                                    >
+                                    <input
+                                        type="hidden"
+                                        name="anomaly_id"
+                                        value="<?php echo \htmlspecialchars($ct->id, \ENT_QUOTES, 'UTF-8'); ?>"
+                                    >
+                                    <button
+                                        type="submit"
+                                        class="c-button c-button--danger c-button--small"
+                                        title="Prüfhinweis als erledigt schließen"
+                                    >✔ Erledigt / Schließen</button>
+                                </form>
+                            </div>
+
+                            <!-- ÜBERWEISUNGS-DETAILS AUS DER CSV (SPALTEN 2, 5, 12, 15, 16) -->
+                            <div class="o-grid o-grid--auto-fit u-gap-m">
+                                <div class="c-box c-box--subtle u-padding-around-s">
+                                    <small
+                                        class="u-color-muted u-font-bold u-text-uppercase u-display-block">Überweisung
+                                        (CSV-Daten)</small>
+                                    <div class="u-margin-block-start-xs u-text-sm u-color-main">
+                                        <strong>Überwiesener Betrag:</strong>
+                                        <span class="u-font-extrabold u-text-md u-color-primary">
+                                            <?php echo \htmlspecialchars($ct->amountFormatted . ' ' . $ct->currency, \ENT_QUOTES, 'UTF-8'); ?>
+                                        </span>
+                                        <?php if ($ct->hasExpectedAmount) { ?>
+                                        <span class="u-color-muted">
+                                            (Soll-Summe:
+                                            <strong><?php echo \htmlspecialchars($ct->expectedAmountFormatted, \ENT_QUOTES, 'UTF-8'); ?></strong>)
+                                        </span>
+                                        <div class="u-margin-block-start-xs">
+                                            <span class="c-badge <?php echo $ct->amountDiffBadgeClass; ?>">
+                                                <?php echo \htmlspecialchars($ct->amountDiffBadgeText, \ENT_QUOTES, 'UTF-8'); ?>
+                                            </span>
+                                        </div>
+                                        <?php } ?>
+                                        <div class="u-margin-block-start-xs">
+                                            <strong>Buchungstag (Spalte 2):</strong>
+                                            <?php echo \htmlspecialchars($ct->date, \ENT_QUOTES, 'UTF-8'); ?>
+                                        </div>
+                                        <?php if ($ct->hasSenderName) { ?>
+                                        <div class="u-margin-block-start-xs">
+                                            <strong>Überweisender / Kontoinhaber (Spalte 12):</strong>
+                                            <?php echo \htmlspecialchars($ct->senderName, \ENT_QUOTES, 'UTF-8'); ?>
+                                        </div>
+                                        <?php } ?>
+                                    </div>
+                                </div>
+
+                                <div class="c-box c-box--subtle u-padding-around-s">
+                                    <small class="u-color-muted u-font-bold u-text-uppercase u-display-block">Original
+                                        Betreff / Verwendungszweck (Spalte 5)</small>
+                                    <div
+                                        class="u-margin-block-start-xs u-font-mono u-text-sm u-color-dark u-word-break-word">
+                                        <?php echo \htmlspecialchars($ct->purpose, \ENT_QUOTES, 'UTF-8'); ?>
+                                    </div>
+
+                                    <?php if ($ct->hasCodeMappings) { ?>
+                                    <div class="u-flex u-align-center u-gap-xs u-flex-wrap u-margin-block-start-s">
+                                        <span class="u-text-xs u-font-bold u-color-muted u-text-uppercase">
+                                            <?php echo \htmlspecialchars($ct->typeLabel, \ENT_QUOTES, 'UTF-8'); ?>
+                                        </span>
+                                        <?php foreach ($ct->codeMappings as $map) { ?>
+                                        <span class="c-badge c-badge--outline u-font-mono">
+                                            Betreff:
+                                            <?php echo \htmlspecialchars($map['extracted'], \ENT_QUOTES, 'UTF-8'); ?>
+                                            &rarr; DB:
+                                            <?php echo \htmlspecialchars($map['dbCode'], \ENT_QUOTES, 'UTF-8'); ?>
+                                        </span>
+                                        <?php } ?>
+                                    </div>
                                     <?php } ?>
                                 </div>
                             </div>
-                            <form
-                                method="POST"
-                                action="<?php echo $settings['base_url']; ?>dismiss_transfer"
-                                class="u-margin-block-none js-dismiss-transfer-form"
-                            >
-                                <input
-                                    type="hidden"
-                                    name="csrf_token"
-                                    value="<?php echo $csrfToken; ?>"
+
+                            <!-- KONTEXT- & BETRUGSPRÜFUNG: ALLE PASSENDEN PERMITS (OFFEN, BEZAHLT, STORNIERT) -->
+                            <?php if ($ct->hasRelatedPermits) { ?>
+                            <div class="u-overflow-x-auto">
+                                <small
+                                    class="u-color-muted u-font-bold u-text-uppercase u-display-block u-margin-block-end-xs"
                                 >
-                                <input
-                                    type="hidden"
-                                    name="anomaly_id"
-                                    value="<?php echo $ct->id; ?>"
-                                >
-                                <button
-                                    type="submit"
-                                    class="c-button c-button--danger c-button--small"
-                                    title="Hinweis ausblenden"
-                                >✔ Schließen</button>
-                            </form>
+                                    Zugehörige &amp; ähnliche Genehmigungen im System (Offen, Bezahlt &amp; Storniert):
+                                </small>
+                                <table class="c-table u-inline-size-100 u-text-sm">
+                                    <thead>
+                                        <tr>
+                                            <th class="c-table__header-cell">Zuordnung</th>
+                                            <th class="c-table__header-cell">DB-Code</th>
+                                            <th class="c-table__header-cell">Pächter &amp; Parzelle</th>
+                                            <th class="c-table__header-cell">Fahrzeug</th>
+                                            <th class="c-table__header-cell">Gültigkeit &amp; Erstellt</th>
+                                            <th class="c-table__header-cell u-text-end">Soll-Betrag</th>
+                                            <th class="c-table__header-cell u-text-center">System-Status</th>
+                                            <th class="c-table__header-cell u-text-end">Aktion</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($ct->relatedPermits as $rel) { ?>
+                                        <tr class="<?php echo $rel->rowHighlightClass; ?>">
+                                            <td class="c-table__data-cell">
+                                                <span class="c-badge <?php echo $rel->relationBadgeClass; ?>">
+                                                    <?php echo \htmlspecialchars($rel->relationLabel, \ENT_QUOTES, 'UTF-8'); ?>
+                                                </span>
+                                            </td>
+                                            <td class="c-table__data-cell u-font-mono">
+                                                <strong><?php echo \htmlspecialchars($rel->code, \ENT_QUOTES, 'UTF-8'); ?></strong>
+                                                <?php if ($rel->hasExtractedHint) { ?>
+                                                <br><small
+                                                    class="u-color-primary"><?php echo \htmlspecialchars($rel->extractedHint, \ENT_QUOTES, 'UTF-8'); ?></small>
+                                                <?php } ?>
+                                            </td>
+                                            <td class="c-table__data-cell">
+                                                <strong><?php echo \htmlspecialchars($rel->ownerName, \ENT_QUOTES, 'UTF-8'); ?></strong><br>
+                                                <small class="u-color-muted">Parzelle
+                                                    <?php echo \htmlspecialchars($rel->plotFormatted, \ENT_QUOTES, 'UTF-8'); ?></small>
+                                            </td>
+                                            <td class="c-table__data-cell">
+                                                <span
+                                                    class="c-license-plate u-text-xs"><?php echo \htmlspecialchars($rel->licensePlate, \ENT_QUOTES, 'UTF-8'); ?></span>
+                                                <small
+                                                    class="u-color-muted u-display-block"><?php echo \htmlspecialchars($rel->vehicleType, \ENT_QUOTES, 'UTF-8'); ?></small>
+                                            </td>
+                                            <td class="c-table__data-cell u-text-nowrap">
+                                                <strong><?php echo \htmlspecialchars($rel->validityPeriod, \ENT_QUOTES, 'UTF-8'); ?></strong><br>
+                                                <small class="u-color-muted">Erstellt:
+                                                    <?php echo \htmlspecialchars($rel->createdAtFormatted, \ENT_QUOTES, 'UTF-8'); ?></small>
+                                            </td>
+                                            <td class="c-table__data-cell u-text-end u-text-nowrap">
+                                                <strong><?php echo \htmlspecialchars($rel->priceFormatted, \ENT_QUOTES, 'UTF-8'); ?></strong>
+                                            </td>
+                                            <td class="c-table__data-cell u-text-center">
+                                                <span class="c-badge <?php echo $rel->statusBadgeClass; ?>">
+                                                    <?php echo \htmlspecialchars($rel->statusBadgeText, \ENT_QUOTES, 'UTF-8'); ?>
+                                                </span>
+                                            </td>
+                                            <td class="c-table__data-cell u-text-end u-text-nowrap">
+                                                <div class="u-flex u-gap-xs u-justify-end">
+                                                    <a
+                                                        href="check?code=<?php echo \urlencode($rel->code); ?>"
+                                                        target="_blank"
+                                                        class="c-button c-button--secondary c-button--small"
+                                                        title="Details zur Genehmigung öffnen"
+                                                    >Details</a>
+                                                    <?php if ($rel->canMarkAsPaid) { ?>
+                                                    <form
+                                                        method="POST"
+                                                        action="<?php echo $settings['base_url']; ?>mark_as_paid"
+                                                        class="u-margin-block-none"
+                                                        data-confirm="Zahlung für <?php echo \htmlspecialchars($rel->code, \ENT_QUOTES, 'UTF-8'); ?> jetzt bestätigen und als BEZAHLT markieren?"
+                                                    >
+                                                        <input
+                                                            type="hidden"
+                                                            name="csrf_token"
+                                                            value="<?php echo $csrfToken; ?>"
+                                                        >
+                                                        <input
+                                                            type="hidden"
+                                                            name="code"
+                                                            value="<?php echo \htmlspecialchars($rel->code, \ENT_QUOTES, 'UTF-8'); ?>"
+                                                        >
+                                                        <button
+                                                            type="submit"
+                                                            class="c-button c-button--success c-button--small"
+                                                            title="Diese Genehmigung direkt als bezahlt markieren"
+                                                        >✔ Freischalten</button>
+                                                    </form>
+                                                    <?php } ?>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <?php } ?>
+
                         </div>
                         <?php } ?>
                     </div>
@@ -165,12 +334,12 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                             </label>
                         </th>
                         <?php } ?>
-                        <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller & Kennung</th>
+                        <th class="c-table__header-cell js-sort-header u-text-start">Antragsteller &amp; Kennung</th>
                         <th class="c-table__header-cell js-sort-header u-text-center">Fahrzeug</th>
                         <?php if ($viewDto->permissions->showPrivacyEmails) { ?>
                         <th class="c-table__header-cell js-sort-header u-text-start">Kontakt (E-Mail)</th>
                         <?php } ?>
-                        <th class="c-table__header-cell js-sort-header u-text-center">Frist & Finanz-Status</th>
+                        <th class="c-table__header-cell js-sort-header u-text-center">Frist &amp; Finanz-Status</th>
                         <th class="c-table__header-cell js-sort-header u-text-center">Zustand</th>
                         <?php if ($viewDto->permissions->showPrivacyFinance) { ?>
                         <th class="c-table__header-cell js-sort-header u-text-end">Betrag</th>
@@ -386,7 +555,7 @@ use App\Modules\System\Application\UseCases\ViewDashboard\DashboardViewDto;
                                 <button
                                     type="button"
                                     class="c-button <?php echo $permit->reminderButtonClass; ?> c-button--small c-button--icon-only js-submit-form"
-                                    data-target=".js-form-send-reminder[data-code='<?php echo $permit->code; ?>']"
+                                    data-target=".js-form-send-reminder[data-code='<?php echo $permit->code; ?>"
                                     title="<?php echo $permit->reminderButtonTitle; ?>"
                                 >
                                     <img

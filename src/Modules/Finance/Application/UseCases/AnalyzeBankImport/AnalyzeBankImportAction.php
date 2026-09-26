@@ -78,6 +78,8 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
                     'guessId' => $analysis->guessedId,
                     'guessAmount' => $analysis->guessedAmount,
                     'guessDate' => $analysis->guessedDate,
+                    'guessSender' => $analysis->guessedSender,
+                    'guessCurrency' => $analysis->guessedCurrency,
                 ],
             ]);
 
@@ -92,6 +94,8 @@ final readonly class AnalyzeBankImportAction implements ActionInterface, Require
                 idColumn: $analysis->guessedId,
                 amountColumn: $analysis->guessedAmount,
                 dateColumn: $analysis->guessedDate,
+                senderColumn: $analysis->guessedSender,
+                currencyColumn: $analysis->guessedCurrency,
             ));
 
             if ($result->success) {

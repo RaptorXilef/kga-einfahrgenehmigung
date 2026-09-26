@@ -26,6 +26,25 @@ final readonly class UnpaidPermitsDto
          * @var array<string, float>
          */
         public array $prices,
+        /**
+         * @var array<string, array{
+         *   code: string,
+         *   shortCode: string,
+         *   name: string,
+         *   parzelle: int,
+         *   plotFormatted: string,
+         *   kennzeichen: string,
+         *   typ: string,
+         *   preis: float,
+         *   status: string,
+         *   vonFormatted: string,
+         *   bisFormatted: string,
+         *   erstelltFormatted: string,
+         *   bezahltAmFormatted: ?string,
+         *   isSuspended: bool
+         * }>
+         */
+        public array $records = [],
     ) {
     }
 }

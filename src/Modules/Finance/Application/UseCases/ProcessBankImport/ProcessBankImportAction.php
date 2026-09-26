@@ -44,10 +44,12 @@ final readonly class ProcessBankImportAction implements ActionInterface, Require
             $dto = BankImportProcessRequest::fromArray($request->post);
 
             $command = new ProcessBankImportCommand(
-                $dto->tempFile,
-                $dto->idColumn,
-                $dto->amountColumn,
-                $dto->dateColumn,
+                tempFile: $dto->tempFile,
+                idColumn: $dto->idColumn,
+                amountColumn: $dto->amountColumn,
+                dateColumn: $dto->dateColumn,
+                senderColumn: $dto->senderColumn,
+                currencyColumn: $dto->currencyColumn,
             );
 
             $result = $this->processHandler->handle($command);
