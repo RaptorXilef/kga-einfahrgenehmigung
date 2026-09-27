@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.81.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.80.0...v0.81.0) (2026-09-27)
+
+### 🚀 Features
+
+* **permit,maintenance:** Add history payment modal and .... ([4c5afce](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4c5afce039e7b30b1f4160097e3d00691487bfc1))
+
+### 🐛 Bug Fixes
+
+* **auth:** Allow export tab access with granular permit export permissions and ... ([32a4d41](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/32a4d41f3025a7560b2887c45648d50c871d1900))
+* **auth:** Synchronize active user role and permissions from database on every request ([05dd37a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/05dd37aa967d34410bf98cd38fc9c51009bc810b))
+* **identity,core:** Fix HY093 PDO parameter error in MagicLink login and ... ([75a44ed](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/75a44edd3b37a634faf9d21aa092faee08a183a2))
+* **identity:** Resolve and display human-readable role name instead of role ID in admin header ([ccd3f6f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ccd3f6f63a1ef075b147a6c8660ad2b7db7ff666))
+* **maintenance:** Add zero-dependency fallback maintenance page to prevent HTTP 500 during uploads ([d85c3f4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d85c3f47fbad4e9055b954b9d11364a59059b70d))
+* **permit,ui:** Remove escaped SQL wildcard in GetPermitHistoryHandler that blocked magic link email ([c6ccf06](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c6ccf067bccece880b64f29fb55597204d293988))
+* **ui,identity:** Replace CSP-blocked javascript:history.back() link on changelog page and ... ([ec572cb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ec572cb2f31e8cd01606053a583723aa0c4f8010))
+
+### 📚 Dokumentation
+
+* **release:** Add user-facing release notes for v0.73.1 to v0.80.1 ([d60bba3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d60bba3aac5b84a913df53225ddef5bdaefd9772))
+
 ## [0.80.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.79.8...v0.80.0) (2026-09-26)
 
 ### 🚀 Features
