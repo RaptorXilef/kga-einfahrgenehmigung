@@ -218,6 +218,29 @@ export class PrintControls {
     }
 }
 
+export class HistoryBack {
+    constructor(element) {
+        this.element = element;
+        this.abortController = new AbortController();
+        this.init();
+    }
+    init() {
+        this.element.addEventListener(
+            'click',
+            (e) => {
+                if (window.history.length > 1) {
+                    e.preventDefault();
+                    window.history.back();
+                }
+            },
+            { signal: this.abortController.signal }
+        );
+    }
+    destroy() {
+        this.abortController.abort();
+    }
+}
+
 export class AutoSubmitSelect {
     constructor(select) {
         this.select = select;

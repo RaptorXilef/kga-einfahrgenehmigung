@@ -16,6 +16,7 @@ import {
     CopyAction,
     EventTracker,
     FabRefresh,
+    HistoryBack,
     PaymentInfoModal,
     PrintControls,
     RemoteSubmit,
@@ -76,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mount('.c-category-card', AccordionCard);
     mount('.c-fab-refresh', FabRefresh);
     mount('.js-close-window, .js-print-window', PrintControls);
+    mount('.js-history-back', HistoryBack);
     mount('.js-auto-submit-select', AutoSubmitSelect);
     mount('.js-track-event', EventTracker);
     mountSingle('.js-payment-modal', PaymentInfoModal);

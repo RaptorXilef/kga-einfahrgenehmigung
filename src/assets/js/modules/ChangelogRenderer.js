@@ -2,14 +2,29 @@ export class ChangelogRenderer {
     constructor(container) {
         this.container = container;
         this.contentArea = this.container.querySelector('.js-content-area');
+        this.backBtn = this.container.querySelector('.js-history-back');
         const scriptEl = this.container.querySelector('.js-raw-markdown');
 
         this.rawMarkdown = scriptEl ? scriptEl.textContent : '';
+        this.abortController = new AbortController();
 
         this.init();
     }
 
     init() {
+        if (this.backBtn) {
+            this.backBtn.addEventListener(
+                'click',
+                (e) => {
+                    if (window.history.length > 1) {
+                        e.preventDefault();
+                        window.history.back();
+                    }
+                },
+                { signal: this.abortController.signal }
+            );
+        }
+
         // Performantes Leeren des Containers
         this.contentArea.replaceChildren();
 
@@ -35,5 +50,9 @@ export class ChangelogRenderer {
             errorBox.textContent = 'Fehler: Markdown Parser nicht geladen.';
             this.contentArea.appendChild(errorBox);
         }
+    }
+
+    destroy() {
+        this.abortController.abort();
     }
 }

@@ -7,6 +7,7 @@ use App\Contracts\System\AssetHelperInterface;
  * Page: Changelog / Versionshistorie
  *
  * Rendert die CHANGELOG.md Datei im System-Layout mittels DOMPurify und marked.js.
+ * VSA FIX: CSP-konformer Zurück-Button ohne inline javascript:-URI.
  *
  * @var AssetHelperInterface $asset
  * @var ConfigInterface $config
@@ -54,8 +55,8 @@ $pageTitle = 'Versionshistorie - ' . $vereinsName;
                 Versionshistorie
             </h2>
             <a
-                href="javascript:history.back()"
-                class="c-button c-button--secondary"
+                href="admin"
+                class="c-button c-button--secondary js-history-back"
             >← Zurück</a>
         </header>
 
