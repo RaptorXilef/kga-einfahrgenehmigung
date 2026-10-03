@@ -92,6 +92,9 @@
         "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
         "editor.wordWrap": "on"
     },
+    "[confetti-apache]": {
+        "editor.defaultFormatter": "rhevorn.confetti"
+    },
     "rewrap.wrappingColumn": 120,
     "rewrap.wholeComment": true,
 

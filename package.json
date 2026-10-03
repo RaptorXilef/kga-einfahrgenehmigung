@@ -114,6 +114,7 @@
     "vitest": "^4.1.5"
   },
   "overrides": {
+    "undici": ">=7.30.0",
     "uuid": "^14.0.0",
     "adm-zip": ">=0.6.1",
     "brace-expansion": ">=2.0.1",

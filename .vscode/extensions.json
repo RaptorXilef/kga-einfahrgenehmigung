@@ -74,7 +74,8 @@
         "yzhang.markdown-all-in-one",
         "mehedidracula.php-namespace-resolver",
         "redhat.vscode-xml",
-        "neontoolkit.vscode-neon-toolkit"
+        "neontoolkit.vscode-neon-toolkit",
+        "rhevorn.confetti"
     ],
     // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
     "unwantedRecommendations": ["htmlhint.vscode-htmlhint", "mikebovenlander.formate"]
