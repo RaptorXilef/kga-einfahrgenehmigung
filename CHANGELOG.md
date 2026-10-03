@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.81.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.81.0...v0.81.1) (2026-10-03)
+
+### 🧹 Chore / Maintenance
+
+* **email:** finished email update and tests ([995ce0e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/995ce0ec6889c3e92736fc697cbbb779ede58e2a))
+
 ## [0.81.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.80.0...v0.81.0) (2026-09-27)
 
 ### 🚀 Features
