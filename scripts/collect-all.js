@@ -1,6 +1,7 @@
 import fs from 'node:fs';
+import fsPromises from 'node:fs/promises';
 import path from 'node:path';
-import readline from 'node:readline';
+import readline from 'node:readline/promises'; // Nutzt nun die asynchrone Promise-Version!
 import { fileURLToPath } from 'node:url';
 
 // =============================================================================
@@ -87,7 +88,7 @@ const basePath = path.resolve(__dirname, '..');
 
 let globalIncludeRootFiles = false;
 
-// Version aus package.json lesen
+// Version aus package.json lesen (Dies bleibt synchron, da es nur 1x beim Start passiert)
 let version = 'unknown';
 try {
     const pkg = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json'), 'utf-8'));
@@ -150,7 +151,14 @@ const configs = {
     },
 };
 
-// --- 3. Daten-Bereinigung & Formatierungs-Logik ---
+// --- 3. Daten-Bereinigung, Formatierung & Token-Schätzung ---
+
+/**
+ * Schätzt die Token-Anzahl für LLMs (1 Token entspricht ca. 4 Zeichen)
+ */
+function estimateTokens(text) {
+    return Math.ceil(text.length / 4);
+}
 
 /**
  * Leert sensible Daten aus package.json und composer.json
@@ -213,8 +221,61 @@ function formatContent(content) {
     return formattedLines.join('\n');
 }
 
+/**
+ * Generiert eine visuelle Baumstruktur aus dem Array der gesammelten Dateien.
+ */
+function generateTreeString(files) {
+    const tree = {};
+
+    // 1. Objekt-Struktur aufbauen
+    for (const file of files) {
+        // Pfade normalisieren (Slashes für einheitliche Verarbeitung)
+        const parts = file.relPath.replace(/\\/g, '/').split('/');
+        let current = tree;
+        for (let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+            if (!current[part]) {
+                // Letztes Element (Datei) wird null, Ordner werden als {} angelegt
+                current[part] = i === parts.length - 1 ? null : {};
+            }
+            current = current[part];
+        }
+    }
+
+    // 2. Rekursives Rendern der Baumstruktur
+    function renderNode(node, prefix = '') {
+        let result = '';
+
+        // Sortierung: Ordner zuerst, dann alphabetisch
+        const keys = Object.keys(node).sort((a, b) => {
+            const isDirA = node[a] !== null;
+            const isDirB = node[b] !== null;
+            if (isDirA && !isDirB) return -1;
+            if (!isDirA && isDirB) return 1;
+            return a.localeCompare(b);
+        });
+
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const isLast = i === keys.length - 1;
+            const pointer = isLast ? '└── ' : '├── ';
+
+            result += `${prefix}${pointer}${key}\n`;
+
+            if (node[key] !== null) {
+                // Wenn es ein Ordner ist -> rekursiv absteigen
+                const nextPrefix = prefix + (isLast ? '    ' : '│   ');
+                result += renderNode(node[key], nextPrefix);
+            }
+        }
+        return result;
+    }
+
+    return renderNode(tree);
+}
+
 // =============================================================================
-// FILE SYSTEM & CLI LOGIC
+// ASYNCHRONE FILE SYSTEM LOGIC
 // =============================================================================
 
 /**
@@ -224,10 +285,8 @@ function formatContent(content) {
  */
 function matchPattern(target, pattern) {
     if (!pattern) return false;
-
     const cleanTarget = target.toLowerCase();
     const cleanPattern = pattern.toLowerCase();
-
     if (cleanPattern.includes('*')) {
         // RegEx-Sonderzeichen escapen, außer das Sternchen (*)
         const escapeRegex = (s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
@@ -245,12 +304,10 @@ function matchPattern(target, pattern) {
  */
 function isDirExcludedByList(relPath, patterns = []) {
     if (!patterns || patterns.length === 0 || !relPath || relPath === '.') return false;
-
     const normalizedRelPath = relPath.replace(/\\/g, '/');
     const segments = normalizedRelPath.split('/');
     // Bildet alle Teilpfade ab Root (z.B. ['public', 'public/assets', 'public/assets/js'])
     const subPaths = segments.map((_, idx) => segments.slice(0, idx + 1).join('/'));
-
     return patterns.some((pattern) => {
         const normalizedPattern = pattern.replace(/\\/g, '/');
         if (normalizedPattern.includes('/')) {
@@ -266,9 +323,7 @@ function isDirExcludedByList(relPath, patterns = []) {
  */
 function isFileExcludedByList(fileName, relFilePath, patterns = []) {
     if (!patterns || patterns.length === 0) return false;
-
     const normalizedRelFile = relFilePath.replace(/\\/g, '/');
-
     return patterns.some((pattern) => {
         const normalizedPattern = pattern.replace(/\\/g, '/');
         if (normalizedPattern.includes('/')) {
@@ -278,7 +333,10 @@ function isFileExcludedByList(fileName, relFilePath, patterns = []) {
     });
 }
 
-function getFiles(
+/**
+ * Asynchrone rekursive Dateisuche
+ */
+async function getFiles(
     dir,
     filter,
     exclDirs = [],
@@ -286,12 +344,12 @@ function getFiles(
     includeRoot = false,
     currentFiles = []
 ) {
-    const files = fs.readdirSync(dir);
+    const files = await fsPromises.readdir(dir);
 
     for (const file of files) {
         const fullPath = path.join(dir, file);
         const relPath = path.relative(basePath, fullPath);
-        const stat = fs.statSync(fullPath);
+        const stat = await fsPromises.stat(fullPath);
 
         if (stat.isDirectory()) {
             // 1. Globale & aktive Config-Ordner-Ignores prüfen
@@ -302,7 +360,7 @@ function getFiles(
                 isDirExcludedByList(relPath, exclDirs);
 
             if (!isExcludedDir) {
-                getFiles(fullPath, filter, exclDirs, exclFiles, includeRoot, currentFiles);
+                await getFiles(fullPath, filter, exclDirs, exclFiles, includeRoot, currentFiles);
             }
         } else {
             const isRootFile = path.dirname(fullPath) === basePath;
@@ -312,7 +370,10 @@ function getFiles(
 
             // Dateiart bestimmen (z.B. 'js', 'php', 'phtml', 'scss', 'sql')
             const extKey = path.extname(file).toLowerCase().replace('.', '');
-            const typeIgnores = IGNORE_BY_TYPE[extKey] || { dirs: [], files: [] };
+            const typeIgnores = IGNORE_BY_TYPE[extKey] || {
+                dirs: [],
+                files: [],
+            };
             const relDir = path.dirname(relPath);
 
             // 2. Prüfen, ob der Ordner speziell für DIESE Dateiart ignoriert werden soll
@@ -345,10 +406,9 @@ function getTimestampString() {
 }
 
 /**
- * Sammelt die Dateiliste für eine spezifische Konfiguration.
- * Wurde ausgelagert, um sie für Einzel- und Projektzusammenfassungen nutzen zu können.
+ * Asynchron: Sammelt die Dateiliste für eine spezifische Konfiguration.
  */
-function getFilesForConfig(conf, silent = false) {
+async function getFilesForConfig(conf, silent = false) {
     let foundFiles = [];
     if (conf.explicitFiles) {
         for (const filePath of conf.explicitFiles) {
@@ -370,7 +430,7 @@ function getFilesForConfig(conf, silent = false) {
     } else {
         const searchDir = conf.targetDir ? path.join(basePath, conf.targetDir) : basePath;
         if (fs.existsSync(searchDir)) {
-            foundFiles = getFiles(
+            foundFiles = await getFiles(
                 searchDir,
                 conf.filter,
                 conf.exclDirs || [],
@@ -386,13 +446,14 @@ function getFilesForConfig(conf, silent = false) {
 }
 
 /**
- * Wandelt Dateiinhalte in formatierten Markdown-Code um
+ * Asynchron: Wandelt Dateiinhalte in formatierten Markdown-Code um
  */
-function processFilesToMarkdown(foundFiles, silent = false) {
+async function processFilesToMarkdown(foundFiles, silent = false) {
     let combinedContent = '';
     for (const file of foundFiles) {
         try {
-            let rawContent = fs.readFileSync(file.fullPath, 'utf-8');
+            // Asynchrones Lesen der Datei
+            let rawContent = await fsPromises.readFile(file.fullPath, 'utf-8');
             rawContent = sanitizeJsonContent(file.relPath, rawContent);
             const formattedContent = formatContent(rawContent);
 
@@ -417,13 +478,14 @@ function processFilesToMarkdown(foundFiles, silent = false) {
 
             if (!silent) console.log(`${c.gray} + [Gesammelt] ${file.relPath}${c.reset}`);
         } catch (_e) {
-            if (!silent) console.log(`${c.gray} ! Überspringe (Binär?): ${file.relPath}${c.reset}`);
+            if (!silent)
+                console.log(`${c.gray} ! Überspringe (Binär/Fehler?): ${file.relPath}${c.reset}`);
         }
     }
     return combinedContent;
 }
 
-function startStructureMirror() {
+async function startStructureMirror() {
     const timestampDirName = getTimestampString();
     const targetDirName = `${timestampDirName}_collected`;
     const targetDir = path.join(debugFolder, targetDirName);
@@ -431,8 +493,7 @@ function startStructureMirror() {
     console.log(`\n${c.cyan}🚀 Starte Erstellung der gespiegelten RAW-Struktur...`);
     console.log(`${c.yellow}Target: .debug/${version}/${targetDirName}/${c.reset}`);
 
-    // Für den Mirror holen wir pauschal alles, was unterstützt wird
-    const foundFiles = getFiles(
+    const foundFiles = await getFiles(
         basePath,
         /\.(js|php|phtml|scss|sql)$/,
         [],
@@ -448,19 +509,18 @@ function startStructureMirror() {
     let count = 0;
     for (const file of foundFiles) {
         try {
-            let rawContent = fs.readFileSync(file.fullPath, 'utf-8');
-
-            // Sensible Daten aus package.json/composer.json entfernen
+            let rawContent = await fsPromises.readFile(file.fullPath, 'utf-8');
             rawContent = sanitizeJsonContent(file.relPath, rawContent);
-
             const formattedContent = formatContent(rawContent);
 
             const fileOutputDir = path.join(targetDir, path.dirname(file.relPath));
             const fileOutputPath = path.join(targetDir, file.relPath);
 
-            if (!fs.existsSync(fileOutputDir)) fs.mkdirSync(fileOutputDir, { recursive: true });
+            if (!fs.existsSync(fileOutputDir)) {
+                await fsPromises.mkdir(fileOutputDir, { recursive: true });
+            }
 
-            fs.writeFileSync(fileOutputPath, formattedContent, 'utf-8');
+            await fsPromises.writeFile(fileOutputPath, formattedContent, 'utf-8');
             count++;
             console.log(`${c.gray} + [Spiegeln] ${file.relPath}${c.reset}`);
         } catch (e) {
@@ -473,43 +533,53 @@ function startStructureMirror() {
     );
 }
 
-function startFileCollection(configKey, silent = false) {
+async function startFileCollection(configKey, silent = false) {
     const conf = configs[configKey];
     const timestamp = getTimestampString();
-
     const outputName = `${conf.name}_${timestamp}_collected${conf.ext}`;
     const outputPath = path.join(debugFolder, outputName);
 
-    if (!fs.existsSync(debugFolder)) fs.mkdirSync(debugFolder, { recursive: true });
+    if (!fs.existsSync(debugFolder)) {
+        await fsPromises.mkdir(debugFolder, { recursive: true });
+    }
 
     if (!silent)
         console.log(`\n${c.cyan}🚀 Starte RAW-Sammlung: ${c.bright}${conf.name}${c.reset}...`);
 
-    const foundFiles = getFilesForConfig(conf, silent);
+    const foundFiles = await getFilesForConfig(conf, silent);
 
     if (foundFiles.length === 0) {
         if (!silent) console.log(`${c.red}❌ Keine Dateien gefunden.${c.reset}`);
         return;
     }
 
-    const combinedContent = processFilesToMarkdown(foundFiles, silent);
+    // Baumstruktur und Code generieren
+    const treeString = generateTreeString(foundFiles);
+    const codeContent = await processFilesToMarkdown(foundFiles, silent);
 
-    fs.writeFileSync(outputPath, combinedContent, 'utf-8');
+    const finalContent = `## 📁 Datei-Struktur\n\n\`\`\`text\n${treeString}\`\`\`\n\n---\n\n${codeContent}`;
+
+    // Tokens berechnen & Speichern
+    const tokens = estimateTokens(finalContent);
+    await fsPromises.writeFile(outputPath, finalContent, 'utf-8');
+
     const displayPath = path.relative(basePath, outputPath);
     console.log(
-        `${c.green}✅ Erfolg: ${c.bright}${displayPath}${c.reset} (${foundFiles.length} Dateien gesammelt).`
+        `${c.green}✅ Erfolg: ${c.bright}${displayPath}${c.reset} (${foundFiles.length} Dateien, ca. ${tokens.toLocaleString('de-DE')} Tokens).`
     );
 }
 
 /**
  * Erstellt eine massive Datei aus mehreren gewählten Kategorien
  */
-function startProjectSummary(selectedKeys, silent = false) {
+async function startProjectSummary(selectedKeys, silent = false) {
     const timestamp = getTimestampString();
     const outputName = `ProjektZusammenfassung_${timestamp}_collected.md`;
     const outputPath = path.join(debugFolder, outputName);
 
-    if (!fs.existsSync(debugFolder)) fs.mkdirSync(debugFolder, { recursive: true });
+    if (!fs.existsSync(debugFolder)) {
+        await fsPromises.mkdir(debugFolder, { recursive: true });
+    }
 
     if (!silent)
         console.log(
@@ -517,27 +587,35 @@ function startProjectSummary(selectedKeys, silent = false) {
         );
 
     let totalContent = '';
-    let totalFiles = 0;
+    let allFoundFiles = [];
 
+    // Alle Dateien erst sammeln, um einen globalen Projekt-Baum zu bauen
     for (const key of selectedKeys) {
         const conf = configs[key];
-        const foundFiles = getFilesForConfig(conf, true); // intern leise
+        const foundFiles = await getFilesForConfig(conf, true);
         if (foundFiles.length > 0) {
-            totalFiles += foundFiles.length;
+            allFoundFiles.push(...foundFiles); // Für den globalen Baum zusammenfügen
             totalContent += `\n# === BEREICH: ${conf.name} ===\n\n`;
-            totalContent += processFilesToMarkdown(foundFiles, silent);
+            totalContent += await processFilesToMarkdown(foundFiles, silent);
         }
     }
 
-    if (totalFiles === 0) {
+    if (allFoundFiles.length === 0) {
         console.log(`${c.red}❌ Keine Dateien für die Zusammenfassung gefunden.${c.reset}`);
         return;
     }
 
-    fs.writeFileSync(outputPath, totalContent, 'utf-8');
+    // Globalen Baum erstellen
+    const globalTreeString = generateTreeString(allFoundFiles);
+    const finalContent = `# 📦 Projekt-Zusammenfassung\n\n## 📁 Globale Datei-Struktur\n\n\`\`\`text\n${globalTreeString}\`\`\`\n\n---\n${totalContent}`;
+
+    // Tokens berechnen & Speichern
+    const tokens = estimateTokens(finalContent);
+    await fsPromises.writeFile(outputPath, finalContent, 'utf-8');
+
     const displayPath = path.relative(basePath, outputPath);
     console.log(
-        `${c.green}✅ Erfolg: Zusammenfassung in ${c.bright}${displayPath}${c.reset} gespeichert (${totalFiles} Dateien gesammelt).`
+        `${c.green}✅ Erfolg: Zusammenfassung in ${c.bright}${displayPath}${c.reset} gespeichert (${allFoundFiles.length} Dateien, ca. ${tokens.toLocaleString('de-DE')} Tokens).`
     );
 }
 
@@ -549,7 +627,10 @@ function showHelp() {
         { Argument: '--phtml', Beschreibung: 'Sammelt nur PHTML Dateien' },
         { Argument: '--js', Beschreibung: 'Sammelt nur JavaScript Dateien' },
         { Argument: '--scss', Beschreibung: 'Sammelt nur SCSS Dateien' },
-        { Argument: '--sql', Beschreibung: 'Sammelt SQL Dateien (database/migrations)' },
+        {
+            Argument: '--sql',
+            Beschreibung: 'Sammelt SQL Dateien (database/migrations)',
+        },
         {
             Argument: '--env',
             Beschreibung: 'Sammelt Entwicklungsumgebungs-Dateien (composer.json etc.)',
@@ -558,18 +639,26 @@ function showHelp() {
             Argument: '--project',
             Beschreibung: 'Projektweite Zusammenfassung (Alle Code-Dateien in eine Datei)',
         },
-        { Argument: '--mirror', Beschreibung: 'Spiegelt die gesamte Ordnerstruktur' },
-        { Argument: '--all', Beschreibung: 'Führt Code-Sammlungen einzeln automatisch aus' },
-        { Argument: '--root', Beschreibung: 'Bezieht Dateien im Root-Verzeichnis mit ein' },
+        {
+            Argument: '--mirror',
+            Beschreibung: 'Spiegelt die gesamte Ordnerstruktur',
+        },
+        {
+            Argument: '--all',
+            Beschreibung: 'Führt Code-Sammlungen einzeln automatisch aus',
+        },
+        {
+            Argument: '--root',
+            Beschreibung: 'Bezieht Dateien im Root-Verzeichnis mit ein',
+        },
         { Argument: '--help', Beschreibung: 'Zeigt diese Hilfe an' },
     ]);
     console.log(`${c.gray}Info: Im CI-Modus (mit Argumenten) läuft das Skript stumm.${c.reset}\n`);
 }
 
-// --- Hilfsfunktion fürs Menü ---
 function parseUserSelection(input) {
     const allKeys = ['PHP', 'PHTML', 'JS', 'SCSS', 'SQL', 'ENV'];
-    if (!input || input.trim() === '') return allKeys; // Default: Alle
+    if (!input || input.trim() === '') return allKeys;
 
     const map = {
         1: 'PHP',
@@ -590,9 +679,10 @@ function parseUserSelection(input) {
     return selected.length > 0 ? selected : allKeys;
 }
 
-// --- 4. CLI & Menü Handling ---
+// --- 4. CLI & ASYNCHRONES Menü Handling ---
 const args = process.argv.slice(2);
 
+// Haupt-Ausführungsblock (Unterstützt Top-Level-Await dank ESM)
 if (args.length > 0) {
     if (args.includes('--help') || args.includes('-h')) {
         showHelp();
@@ -603,16 +693,16 @@ if (args.length > 0) {
     const allKeys = ['PHP', 'PHTML', 'JS', 'SCSS', 'SQL', 'ENV'];
 
     if (args.includes('--all')) {
-        for (const k of allKeys) startFileCollection(k, true);
+        for (const k of allKeys) await startFileCollection(k, true);
     } else {
-        if (args.includes('--php')) startFileCollection('PHP', true);
-        if (args.includes('--phtml')) startFileCollection('PHTML', true);
-        if (args.includes('--js')) startFileCollection('JS', true);
-        if (args.includes('--scss')) startFileCollection('SCSS', true);
-        if (args.includes('--sql')) startFileCollection('SQL', true);
-        if (args.includes('--env')) startFileCollection('ENV', true);
-        if (args.includes('--project')) startProjectSummary(allKeys, true);
-        if (args.includes('--mirror')) startStructureMirror();
+        if (args.includes('--php')) await startFileCollection('PHP', true);
+        if (args.includes('--phtml')) await startFileCollection('PHTML', true);
+        if (args.includes('--js')) await startFileCollection('JS', true);
+        if (args.includes('--scss')) await startFileCollection('SCSS', true);
+        if (args.includes('--sql')) await startFileCollection('SQL', true);
+        if (args.includes('--env')) await startFileCollection('ENV', true);
+        if (args.includes('--project')) await startProjectSummary(allKeys, true);
+        if (args.includes('--mirror')) await startStructureMirror();
     }
     process.exit(0);
 } else {
@@ -621,94 +711,91 @@ if (args.length > 0) {
         output: process.stdout,
     });
 
-    const showMenu = () => {
-        const rootStatus = globalIncludeRootFiles
-            ? `${c.green}${c.bright}AN${c.reset}`
-            : `${c.red}${c.bright}AUS${c.reset}`;
+    // Endlos-Schleife für das asynchrone Menü
+    async function runMenu() {
+        while (true) {
+            const rootStatus = globalIncludeRootFiles
+                ? `${c.green}${c.bright}AN${c.reset}`
+                : `${c.red}${c.bright}AUS${c.reset}`;
 
-        console.clear();
-        console.log(`${c.cyan}===============================================`);
-        console.log(`${c.cyan}    ${c.bright}DATEI-ZUSAMMENFASSUNG (RAW/COLLECTED)${c.reset}`);
-        console.log(`${c.cyan}    Root: ${c.gray}${basePath}${c.reset}`);
-        console.log(`${c.cyan}    Ziel: ${c.yellow}.debug/${version}/${c.reset}`);
-        console.log(`${c.cyan}===============================================${c.reset}`);
-        // GEÄNDERTE REIHENFOLGE WIE GEWÜNSCHT
-        console.log(`${c.bright} 1)${c.reset} PHP (*.md)`);
-        console.log(`${c.bright} 2)${c.reset} PHTML (*.md)`);
-        console.log(`${c.bright} 3)${c.reset} JavaScript (*.md)`);
-        console.log(`${c.bright} 4)${c.reset} SCSS (*.md)`);
-        console.log(
-            `${c.bright} 5)${c.reset} ${c.cyan}SQL MIGRATIONS${c.reset} (database/migrations/*.sql)`
-        );
-        console.log(
-            `${c.bright} 6)${c.reset} ${c.blue}ENTWICKLUNGSUMGEBUNG${c.reset} (composer, yaml, etc.)`
-        );
-        console.log(
-            `${c.bright} 7)${c.reset} ${c.magenta}PROJEKT-ZUSAMMENFASSUNG${c.reset} (*.md)`
-        );
-        console.log(
-            `${c.bright} 8)${c.reset} ${c.green}PROJEKT-STRUKTUR SPIEGELN${c.reset} (Einzeldateien in Verzeichnissen)`
-        );
-        console.log(`${c.gray}-----------------------------------------------${c.reset}`);
-        console.log(`${c.bright} T)${c.reset} Toggle Root-Files: [${rootStatus}]`);
-        console.log(
-            `${c.bright} A)${c.reset} ${c.yellow}ALLE nacheinander (wählbar aus 1-6)${c.reset}`
-        );
-        console.log(`${c.bright} H)${c.reset} Hilfe / CI Info`);
-        console.log(`${c.bright} Q)${c.reset} Beenden`);
-        console.log(`${c.gray}-----------------------------------------------${c.reset}`);
+            console.clear();
+            console.log(`${c.cyan}===============================================`);
+            console.log(`${c.cyan}    ${c.bright}DATEI-ZUSAMMENFASSUNG (RAW/COLLECTED)${c.reset}`);
+            console.log(`${c.cyan}    Root: ${c.gray}${basePath}${c.reset}`);
+            console.log(`${c.cyan}    Ziel: ${c.yellow}.debug/${version}/${c.reset}`);
+            console.log(`${c.cyan}===============================================${c.reset}`);
+            console.log(`${c.bright} 1)${c.reset} PHP (*.md)`);
+            console.log(`${c.bright} 2)${c.reset} PHTML (*.md)`);
+            console.log(`${c.bright} 3)${c.reset} JavaScript (*.md)`);
+            console.log(`${c.bright} 4)${c.reset} SCSS (*.md)`);
+            console.log(
+                `${c.bright} 5)${c.reset} ${c.cyan}SQL MIGRATIONS${c.reset} (database/migrations/*.sql)`
+            );
+            console.log(
+                `${c.bright} 6)${c.reset} ${c.blue}ENTWICKLUNGSUMGEBUNG${c.reset} (composer, yaml, etc.)`
+            );
+            console.log(
+                `${c.bright} 7)${c.reset} ${c.magenta}PROJEKT-ZUSAMMENFASSUNG${c.reset} (*.md)`
+            );
+            console.log(
+                `${c.bright} 8)${c.reset} ${c.green}PROJEKT-STRUKTUR SPIEGELN${c.reset} (Einzeldateien in Verzeichnissen)`
+            );
+            console.log(`${c.gray}-----------------------------------------------${c.reset}`);
+            console.log(`${c.bright} T)${c.reset} Toggle Root-Files: [${rootStatus}]`);
+            console.log(
+                `${c.bright} A)${c.reset} ${c.yellow}ALLE nacheinander (wählbar aus 1-6)${c.reset}`
+            );
+            console.log(`${c.bright} H)${c.reset} Hilfe / CI Info`);
+            console.log(`${c.bright} Q)${c.reset} Beenden`);
+            console.log(`${c.gray}-----------------------------------------------${c.reset}`);
 
-        rl.question(`${c.bright}Wähle eine Option: ${c.reset}`, (answer) => {
+            const answer = await rl.question(`${c.bright}Wähle eine Option: ${c.reset}`);
             const choice = answer.toUpperCase().trim();
 
-            if (choice === 'Q') process.exit();
+            if (choice === 'Q') {
+                rl.close();
+                process.exit();
+            }
+
             if (choice === 'H') {
                 showHelp();
-                rl.question('Drücke Enter für Menü...', showMenu);
-                return;
+                await rl.question('Drücke Enter für Menü...');
+                continue;
             }
+
             if (choice === 'T') {
                 globalIncludeRootFiles = !globalIncludeRootFiles;
-                showMenu();
-                return;
+                continue;
             }
 
-            // ALLE NACHEINANDER (Mit dynamischer Auswahl)
             if (choice === 'A') {
-                rl.question(
-                    `\n${c.yellow}Welche Bereiche nacheinander ausführen? (z.B. 1,3,6 | Enter für alle): ${c.reset}`,
-                    (sel) => {
-                        const keys = parseUserSelection(sel);
-                        for (const k of keys) {
-                            startFileCollection(k);
-                        }
-                        rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);
-                    }
+                const sel = await rl.question(
+                    `\n${c.yellow}Welche Bereiche nacheinander ausführen? (z.B. 1,3,6 | Enter für alle): ${c.reset}`
                 );
-                return;
+                const keys = parseUserSelection(sel);
+                for (const k of keys) {
+                    await startFileCollection(k);
+                }
+                await rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`);
+                continue;
             }
 
-            // PROJEKT ZUSAMMENFASSUNG (Mit dynamischer Auswahl)
             if (choice === '7') {
-                rl.question(
-                    `\n${c.magenta}Welche Bereiche in EINE Zusammenfassung packen? (z.B. 1,2,6 | Enter für alle): ${c.reset}`,
-                    (sel) => {
-                        const keys = parseUserSelection(sel);
-                        startProjectSummary(keys);
-                        rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);
-                    }
+                const sel = await rl.question(
+                    `\n${c.magenta}Welche Bereiche in EINE Zusammenfassung packen? (z.B. 1,2,6 | Enter für alle): ${c.reset}`
                 );
-                return;
+                const keys = parseUserSelection(sel);
+                await startProjectSummary(keys);
+                await rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`);
+                continue;
             }
 
-            // STRUKTUR SPIEGELN
             if (choice === '8') {
-                startStructureMirror();
-                rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);
-                return;
+                await startStructureMirror();
+                await rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`);
+                continue;
             }
 
-            // EINZELNE AUSWAHL (1-6)
             const map = {
                 1: 'PHP',
                 2: 'PHTML',
@@ -719,13 +806,14 @@ if (args.length > 0) {
             };
 
             if (map[choice]) {
-                startFileCollection(map[choice]);
-                rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);
+                await startFileCollection(map[choice]);
+                await rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`);
             } else {
                 console.log(`${c.red}Ungültige Auswahl!${c.reset}`);
-                setTimeout(showMenu, 1000);
+                await new Promise((resolve) => setTimeout(resolve, 1000));
             }
-        });
-    };
-    showMenu();
+        }
+    }
+
+    runMenu();
 }
