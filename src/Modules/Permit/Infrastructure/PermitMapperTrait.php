@@ -121,7 +121,7 @@ trait PermitMapperTrait
             status: new Status($statusEnum, $is_suspended, $suspReason, $dtLastReminder),
             erstellt: $dtCreated,
             interner_kommentar: $kommentar,
-            agreements: $agreements,
+            agreements: \is_array($agreements) ? $agreements : [],
             bezahlt_am: $dtBezahltAm,
         );
     }
@@ -132,7 +132,7 @@ trait PermitMapperTrait
     private function flattenEntity(Permit $permit): array
     {
         return [
-            'agreements' => \is_array($permit->agreements) ? \json_encode($permit->agreements, \JSON_UNESCAPED_UNICODE) : '{}',
+            'agreements' => \json_encode($permit->agreements, \JSON_UNESCAPED_UNICODE) ?: '{}',
             'bezahlt_am' => $permit->getPaidAt() instanceof DateTimeImmutable ? $permit->getPaidAt()->format('Y-m-d H:i:s') : null,
             'bis' => $permit->getValidUntil()->format('Y-m-d'),
             'code' => $permit->code->value,

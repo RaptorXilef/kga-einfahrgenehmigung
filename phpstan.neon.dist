@@ -21,7 +21,6 @@ parameters:
     # public function foo(mixed $data)). Wenn es auf true steht, verbietet PHPStan fast jede Operation mit mixed,
     # solange du es nicht vorher type-safety-mäßig geprüft hast (is_string, is_array etc.). Auf false schaltet
     # PHPStan diese extrem pingeligen expliziten mixed-Prüfungen ab.
-    # TODO Wenn LVL 9 keine Fehler hat wieder aktivieren
     checkExplicitMixed: false
 
     # Bedeutung: Noch wichtiger: Wenn PHPStan den Typ einer Variablen oder eines Funktions-Returns nicht ermitteln
@@ -29,7 +28,6 @@ parameters:
     # stuft PHPStan dies als implicites mixed ein. Auf true wirft PHPStan in Level 9 hunderte Fehlermeldungen. Mit
     # false erlauben wir PHPStan, bei unvollständigen Typ-Informationen (besonders bei dynamischen Array-Mappern und
     # Legacy-Schnittstellen) milder zu urteilen.
-    # TODO Wenn LVL 9 keine Fehler hat wieder aktivieren
     checkImplicitMixed: false
 
     # Welche Ordner sollen analysiert werden?
