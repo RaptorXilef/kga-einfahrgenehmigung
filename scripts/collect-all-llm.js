@@ -108,7 +108,7 @@ try {
     } else {
         userConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
     }
-} catch (e) {
+} catch (_e) {
     console.warn(
         `${c.yellow}⚠️ Fehler beim Laden der collect-config.json. Nutze Standardwerte.${c.reset}`
     );
@@ -223,6 +223,21 @@ function optimizeTokens(content, fileExtension) {
             .join('\n');
     }
 
+    let optimizedContent = content;
+
+    // PRE-VAULT: PHP-Tags optimieren, BEVOR sie im Tresor verschwinden!
+    if (isPhpOrPhtml) {
+        // Leere PHP Tags komplett entfernen (z.B. <?php ?>)
+        optimizedContent = optimizedContent.replace(/<\?php\s*\?>/gi, '');
+
+        // PHP Short-Echos erzwingen: <?php echo $var; ?> wird zu <?=$var?>
+        optimizedContent = optimizedContent.replace(
+            /<\?php\s+echo\s+([\s\S]+?);\s*\?>/g,
+            '<?=$1?>'
+        );
+        optimizedContent = optimizedContent.replace(/<\?php\s+echo\s+([\s\S]+?)\s*\?>/g, '<?=$1?>');
+    }
+
     // =========================================================================
     // 1. SCHUTZMECHANISMEN (Strings & sensible Blöcke in den Tresor)
     // =========================================================================
@@ -230,7 +245,7 @@ function optimizeTokens(content, fileExtension) {
     let stringId = 0;
 
     // Zieht alle Strings (", ', `) ab und ersetzt sie durch einen Platzhalter.
-    let optimizedContent = content.replace(/(["'`])(?:\\.|(?!\1)[^\\])*\1/g, (match) => {
+    optimizedContent = optimizedContent.replace(/(["'`])(?:\\.|(?!\1)[^\\])*\1/g, (match) => {
         const id = `___STR_PLACEHOLDER_${stringId++}___`;
         stringMap.set(id, match);
         return id;
@@ -242,10 +257,26 @@ function optimizeTokens(content, fileExtension) {
     // Schützt <script>, <style>, <pre> und <textarea> vor der Zeilenzerstörung
     if (isPhpOrPhtml) {
         optimizedContent = optimizedContent.replace(
-            /<(script|style|pre|textarea)[\s\S]*?>[\s\S]*?<\/\1>/gi,
-            (match) => {
+            /<(script|style|pre|textarea)([\s\S]*?)>([\s\S]*?)<\/\1>/gi,
+            (_match, tag, attrs, innerContent) => {
+                // Attribute der geschützten Tags SOFORT komprimieren (löst das Multiline-Script-Tag Problem)
+                const cleanAttrs = attrs.replace(/\s+/g, ' ').trim();
+                const openingTag = cleanAttrs ? `<${tag} ${cleanAttrs}>` : `<${tag}>`;
+
+                let cleanInner = innerContent;
+                if (tag.toLowerCase() === 'script' || tag.toLowerCase() === 'style') {
+                    cleanInner = innerContent.trim();
+                    if (tag.toLowerCase() === 'script') {
+                        // Leere Zeilen aus JS entfernen
+                        cleanInner = cleanInner.replace(/^[ \t]*$/gm, '').replace(/\n{2,}/g, '\n');
+                    }
+                }
+
                 const id = `___BLOCK_PLACEHOLDER_${blockId++}___`;
-                blockMap.set(id, match);
+                // Zeilenumbruch vor dem schließenden Script-Tag, falls der Code davor mit // endet
+                const closingTag = tag.toLowerCase() === 'script' ? `\n</${tag}>` : `</${tag}>`;
+
+                blockMap.set(id, `${openingTag}${cleanInner}${closingTag}`);
                 return id;
             }
         );
@@ -364,7 +395,7 @@ function optimizeTokens(content, fileExtension) {
         // ROBUSTE HTML-ATTRIBUT KOMPRESSION
         // Löscht alle mehrfachen Whitespaces (inkl. Zeilenumbrüche) innerhalb von Tag-Deklarationen
         // z.B. aus `<script \n src="...">` wird `<script src="...">`
-        joinedResult = joinedResult.replace(/<([a-zA-Z0-9-]+)([^>]*?)>/g, (match, tag, attrs) => {
+        joinedResult = joinedResult.replace(/<([a-zA-Z0-9-]+)([^>]*?)>/g, (_match, tag, attrs) => {
             const cleanAttrs = attrs.replace(/\s+/g, ' ').trim();
             return cleanAttrs ? `<${tag} ${cleanAttrs}>` : `<${tag}>`;
         });
