@@ -37,6 +37,22 @@ try {
 const debugFolder = path.join(basePath, '.debug', version);
 
 // =============================================================================
+// KI SYSTEM-PROMPT (Wird automatisch oben in die Markdown-Datei eingefügt)
+// =============================================================================
+const AI_SYSTEM_PROMPT = `> **[SYSTEM-INFO FÜR LLM]**
+> Dieser Code wurde für den Kontext-Upload automatisch minifiziert (Token-Optimierung).
+> - Kommentare, Whitespace und Zeilenumbrüche wurden stark reduziert.
+> - \`<?php echo ... ?>\` wurde für den Upload teilweise zu \`<?= ... ?>\` verkürzt.
+>
+> **WICHTIGE ANWEISUNG FÜR DEINE ANTWORTEN:**
+> 1. Schreibe generierten Code für den Nutzer **immer sauber formatiert** (mit korrekten Einrückungen und Zeilenumbrüchen) zurück.
+> 2. Nutze in PHP **immer die ausführliche Schreibweise** \`<?php echo ... ?>\` (keine Short-Echos), es sei denn, der Nutzer bittet explizit darum.
+
+---
+
+`;
+
+// =============================================================================
 // KONFIGURATION AUSLAGERN & LADEN
 // =============================================================================
 const configPath = path.join(__dirname, 'collect-config.json');
@@ -198,8 +214,7 @@ function optimizeTokens(content, fileExtension) {
     const isPhpOrPhtml = ext === '.php' || ext === '.phtml';
     const isJsOrScss = ext === '.js' || ext === '.scss';
 
-    // Fallback: Dateien wie SQL, JSON oder YAML dürfen NICHT strukturell zusammengepresst werden,
-    // da sonst Syntax-Fehler (YAML) entstehen oder Kommentare (SQL '--') den Rest der Datei killen.
+    // Fallback für Dateien wie SQL, JSON oder YAML (nur rudimentäres Trimming)
     if (!isPhpOrPhtml && !isJsOrScss) {
         return content
             .split(/\r?\n/)
@@ -311,8 +326,11 @@ function optimizeTokens(content, fileExtension) {
     // =========================================================================
     let joinedResult = optimizedContent;
 
-    // PHP Short-Echos erzwingen: <?php echo $var; ?> wird zu <?=$var?>
     if (isPhpOrPhtml) {
+        // Leere PHP Tags komplett entfernen (z.B. <?php ?>)
+        joinedResult = joinedResult.replace(/<\?php\s*\?>/gi, '');
+
+        // PHP Short-Echos erzwingen: <?php echo $var; ?> wird zu <?=$var?>
         joinedResult = joinedResult.replace(/<\?php\s+echo\s+(.+?);\s*\?>/g, '<?=$1?>');
         // Auch für Fälle ohne Semikolon: <?php echo $var ?>
         joinedResult = joinedResult.replace(/<\?php\s+echo\s+(.+?)\s*\?>/g, '<?=$1?>');
@@ -339,8 +357,15 @@ function optimizeTokens(content, fileExtension) {
             optimizedLines.push(line);
         }
         joinedResult = optimizedLines.join('');
+
         // HTML: Entferne Leerzeichen zwischen Tags </div> <div> -> </div><div>
         joinedResult = joinedResult.replace(/>\s+</g, '><');
+
+        // NEU: HTML Attribute extrem komprimieren (sicher, da Strings im Tresor sind!)
+        // Komprimiert <script \n src="..." \n> zu <script src="...">
+        joinedResult = joinedResult.replace(/<([a-zA-Z0-9-]+)([^>]+)>/g, (match, tag, attrs) => {
+            return '<' + tag + attrs.replace(/\s+/g, ' ') + '>';
+        });
     } else {
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
@@ -398,10 +423,8 @@ function optimizeTokens(content, fileExtension) {
                 .split('\n')
                 .map((line) => line.trim()) // Führende/abschließende Leerzeichen pro Zeile weg
                 .filter((line) => line.length > 0) // Leere Zeilen im String löschen
-                .join(' '); // Alles in eine Zeile packen
-
-            // Übrig gebliebene doppelte Leerzeichen (z.B. in SQL) reduzieren
-            restoredString = restoredString.replace(/\s{2,}/g, ' ');
+                .join(' ') // Alles in eine Zeile packen
+                .replace(/\s{2,}/g, ' '); // Übrig gebliebene doppelte Leerzeichen entfernen
         }
 
         joinedResult = joinedResult.split(placeholderKey).join(restoredString);
@@ -516,7 +539,10 @@ async function getFiles(
             if (!filter.test(file)) continue;
 
             const extKey = path.extname(file).toLowerCase().replace('.', '');
-            const typeIgnores = IGNORE_BY_TYPE[extKey] || { dirs: [], files: [] };
+            const typeIgnores = IGNORE_BY_TYPE[extKey] || {
+                dirs: [],
+                files: [],
+            };
             const relDir = path.dirname(relPath);
 
             const isExcludedByTypeDir =
@@ -527,7 +553,11 @@ async function getFiles(
                 isFileExcludedByList(file, relPath, typeIgnores.files);
 
             if (!isExcludedByTypeDir && !isExcludedFile) {
-                currentFiles.push({ fullPath, relPath, ext: path.extname(file) });
+                currentFiles.push({
+                    fullPath,
+                    relPath,
+                    ext: path.extname(file),
+                });
             }
         }
     }
@@ -548,7 +578,11 @@ async function getFilesForConfig(conf, silent = false) {
             const normalizedPath = path.normalize(filePath);
             const fullPath = path.join(basePath, normalizedPath);
             if (fs.existsSync(fullPath)) {
-                foundFiles.push({ fullPath, relPath: normalizedPath, ext: path.extname(fullPath) });
+                foundFiles.push({
+                    fullPath,
+                    relPath: normalizedPath,
+                    ext: path.extname(fullPath),
+                });
             } else {
                 if (!silent)
                     console.log(
@@ -724,7 +758,9 @@ async function startFileCollection(configKey, silent = false) {
 
     const treeString = generateTreeString(foundFiles);
     const codeContent = await processFilesToMarkdown(foundFiles, silent);
-    const finalContent = `## 📁 Datei-Struktur\n\n\`\`\`text\n${treeString}\`\`\`\n\n---\n\n${codeContent}`;
+
+    // Fügt den KI-System-Prompt ganz oben ein!
+    const finalContent = `${AI_SYSTEM_PROMPT}## 📁 Datei-Struktur\n\n\`\`\`text\n${treeString}\`\`\`\n\n---\n\n${codeContent}`;
 
     const tokens = estimateTokens(finalContent);
     await fsPromises.writeFile(outputPath, finalContent, 'utf-8');
@@ -766,7 +802,9 @@ async function startProjectSummary(selectedKeys, silent = false) {
     }
 
     const globalTreeString = generateTreeString(allFoundFiles);
-    const finalContent = `# 📦 Projekt-Zusammenfassung\n\n## 📁 Globale Datei-Struktur\n\n\`\`\`text\n${globalTreeString}\`\`\`\n\n---\n${totalContent}`;
+
+    // NEU: Fügt den KI-System-Prompt ganz oben ein!
+    const finalContent = `${AI_SYSTEM_PROMPT}# 📦 Projekt-Zusammenfassung\n\n## 📁 Globale Datei-Struktur\n\n\`\`\`text\n${globalTreeString}\`\`\`\n\n---\n${totalContent}`;
 
     const tokens = estimateTokens(finalContent);
     await fsPromises.writeFile(outputPath, finalContent, 'utf-8');
@@ -781,17 +819,50 @@ function showHelp() {
     console.log(`\n${c.bright}HILFE & CLI ARGUMENTE (TOKEN OPTIMIERT)${c.reset}`);
     console.log(`${c.gray}------------------------------------------------------------${c.reset}`);
     console.table([
-        { Argument: '--php', Beschreibung: 'Sammelt & optimiert nur PHP Dateien' },
-        { Argument: '--phtml', Beschreibung: 'Sammelt & optimiert nur PHTML Dateien' },
-        { Argument: '--js', Beschreibung: 'Sammelt & optimiert nur JavaScript Dateien' },
-        { Argument: '--scss', Beschreibung: 'Sammelt & optimiert nur SCSS Dateien' },
-        { Argument: '--sql', Beschreibung: 'Sammelt SQL Dateien (database/migrations)' },
-        { Argument: '--env', Beschreibung: 'Sammelt Entwicklungsumgebungs-Dateien' },
-        { Argument: '--project', Beschreibung: 'Projektweite Zusammenfassung (*.md)' },
-        { Argument: '--mirror', Beschreibung: 'Spiegelt die gesamte optimierte Ordnerstruktur' },
-        { Argument: '--all', Beschreibung: 'Führt Code-Sammlungen einzeln automatisch aus' },
-        { Argument: '--root', Beschreibung: 'Bezieht Dateien im Root-Verzeichnis mit ein' },
-        { Argument: '--docblocks', Beschreibung: 'Behält DocBlocks mit @-Tags bei' },
+        {
+            Argument: '--php',
+            Beschreibung: 'Sammelt & optimiert nur PHP Dateien',
+        },
+        {
+            Argument: '--phtml',
+            Beschreibung: 'Sammelt & optimiert nur PHTML Dateien',
+        },
+        {
+            Argument: '--js',
+            Beschreibung: 'Sammelt & optimiert nur JavaScript Dateien',
+        },
+        {
+            Argument: '--scss',
+            Beschreibung: 'Sammelt & optimiert nur SCSS Dateien',
+        },
+        {
+            Argument: '--sql',
+            Beschreibung: 'Sammelt SQL Dateien (database/migrations)',
+        },
+        {
+            Argument: '--env',
+            Beschreibung: 'Sammelt Entwicklungsumgebungs-Dateien',
+        },
+        {
+            Argument: '--project',
+            Beschreibung: 'Projektweite Zusammenfassung (*.md)',
+        },
+        {
+            Argument: '--mirror',
+            Beschreibung: 'Spiegelt die gesamte optimierte Ordnerstruktur',
+        },
+        {
+            Argument: '--all',
+            Beschreibung: 'Führt Code-Sammlungen einzeln automatisch aus',
+        },
+        {
+            Argument: '--root',
+            Beschreibung: 'Bezieht Dateien im Root-Verzeichnis mit ein',
+        },
+        {
+            Argument: '--docblocks',
+            Beschreibung: 'Behält DocBlocks mit @-Tags bei',
+        },
         { Argument: '--help', Beschreibung: 'Zeigt diese Hilfe an' },
     ]);
     console.log(`${c.gray}Info: Im CI-Modus (mit Argumenten) läuft das Skript stumm.${c.reset}\n`);
@@ -801,7 +872,14 @@ function parseUserSelection(input) {
     const allKeys = ['PHP', 'PHTML', 'JS', 'SCSS', 'SQL', 'ENV'];
     if (!input || input.trim() === '') return allKeys;
 
-    const map = { 1: 'PHP', 2: 'PHTML', 3: 'JS', 4: 'SCSS', 5: 'SQL', 6: 'ENV' };
+    const map = {
+        1: 'PHP',
+        2: 'PHTML',
+        3: 'JS',
+        4: 'SCSS',
+        5: 'SQL',
+        6: 'ENV',
+    };
     const parts = input.split(',').map((s) => s.trim());
     const selected = [];
     for (const p of parts) {
@@ -836,7 +914,10 @@ if (args.length > 0) {
     }
     process.exit(0);
 } else {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
 
     async function runMenu() {
         while (true) {
@@ -926,7 +1007,14 @@ if (args.length > 0) {
                 continue;
             }
 
-            const map = { 1: 'PHP', 2: 'PHTML', 3: 'JS', 4: 'SCSS', 5: 'SQL', 6: 'ENV' };
+            const map = {
+                1: 'PHP',
+                2: 'PHTML',
+                3: 'JS',
+                4: 'SCSS',
+                5: 'SQL',
+                6: 'ENV',
+            };
             if (map[choice]) {
                 await startFileCollection(map[choice]);
                 await rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`);
