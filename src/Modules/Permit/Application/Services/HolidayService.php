@@ -545,12 +545,15 @@ final readonly class HolidayService
         foreach ($chronologicalGroups as $group) {
             $slotKey = $group['slotKey'];
             $count = \count($group['days']);
+            $firstDay = (string) \reset($group['days']);
+            $lastDay = (string) \end($group['days']);
+
             if ($count === 1) {
-                $dayString = $group['days'][0];
+                $dayString = $firstDay;
             } elseif ($count === 2) {
-                $dayString = $group['days'][0] . ', ' . $group['days'][1];
+                $dayString = $firstDay . ', ' . $lastDay;
             } else {
-                $dayString = $group['days'][0] . ' - ' . $group['days'][$count - 1];
+                $dayString = $firstDay . ' - ' . $lastDay;
             }
             if (!isset($finalMerged[$slotKey])) {
                 $finalMerged[$slotKey] = ['dayParts' => [$dayString], 'slots' => $group['slots']];

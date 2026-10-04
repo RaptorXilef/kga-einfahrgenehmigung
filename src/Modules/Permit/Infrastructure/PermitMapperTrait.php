@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Permit\Infrastructure;
 
+use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\Owner;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitStatus;
@@ -22,6 +24,9 @@ use Exception;
 /**
  * Trait für die bidirektionale Transformation zwischen Permit-Entitäten und relationalen Arrays.
  * VSA FIX: Nutzt zu 100% das injizierte ClockInterface für alle Datums-Fallbacks.
+ *
+ * @property ClockInterface $clock
+ * @property JsonHelperInterface $jsonHelper
  */
 trait PermitMapperTrait
 {
@@ -92,7 +97,7 @@ trait PermitMapperTrait
         }
 
         $agreements = $item['agreements'] ?? [];
-        if (\is_string($agreements) && \property_exists($this, 'jsonHelper')) {
+        if (\is_string($agreements)) {
             $agreements = $this->jsonHelper->decode($agreements);
         }
 
@@ -116,7 +121,7 @@ trait PermitMapperTrait
             status: new Status($statusEnum, $is_suspended, $suspReason, $dtLastReminder),
             erstellt: $dtCreated,
             interner_kommentar: $kommentar,
-            agreements: \is_array($agreements) ? $agreements : [],
+            agreements: $agreements,
             bezahlt_am: $dtBezahltAm,
         );
     }

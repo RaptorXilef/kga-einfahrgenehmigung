@@ -65,6 +65,7 @@ final class PdoFactory
             $dsnWithoutDb = "mysql:host={$db['host']}{$portStr};charset={$db['charset']}";
 
             try {
+                // @phpstan-ignore if.alwaysFalse
                 if ($isDebugMode) {
                     $pdo = new DebugPDO(
                         $dsnWithoutDb,

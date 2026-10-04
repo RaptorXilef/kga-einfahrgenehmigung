@@ -14,7 +14,7 @@ interface BankImportInfrastructureInterface
     public function storeTempFile(string $tmpName): string;
 
     /**
-     * @return Reader<mixed>|null
+     * @return Reader<array<array-key, mixed>>|null
      */
     public function normalizeAndOpenCsv(string $filePath): ?Reader;
 

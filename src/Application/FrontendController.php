@@ -101,18 +101,15 @@ final readonly class FrontendController
             return ['request' => $request, 'class' => '', 'requiresAuth' => false];
         }
 
-        if (\is_array($matched)) {
-            $className = \is_string($matched['class']) ? $matched['class'] : '';
-            $params = $matched['params'];
+        // PHPStan Fix: Wir wissen durch den null-check oben bereits, dass $matched ein Array ist.
+        $className = \is_string($matched['class']) ? $matched['class'] : '';
+        $params = \is_array($matched['params']) ? $matched['params'] : [];
 
-            return [
-                'request' => $request->withInput(\array_merge($request->input, $params)),
-                'class' => $className,
-                'requiresAuth' => ($matched['requiresAuth'] ?? false) === true,
-            ];
-        }
-
-        return ['request' => $request, 'class' => '', 'requiresAuth' => false];
+        return [
+            'request' => $request->withInput(\array_merge($request->input, $params)),
+            'class' => $className,
+            'requiresAuth' => ($matched['requiresAuth'] ?? false) === true,
+        ];
     }
 
     private function executePipeline(ServerRequest $request, string $className, bool $requiresAuth, string $path): ResponseInterface
