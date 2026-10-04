@@ -51,8 +51,8 @@ function createUnpaidPermitForHandler(): Permit
         ->method('save')
         ->with($permit);
 
-    /** @var ClockInterface&\PHPUnit\Framework\MockObject\MockObject $clock */
-    $clock = $this->createMock(ClockInterface::class);
+    /** @var ClockInterface&\PHPUnit\Framework\MockObject\Stub $clock */
+    $clock = $this->createStub(ClockInterface::class);
     $clock->method('now')->willReturn(new \DateTimeImmutable('2026-10-04 12:00:00'));
 
     $handler = new MarkPermitAsPaidHandler($repository, $clock);
@@ -66,12 +66,12 @@ function createUnpaidPermitForHandler(): Permit
 });
 
 \test('it throws an exception if the permit to pay does not exist', function (): void {
-    /** @var PermitRepositoryInterface&\PHPUnit\Framework\MockObject\MockObject $repository */
-    $repository = $this->createMock(PermitRepositoryInterface::class);
+    /** @var PermitRepositoryInterface&\PHPUnit\Framework\MockObject\Stub $repository */
+    $repository = $this->createStub(PermitRepositoryInterface::class);
     $repository->method('findByCode')->willReturn(null);
 
-    /** @var ClockInterface&\PHPUnit\Framework\MockObject\MockObject $clock */
-    $clock = $this->createMock(ClockInterface::class);
+    /** @var ClockInterface&\PHPUnit\Framework\MockObject\Stub $clock */
+    $clock = $this->createStub(ClockInterface::class);
 
     $handler = new MarkPermitAsPaidHandler($repository, $clock);
 

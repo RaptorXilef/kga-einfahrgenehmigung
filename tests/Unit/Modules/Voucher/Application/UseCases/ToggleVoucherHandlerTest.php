@@ -49,8 +49,8 @@ use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 ]);
 
 \test('it throws an exception when toggling a non-existent voucher', function (): void {
-    /** @var VoucherRepositoryInterface&\PHPUnit\Framework\MockObject\MockObject $repository */
-    $repository = $this->createMock(VoucherRepositoryInterface::class);
+    /** @var VoucherRepositoryInterface&\PHPUnit\Framework\MockObject\Stub $repository */
+    $repository = $this->createStub(VoucherRepositoryInterface::class);
     $repository->method('findByCode')->willReturn(null);
 
     $handler = new ToggleVoucherHandler($repository);

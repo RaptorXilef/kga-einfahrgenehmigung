@@ -34,8 +34,8 @@ use App\Modules\Identity\Domain\RoleRepositoryInterface;
 });
 
 \test('it throws an exception if the role to rename does not exist', function (): void {
-    /** @var RoleRepositoryInterface&\PHPUnit\Framework\MockObject\MockObject $repository */
-    $repository = $this->createMock(RoleRepositoryInterface::class);
+    /** @var RoleRepositoryInterface&\PHPUnit\Framework\MockObject\Stub $repository */
+    $repository = $this->createStub(RoleRepositoryInterface::class);
     $repository->method('findById')->willReturn(null);
 
     $handler = new RenameRoleHandler($repository);
