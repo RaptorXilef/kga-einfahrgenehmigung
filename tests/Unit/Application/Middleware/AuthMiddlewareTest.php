@@ -9,16 +9,25 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthorizationInterface;
+use App\SharedKernel\Infrastructure\Utils\SystemClock;
 
 \covers(AuthMiddleware::class);
+
+\beforeEach(function (): void {
+    if (\session_status() === \PHP_SESSION_NONE) {
+        \session_start();
+    }
+    // Session für jeden Test sauber leeren
+    $_SESSION = [];
+});
 
 \test('it allows admin access if user is properly logged in', function (): void {
     /** @var AuthorizationInterface&\PHPUnit\Framework\MockObject\Stub $auth */
     $auth = $this->createStub(AuthorizationInterface::class);
     $auth->method('isLoggedIn')->willReturn(true); // User ist eingeloggt
 
-    /** @var SessionManager&\PHPUnit\Framework\MockObject\Stub $session */
-    $session = $this->createStub(SessionManager::class);
+    // Echter SessionManager (State-based Testing)
+    $session = new SessionManager(new SystemClock());
 
     /** @var ConfigInterface&\PHPUnit\Framework\MockObject\Stub $config */
     $config = $this->createStub(ConfigInterface::class);
@@ -37,8 +46,7 @@ use App\Contracts\Security\AuthorizationInterface;
     $auth = $this->createStub(AuthorizationInterface::class);
     $auth->method('isLoggedIn')->willReturn(false); // User ist GAST
 
-    /** @var SessionManager&\PHPUnit\Framework\MockObject\Stub $session */
-    $session = $this->createStub(SessionManager::class);
+    $session = new SessionManager(new SystemClock());
 
     /** @var ConfigInterface&\PHPUnit\Framework\MockObject\Stub $config */
     $config = $this->createStub(ConfigInterface::class);
@@ -60,9 +68,8 @@ use App\Contracts\Security\AuthorizationInterface;
 });
 
 \test('it routes history requests to history login if no history email is set', function (): void {
-    /** @var SessionManager&\PHPUnit\Framework\MockObject\Stub $session */
-    $session = $this->createStub(SessionManager::class);
-    $session->method('getUserId')->willReturn(''); // Kein normaler Admin-Login
+    $session = new SessionManager(new SystemClock());
+    $session->clearHistoryEmail(); // Sicherstellen, dass kein Pächter eingeloggt ist
 
     /** @var ConfigInterface&\PHPUnit\Framework\MockObject\Stub $config */
     $config = $this->createStub(ConfigInterface::class);
