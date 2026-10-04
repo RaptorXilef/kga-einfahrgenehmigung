@@ -307,9 +307,18 @@ function optimizeTokens(content, fileExtension) {
     }
 
     // =========================================================================
-    // 3. ZEILEN & WHITESPACE MINIMIEREN
+    // 3. ZEILEN & WHITESPACE MINIMIEREN (INKL. HTML & PHP SHORT-ECHOS)
     // =========================================================================
-    const lines = optimizedContent.split(/\r?\n/);
+    let joinedResult = optimizedContent;
+
+    // PHP Short-Echos erzwingen: <?php echo $var; ?> wird zu <?=$var?>
+    if (isPhpOrPhtml) {
+        joinedResult = joinedResult.replace(/<\?php\s+echo\s+(.+?);\s*\?>/g, '<?=$1?>');
+        // Auch für Fälle ohne Semikolon: <?php echo $var ?>
+        joinedResult = joinedResult.replace(/<\?php\s+echo\s+(.+?)\s*\?>/g, '<?=$1?>');
+    }
+
+    const lines = joinedResult.split(/\r?\n/);
     const optimizedLines = [];
 
     if (ext === '.phtml') {
@@ -323,13 +332,15 @@ function optimizeTokens(content, fileExtension) {
                     !line.startsWith('<') ||
                     (!lastLine.endsWith('>') && !lastLine.endsWith('?>'))
                 ) {
-                    // Nutzt jetzt ein sauberes Template-Literal für den Space
                     optimizedLines[optimizedLines.length - 1] += ` ${line}`;
                     continue;
                 }
             }
             optimizedLines.push(line);
         }
+        joinedResult = optimizedLines.join('');
+        // HTML: Entferne Leerzeichen zwischen Tags </div> <div> -> </div><div>
+        joinedResult = joinedResult.replace(/>\s+</g, '><');
     } else {
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
@@ -343,7 +354,6 @@ function optimizeTokens(content, fileExtension) {
                 optimizedLines.length > 0 &&
                 !(ext === '.php' && /^<\?php/i.test(optimizedLines[optimizedLines.length - 1]))
             ) {
-                // \) und % am Ende sowie \- am Anfang für CSS-Funktionen (url, rgba) und Prozentwerte
                 const lastLine = optimizedLines[optimizedLines.length - 1];
                 if (/[a-zA-Z0-9_\])%]$/.test(lastLine) && /^[a-zA-Z0-9_$-]/.test(line)) {
                     optimizedLines[optimizedLines.length - 1] += ` ${line}`;
@@ -354,19 +364,47 @@ function optimizeTokens(content, fileExtension) {
                 optimizedLines.push(line);
             }
         }
+        joinedResult = optimizedLines.join('\n');
     }
 
-    let joinedResult = optimizedLines.join('\n');
+    // =========================================================================
+    // 4. TRESOR WIEDERHERSTELLEN & STRINGS KOMPRIMIEREN
+    // =========================================================================
 
-    // =========================================================================
-    // 4. TRESOR WIEDERHERSTELLEN (Blöcke & Strings)
-    // =========================================================================
+    // Blöcke (wie <style> oder <script>) komprimieren
     blockMap.forEach((originalBlock, placeholderKey) => {
-        joinedResult = joinedResult.split(placeholderKey).join(originalBlock);
+        let restoredBlock = originalBlock;
+
+        // CSS in <style> Tags extrem komprimieren
+        if (restoredBlock.toLowerCase().startsWith('<style>')) {
+            restoredBlock = restoredBlock
+                .replace(/\r?\n/g, '') // Neue Zeilen weg
+                .replace(/\s+/g, ' ') // Mehrfache Leerzeichen zu einem
+                .replace(/\s*{\s*/g, '{') // Leerzeichen um Klammern weg
+                .replace(/\s*}\s*/g, '}')
+                .replace(/\s*:\s*/g, ':') // Leerzeichen um Doppelpunkte weg
+                .replace(/\s*;\s*/g, ';');
+        }
+        joinedResult = joinedResult.split(placeholderKey).join(restoredBlock);
     });
 
+    // Strings (SQL, HTML-Heredoc, etc.) komprimieren
     stringMap.forEach((originalString, placeholderKey) => {
-        joinedResult = joinedResult.split(placeholderKey).join(originalString);
+        let restoredString = originalString;
+
+        // Wenn der String mehrzeilig ist (typisch für SQL-Queries oder Heredoc-HTML)
+        if (restoredString.includes('\n')) {
+            restoredString = restoredString
+                .split('\n')
+                .map((line) => line.trim()) // Führende/abschließende Leerzeichen pro Zeile weg
+                .filter((line) => line.length > 0) // Leere Zeilen im String löschen
+                .join(' '); // Alles in eine Zeile packen
+
+            // Übrig gebliebene doppelte Leerzeichen (z.B. in SQL) reduzieren
+            restoredString = restoredString.replace(/\s{2,}/g, ' ');
+        }
+
+        joinedResult = joinedResult.split(placeholderKey).join(restoredString);
     });
 
     return joinedResult;
