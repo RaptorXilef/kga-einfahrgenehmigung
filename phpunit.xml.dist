@@ -20,20 +20,20 @@
 
     <testsuites>
         <testsuite name="Unit">
-            <directory suffix="Test.php">./tests/Unit</directory>
+            <directory suffix="Test.php">tests/Unit</directory>
         </testsuite>
         <testsuite name="Feature">
-            <directory suffix="Test.php">./tests/Feature</directory>
+            <directory suffix="Test.php">tests/Feature</directory>
         </testsuite>
     </testsuites>
 
     <source restrictNotices="true" restrictWarnings="true" ignoreIndirectDeprecations="true">
         <include>
-            <directory>./src</directory>
+            <directory>src</directory>
         </include>
         <exclude>
             <!-- Bootstrap und Configs von der Coverage ausschließen -->
-            <directory>./src/Bootstrap</directory>
+            <directory>src/Bootstrap</directory>
         </exclude>
     </source>
 

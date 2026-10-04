@@ -118,13 +118,11 @@
     "test:wiring": "php scripts/smoke_test.php",
     "test": "pest --parallel",
     "test:full": "pest --parallel --display-deprecations",
-    "test:coverage": "XDEBUG_MODE=coverage pest --coverage --coverage-html .build/reports/phpunit-html",
-    "test:mutation": "php -d xdebug.mode=coverage vendor/bin/pest --mutate",
-    "//test:mutation": "php -d xdebug.mode=coverage tools/infection.phar --threads=4 --min-msi=30 --coverage=.cache/phpunit",
-    "//test:phpunit": "phpunit",
-    "//test:unit": "phpunit --testsuite Unit",
-    "//test:feature": "phpunit --testsuite Feature",
-    "//test:legacy-coverage": "XDEBUG_MODE=coverage phpunit --coverage-html .build/reports/phpunit-html",
+    "test:coverage": [
+      "@putenv XDEBUG_MODE=coverage",
+      "pest --coverage --coverage-html .build/reports/phpunit-html"
+    ],
+    "test:mutation": ["@putenv XDEBUG_MODE=coverage", "pest --mutate=src"],
 
     "// --- PHASE 3: FIXING & FORMATTING ---": "Aktive Code-Manipulation",
     "fix:modern": "rector process",
