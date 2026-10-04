@@ -45,7 +45,7 @@ use DateTimeImmutable;
 use Override;
 
 /**
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
  */
 #[Route('GET', '/admin')]
 #[RequiresAuth]

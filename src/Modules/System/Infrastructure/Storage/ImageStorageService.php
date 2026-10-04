@@ -52,7 +52,9 @@ final readonly class ImageStorageService implements ImageStorageInterface
         \imagealphablending($target, false);
         \imagesavealpha($target, true);
         $transparent = \imagecolorallocatealpha($target, 255, 255, 255, 127);
-        \imagefill($target, 0, 0, $transparent);
+        if ($transparent !== false) {
+            \imagefill($target, 0, 0, $transparent);
+        }
 
         \imagecopyresampled($target, $source, 0, 0, $x, $y, 250, 250, $size, $size);
 

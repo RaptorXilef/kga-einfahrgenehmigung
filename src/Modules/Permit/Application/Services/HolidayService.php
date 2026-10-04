@@ -49,6 +49,9 @@ final readonly class HolidayService
         $currentTime = $now->format('H:i');
 
         foreach ($slots as $slot) {
+            if (!isset($slot[0], $slot[1])) {
+                continue;
+            }
             if ($currentTime >= $slot[0] && $currentTime <= $slot[1]) {
                 return true;
             }
@@ -106,6 +109,9 @@ final readonly class HolidayService
                 $slots = $this->getOpeningHoursForDate($current)[$dayKey] ?? [];
 
                 foreach ($slots as $slot) {
+                    if (!isset($slot[0], $slot[1])) {
+                        continue;
+                    }
                     $slotStart = $current->setTime((int) \substr((string) $slot[0], 0, 2), (int) \substr((string) $slot[0], 3, 2));
 
                     // Wenn der Slot heute ist, muss er in der Zukunft liegen
@@ -142,6 +148,9 @@ final readonly class HolidayService
 
         $text = [];
         foreach ($slots as $slot) {
+            if (!isset($slot[0], $slot[1])) {
+                continue;
+            }
             $text[] = $slot[0] . ' - ' . $slot[1] . ' Uhr';
         }
 
@@ -508,8 +517,8 @@ final readonly class HolidayService
 
                     continue;
                 }
-                $daySlots = \array_map(fn (array $s): string => $s[0] . ' - ' . $s[1], $slots);
-                $resultStrings[] = "{$label}: " . \implode(', ', $daySlots);
+                $daySlots = \array_map(fn (array $s): string => isset($s[0], $s[1]) ? $s[0] . ' - ' . $s[1] : '', $slots);
+                $resultStrings[] = "{$label}: " . \implode(', ', \array_filter($daySlots));
             }
 
             return $resultStrings;
@@ -519,7 +528,8 @@ final readonly class HolidayService
         $currentGroup = null;
         foreach ($daysMap as $key => $label) {
             $slots = \is_array($hours[$key] ?? null) ? $hours[$key] : [];
-            $slotKey = $slots === [] ? 'none' : \implode(',', \array_map(fn (array $s): string => $s[0] . '-' . $s[1], $slots));
+            $slotKey = $slots === [] ? 'none' : \implode(',', \array_map(fn (array $s): string => isset($s[0], $s[1]) ? $s[0] . '-' . $s[1] : '', $slots));
+
             if ($currentGroup === null || $currentGroup['slotKey'] !== $slotKey) {
                 if ($currentGroup !== null) {
                     $chronologicalGroups[] = $currentGroup;
@@ -555,8 +565,8 @@ final readonly class HolidayService
             if ($slotKey === 'none') {
                 $finalParts[] = "{$daysText}: Keine Einfahrt";
             } else {
-                $slotStrings = \array_map(fn (array $s): string => $s[0] . ' - ' . $s[1], $data['slots']);
-                $finalParts[] = "{$daysText}: " . \implode(', ', $slotStrings);
+                $slotStrings = \array_map(fn (array $s): string => isset($s[0], $s[1]) ? $s[0] . ' - ' . $s[1] : '', $data['slots']);
+                $finalParts[] = "{$daysText}: " . \implode(', ', \array_filter($slotStrings));
             }
         }
 

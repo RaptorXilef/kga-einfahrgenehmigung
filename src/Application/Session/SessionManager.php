@@ -179,7 +179,7 @@ final readonly class SessionManager implements AuthSessionInterface
         if ((bool) \ini_get('session.use_cookies')) {
             $p = \session_get_cookie_params();
             $sessionName = \session_name();
-            if (\is_string($sessionName) && $sessionName !== '') {
+            if (\is_string($sessionName)) {
                 \setcookie(
                     $sessionName,
                     '',

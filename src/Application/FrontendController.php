@@ -103,7 +103,7 @@ final readonly class FrontendController
 
         if (\is_array($matched)) {
             $className = \is_string($matched['class']) ? $matched['class'] : '';
-            $params = \is_array($matched['params']) ? $matched['params'] : [];
+            $params = $matched['params'];
 
             return [
                 'request' => $request->withInput(\array_merge($request->input, $params)),

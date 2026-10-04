@@ -49,7 +49,6 @@ final readonly class GetDashboardStatsHandler implements QueryHandlerInterface
         ]);
 
         // 2. Initialisiere leere Statistik-Container
-        /** @var array<string, int> $initialTypes */
         $initialTypes = \array_fill_keys(\array_map(strval(...), \array_keys($vConfig)), 0);
         $initialTypes['__legacy__'] = 0;
 

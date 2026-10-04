@@ -55,7 +55,7 @@ final readonly class Ga4MeasurementClient implements AnalyticsTrackerInterface
             \CURLOPT_PROTOCOLS => \CURLPROTO_HTTPS,
             \CURLOPT_RETURNTRANSFER => true,
             \CURLOPT_POST => true,
-            \CURLOPT_POSTFIELDS => \json_encode($payload),
+            \CURLOPT_POSTFIELDS => \json_encode($payload, \JSON_THROW_ON_ERROR),
             \CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
             \CURLOPT_TIMEOUT_MS => 250,
         ]);

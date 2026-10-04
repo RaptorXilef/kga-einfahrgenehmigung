@@ -296,7 +296,7 @@ final class AuthService implements AuthorizationInterface
                 continue;
             }
 
-            $role->updatePermissions(\array_values($cleanedPerms));
+            $role->updatePermissions($cleanedPerms);
             $this->roleRepository->save($role);
             $changed = true;
         }

@@ -7,7 +7,6 @@ namespace App\Application\Middleware;
 use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
-use App\Application\Session\SessionManager;
 use Override;
 
 /**
@@ -16,11 +15,6 @@ use Override;
  */
 final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
 {
-    public function __construct(
-        private SessionManager $sessionManager,
-    ) {
-    }
-
     #[Override]
     public function process(
         ServerRequest $request,
@@ -69,13 +63,14 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
 
     private function buildCspHeader(bool $isLocal, string $host, string $protocol): string
     {
-        // Hochsichere CSP Definition (Strict Nonce-Based)
+        $nonce = \defined('CSP_NONCE') ? \constant('CSP_NONCE') : '';
+
         $csp = [
             'default-src' => ["'self'"],
             'upgrade-insecure-requests' => [],
             'script-src' => [
                 "'self'",
-                "'nonce-" . CSP_NONCE . "'",
+                "'nonce-" . $nonce . "'",
                 "'unsafe-eval'", // Nötig für Chart.js
                 'https://cdnjs.cloudflare.com',
                 'https://www.paypal.com',
@@ -84,7 +79,7 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
             ],
             'style-src' => [
                 "'self'",
-                "'unsafe-inline'", // Bleibt aktiv, bis alle Inline-Styles ins SCSS gewandert sind
+                "'unsafe-inline'",
                 'https://cdnjs.cloudflare.com',
             ],
             'font-src' => [

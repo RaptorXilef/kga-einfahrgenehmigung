@@ -62,7 +62,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
         $publicTemplates = \array_filter($permitTemplates, fn (array $t): bool => ($t['public'] ?? false) === true);
         $defaultTemplateKey = \array_key_first($publicTemplates) ?? 'std_7';
 
-        $activeTemplateKey = (string) ($formData['template_key'] ?? $prefillDto?->templateKey ?? $defaultTemplateKey);
+        $activeTemplateKey = (string) ($formData['template_key'] ?? $prefillDto->templateKey ?? $defaultTemplateKey);
         $activeVehicleType = (string) ($formData['typ'] ?? $prefillData['typ'] ?? '');
         $activePurpose = (string) ($formData['zweck'] ?? $prefillData['zweck'] ?? '');
 

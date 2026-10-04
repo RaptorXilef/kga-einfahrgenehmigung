@@ -42,11 +42,12 @@ final readonly class EmailValidationService implements EmailValidationServiceInt
             throw new InvalidArgumentException('Die E-Mail-Adresse enthält ungültige Sonderzeichen.');
         }
 
-        $domain = \substr(\strrchr($email, '@'), 1);
-        if ($domain === false) {
+        $atPos = \strrchr($email, '@');
+        if ($atPos === false) {
             throw new InvalidArgumentException('E-Mail-Domain konnte nicht extrahiert werden.');
         }
 
+        $domain = \substr($atPos, 1);
         $domainLower = \strtolower($domain);
 
         // 1. Blacklist Check (Trash-Mails + Custom Blacklist)
@@ -66,9 +67,10 @@ final readonly class EmailValidationService implements EmailValidationServiceInt
     {
         $path = $this->config->getStoragePath('disposable_email.json');
         $now = $this->clock->now()->getTimestamp();
+        $mtime = \file_exists($path) ? \filemtime($path) : false;
 
         // Nur updaten, wenn die Datei älter als 7 Tage ist (604800 Sekunden)
-        if (\file_exists($path) && ($now - \filemtime($path)) < 604800) {
+        if ($mtime !== false && ($now - $mtime) < 604800) {
             return;
         }
 
@@ -108,9 +110,7 @@ final readonly class EmailValidationService implements EmailValidationServiceInt
         if (\file_exists($customPath)) {
             try {
                 $customDomains = $this->jsonHelper->read($customPath);
-                if (\is_array($customDomains)) {
-                    $domains = \array_merge($domains, $customDomains);
-                }
+                $domains = \array_merge($domains, $customDomains);
             } catch (Exception) {
                 // Bei Fehlern einfach ignorieren
             }

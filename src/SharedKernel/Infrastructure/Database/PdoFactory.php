@@ -56,7 +56,7 @@ final class PdoFactory
         } catch (PDOException $e) {
             $mysqlErrorCode = $e->errorInfo[1] ?? null;
 
-            if ($mysqlErrorCode !== 1049) {
+            if ((int) $mysqlErrorCode !== 1049) {
                 \error_log('MySQL Connection Error: ' . $e->getMessage());
 
                 return null;

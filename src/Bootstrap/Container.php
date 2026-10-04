@@ -12,7 +12,6 @@ use App\SharedKernel\Infrastructure\Config\Config;
 use Closure;
 use Override;
 use ReflectionClass;
-use ReflectionException;
 use ReflectionNamedType;
 use RuntimeException;
 
@@ -135,11 +134,11 @@ class Container implements ContainerInterface
      */
     private function autowire(string $className): object
     {
-        try {
-            $reflectionClass = new ReflectionClass($className);
-        } catch (ReflectionException) {
-            throw new RuntimeException("Container Autowiring Error: Klasse '{$className}' nicht gefunden.");
-        }
+        // try {
+        $reflectionClass = new ReflectionClass($className);
+        // } catch (ReflectionException) {
+        //    throw new RuntimeException("Container Autowiring Error: Klasse '{$className}' nicht gefunden.");
+        // }
 
         if (!$reflectionClass->isInstantiable()) {
             throw new RuntimeException("Container Autowiring Error: Klasse '{$className}' ist nicht instanziierbar (Interface oder Abstract).");

@@ -30,6 +30,9 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
 {
     public function __construct(
         private PDO $pdo,
+        /**
+         * @phpstan-ignore property.onlyWritten
+         */
         private ClockInterface $clock = new SystemClock(),
     ) {
     }

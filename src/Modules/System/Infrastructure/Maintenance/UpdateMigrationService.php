@@ -6,7 +6,6 @@ namespace App\Modules\System\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
-use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\Utils\ClockInterface;
 use Exception;
 use Override;
@@ -21,7 +20,6 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
         private ?PDO $pdo,
         private ClockInterface $clock,
         private ConfigInterface $config,
-        private JsonHelperInterface $jsonHelper,
     ) {
     }
 

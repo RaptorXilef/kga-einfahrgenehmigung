@@ -51,7 +51,7 @@ class DebugPDO extends PDO
         $timestampStr = $this->clock->now()->format('Y-m-d H:i:s');
 
         // microtime is kept specifically for ms duration profiling
-        $timestamp = $timestampStr . '.' . \sprintf('%03d', \fmod(\microtime(true), 1) * 1000);
+        $timestamp = $timestampStr . '.' . \sprintf('%03d', (int) (\fmod(\microtime(true), 1) * 1000));
         $durStr = $durationMs !== null ? \sprintf('[%.2f ms] ', $durationMs) : '[N/A ms] ';
         $paramString = $params !== [] ? ' | Params: ' . \json_encode($params, \JSON_UNESCAPED_UNICODE) : '';
 

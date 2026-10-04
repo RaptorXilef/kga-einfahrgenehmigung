@@ -14,7 +14,7 @@ parameters:
     # Level 5 prüft Typen, erlaubt aber noch etwas Flexibilität.
     # Level 9 wäre "Maximaler Schmerz" (nur für neue Projekte empfohlen).
     # TODO: Noch nicht auf "max" setzen (ohne " )
-    level: 0
+    level: max
     # Erstmal 0 um Architekturbrüche zu finden, danach wieder 6
 
     # Bedeutung: PHPStan prüft im Code standardmäßig sehr streng, wenn du den Typ mixed explizit angibst (z. B.

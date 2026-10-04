@@ -23,10 +23,9 @@ try {
 
     // ServerRequest muss auf das neue Format aus TwoKinds (mit Cookies) reagieren.
     // Falls deine Klasse Cookies noch nicht unterstützt, können wir das gleich nachrüsten.
-    $req = new ServerRequest($_GET, $_POST, $_FILES, $_SERVER, [], $_COOKIE ?? []);
+    // $_COOKIE ist in PHP immer ein Array, coalescing ist nicht notwendig
+    $req = new ServerRequest($_GET, $_POST, $_FILES, $_SERVER, [], $_COOKIE);
 
-    // VSA FIX: Binde den Request in den Container, damit Middlewares und der TemplateRenderer
-    // ihn via Dependency Injection erhalten können, ohne auf $_SERVER zugreifen zu müssen!
     $container->bind(ServerRequest::class, fn (): ServerRequest => $req);
 
     $controller = $container->get(FrontendController::class);

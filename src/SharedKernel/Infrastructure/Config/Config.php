@@ -110,7 +110,7 @@ final readonly class Config implements ConfigInterface
             || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
 
         $protocol = $isSecure ? 'https' : 'http';
-        $host = \is_string($_SERVER['HTTP_HOST'] ?? null) ? $_SERVER['HTTP_HOST'] : 'localhost';
+        $host = isset($_SERVER['HTTP_HOST']) && \is_string($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 
         return $protocol . '://' . $host;
     }

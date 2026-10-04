@@ -12,7 +12,6 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\HtmlResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
-use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthorizationInterface;
 use Override;
 
@@ -21,7 +20,6 @@ final readonly class CheckPermitAction implements ViewActionInterface
 {
     public function __construct(
         private AuthorizationInterface $auth,
-        private ConfigInterface $config,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private GetPermitCheckDetailsHandler $checkHandler,

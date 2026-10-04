@@ -45,7 +45,7 @@ final readonly class GetGeneratorToolsDataHandler implements QueryHandlerInterfa
 
         // 2. Eigene Zwecke aus der Datenbank holen (für Autocomplete)
         $stmt = $this->pdo->query("SELECT DISTINCT zweck FROM permits WHERE zweck != ''");
-        $dbPurposes = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+        $dbPurposes = $stmt !== false ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
         $standardPurposes = $this->config->getArray('purposes');
         $customPurposes = [];
 

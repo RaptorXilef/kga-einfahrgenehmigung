@@ -36,6 +36,9 @@ final readonly class LocalBankImportInfrastructure implements BankImportInfrastr
         return $tempPath;
     }
 
+    /**
+     * @return Reader<mixed>|null
+     */
     #[Override]
     public function normalizeAndOpenCsv(string $filePath): ?Reader
     {
@@ -57,6 +60,10 @@ final readonly class LocalBankImportInfrastructure implements BankImportInfrastr
             $content = \mb_convert_encoding($content, 'UTF-8', $encoding);
         } elseif (!$encoding) {
             $content = \mb_convert_encoding($content, 'UTF-8', 'Windows-1252');
+        }
+
+        if ($content === false) {
+            return null;
         }
 
         $content = \str_replace(["\r\n", "\r"], "\n", $content);
