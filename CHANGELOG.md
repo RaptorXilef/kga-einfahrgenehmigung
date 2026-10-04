@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.81.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.81.1...v0.81.2) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **phpstan:** remove redundant is_array check in PermitMapperTrait ([ce2cbb0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ce2cbb0b0c788eb3d41d19ae1ece7ffdae2431be))
+* **phpstan:** Resolve all static analysis errors for level max readiness ([c86d145](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c86d1450316c0c58c3fb0edea6f848207d0ecdc0))
+* **phpstan:** resolve array offset, generic types and redundant checks for level max ([ac2603d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ac2603d9d3845e75984314f0a2bca2c9ce96ea80))
+
+### ⚡ Performance
+
+* **cli:** Asynchrone Dateiverarbeitung, Baumstruktur und Token-Schätzung integriert ([ed5d2cc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ed5d2cc00bb2f4283cc8d69426acf5e90ff64d04))
+* **cli:** Erweiterte Token-Minifizierung für PHP, HTML und Strings implementiert ([2bb896c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2bb896cb97f4bcee76437a9b4224fc78b9dd578c))
+* **cli:** HTML-Attribut-Kompression und Bereinigung leerer PHP-Tags ([8755542](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/87555423c43f32510dff347207e76363c55320d9))
+* **cli:** KI-System-Prompt und Attribut-Kompression hinzugefügt ([e65bf91](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e65bf91fa143fe4fde93ac04cba405a1c41d768e))
+* **cli:** Minifizierung von geschützten Blöcken und Pre-Vault PHP-Parsing ([f32197c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f32197c61cc7455d33b27b38d172ae121ecc7adf))
+* **cli:** Token-Optimierung und DocBlock-Toggle integriert ([0705e85](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0705e8578a113ad2711fafce76ad6c98b0699112))
+
+### ⚙️ Refactoring
+
+* **cli:** Konfiguration ausgelagert und paralleles Chunk-Lesen implementiert ([10d0807](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/10d0807ef66b5bc07c23500f8a53aa11aecbfcc1))
+
+### 🧹 Chore / Maintenance
+
+* **cli:** Menüreihenfolge aktualisieren und dynamische Teilauswahl ergänzen ([cdd8a76](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cdd8a761de044c78cc21f93522250005339c6e98))
+* **migration:** add migration examples ([2387484](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2387484f00ec6961a636ac81839577b68d2b8e57))
+
 ## [0.81.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.81.0...v0.81.1) (2026-10-03)
 
 ### 🧹 Chore / Maintenance
