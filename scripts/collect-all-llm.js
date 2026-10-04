@@ -361,10 +361,12 @@ function optimizeTokens(content, fileExtension) {
         // HTML: Entferne Leerzeichen zwischen Tags </div> <div> -> </div><div>
         joinedResult = joinedResult.replace(/>\s+</g, '><');
 
-        // NEU: HTML Attribute extrem komprimieren (sicher, da Strings im Tresor sind!)
-        // Komprimiert <script \n src="..." \n> zu <script src="...">
-        joinedResult = joinedResult.replace(/<([a-zA-Z0-9-]+)([^>]+)>/g, (match, tag, attrs) => {
-            return '<' + tag + attrs.replace(/\s+/g, ' ') + '>';
+        // ROBUSTE HTML-ATTRIBUT KOMPRESSION
+        // Löscht alle mehrfachen Whitespaces (inkl. Zeilenumbrüche) innerhalb von Tag-Deklarationen
+        // z.B. aus `<script \n src="...">` wird `<script src="...">`
+        joinedResult = joinedResult.replace(/<([a-zA-Z0-9-]+)([^>]*?)>/g, (match, tag, attrs) => {
+            const cleanAttrs = attrs.replace(/\s+/g, ' ').trim();
+            return cleanAttrs ? `<${tag} ${cleanAttrs}>` : `<${tag}>`;
         });
     } else {
         for (let i = 0; i < lines.length; i++) {
@@ -803,7 +805,7 @@ async function startProjectSummary(selectedKeys, silent = false) {
 
     const globalTreeString = generateTreeString(allFoundFiles);
 
-    // NEU: Fügt den KI-System-Prompt ganz oben ein!
+    // Fügt den KI-System-Prompt ganz oben ein!
     const finalContent = `${AI_SYSTEM_PROMPT}# 📦 Projekt-Zusammenfassung\n\n## 📁 Globale Datei-Struktur\n\n\`\`\`text\n${globalTreeString}\`\`\`\n\n---\n${totalContent}`;
 
     const tokens = estimateTokens(finalContent);
