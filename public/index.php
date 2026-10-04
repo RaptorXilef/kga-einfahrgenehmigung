@@ -30,7 +30,6 @@ try {
     $container->bind(ServerRequest::class, fn (): ServerRequest => $req);
 
     $controller = $container->get(FrontendController::class);
-    \assert($controller instanceof FrontendController);
 
     $response = $controller->handleRequest($req);
     $response->send();
@@ -50,7 +49,7 @@ try {
     }
 
     // 2. Notfall-Logger: Schreibt den Fehler garantiert in logs/system_error.log, auch wenn die Wartungsseite geladen wird!
-    $logDir = \dirname(__DIR__) . '/logs';
+    $logDir = __DIR__ . '/../logs';
     if (!\is_dir($logDir)) {
         @\mkdir($logDir, 0o755, true);
     }

@@ -101,13 +101,6 @@ const debugFolder = path.join(basePath, '.debug', version);
 
 // --- 2. Filter-Konfigurationen ---
 const configs = {
-    JS: {
-        name: 'JsCode',
-        filter: /\.js$/,
-        ext: '.md',
-        exclDirs: IGNORE_BY_TYPE.js.dirs,
-        exclFiles: IGNORE_BY_TYPE.js.files,
-    },
     PHP: {
         name: 'PhpCode',
         filter: /\.php$/,
@@ -122,6 +115,13 @@ const configs = {
         exclDirs: IGNORE_BY_TYPE.phtml.dirs,
         exclFiles: IGNORE_BY_TYPE.phtml.files,
     },
+    JS: {
+        name: 'JsCode',
+        filter: /\.js$/,
+        ext: '.md',
+        exclDirs: IGNORE_BY_TYPE.js.dirs,
+        exclFiles: IGNORE_BY_TYPE.js.files,
+    },
     SCSS: {
         name: 'ScssCode',
         filter: /\.scss$/,
@@ -129,14 +129,14 @@ const configs = {
         exclDirs: IGNORE_BY_TYPE.scss.dirs,
         exclFiles: IGNORE_BY_TYPE.scss.files,
     },
-    PROJECT: {
-        name: 'ProjektZusammenfassung',
-        filter: /\.(js|php|phtml|scss)$/,
+    SQL: {
+        name: 'SqlMigrations',
+        filter: /\.sql$/,
         ext: '.md',
-        exclDirs: [],
-        exclFiles: [],
+        targetDir: 'database/migrations',
+        exclDirs: IGNORE_BY_TYPE.sql.dirs,
+        exclFiles: IGNORE_BY_TYPE.sql.files,
     },
-    // Explizite Dateien für die Entwicklungsumgebung
     ENV: {
         name: 'Entwicklungsumgebung',
         explicitFiles: [
@@ -147,15 +147,6 @@ const configs = {
             // '.github/workflows/deploy.yml',
         ],
         ext: '.md',
-    },
-    // 8. Option für SQL Migrations
-    SQL: {
-        name: 'SqlMigrations',
-        filter: /\.sql$/,
-        ext: '.md',
-        targetDir: 'database/migrations',
-        exclDirs: IGNORE_BY_TYPE.sql.dirs,
-        exclFiles: IGNORE_BY_TYPE.sql.files,
     },
 };
 
@@ -200,7 +191,6 @@ function sanitizeJsonContent(filePath, rawContent) {
 
         return JSON.stringify(parsed, null, indent);
     } catch (_e) {
-        // Linter-Fix: "e" zu "_e" geändert, da ungenutzt
         // Falls das JSON defekt ist, geben wir sicherheitshalber den Roh-Inhalt zurück
         return rawContent;
     }
@@ -354,6 +344,85 @@ function getTimestampString() {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 }
 
+/**
+ * Sammelt die Dateiliste für eine spezifische Konfiguration.
+ * Wurde ausgelagert, um sie für Einzel- und Projektzusammenfassungen nutzen zu können.
+ */
+function getFilesForConfig(conf, silent = false) {
+    let foundFiles = [];
+    if (conf.explicitFiles) {
+        for (const filePath of conf.explicitFiles) {
+            const normalizedPath = path.normalize(filePath);
+            const fullPath = path.join(basePath, normalizedPath);
+            if (fs.existsSync(fullPath)) {
+                foundFiles.push({
+                    fullPath: fullPath,
+                    relPath: normalizedPath,
+                    ext: path.extname(fullPath),
+                });
+            } else {
+                if (!silent)
+                    console.log(
+                        `${c.yellow} ! Überspringe (nicht gefunden): ${normalizedPath}${c.reset}`
+                    );
+            }
+        }
+    } else {
+        const searchDir = conf.targetDir ? path.join(basePath, conf.targetDir) : basePath;
+        if (fs.existsSync(searchDir)) {
+            foundFiles = getFiles(
+                searchDir,
+                conf.filter,
+                conf.exclDirs || [],
+                conf.exclFiles || [],
+                globalIncludeRootFiles
+            );
+        } else {
+            if (!silent)
+                console.log(`${c.yellow} ! Ordner nicht gefunden: ${conf.targetDir}${c.reset}`);
+        }
+    }
+    return foundFiles;
+}
+
+/**
+ * Wandelt Dateiinhalte in formatierten Markdown-Code um
+ */
+function processFilesToMarkdown(foundFiles, silent = false) {
+    let combinedContent = '';
+    for (const file of foundFiles) {
+        try {
+            let rawContent = fs.readFileSync(file.fullPath, 'utf-8');
+            rawContent = sanitizeJsonContent(file.relPath, rawContent);
+            const formattedContent = formatContent(rawContent);
+
+            const extName = file.ext.toLowerCase().replace('.', '');
+            const langMap = {
+                js: 'javascript',
+                php: 'php',
+                phtml: 'phtml',
+                scss: 'scss',
+                json: 'json',
+                yml: 'yaml',
+                yaml: 'yaml',
+                sql: 'sql',
+            };
+            const lang = langMap[extName] || extName;
+            const mdPath = file.relPath.replace(/\\/g, '/');
+
+            combinedContent += `### /${mdPath}\n`;
+            combinedContent += `\`\`\`${lang}\n`;
+            combinedContent += `${formattedContent}\n`;
+            combinedContent += `\`\`\`\n\n`;
+
+            if (!silent) console.log(`${c.gray} + [Gesammelt] ${file.relPath}${c.reset}`);
+        } catch (_e) {
+            if (!silent) console.log(`${c.gray} ! Überspringe (Binär?): ${file.relPath}${c.reset}`);
+        }
+    }
+    return combinedContent;
+}
+
 function startStructureMirror() {
     const timestampDirName = getTimestampString();
     const targetDirName = `${timestampDirName}_collected`;
@@ -362,6 +431,7 @@ function startStructureMirror() {
     console.log(`\n${c.cyan}🚀 Starte Erstellung der gespiegelten RAW-Struktur...`);
     console.log(`${c.yellow}Target: .debug/${version}/${targetDirName}/${c.reset}`);
 
+    // Für den Mirror holen wir pauschal alles, was unterstützt wird
     const foundFiles = getFiles(
         basePath,
         /\.(js|php|phtml|scss|sql)$/,
@@ -415,90 +485,14 @@ function startFileCollection(configKey, silent = false) {
     if (!silent)
         console.log(`\n${c.cyan}🚀 Starte RAW-Sammlung: ${c.bright}${conf.name}${c.reset}...`);
 
-    let foundFiles = [];
-
-    // Unterscheidung zwischen rekursiver Dateisuche oder explizit definierten Dateien
-    if (conf.explicitFiles) {
-        for (const filePath of conf.explicitFiles) {
-            // Normalisiert die Pfade für das jeweilige Betriebssystem (z.B. \ vs /)
-            const normalizedPath = path.normalize(filePath);
-            const fullPath = path.join(basePath, normalizedPath);
-
-            if (fs.existsSync(fullPath)) {
-                foundFiles.push({
-                    fullPath: fullPath,
-                    relPath: normalizedPath,
-                    ext: path.extname(fullPath),
-                });
-            } else {
-                if (!silent)
-                    console.log(
-                        `${c.yellow} ! Überspringe (nicht gefunden): ${normalizedPath}${c.reset}`
-                    );
-            }
-        }
-    } else {
-        // Berücksichtigt einen optionalen Zielordner für spezifische Sammlungen (wie SQL)
-        const searchDir = conf.targetDir ? path.join(basePath, conf.targetDir) : basePath;
-
-        if (fs.existsSync(searchDir)) {
-            foundFiles = getFiles(
-                searchDir,
-                conf.filter,
-                conf.exclDirs || [],
-                conf.exclFiles || [],
-                globalIncludeRootFiles
-            );
-        } else {
-            if (!silent)
-                console.log(`${c.yellow} ! Ordner nicht gefunden: ${conf.targetDir}${c.reset}`);
-        }
-    }
+    const foundFiles = getFilesForConfig(conf, silent);
 
     if (foundFiles.length === 0) {
         if (!silent) console.log(`${c.red}❌ Keine Dateien gefunden.${c.reset}`);
         return;
     }
 
-    let combinedContent = '';
-    for (const file of foundFiles) {
-        try {
-            let rawContent = fs.readFileSync(file.fullPath, 'utf-8');
-
-            // Sensible Daten aus package.json/composer.json entfernen
-            rawContent = sanitizeJsonContent(file.relPath, rawContent);
-
-            const formattedContent = formatContent(rawContent);
-
-            const extName = file.ext.toLowerCase().replace('.', '');
-
-            // Map Dateiendung zu Markdown-Sprache
-            const langMap = {
-                js: 'javascript',
-                php: 'php',
-                phtml: 'phtml',
-                scss: 'scss',
-                json: 'json',
-                yml: 'yaml',
-                yaml: 'yaml',
-                sql: 'sql', // Mapping für SQL Syntax Highlighting
-            };
-            // Fallback auf die Erweiterung selbst, falls sie nicht in der Map ist
-            const lang = langMap[extName] || extName;
-
-            // Sorge für saubere Forward-Slashes im Markdown-Pfad
-            const mdPath = file.relPath.replace(/\\/g, '/');
-
-            combinedContent += `### /${mdPath}\n`;
-            combinedContent += `\`\`\`${lang}\n`;
-            combinedContent += `${formattedContent}\n`;
-            combinedContent += `\`\`\`\n\n`;
-
-            if (!silent) console.log(`${c.gray} + [Gesammelt] ${file.relPath}${c.reset}`);
-        } catch (_e) {
-            if (!silent) console.log(`${c.gray} ! Überspringe (Binär?): ${file.relPath}${c.reset}`);
-        }
-    }
+    const combinedContent = processFilesToMarkdown(foundFiles, silent);
 
     fs.writeFileSync(outputPath, combinedContent, 'utf-8');
     const displayPath = path.relative(basePath, outputPath);
@@ -507,41 +501,93 @@ function startFileCollection(configKey, silent = false) {
     );
 }
 
+/**
+ * Erstellt eine massive Datei aus mehreren gewählten Kategorien
+ */
+function startProjectSummary(selectedKeys, silent = false) {
+    const timestamp = getTimestampString();
+    const outputName = `ProjektZusammenfassung_${timestamp}_collected.md`;
+    const outputPath = path.join(debugFolder, outputName);
+
+    if (!fs.existsSync(debugFolder)) fs.mkdirSync(debugFolder, { recursive: true });
+
+    if (!silent)
+        console.log(
+            `\n${c.cyan}🚀 Starte Projekt-Zusammenfassung (Kategorien: ${selectedKeys.join(', ')})...${c.reset}`
+        );
+
+    let totalContent = '';
+    let totalFiles = 0;
+
+    for (const key of selectedKeys) {
+        const conf = configs[key];
+        const foundFiles = getFilesForConfig(conf, true); // intern leise
+        if (foundFiles.length > 0) {
+            totalFiles += foundFiles.length;
+            totalContent += `\n# === BEREICH: ${conf.name} ===\n\n`;
+            totalContent += processFilesToMarkdown(foundFiles, silent);
+        }
+    }
+
+    if (totalFiles === 0) {
+        console.log(`${c.red}❌ Keine Dateien für die Zusammenfassung gefunden.${c.reset}`);
+        return;
+    }
+
+    fs.writeFileSync(outputPath, totalContent, 'utf-8');
+    const displayPath = path.relative(basePath, outputPath);
+    console.log(
+        `${c.green}✅ Erfolg: Zusammenfassung in ${c.bright}${displayPath}${c.reset} gespeichert (${totalFiles} Dateien gesammelt).`
+    );
+}
+
 function showHelp() {
     console.log(`\n${c.bright}HILFE & CLI ARGUMENTE (RAW/COLLECTED)${c.reset}`);
     console.log(`${c.gray}------------------------------------------------------------${c.reset}`);
     console.table([
-        { Argument: '--js', Beschreibung: 'Sammelt nur JavaScript Dateien' },
         { Argument: '--php', Beschreibung: 'Sammelt nur PHP Dateien' },
         { Argument: '--phtml', Beschreibung: 'Sammelt nur PHTML Dateien' },
+        { Argument: '--js', Beschreibung: 'Sammelt nur JavaScript Dateien' },
         { Argument: '--scss', Beschreibung: 'Sammelt nur SCSS Dateien' },
-        {
-            Argument: '--project',
-            Beschreibung: 'Projektweite Zusammenfassung (*.md)',
-        },
+        { Argument: '--sql', Beschreibung: 'Sammelt SQL Dateien (database/migrations)' },
         {
             Argument: '--env',
             Beschreibung: 'Sammelt Entwicklungsumgebungs-Dateien (composer.json etc.)',
         },
         {
-            Argument: '--sql',
-            Beschreibung: 'Sammelt SQL Dateien (database/migrations)',
+            Argument: '--project',
+            Beschreibung: 'Projektweite Zusammenfassung (Alle Code-Dateien in eine Datei)',
         },
-        {
-            Argument: '--mirror',
-            Beschreibung: 'Spiegelt die gesamte Ordnerstruktur',
-        },
-        {
-            Argument: '--all',
-            Beschreibung: 'Führt Code-Sammlungen automatisch aus (1-4, 8)',
-        },
-        {
-            Argument: '--root',
-            Beschreibung: 'Bezieht Dateien im Root-Verzeichnis mit ein',
-        },
+        { Argument: '--mirror', Beschreibung: 'Spiegelt die gesamte Ordnerstruktur' },
+        { Argument: '--all', Beschreibung: 'Führt Code-Sammlungen einzeln automatisch aus' },
+        { Argument: '--root', Beschreibung: 'Bezieht Dateien im Root-Verzeichnis mit ein' },
         { Argument: '--help', Beschreibung: 'Zeigt diese Hilfe an' },
     ]);
     console.log(`${c.gray}Info: Im CI-Modus (mit Argumenten) läuft das Skript stumm.${c.reset}\n`);
+}
+
+// --- Hilfsfunktion fürs Menü ---
+function parseUserSelection(input) {
+    const allKeys = ['PHP', 'PHTML', 'JS', 'SCSS', 'SQL', 'ENV'];
+    if (!input || input.trim() === '') return allKeys; // Default: Alle
+
+    const map = {
+        1: 'PHP',
+        2: 'PHTML',
+        3: 'JS',
+        4: 'SCSS',
+        5: 'SQL',
+        6: 'ENV',
+    };
+
+    const parts = input.split(',').map((s) => s.trim());
+    const selected = [];
+    for (const p of parts) {
+        if (map[p] && !selected.includes(map[p])) {
+            selected.push(map[p]);
+        }
+    }
+    return selected.length > 0 ? selected : allKeys;
 }
 
 // --- 4. CLI & Menü Handling ---
@@ -554,18 +600,18 @@ if (args.length > 0) {
     }
     if (args.includes('--root')) globalIncludeRootFiles = true;
 
+    const allKeys = ['PHP', 'PHTML', 'JS', 'SCSS', 'SQL', 'ENV'];
+
     if (args.includes('--all')) {
-        for (const k of ['JS', 'PHP', 'PHTML', 'SCSS', 'SQL']) {
-            startFileCollection(k, true);
-        }
+        for (const k of allKeys) startFileCollection(k, true);
     } else {
-        if (args.includes('--js')) startFileCollection('JS', true);
         if (args.includes('--php')) startFileCollection('PHP', true);
         if (args.includes('--phtml')) startFileCollection('PHTML', true);
+        if (args.includes('--js')) startFileCollection('JS', true);
         if (args.includes('--scss')) startFileCollection('SCSS', true);
-        if (args.includes('--project')) startFileCollection('PROJECT', true);
-        if (args.includes('--env')) startFileCollection('ENV', true);
         if (args.includes('--sql')) startFileCollection('SQL', true);
+        if (args.includes('--env')) startFileCollection('ENV', true);
+        if (args.includes('--project')) startProjectSummary(allKeys, true);
         if (args.includes('--mirror')) startStructureMirror();
     }
     process.exit(0);
@@ -586,31 +632,34 @@ if (args.length > 0) {
         console.log(`${c.cyan}    Root: ${c.gray}${basePath}${c.reset}`);
         console.log(`${c.cyan}    Ziel: ${c.yellow}.debug/${version}/${c.reset}`);
         console.log(`${c.cyan}===============================================${c.reset}`);
-        console.log(`${c.bright} 1)${c.reset} JavaScript (*.md)`);
-        console.log(`${c.bright} 2)${c.reset} PHP (*.md)`);
-        console.log(`${c.bright} 3)${c.reset} PHTML (*.md)`);
+        // GEÄNDERTE REIHENFOLGE WIE GEWÜNSCHT
+        console.log(`${c.bright} 1)${c.reset} PHP (*.md)`);
+        console.log(`${c.bright} 2)${c.reset} PHTML (*.md)`);
+        console.log(`${c.bright} 3)${c.reset} JavaScript (*.md)`);
         console.log(`${c.bright} 4)${c.reset} SCSS (*.md)`);
         console.log(
-            `${c.bright} 5)${c.reset} ${c.magenta}PROJEKT-ZUSAMMENFASSUNG${c.reset} (*.md)`
+            `${c.bright} 5)${c.reset} ${c.cyan}SQL MIGRATIONS${c.reset} (database/migrations/*.sql)`
         );
         console.log(
-            `${c.bright} 6)${c.reset} ${c.green}PROJEKT-STRUKTUR SPIEGELN${c.reset} (Einzeldateien in Verzeichnissen)`
+            `${c.bright} 6)${c.reset} ${c.blue}ENTWICKLUNGSUMGEBUNG${c.reset} (composer, yaml, etc.)`
         );
         console.log(
-            `${c.bright} 7)${c.reset} ${c.blue}ENTWICKLUNGSUMGEBUNG${c.reset} (composer, yaml, etc.)`
+            `${c.bright} 7)${c.reset} ${c.magenta}PROJEKT-ZUSAMMENFASSUNG${c.reset} (*.md)`
         );
         console.log(
-            `${c.bright} 8)${c.reset} ${c.cyan}SQL MIGRATIONS${c.reset} (database/migrations/*.sql)`
+            `${c.bright} 8)${c.reset} ${c.green}PROJEKT-STRUKTUR SPIEGELN${c.reset} (Einzeldateien in Verzeichnissen)`
         );
         console.log(`${c.gray}-----------------------------------------------${c.reset}`);
         console.log(`${c.bright} T)${c.reset} Toggle Root-Files: [${rootStatus}]`);
-        console.log(`${c.bright} A)${c.reset} ${c.yellow}ALLE nacheinander (1-4, 8)${c.reset}`);
+        console.log(
+            `${c.bright} A)${c.reset} ${c.yellow}ALLE nacheinander (wählbar aus 1-6)${c.reset}`
+        );
         console.log(`${c.bright} H)${c.reset} Hilfe / CI Info`);
         console.log(`${c.bright} Q)${c.reset} Beenden`);
         console.log(`${c.gray}-----------------------------------------------${c.reset}`);
 
         rl.question(`${c.bright}Wähle eine Option: ${c.reset}`, (answer) => {
-            const choice = answer.toUpperCase();
+            const choice = answer.toUpperCase().trim();
 
             if (choice === 'Q') process.exit();
             if (choice === 'H') {
@@ -623,28 +672,52 @@ if (args.length > 0) {
                 showMenu();
                 return;
             }
+
+            // ALLE NACHEINANDER (Mit dynamischer Auswahl)
             if (choice === 'A') {
-                for (const k of ['JS', 'PHP', 'PHTML', 'SCSS', 'SQL']) {
-                    startFileCollection(k);
-                }
-                rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);
+                rl.question(
+                    `\n${c.yellow}Welche Bereiche nacheinander ausführen? (z.B. 1,3,6 | Enter für alle): ${c.reset}`,
+                    (sel) => {
+                        const keys = parseUserSelection(sel);
+                        for (const k of keys) {
+                            startFileCollection(k);
+                        }
+                        rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);
+                    }
+                );
                 return;
             }
-            if (choice === '6') {
+
+            // PROJEKT ZUSAMMENFASSUNG (Mit dynamischer Auswahl)
+            if (choice === '7') {
+                rl.question(
+                    `\n${c.magenta}Welche Bereiche in EINE Zusammenfassung packen? (z.B. 1,2,6 | Enter für alle): ${c.reset}`,
+                    (sel) => {
+                        const keys = parseUserSelection(sel);
+                        startProjectSummary(keys);
+                        rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);
+                    }
+                );
+                return;
+            }
+
+            // STRUKTUR SPIEGELN
+            if (choice === '8') {
                 startStructureMirror();
                 rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);
                 return;
             }
 
+            // EINZELNE AUSWAHL (1-6)
             const map = {
-                1: 'JS',
-                2: 'PHP',
-                3: 'PHTML',
+                1: 'PHP',
+                2: 'PHTML',
+                3: 'JS',
                 4: 'SCSS',
-                5: 'PROJECT',
-                7: 'ENV',
-                8: 'SQL',
+                5: 'SQL',
+                6: 'ENV',
             };
+
             if (map[choice]) {
                 startFileCollection(map[choice]);
                 rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);

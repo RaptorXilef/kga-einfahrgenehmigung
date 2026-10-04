@@ -157,7 +157,7 @@ final readonly class GetPermitHistoryHandler implements QueryHandlerInterface
 
             if ($canShowPaymentInfo) {
                 $codeParts = \explode('-', $code);
-                $shortCode = (string) \end($codeParts);
+                $shortCode = \end($codeParts);
                 $nameParts = \explode(' ', $ownerName);
                 $vorname = $nameParts[0] ?? '';
                 $nachname = $nameParts[\count($nameParts) - 1] ?? '';

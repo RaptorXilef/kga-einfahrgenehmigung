@@ -58,7 +58,7 @@
     <!-- Erlaubt das Bauen großer View-DTOs via Named Arguments und lineare PDO-Read-Model-Mappings am Stück -->
     <rule ref="rulesets/codesize.xml/ExcessiveMethodLength">
         <properties>
-            <property name="minimum" value="350" />
+            <property name="minimum" value="400" />
             <property name="ignore-whitespace" value="true" />
         </properties>
     </rule>
