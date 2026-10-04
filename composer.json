@@ -98,10 +98,6 @@
     "chk:arch": "deptrac analyse --config-file=deptrac.yaml",
     "chk:arch:uncovered": "deptrac analyse --config-file=deptrac.yaml --report-uncovered",
 
-    "//chk:cpd": "php -d display_errors=0 tools/phpcpd.phar src/ --min-lines=5 --min-tokens=70",
-
-    "//chk:style:s": "phpcs tests/Unit/Core/Service/ -s",
-
     "// --- Frontend Checks ---": "Frontend",
     "chk:js": "npx eslint src/assets/js/",
     "chk:css": "npx stylelint \"src/assets/scss/**/*.scss\"",
@@ -118,11 +114,8 @@
     "test:wiring": "php scripts/smoke_test.php",
     "test": "pest --parallel",
     "test:full": "pest --parallel --display-deprecations",
-    "test:coverage": [
-      "@putenv XDEBUG_MODE=coverage",
-      "pest --coverage --coverage-html .build/reports/phpunit-html"
-    ],
-    "test:mutation": ["@putenv XDEBUG_MODE=coverage", "pest --mutate=src"],
+    "test:coverage": "php scripts/pest_coverage.php --coverage --coverage-html .build/reports/phpunit-html",
+    "test:mutation": "php scripts/pest_coverage.php --mutate=src",
 
     "// --- PHASE 3: FIXING & FORMATTING ---": "Aktive Code-Manipulation",
     "fix:modern": "rector process",
