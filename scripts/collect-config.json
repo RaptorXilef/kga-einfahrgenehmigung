@@ -1,0 +1,73 @@
+{
+    "ALWAYS_IGNORE_DIRS": [
+        ".build",
+        ".cache",
+        ".debug",
+        ".git",
+        ".github",
+        ".husky",
+        ".vscode",
+        "backups",
+        "cache",
+        "docs",
+        "logs",
+        "node_modules",
+        "scripts",
+        "tools",
+        "vendor"
+    ],
+    "ALWAYS_IGNORE_PATHS": [
+        "public/assets",
+        "public/dev"
+    ],
+    "ALWAYS_IGNORE_FILES": [
+        "*.lock",
+        "*-lock.json",
+        ".DS_Store",
+        "*.min.js",
+        "*.min.css",
+        "*.local.*",
+        "routes_v2.php"
+    ],
+    "IGNORE_BY_TYPE": {
+        "js": {
+            "dirs": [
+                "public/assets"
+            ],
+            "files": [
+                "svgo.config.*",
+                "purgecss.config.*",
+                "eslint.config.*",
+                "commitlint.config.*"
+            ]
+        },
+        "php": {
+            "dirs": [
+                "tests"
+            ],
+            "files": [
+                "*php-cs-fixer.dist*",
+                "rector.php"
+            ]
+        },
+        "phtml": {
+            "dirs": [],
+            "files": []
+        },
+        "scss": {
+            "dirs": [],
+            "files": []
+        },
+        "sql": {
+            "dirs": [],
+            "files": []
+        }
+    },
+    "ENV_FILES": [
+        "composer.json",
+        "package.json",
+        "deptrac.yaml",
+        "phpstan.neon.dist"
+    ],
+    "SQL_TARGET_DIR": "database/migrations"
+}

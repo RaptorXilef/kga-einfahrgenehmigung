@@ -1,72 +1,8 @@
 import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
 import path from 'node:path';
-import readline from 'node:readline/promises'; // Nutzt nun die asynchrone Promise-Version!
+import readline from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
-
-// =============================================================================
-// SCHNELLE KONFIGURATION (Hier einfach Ordner/Dateien ergänzen)
-// =============================================================================
-// HINWEIS ZU WILDCARDS (*):
-// - Ohne '*' -> Exakter Treffer (z.B. 'backup' ignoriert NUR den Ordner "backup")
-// - Mit '*'  -> Teilstring/Muster (z.B. '*backup*' ignoriert auch "mein_backup_2025")
-
-// 1. GLOBALE IGNORES (Gelten für ALLE Dateiarten)
-const ALWAYS_IGNORE_DIRS = [
-    '.build',
-    '.cache',
-    '.debug',
-    '.git',
-    '.github',
-    '.husky',
-    '.vscode',
-    'backups',
-    'cache',
-    'docs',
-    'logs',
-    'node_modules',
-    'scripts',
-    'tools',
-    'vendor',
-];
-
-const ALWAYS_IGNORE_PATHS = ['public/assets', 'public/dev'];
-
-const ALWAYS_IGNORE_FILES = [
-    '*.lock',
-    '*-lock.json',
-    '.DS_Store',
-    '*.min.js',
-    '*.min.css',
-    '*.local.*',
-    'routes_v2.php',
-];
-
-// 2. IGNORES PRO DATEIART (Werden zusätzlich zu den globalen Ignores beachtet)
-const IGNORE_BY_TYPE = {
-    js: {
-        dirs: ['public/assets'],
-        files: ['svgo.config.*', 'purgecss.config.*', 'eslint.config.*', 'commitlint.config.*'],
-    },
-    php: {
-        dirs: ['tests'],
-        files: ['*php-cs-fixer.dist*', 'rector.php'],
-    },
-    phtml: {
-        dirs: [],
-        files: [],
-    },
-    scss: {
-        dirs: [],
-        files: [],
-    },
-    sql: {
-        dirs: [],
-        files: [],
-    },
-};
-
-// =============================================================================
 
 const c = {
     reset: '\x1b[0m',
@@ -81,14 +17,14 @@ const c = {
     gray: '\x1b[90m',
 };
 
-// --- 1. Grundkonfiguration ---
+// --- 1. Grundkonfiguration & Pfade ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const basePath = path.resolve(__dirname, '..');
+const basePath = path.resolve(__dirname, '..'); // Nimmt an, das Skript liegt in einem Unterordner (z.B. /tools/)
 
 let globalIncludeRootFiles = false;
 
-// Version aus package.json lesen (Dies bleibt synchron, da es nur 1x beim Start passiert)
+// Version aus package.json lesen
 let version = 'unknown';
 try {
     const pkg = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json'), 'utf-8'));
@@ -97,8 +33,76 @@ try {
     console.warn(`${c.yellow}⚠️ package.json nicht gefunden oder fehlerhaft.${c.reset}`);
 }
 
-// Dynamischer Zielordner basierend auf der Version
 const debugFolder = path.join(basePath, '.debug', version);
+
+// =============================================================================
+// KONFIGURATION AUSLAGERN & LADEN
+// =============================================================================
+const configPath = path.join(__dirname, 'collect-config.json');
+
+const defaultConfig = {
+    ALWAYS_IGNORE_DIRS: [
+        '.build',
+        '.cache',
+        '.debug',
+        '.git',
+        '.github',
+        '.husky',
+        '.vscode',
+        'backups',
+        'cache',
+        'docs',
+        'logs',
+        'node_modules',
+        'scripts',
+        'tools',
+        'vendor',
+    ],
+    ALWAYS_IGNORE_PATHS: ['public/assets', 'public/dev'],
+    ALWAYS_IGNORE_FILES: [
+        '*.lock',
+        '*-lock.json',
+        '.DS_Store',
+        '*.min.js',
+        '*.min.css',
+        '*.local.*',
+        'routes_v2.php',
+    ],
+    IGNORE_BY_TYPE: {
+        js: {
+            dirs: ['public/assets'],
+            files: ['svgo.config.*', 'purgecss.config.*', 'eslint.config.*', 'commitlint.config.*'],
+        },
+        php: { dirs: ['tests'], files: ['*php-cs-fixer.dist*', 'rector.php'] },
+        phtml: { dirs: [], files: [] },
+        scss: { dirs: [], files: [] },
+        sql: { dirs: [], files: [] },
+    },
+    ENV_FILES: ['composer.json', 'package.json', 'deptrac.yaml', 'phpstan.neon.dist'],
+    SQL_TARGET_DIR: 'database/migrations',
+};
+
+let userConfig;
+try {
+    if (!fs.existsSync(configPath)) {
+        fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 4), 'utf-8');
+        userConfig = defaultConfig;
+        console.log(`${c.dim}ℹ️ Config erstellt: ${configPath}${c.reset}`);
+    } else {
+        userConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    }
+} catch (_e) {
+    console.warn(
+        `${c.yellow}⚠️ Fehler beim Laden der collect-config.json. Nutze Standardwerte.${c.reset}`
+    );
+    userConfig = defaultConfig;
+}
+
+// Zuweisung der Config-Werte
+const ALWAYS_IGNORE_DIRS = userConfig.ALWAYS_IGNORE_DIRS || [];
+const ALWAYS_IGNORE_PATHS = userConfig.ALWAYS_IGNORE_PATHS || [];
+const ALWAYS_IGNORE_FILES = userConfig.ALWAYS_IGNORE_FILES || [];
+const IGNORE_BY_TYPE = userConfig.IGNORE_BY_TYPE || {};
 
 // --- 2. Filter-Konfigurationen ---
 const configs = {
@@ -106,47 +110,41 @@ const configs = {
         name: 'PhpCode',
         filter: /\.php$/,
         ext: '.md',
-        exclDirs: IGNORE_BY_TYPE.php.dirs,
-        exclFiles: IGNORE_BY_TYPE.php.files,
+        exclDirs: IGNORE_BY_TYPE.php?.dirs || [],
+        exclFiles: IGNORE_BY_TYPE.php?.files || [],
     },
     PHTML: {
         name: 'PhtmlCode',
         filter: /\.phtml$/,
         ext: '.md',
-        exclDirs: IGNORE_BY_TYPE.phtml.dirs,
-        exclFiles: IGNORE_BY_TYPE.phtml.files,
+        exclDirs: IGNORE_BY_TYPE.phtml?.dirs || [],
+        exclFiles: IGNORE_BY_TYPE.phtml?.files || [],
     },
     JS: {
         name: 'JsCode',
         filter: /\.js$/,
         ext: '.md',
-        exclDirs: IGNORE_BY_TYPE.js.dirs,
-        exclFiles: IGNORE_BY_TYPE.js.files,
+        exclDirs: IGNORE_BY_TYPE.js?.dirs || [],
+        exclFiles: IGNORE_BY_TYPE.js?.files || [],
     },
     SCSS: {
         name: 'ScssCode',
         filter: /\.scss$/,
         ext: '.md',
-        exclDirs: IGNORE_BY_TYPE.scss.dirs,
-        exclFiles: IGNORE_BY_TYPE.scss.files,
+        exclDirs: IGNORE_BY_TYPE.scss?.dirs || [],
+        exclFiles: IGNORE_BY_TYPE.scss?.files || [],
     },
     SQL: {
         name: 'SqlMigrations',
         filter: /\.sql$/,
         ext: '.md',
-        targetDir: 'database/migrations',
-        exclDirs: IGNORE_BY_TYPE.sql.dirs,
-        exclFiles: IGNORE_BY_TYPE.sql.files,
+        targetDir: userConfig.SQL_TARGET_DIR || 'database/migrations',
+        exclDirs: IGNORE_BY_TYPE.sql?.dirs || [],
+        exclFiles: IGNORE_BY_TYPE.sql?.files || [],
     },
     ENV: {
         name: 'Entwicklungsumgebung',
-        explicitFiles: [
-            'composer.json',
-            'package.json',
-            'deptrac.yaml',
-            'phpstan.neon.dist',
-            // '.github/workflows/deploy.yml',
-        ],
+        explicitFiles: userConfig.ENV_FILES || [],
         ext: '.md',
     },
 };
@@ -165,10 +163,7 @@ function estimateTokens(text) {
  */
 function sanitizeJsonContent(filePath, rawContent) {
     const baseName = path.basename(filePath).toLowerCase();
-
-    if (baseName !== 'composer.json' && baseName !== 'package.json') {
-        return rawContent;
-    }
+    if (baseName !== 'composer.json' && baseName !== 'package.json') return rawContent;
 
     try {
         const parsed = JSON.parse(rawContent);
@@ -178,7 +173,6 @@ function sanitizeJsonContent(filePath, rawContent) {
             if ('name' in parsed) parsed.name = '';
             if ('description' in parsed) parsed.description = '';
             if ('license' in parsed) parsed.license = '';
-
             if (Array.isArray(parsed.authors)) {
                 parsed.authors.forEach((author) => {
                     if (typeof author === 'object') {
@@ -196,7 +190,6 @@ function sanitizeJsonContent(filePath, rawContent) {
             if ('author' in parsed) parsed.author = '';
             if ('license' in parsed) parsed.license = '';
         }
-
         return JSON.stringify(parsed, null, indent);
     } catch (_e) {
         // Falls das JSON defekt ist, geben wir sicherheitshalber den Roh-Inhalt zurück
@@ -205,20 +198,10 @@ function sanitizeJsonContent(filePath, rawContent) {
 }
 
 function formatContent(content) {
-    // Teilt den Inhalt in einzelne Zeilen auf
-    const lines = content.split(/\r?\n/);
-    const formattedLines = [];
-
-    for (let i = 0; i < lines.length; i++) {
-        // trim() entfernt führende UND abschließende Leerzeichen (wie z.B. unsichtbare Spaces am Zeilenende).
-        // Der Code selbst (Kommentare, Operatoren, etc.) bleibt völlig unangetastet.
-        const line = lines[i].trim();
-
-        // Wir behalten leere Zeilen bei, filtern sie aber auf absolut "leer" (0 Zeichen)
-        formattedLines.push(line);
-    }
-
-    return formattedLines.join('\n');
+    return content
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .join('\n');
 }
 
 /**
@@ -234,10 +217,7 @@ function generateTreeString(files) {
         let current = tree;
         for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
-            if (!current[part]) {
-                // Letztes Element (Datei) wird null, Ordner werden als {} angelegt
-                current[part] = i === parts.length - 1 ? null : {};
-            }
+            if (!current[part]) current[part] = i === parts.length - 1 ? null : {};
             current = current[part];
         }
     }
@@ -259,9 +239,7 @@ function generateTreeString(files) {
             const key = keys[i];
             const isLast = i === keys.length - 1;
             const pointer = isLast ? '└── ' : '├── ';
-
             result += `${prefix}${pointer}${key}\n`;
-
             if (node[key] !== null) {
                 // Wenn es ein Ordner ist -> rekursiv absteigen
                 const nextPrefix = prefix + (isLast ? '    ' : '│   ');
@@ -270,7 +248,6 @@ function generateTreeString(files) {
         }
         return result;
     }
-
     return renderNode(tree);
 }
 
@@ -310,9 +287,8 @@ function isDirExcludedByList(relPath, patterns = []) {
     const subPaths = segments.map((_, idx) => segments.slice(0, idx + 1).join('/'));
     return patterns.some((pattern) => {
         const normalizedPattern = pattern.replace(/\\/g, '/');
-        if (normalizedPattern.includes('/')) {
+        if (normalizedPattern.includes('/'))
             return subPaths.some((sub) => matchPattern(sub, normalizedPattern));
-        }
         return segments.some((segment) => matchPattern(segment, normalizedPattern));
     });
 }
@@ -326,9 +302,8 @@ function isFileExcludedByList(fileName, relFilePath, patterns = []) {
     const normalizedRelFile = relFilePath.replace(/\\/g, '/');
     return patterns.some((pattern) => {
         const normalizedPattern = pattern.replace(/\\/g, '/');
-        if (normalizedPattern.includes('/')) {
+        if (normalizedPattern.includes('/'))
             return matchPattern(normalizedRelFile, normalizedPattern);
-        }
         return matchPattern(fileName, normalizedPattern);
     });
 }
@@ -345,7 +320,6 @@ async function getFiles(
     currentFiles = []
 ) {
     const files = await fsPromises.readdir(dir);
-
     for (const file of files) {
         const fullPath = path.join(dir, file);
         const relPath = path.relative(basePath, fullPath);
@@ -359,13 +333,11 @@ async function getFiles(
                 isDirExcludedByList(relPath, ALWAYS_IGNORE_PATHS) ||
                 isDirExcludedByList(relPath, exclDirs);
 
-            if (!isExcludedDir) {
+            if (!isExcludedDir)
                 await getFiles(fullPath, filter, exclDirs, exclFiles, includeRoot, currentFiles);
-            }
         } else {
             const isRootFile = path.dirname(fullPath) === basePath;
             if (!includeRoot && isRootFile) continue;
-
             if (!filter.test(file)) continue;
 
             // Dateiart bestimmen (z.B. 'js', 'php', 'phtml', 'scss', 'sql')
@@ -416,7 +388,7 @@ async function getFilesForConfig(conf, silent = false) {
             const fullPath = path.join(basePath, normalizedPath);
             if (fs.existsSync(fullPath)) {
                 foundFiles.push({
-                    fullPath: fullPath,
+                    fullPath,
                     relPath: normalizedPath,
                     ext: path.extname(fullPath),
                 });
@@ -446,41 +418,52 @@ async function getFilesForConfig(conf, silent = false) {
 }
 
 /**
- * Asynchron: Wandelt Dateiinhalte in formatierten Markdown-Code um
+ * PARALLELES LESEN: Verarbeitet Dateien asynchron in Chunks für maximale Performance
  */
 async function processFilesToMarkdown(foundFiles, silent = false) {
     let combinedContent = '';
-    for (const file of foundFiles) {
-        try {
-            // Asynchrones Lesen der Datei
-            let rawContent = await fsPromises.readFile(file.fullPath, 'utf-8');
-            rawContent = sanitizeJsonContent(file.relPath, rawContent);
-            const formattedContent = formatContent(rawContent);
+    const chunkSize = 50; // Liest 50 Dateien gleichzeitig (verhindert EMFILE Error)
 
-            const extName = file.ext.toLowerCase().replace('.', '');
-            const langMap = {
-                js: 'javascript',
-                php: 'php',
-                phtml: 'phtml',
-                scss: 'scss',
-                json: 'json',
-                yml: 'yaml',
-                yaml: 'yaml',
-                sql: 'sql',
-            };
-            const lang = langMap[extName] || extName;
-            const mdPath = file.relPath.replace(/\\/g, '/');
+    for (let i = 0; i < foundFiles.length; i += chunkSize) {
+        const chunk = foundFiles.slice(i, i + chunkSize);
 
-            combinedContent += `### /${mdPath}\n`;
-            combinedContent += `\`\`\`${lang}\n`;
-            combinedContent += `${formattedContent}\n`;
-            combinedContent += `\`\`\`\n\n`;
+        // Führt alle Lese-Operationen dieses Chunks parallel aus
+        const chunkResults = await Promise.all(
+            chunk.map(async (file) => {
+                try {
+                    let rawContent = await fsPromises.readFile(file.fullPath, 'utf-8');
+                    rawContent = sanitizeJsonContent(file.relPath, rawContent);
+                    const formattedContent = formatContent(rawContent);
 
-            if (!silent) console.log(`${c.gray} + [Gesammelt] ${file.relPath}${c.reset}`);
-        } catch (_e) {
-            if (!silent)
-                console.log(`${c.gray} ! Überspringe (Binär/Fehler?): ${file.relPath}${c.reset}`);
-        }
+                    const extName = file.ext.toLowerCase().replace('.', '');
+                    const langMap = {
+                        js: 'javascript',
+                        php: 'php',
+                        phtml: 'phtml',
+                        scss: 'scss',
+                        json: 'json',
+                        yml: 'yaml',
+                        yaml: 'yaml',
+                        sql: 'sql',
+                    };
+                    const lang = langMap[extName] || extName;
+                    const mdPath = file.relPath.replace(/\\/g, '/');
+
+                    if (!silent) console.log(`${c.gray} + [Gesammelt] ${file.relPath}${c.reset}`);
+
+                    return `### /${mdPath}\n\`\`\`${lang}\n${formattedContent}\n\`\`\`\n\n`;
+                } catch (_e) {
+                    if (!silent)
+                        console.log(
+                            `${c.gray} ! Überspringe (Binär/Fehler?): ${file.relPath}${c.reset}`
+                        );
+                    return '';
+                }
+            })
+        );
+
+        // Fügt die Ergebnisse geordnet dem End-String hinzu
+        combinedContent += chunkResults.join('');
     }
     return combinedContent;
 }
@@ -507,25 +490,32 @@ async function startStructureMirror() {
     }
 
     let count = 0;
-    for (const file of foundFiles) {
-        try {
-            let rawContent = await fsPromises.readFile(file.fullPath, 'utf-8');
-            rawContent = sanitizeJsonContent(file.relPath, rawContent);
-            const formattedContent = formatContent(rawContent);
+    const chunkSize = 50; // Paralleles Spiegeln
 
-            const fileOutputDir = path.join(targetDir, path.dirname(file.relPath));
-            const fileOutputPath = path.join(targetDir, file.relPath);
+    for (let i = 0; i < foundFiles.length; i += chunkSize) {
+        const chunk = foundFiles.slice(i, i + chunkSize);
 
-            if (!fs.existsSync(fileOutputDir)) {
-                await fsPromises.mkdir(fileOutputDir, { recursive: true });
-            }
+        await Promise.all(
+            chunk.map(async (file) => {
+                try {
+                    let rawContent = await fsPromises.readFile(file.fullPath, 'utf-8');
+                    rawContent = sanitizeJsonContent(file.relPath, rawContent);
+                    const formattedContent = formatContent(rawContent);
 
-            await fsPromises.writeFile(fileOutputPath, formattedContent, 'utf-8');
-            count++;
-            console.log(`${c.gray} + [Spiegeln] ${file.relPath}${c.reset}`);
-        } catch (e) {
-            console.log(`${c.red} ! Fehler bei Datei: ${file.relPath} (${e.message})${c.reset}`);
-        }
+                    const fileOutputDir = path.join(targetDir, path.dirname(file.relPath));
+                    const fileOutputPath = path.join(targetDir, file.relPath);
+
+                    await fsPromises.mkdir(fileOutputDir, { recursive: true });
+                    await fsPromises.writeFile(fileOutputPath, formattedContent, 'utf-8');
+                    count++;
+                    console.log(`${c.gray} + [Spiegeln] ${file.relPath}${c.reset}`);
+                } catch (e) {
+                    console.log(
+                        `${c.red} ! Fehler bei Datei: ${file.relPath} (${e.message})${c.reset}`
+                    );
+                }
+            })
+        );
     }
 
     console.log(
@@ -539,9 +529,7 @@ async function startFileCollection(configKey, silent = false) {
     const outputName = `${conf.name}_${timestamp}_collected${conf.ext}`;
     const outputPath = path.join(debugFolder, outputName);
 
-    if (!fs.existsSync(debugFolder)) {
-        await fsPromises.mkdir(debugFolder, { recursive: true });
-    }
+    if (!fs.existsSync(debugFolder)) await fsPromises.mkdir(debugFolder, { recursive: true });
 
     if (!silent)
         console.log(`\n${c.cyan}🚀 Starte RAW-Sammlung: ${c.bright}${conf.name}${c.reset}...`);
@@ -556,10 +544,8 @@ async function startFileCollection(configKey, silent = false) {
     // Baumstruktur und Code generieren
     const treeString = generateTreeString(foundFiles);
     const codeContent = await processFilesToMarkdown(foundFiles, silent);
-
     const finalContent = `## 📁 Datei-Struktur\n\n\`\`\`text\n${treeString}\`\`\`\n\n---\n\n${codeContent}`;
 
-    // Tokens berechnen & Speichern
     const tokens = estimateTokens(finalContent);
     await fsPromises.writeFile(outputPath, finalContent, 'utf-8');
 
@@ -577,24 +563,21 @@ async function startProjectSummary(selectedKeys, silent = false) {
     const outputName = `ProjektZusammenfassung_${timestamp}_collected.md`;
     const outputPath = path.join(debugFolder, outputName);
 
-    if (!fs.existsSync(debugFolder)) {
-        await fsPromises.mkdir(debugFolder, { recursive: true });
-    }
-
+    if (!fs.existsSync(debugFolder)) await fsPromises.mkdir(debugFolder, { recursive: true });
     if (!silent)
         console.log(
             `\n${c.cyan}🚀 Starte Projekt-Zusammenfassung (Kategorien: ${selectedKeys.join(', ')})...${c.reset}`
         );
 
     let totalContent = '';
-    let allFoundFiles = [];
+    const allFoundFiles = [];
 
     // Alle Dateien erst sammeln, um einen globalen Projekt-Baum zu bauen
     for (const key of selectedKeys) {
         const conf = configs[key];
         const foundFiles = await getFilesForConfig(conf, true);
         if (foundFiles.length > 0) {
-            allFoundFiles.push(...foundFiles); // Für den globalen Baum zusammenfügen
+            allFoundFiles.push(...foundFiles);
             totalContent += `\n# === BEREICH: ${conf.name} ===\n\n`;
             totalContent += await processFilesToMarkdown(foundFiles, silent);
         }
@@ -633,12 +616,9 @@ function showHelp() {
         },
         {
             Argument: '--env',
-            Beschreibung: 'Sammelt Entwicklungsumgebungs-Dateien (composer.json etc.)',
+            Beschreibung: 'Sammelt Entwicklungsumgebungs-Dateien',
         },
-        {
-            Argument: '--project',
-            Beschreibung: 'Projektweite Zusammenfassung (Alle Code-Dateien in eine Datei)',
-        },
+        { Argument: '--project', Beschreibung: 'Projektweite Zusammenfassung' },
         {
             Argument: '--mirror',
             Beschreibung: 'Spiegelt die gesamte Ordnerstruktur',
@@ -668,18 +648,14 @@ function parseUserSelection(input) {
         5: 'SQL',
         6: 'ENV',
     };
-
     const parts = input.split(',').map((s) => s.trim());
     const selected = [];
     for (const p of parts) {
-        if (map[p] && !selected.includes(map[p])) {
-            selected.push(map[p]);
-        }
+        if (map[p] && !selected.includes(map[p])) selected.push(map[p]);
     }
     return selected.length > 0 ? selected : allKeys;
 }
 
-// --- 4. CLI & ASYNCHRONES Menü Handling ---
 const args = process.argv.slice(2);
 
 // Haupt-Ausführungsblock (Unterstützt Top-Level-Await dank ESM)
@@ -722,6 +698,7 @@ if (args.length > 0) {
             console.log(`${c.cyan}===============================================`);
             console.log(`${c.cyan}    ${c.bright}DATEI-ZUSAMMENFASSUNG (RAW/COLLECTED)${c.reset}`);
             console.log(`${c.cyan}    Root: ${c.gray}${basePath}${c.reset}`);
+            console.log(`${c.cyan}    Config: ${c.gray}${configPath}${c.reset}`);
             console.log(`${c.cyan}    Ziel: ${c.yellow}.debug/${version}/${c.reset}`);
             console.log(`${c.cyan}===============================================${c.reset}`);
             console.log(`${c.bright} 1)${c.reset} PHP (*.md)`);
@@ -729,7 +706,7 @@ if (args.length > 0) {
             console.log(`${c.bright} 3)${c.reset} JavaScript (*.md)`);
             console.log(`${c.bright} 4)${c.reset} SCSS (*.md)`);
             console.log(
-                `${c.bright} 5)${c.reset} ${c.cyan}SQL MIGRATIONS${c.reset} (database/migrations/*.sql)`
+                `${c.bright} 5)${c.reset} ${c.cyan}SQL MIGRATIONS${c.reset} (${userConfig.SQL_TARGET_DIR || 'database/migrations'}/*.sql)`
             );
             console.log(
                 `${c.bright} 6)${c.reset} ${c.blue}ENTWICKLUNGSUMGEBUNG${c.reset} (composer, yaml, etc.)`
@@ -756,40 +733,31 @@ if (args.length > 0) {
                 rl.close();
                 process.exit();
             }
-
             if (choice === 'H') {
                 showHelp();
                 await rl.question('Drücke Enter für Menü...');
                 continue;
             }
-
             if (choice === 'T') {
                 globalIncludeRootFiles = !globalIncludeRootFiles;
                 continue;
             }
-
             if (choice === 'A') {
                 const sel = await rl.question(
                     `\n${c.yellow}Welche Bereiche nacheinander ausführen? (z.B. 1,3,6 | Enter für alle): ${c.reset}`
                 );
-                const keys = parseUserSelection(sel);
-                for (const k of keys) {
-                    await startFileCollection(k);
-                }
+                for (const k of parseUserSelection(sel)) await startFileCollection(k);
                 await rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`);
                 continue;
             }
-
             if (choice === '7') {
                 const sel = await rl.question(
                     `\n${c.magenta}Welche Bereiche in EINE Zusammenfassung packen? (z.B. 1,2,6 | Enter für alle): ${c.reset}`
                 );
-                const keys = parseUserSelection(sel);
-                await startProjectSummary(keys);
+                await startProjectSummary(parseUserSelection(sel));
                 await rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`);
                 continue;
             }
-
             if (choice === '8') {
                 await startStructureMirror();
                 await rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`);
@@ -804,7 +772,6 @@ if (args.length > 0) {
                 5: 'SQL',
                 6: 'ENV',
             };
-
             if (map[choice]) {
                 await startFileCollection(map[choice]);
                 await rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`);
@@ -814,6 +781,5 @@ if (args.length > 0) {
             }
         }
     }
-
     runMenu();
 }
