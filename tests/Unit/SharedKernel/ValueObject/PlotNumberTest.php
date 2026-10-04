@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
-use InvalidArgumentException;
 
 \covers(PlotNumber::class);
 
@@ -29,7 +28,7 @@ use InvalidArgumentException;
     'over max limit' => 10000,
     'contains letters' => '12A',
     'special characters' => '12-3',
-])->throws(InvalidArgumentException::class);
+])->throws(\InvalidArgumentException::class);
 
 \test('it correctly compares two plot numbers for equality', function (): void {
     $plot1 = new PlotNumber(123);

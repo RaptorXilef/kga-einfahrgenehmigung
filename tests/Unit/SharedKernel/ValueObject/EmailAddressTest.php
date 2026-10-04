@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
-use InvalidArgumentException;
 
 \covers(EmailAddress::class);
 
@@ -29,7 +28,7 @@ use InvalidArgumentException;
     'missing domain' => 'test@',
     'missing user' => '@example.com',
     'invalid chars' => 'test @example.com',
-])->throws(InvalidArgumentException::class);
+])->throws(\InvalidArgumentException::class);
 
 \test('it correctly compares two email addresses for equality', function (): void {
     $email1 = new EmailAddress('test@example.com');
