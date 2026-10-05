@@ -35,7 +35,7 @@ use App\Modules\Identity\Domain\User;
 \test('it throws exception for too short passwords', function (): void {
     $user = new User('usr_1', 'admin', 'role_admin', 'hash', 'v0.0.0');
     $user->changePassword('short1!');
-})->throws(DomainException::class, 'Das neue Passwort muss mindestens 8 Zeichen lang sein.');
+})->throws(\DomainException::class, 'Das neue Passwort muss mindestens 8 Zeichen lang sein.');
 
 \test('it allows renaming and updating role', function (): void {
     $user = new User('usr_1', 'old_name', 'role_1', 'hash', 'v0');
@@ -53,7 +53,7 @@ use App\Modules\Identity\Domain\User;
 })->with([
     'empty name' => ['rename', '   '],
     'empty role' => ['changeRole', ''],
-])->throws(DomainException::class);
+])->throws(\DomainException::class);
 
 \test('it updates the last seen changelog version', function (): void {
     $user = new User('usr_1', 'name', 'role', 'hash', 'v1.0.0');

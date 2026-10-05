@@ -24,7 +24,7 @@ use App\Modules\Identity\Domain\Role;
 \test('it throws exception when renaming to an empty string', function (): void {
     $role = new Role('role_123', 'Valid Name', []);
     $role->rename('   ');
-})->throws(DomainException::class, 'Der Rollenname darf nicht leer sein.');
+})->throws(\DomainException::class, 'Der Rollenname darf nicht leer sein.');
 
 \test('it allows updating permissions', function (): void {
     $role = new Role('role_123', 'Name', ['old.perm']);

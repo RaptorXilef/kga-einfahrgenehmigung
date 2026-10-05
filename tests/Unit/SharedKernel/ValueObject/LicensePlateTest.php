@@ -12,8 +12,8 @@ use App\SharedKernel\Domain\ValueObject\LicensePlate;
     \expect($plate->value)->toBe($expected);
 })->with([
     'standard plate' => ['B-ML 1234', 'B-ML 1234'],
-    'lowercase'      => ['b-xx 99', 'B-XX 99'],
-    'with spaces'    => ['  HD-AB 123  ', 'HD-AB 123'],
+    'lowercase' => ['b-xx 99', 'B-XX 99'],
+    'with spaces' => ['  HD-AB 123  ', 'HD-AB 123'],
 ]);
 
 \test('it normalizes license plates for safe comparisons', function (string $input, string $normalized): void {
@@ -21,10 +21,10 @@ use App\SharedKernel\Domain\ValueObject\LicensePlate;
 
     \expect($plate->getNormalized())->toBe($normalized);
 })->with([
-    'standard plate'       => ['B-ML 1234', 'BML1234'],
-    'multiple spaces'      => ['B  ML  1234', 'BML1234'],
-    'special chars'        => ['B:ML_1234!', 'BML1234'],
-    'anonymized fallback'  => ['XXX-XX 9999', 'XXXXX9999'],
+    'standard plate' => ['B-ML 1234', 'BML1234'],
+    'multiple spaces' => ['B  ML  1234', 'BML1234'],
+    'special chars' => ['B:ML_1234!', 'BML1234'],
+    'anonymized fallback' => ['XXX-XX 9999', 'XXXXX9999'],
 ]);
 
 \test('it correctly compares two license plates regardless of formatting', function (): void {
@@ -40,4 +40,4 @@ use App\SharedKernel\Domain\ValueObject\LicensePlate;
 
 \test('it throws exception for empty license plates', function (): void {
     new LicensePlate('   ');
-})->throws(InvalidArgumentException::class, 'Das Kennzeichen darf nicht leer sein.');
+})->throws(\InvalidArgumentException::class, 'Das Kennzeichen darf nicht leer sein.');

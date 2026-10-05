@@ -12,7 +12,7 @@ use App\SharedKernel\Infrastructure\Utils\SystemClock;
 
 \covers(RateLimitMiddleware::class);
 
-beforeEach(function (): void {
+\beforeEach(function (): void {
     if (\session_status() === \PHP_SESSION_NONE) {
         \session_start();
     }

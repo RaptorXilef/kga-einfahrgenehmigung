@@ -20,7 +20,7 @@ class Setup
     ];
 
     private const array TOOLS = [
-        'tools/infection.phar' => 'https://github.com/infection/infection/releases/latest/download/infection.phar',
+        //'tools/infection.phar' => 'https://github.com/infection/infection/releases/latest/download/infection.phar',
         'tools/phpcpd.phar'    => 'https://phar.phpunit.de/phpcpd.phar',
     ];
 

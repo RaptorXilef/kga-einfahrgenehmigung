@@ -1,10 +1,13 @@
 {
-    $schema: 'https://raw.githubusercontent.com/infection/infection/0.31.9/resources/schema.json',
-    source: {
-        directories: ['src'],
+    "source": {
+        "directories": ["src"]
     },
-    mutators: {
-        '@default': true,
+    "logs": {
+        "html": ".build/reports/infection.html",
+        "text": ".build/reports/infection.log"
     },
-    testFramework: 'pest',
+    "mutators": {
+        "@default": true
+    },
+    "testFramework": "pest"
 }

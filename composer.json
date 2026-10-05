@@ -49,7 +49,8 @@
     "squizlabs/php_codesniffer": "^4.0",
     "phpmd/phpmd": "^3.0",
     "spaze/phpstan-disallowed-calls": "^4.14",
-    "pestphp/pest-plugin-mutate": "^4.0"
+    "pestphp/pest-plugin-mutate": "^4.0",
+    "infection/infection": "^0.35.6"
   },
   "autoload": {
     "psr-4": {
@@ -70,7 +71,8 @@
     "allow-plugins": {
       "phpstan/extension-installer": true,
       "pestphp/pest-plugin": true,
-      "dealerdirect/phpcodesniffer-composer-installer": true
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "infection/extension-installer": true
     }
   },
   "extra": {
@@ -114,8 +116,11 @@
     "test:wiring": "php scripts/smoke_test.php",
     "test": "pest --parallel",
     "test:full": "pest --parallel --display-deprecations",
-    "test:coverage": "php scripts/pest_coverage.php --coverage --coverage-html .build/reports/phpunit-html",
-    "test:mutation": "php scripts/pest_coverage.php --mutate=src",
+    "test:coverage": "pest --coverage",
+    "// Wir rufen die .phar Datei im tools/ Ordner direkt auf": "",
+    "test:mutation": [
+      "pest --mutate=src --everything"
+    ],
 
     "// --- PHASE 3: FIXING & FORMATTING ---": "Aktive Code-Manipulation",
     "fix:modern": "rector process",

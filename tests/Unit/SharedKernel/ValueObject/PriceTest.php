@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use App\SharedKernel\Domain\ValueObject\Price;
 
-\covers(Price::class);
+covers(Price::class);
 
-\test('it creates a valid price and formats it correctly', function (float $amount, string $expectedFormat): void {
+test('it creates a valid price and formats it correctly', function (float $amount, string$expectedFormat): void {
     $price = new Price($amount);
 
-    \expect($price->amount)->toBe($amount)
+    expect($price->amount)->toBe($amount)
         ->and($price->getFormatted())->toBe($expectedFormat);
 })->with([
     'standard price' => [15.50, '15,50 €'],
@@ -17,7 +17,7 @@ use App\SharedKernel\Domain\ValueObject\Price;
     'large number' => [1234.56, '1.234,56 €'],
 ]);
 
-\test('it identifies free prices correctly with float tolerance', function (float $amount, bool $isFree): void {
+test('it identifies free prices correctly with float tolerance', function (float $amount, bool $isFree): void {
     $price = new Price($amount);
 
     \expect($price->isFree())->toBe($isFree);
@@ -28,7 +28,7 @@ use App\SharedKernel\Domain\ValueObject\Price;
     'normal price' => [5.0, false],
 ]);
 
-\test('it correctly compares two prices for equality', function (): void {
+test('it correctly compares two prices for equality', function (): void {
     $price1 = new Price(10.50);
     $price2 = new Price(10.50);
     $price3 = new Price(10.51);
@@ -37,6 +37,6 @@ use App\SharedKernel\Domain\ValueObject\Price;
         ->and($price1->equals($price3))->toBeFalse();
 });
 
-\test('it throws exception for negative prices', function (): void {
+test('it throws exception for negative prices', function (): void {
     new Price(-1.50);
 })->throws(\InvalidArgumentException::class, 'Ein Preis darf nicht negativ sein.');
