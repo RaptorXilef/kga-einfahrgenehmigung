@@ -117,6 +117,7 @@
     "test:coverage": "phpunit --coverage-html .build/reports/phpunit-html",
     "test:mutation": "infection --threads=max --show-mutations --coverage=.cache/phpunit",
     "test:mutation:full": "infection --threads=max --show-mutations",
+    "test:mutation:kernel": "infection --threads=max --show-mutations --coverage=.cache/phpunit --filter=src/SharedKernel",
 
     "// --- PHASE 3: FIXING & FORMATTING ---": "Aktive Code-Manipulation",
     "fix:modern": "rector process",

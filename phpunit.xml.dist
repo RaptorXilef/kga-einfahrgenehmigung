@@ -46,6 +46,9 @@
             <clover outputFile=".cache/phpunit/clover.xml" />
             <html outputDirectory=".build/reports/phpunit-html" lowUpperBound="50" highLowerBound="90" />
             <xml outputDirectory=".cache/phpunit/coverage-xml" />
+            <!-- Text-Tabelle direkt in die Konsole streamen -->
+            <text outputFile="php://stdout" showUncoveredFiles="true" showOnlySummary="false" />
+            <!--<text outputFile="php://stdout" showUncoveredFiles="false" showOnlySummary="false" />-->
         </report>
     </coverage>
 
