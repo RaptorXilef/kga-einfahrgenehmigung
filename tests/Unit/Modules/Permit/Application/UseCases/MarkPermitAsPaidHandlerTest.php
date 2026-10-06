@@ -22,6 +22,7 @@ use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 use DomainException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider; // FIX: Das hier hat gefehlt!
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -42,8 +43,11 @@ final class MarkPermitAsPaidHandlerTest extends TestCase
     }
 
     #[Test]
-    public function itSuccessfullyMarksAnOpenPermitAsPaidAndSavesIt(): void
-    {
+    #[DataProvider('bookingDateProvider')]
+    public function itHandlesDifferentBookingDateFormats(
+        ?string $inputDate,
+        string $expectedDateString,
+    ): void {
         $permit = $this->createUnpaidPermitForHandler();
 
         $repository = $this->createMock(PermitRepositoryInterface::class);
@@ -54,10 +58,23 @@ final class MarkPermitAsPaidHandlerTest extends TestCase
         $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-04 12:00:00'));
 
         $handler = new MarkPermitAsPaidHandler($repository, $clock);
-        $handler->handle(new MarkPermitAsPaidCommand('TEST-1234', 'Barzahlung', '04.10.2026'));
+
+        $handler->handle(new MarkPermitAsPaidCommand('TEST-1234', 'Grund', $inputDate));
 
         $this->assertTrue($permit->isPaid());
-        $this->assertSame('Barzahlung', $permit->getInternalComment());
+        $this->assertSame($expectedDateString, $permit->getPaidAt()->format('Y-m-d H:i:s'));
+    }
+
+    public static function bookingDateProvider(): array
+    {
+        return [
+            // Durch das "!" im Handler ist die Zeit hier nun deterministisch auf 00:00:00 genullt
+            'long year format' => ['05.10.2026', '2026-10-05 00:00:00'],
+            'short year format' => ['05.10.26', '2026-10-05 00:00:00'],
+            // Der Fallback nutzt unser sauberes ClockInterface Mock (12:00:00)
+            'invalid string falls back to now' => ['Kartoffelsalat', '2026-10-04 12:00:00'],
+            'null falls back to now' => [null, '2026-10-04 12:00:00'],
+        ];
     }
 
     #[Test]
@@ -73,5 +90,31 @@ final class MarkPermitAsPaidHandlerTest extends TestCase
         $this->expectExceptionMessage('Genehmigung UNKNOWN nicht gefunden.');
 
         $handler->handle(new MarkPermitAsPaidCommand('UNKNOWN'));
+    }
+
+    #[Test]
+    public function itAppendsTheReasonIfACommentAlreadyExists(): void
+    {
+        $permit = new Permit(
+            new PermitCode('TEST-1234'),
+            new TemplateKey('std_7'),
+            new Owner('Name', null, new PlotNumber(42)),
+            new Vehicle('pkw', new LicensePlate('B-XX 123')),
+            new Validity(new DateTimeImmutable(), new DateTimeImmutable(), new Price(10.0), 'Privat'),
+            new Status(PermitStatus::Offen),
+            new DateTimeImmutable(),
+            'Alter Kommentar',
+        );
+
+        $repository = $this->createStub(PermitRepositoryInterface::class);
+        $repository->method('findByCode')->willReturn($permit);
+        $clock = $this->createStub(ClockInterface::class);
+        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-04 12:00:00'));
+
+        $handler = new MarkPermitAsPaidHandler($repository, $clock);
+        $handler->handle(new MarkPermitAsPaidCommand('TEST-1234', 'Neuer Grund'));
+
+        // Killt den String-Concat Mutanten!
+        $this->assertSame('Alter Kommentar | Neuer Grund', $permit->getInternalComment());
     }
 }

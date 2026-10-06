@@ -84,7 +84,8 @@ final class Permit
 
     public function isExpired(DateTimeImmutable $now): bool
     {
-        return $this->validity->bis < $now;
+        //return $this->validity->bis < $now;
+        return $this->validity->bis->setTime(23, 59, 59) < $now;
     }
 
     public function isFuture(DateTimeImmutable $now): bool

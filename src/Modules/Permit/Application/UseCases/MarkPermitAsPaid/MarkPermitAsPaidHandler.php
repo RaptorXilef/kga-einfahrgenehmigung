@@ -41,9 +41,10 @@ final readonly class MarkPermitAsPaidHandler implements CommandHandlerInterface
         // Datum parsen
         $dtBezahltAm = null;
         if ($command->bookingDate) {
-            $dateObj = DateTimeImmutable::createFromFormat('d.m.y', \trim($command->bookingDate));
+            // FIX: Das "!" nullt die Uhrzeit (00:00:00), anstatt die echte Systemzeit reinzumischen
+            $dateObj = DateTimeImmutable::createFromFormat('!d.m.y', \trim($command->bookingDate));
             if ($dateObj === false) {
-                $dateObj = DateTimeImmutable::createFromFormat('d.m.Y', \trim($command->bookingDate));
+                $dateObj = DateTimeImmutable::createFromFormat('!d.m.Y', \trim($command->bookingDate));
             }
             $dtBezahltAm = $dateObj !== false ? $dateObj : $this->clock->now();
         } else {

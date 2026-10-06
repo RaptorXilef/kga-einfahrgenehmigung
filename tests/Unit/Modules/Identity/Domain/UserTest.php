@@ -33,9 +33,38 @@ final class UserTest extends TestCase
         $this->assertTrue($user->verifyPassword('OldP4ssw0rd!'));
         $this->assertFalse($user->verifyPassword('WrongPass'));
 
-        $user->changePassword('NewP4ssw0rd!');
-        $this->assertTrue($user->verifyPassword('NewP4ssw0rd!'));
+        $user->changePassword('NewP4ssw0rd!12');
+        $this->assertTrue($user->verifyPassword('NewP4ssw0rd!12'));
         $this->assertFalse($user->verifyPassword('OldP4ssw0rd!'));
+    }
+
+    #[Test]
+    public function itEnforcesPasswordLengthBoundaries(): void
+    {
+        $user = new User('usr_1', 'admin', 'role_admin', 'hash', 'v0.0.0');
+
+        // KILLT DEN MUTANTEN (<= 8 Zeichen): 8 Zeichen MÜSSEN erlaubt sein!
+        $user->changePassword('12345678');
+        $this->assertTrue($user->verifyPassword('12345678'));
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Das neue Passwort muss mindestens 8 Zeichen lang sein.');
+
+        // 7 Zeichen knallen!
+        $user->changePassword('1234567');
+    }
+
+    #[Test]
+    public function itAllowsRenamingAndUpdatingRoleWithTrimming(): void
+    {
+        $user = new User('usr_1', 'old_name', 'role_1', 'hash', 'v0');
+
+        // KILLT DEN MUTANTEN (trim() validation):
+        $user->rename('  new_name  ');
+        $user->changeRole('  role_2  ');
+
+        $this->assertSame('new_name', $user->getUsername());
+        $this->assertSame('role_2', $user->getRoleId());
     }
 
     #[Test]
@@ -52,7 +81,7 @@ final class UserTest extends TestCase
     {
         return [
             'empty name' => ['rename', '   '],
-            'empty role' => ['changeRole', ''],
+            'empty role' => ['changeRole', '   '],
         ];
     }
 }

@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace App\Tests\Unit\Application\Middleware;
 
 use App\Application\Http\ServerRequest;
@@ -10,6 +12,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthorizationInterface;
 use App\SharedKernel\Infrastructure\Utils\SystemClock;
+use Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -27,7 +30,7 @@ final class AuthMiddlewareTest extends TestCase
     }
 
     #[Test]
-    public function it_allows_admin_access_if_user_is_properly_logged_in(): void
+    public function itAllowsAdminAccessIfUserIsProperlyLoggedIn(): void
     {
         $auth = $this->createStub(AuthorizationInterface::class);
         $auth->method('isLoggedIn')->willReturn(true);
@@ -40,11 +43,11 @@ final class AuthMiddlewareTest extends TestCase
         $request = new ServerRequest(server: ['REQUEST_URI' => '/admin']);
 
         $response = $middleware->process($request, fn () => new HtmlResponse('Admin Area'));
-        self::assertInstanceOf(HtmlResponse::class, $response);
+        $this->assertInstanceOf(HtmlResponse::class, $response);
     }
 
     #[Test]
-    public function it_redirects_to_login_if_user_is_not_logged_in(): void
+    public function itRedirectsToLoginIfUserIsNotLoggedIn(): void
     {
         $auth = $this->createStub(AuthorizationInterface::class);
         $auth->method('isLoggedIn')->willReturn(false);
@@ -54,12 +57,17 @@ final class AuthMiddlewareTest extends TestCase
         $config->method('getBaseUrl')->willReturn('https://app.local/');
 
         $middleware = new AuthMiddleware($session, $config, $auth);
-        $request = new ServerRequest(server: ['REQUEST_URI' => '/admin'], get: ['code' => 'XYZ']);
 
-        $next = fn () => throw new \Exception('Sollte nicht passieren!');
+        // KILLT DEN MUTANTEN: Übergabe von Code mit Leerzeichen um das trim() zu erzwingen!
+        $request = new ServerRequest(server: ['REQUEST_URI' => '/admin'], get: ['code' => '  XYZ  ']);
+
+        $next = fn () => throw new Exception('Sollte nicht passieren!');
+
+        /** @var RedirectResponse $response */
         $response = $middleware->process($request, $next);
 
-        self::assertInstanceOf(RedirectResponse::class, $response);
-        self::assertSame('https://app.local/admin_login?code=XYZ', $response->url);
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        // Erwarte, dass die Leerzeichen weggetrimmt wurden, bevor die URL gebaut wird
+        $this->assertSame('https://app.local/admin_login?code=XYZ', $response->url);
     }
 }
