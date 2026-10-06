@@ -42,7 +42,7 @@ final class AuthMiddlewareTest extends TestCase
         $middleware = new AuthMiddleware($session, $config, $auth);
         $request = new ServerRequest(server: ['REQUEST_URI' => '/admin']);
 
-        $response = $middleware->process($request, fn () => new HtmlResponse('Admin Area'));
+        $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('Admin Area'));
         $this->assertInstanceOf(HtmlResponse::class, $response);
     }
 
@@ -59,7 +59,7 @@ final class AuthMiddlewareTest extends TestCase
         $middleware = new AuthMiddleware($session, $config, $auth);
 
         // KILLT DEN MUTANTEN: Übergabe von Code mit Leerzeichen um das trim() zu erzwingen!
-        $request = new ServerRequest(server: ['REQUEST_URI' => '/admin'], get: ['code' => '  XYZ  ']);
+        $request = new ServerRequest(get: ['code' => '  XYZ  '], server: ['REQUEST_URI' => '/admin']);
 
         $next = fn () => throw new Exception('Sollte nicht passieren!');
 

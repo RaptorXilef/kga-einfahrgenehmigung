@@ -24,7 +24,6 @@ final class SystemBootstrapper
         $container = new Container($configInstance);
 
         $logger = $container->get(ErrorLoggerInterface::class);
-        \assert($logger instanceof ErrorLoggerInterface);
 
         $exceptionHandler = new GlobalExceptionHandler($configInstance, $logger);
         $exceptionHandler->register();

@@ -1,9 +1,12 @@
 <?php
+
 declare(strict_types=1);
+
 namespace App\Tests\Unit\SharedKernel\ValueObject;
 
 use App\SharedKernel\Domain\ValueObject\PermitCode;
 use InvalidArgumentException;
+use Iterator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -14,25 +17,23 @@ final class PermitCodeTest extends TestCase
 {
     #[Test]
     #[DataProvider('validCodeProvider')]
-    public function it_accepts_and_normalizes_valid_permit_codes(string $input, string $expected): void
+    public function itAcceptsAndNormalizesValidPermitCodes(string $input, string $expected): void
     {
         $code = new PermitCode($input);
-        self::assertSame($expected, $code->value);
+        $this->assertSame($expected, $code->value);
     }
 
-    public static function validCodeProvider(): array
+    public static function validCodeProvider(): Iterator
     {
-        return [
-            'standard code' => ['A1B2C3D4', 'A1B2C3D4'],
-            'lowercase code' => ['a1b2c3d4', 'A1B2C3D4'],
-            'with leading spaces' => ['  CODE123', 'CODE123'],
-            'with dashes' => ['ML-0020-B-1234', 'ML-0020-B-1234'],
-        ];
+        yield 'standard code' => ['A1B2C3D4', 'A1B2C3D4'];
+        yield 'lowercase code' => ['a1b2c3d4', 'A1B2C3D4'];
+        yield 'with leading spaces' => ['  CODE123', 'CODE123'];
+        yield 'with dashes' => ['ML-0020-B-1234', 'ML-0020-B-1234'];
     }
 
     #[Test]
     #[DataProvider('invalidCodeProvider')]
-    public function it_throws_exception_for_empty_permit_codes(string $invalidInput): void
+    public function itThrowsExceptionForEmptyPermitCodes(string $invalidInput): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Der Permit-Code darf nicht leer sein.');
@@ -40,11 +41,9 @@ final class PermitCodeTest extends TestCase
         new PermitCode($invalidInput);
     }
 
-    public static function invalidCodeProvider(): array
+    public static function invalidCodeProvider(): Iterator
     {
-        return [
-            'empty string' => [''],
-            'spaces only' => ['   '],
-        ];
+        yield 'empty string' => [''];
+        yield 'spaces only' => ['   '];
     }
 }

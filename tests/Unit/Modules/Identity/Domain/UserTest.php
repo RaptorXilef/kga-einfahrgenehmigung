@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Modules\Identity\Domain;
 
 use App\Modules\Identity\Domain\User;
 use DomainException;
+use Iterator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -77,11 +78,9 @@ final class UserTest extends TestCase
         $user->$method($invalidValue);
     }
 
-    public static function invalidUserPropsProvider(): array
+    public static function invalidUserPropsProvider(): Iterator
     {
-        return [
-            'empty name' => ['rename', '   '],
-            'empty role' => ['changeRole', '   '],
-        ];
+        yield 'empty name' => ['rename', '   '];
+        yield 'empty role' => ['changeRole', '   '];
     }
 }

@@ -21,6 +21,7 @@ use App\SharedKernel\Domain\ValueObject\Price;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 use DomainException;
+use Iterator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -65,19 +66,17 @@ final class MarkPermitAsPaidHandlerTest extends TestCase
         $this->assertSame($expectedDateString, $permit->getPaidAt()->format('Y-m-d H:i:s'));
     }
 
-    public static function bookingDateProvider(): array
+    public static function bookingDateProvider(): Iterator
     {
-        return [
-            // Durch das "!" im Handler ist die Zeit hier nun deterministisch auf 00:00:00 genullt
-            'long year format' => ['05.10.2026', '2026-10-05 00:00:00'],
-            'short year format' => ['05.10.26', '2026-10-05 00:00:00'],
-            // KILLT MUTANTEN 2 & 3: Erzwingt das trim() vor createFromFormat
-            'long year format with spaces' => ['  05.10.2026  ', '2026-10-05 00:00:00'],
-            'short year format with spaces' => ['  05.10.26  ', '2026-10-05 00:00:00'],
-            // Der Fallback nutzt unser sauberes ClockInterface Mock (12:00:00)
-            'invalid string falls back to now' => ['Kartoffelsalat', '2026-10-04 12:00:00'],
-            'null falls back to now' => [null, '2026-10-04 12:00:00'],
-        ];
+        // Durch das "!" im Handler ist die Zeit hier nun deterministisch auf 00:00:00 genullt
+        yield 'long year format' => ['05.10.2026', '2026-10-05 00:00:00'];
+        yield 'short year format' => ['05.10.26', '2026-10-05 00:00:00'];
+        // KILLT MUTANTEN 2 & 3: Erzwingt das trim() vor createFromFormat
+        yield 'long year format with spaces' => ['  05.10.2026  ', '2026-10-05 00:00:00'];
+        yield 'short year format with spaces' => ['  05.10.26  ', '2026-10-05 00:00:00'];
+        // Der Fallback nutzt unser sauberes ClockInterface Mock (12:00:00)
+        yield 'invalid string falls back to now' => ['Kartoffelsalat', '2026-10-04 12:00:00'];
+        yield 'null falls back to now' => [null, '2026-10-04 12:00:00'];
     }
 
     #[Test]

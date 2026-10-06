@@ -6,6 +6,7 @@ namespace App\Tests\Unit\SharedKernel\ValueObject;
 
 use App\SharedKernel\Domain\ValueObject\IpAddress;
 use InvalidArgumentException;
+use Iterator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -24,16 +25,14 @@ final class IpAddressTest extends TestCase
         $this->assertSame($expected, (string) $ip);
     }
 
-    public static function validIpProvider(): array
+    public static function validIpProvider(): Iterator
     {
-        return [
-            'standard IPv4' => ['192.168.1.1', '192.168.1.1'],
-            'localhost v4' => ['127.0.0.1', '127.0.0.1'],
-            'standard IPv6' => ['2001:0db8:85a3:0000:0000:8a2e:0370:7334', '2001:0db8:85a3:0000:0000:8a2e:0370:7334'],
-            'localhost v6' => ['::1', '::1'],
-            // KILLT MUTANTE 7: Sichert das trim() bei der Eingabe ab
-            'with spaces' => ['  192.168.1.1  ', '192.168.1.1'],
-        ];
+        yield 'standard IPv4' => ['192.168.1.1', '192.168.1.1'];
+        yield 'localhost v4' => ['127.0.0.1', '127.0.0.1'];
+        yield 'standard IPv6' => ['2001:0db8:85a3:0000:0000:8a2e:0370:7334', '2001:0db8:85a3:0000:0000:8a2e:0370:7334'];
+        yield 'localhost v6' => ['::1', '::1'];
+        // KILLT MUTANTE 7: Sichert das trim() bei der Eingabe ab
+        yield 'with spaces' => ['  192.168.1.1  ', '192.168.1.1'];
     }
 
     #[Test]
@@ -47,13 +46,11 @@ final class IpAddressTest extends TestCase
         new IpAddress($invalidInput);
     }
 
-    public static function invalidIpProvider(): array
+    public static function invalidIpProvider(): Iterator
     {
-        return [
-            'empty string' => ['   ', 'IP-Adresse darf nicht leer sein.'],
-            'invalid format' => ['192.168.1', 'Ungültiges IP-Adressen-Format: 192.168.1'],
-            'out of range v4' => ['256.256.256.256', 'Ungültiges IP-Adressen-Format: 256.256.256.256'],
-            'text instead IP' => ['localhost', 'Ungültiges IP-Adressen-Format: localhost'],
-        ];
+        yield 'empty string' => ['   ', 'IP-Adresse darf nicht leer sein.'];
+        yield 'invalid format' => ['192.168.1', 'Ungültiges IP-Adressen-Format: 192.168.1'];
+        yield 'out of range v4' => ['256.256.256.256', 'Ungültiges IP-Adressen-Format: 256.256.256.256'];
+        yield 'text instead IP' => ['localhost', 'Ungültiges IP-Adressen-Format: localhost'];
     }
 }

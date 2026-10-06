@@ -6,6 +6,7 @@ namespace App\Tests\Unit\SharedKernel\ValueObject;
 
 use App\SharedKernel\Domain\ValueObject\VoucherCode;
 use InvalidArgumentException;
+use Iterator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -24,13 +25,11 @@ final class VoucherCodeTest extends TestCase
         $this->assertSame($expected, (string) $code);
     }
 
-    public static function validVoucherProvider(): array
+    public static function validVoucherProvider(): Iterator
     {
-        return [
-            'standard code' => ['V-1234-ABCD', 'V-1234-ABCD'],
-            'lowercase' => ['sommer26', 'SOMMER26'],
-            'with spaces' => ['  WINTER-2026  ', 'WINTER-2026'],
-        ];
+        yield 'standard code' => ['V-1234-ABCD', 'V-1234-ABCD'];
+        yield 'lowercase' => ['sommer26', 'SOMMER26'];
+        yield 'with spaces' => ['  WINTER-2026  ', 'WINTER-2026'];
     }
 
     #[Test]

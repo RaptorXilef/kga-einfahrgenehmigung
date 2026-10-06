@@ -6,6 +6,7 @@ namespace App\Tests\Unit\SharedKernel\ValueObject;
 
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 use InvalidArgumentException;
+use Iterator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -23,14 +24,12 @@ final class EmailAddressTest extends TestCase
         $this->assertSame($expected, (string) $email);
     }
 
-    public static function validEmailProvider(): array
+    public static function validEmailProvider(): Iterator
     {
-        return [
-            'standard email' => ['test@example.com', 'test@example.com'],
-            'uppercase to lower' => ['TEST@EXAMPLE.COM', 'test@example.com'],
-            'with leading spaces' => ['  user@domain.de', 'user@domain.de'],
-            'complex valid' => ['first.last+alias@sub.domain.co.uk', 'first.last+alias@sub.domain.co.uk'],
-        ];
+        yield 'standard email' => ['test@example.com', 'test@example.com'];
+        yield 'uppercase to lower' => ['TEST@EXAMPLE.COM', 'test@example.com'];
+        yield 'with leading spaces' => ['  user@domain.de', 'user@domain.de'];
+        yield 'complex valid' => ['first.last+alias@sub.domain.co.uk', 'first.last+alias@sub.domain.co.uk'];
     }
 
     #[Test]
@@ -41,14 +40,12 @@ final class EmailAddressTest extends TestCase
         new EmailAddress($invalidInput);
     }
 
-    public static function invalidEmailProvider(): array
+    public static function invalidEmailProvider(): Iterator
     {
-        return [
-            'empty string' => [''],
-            'spaces only' => ['   '],
-            'missing at sign' => ['testexample.com'],
-            'invalid chars' => ['test @example.com'],
-        ];
+        yield 'empty string' => [''];
+        yield 'spaces only' => ['   '];
+        yield 'missing at sign' => ['testexample.com'];
+        yield 'invalid chars' => ['test @example.com'];
     }
 
     #[Test]

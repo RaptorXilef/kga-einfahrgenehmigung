@@ -38,32 +38,32 @@ final class EventServiceProvider implements ServiceProviderInterface
         $dispatcher = $container->get(EventDispatcherInterface::class);
 
         // Der Container baut die konkreten Listener vollautomatisch (Autowiring) zusammen!
-        $dispatcher->addListener(PermitCreatedEvent::class, fn ($event) => $container->get(
+        $dispatcher->addListener(PermitCreatedEvent::class, fn (PermitCreatedEvent $event) => $container->get(
             SendPermitMailListener::class,
         )->handle($event));
 
-        $dispatcher->addListener(VerificationRequestedEvent::class, fn ($event) => $container->get(
+        $dispatcher->addListener(VerificationRequestedEvent::class, fn (VerificationRequestedEvent $event) => $container->get(
             SendVerificationMailListener::class,
         )->handle($event));
 
-        $dispatcher->addListener(MagicLinkRequestedEvent::class, fn ($event) => $container->get(
+        $dispatcher->addListener(MagicLinkRequestedEvent::class, fn (MagicLinkRequestedEvent $event) => $container->get(
             SendMagicLinkMailListener::class,
         )->handle($event));
 
-        $dispatcher->addListener(RoleDeletedEvent::class, fn ($event) => $container->get(
+        $dispatcher->addListener(RoleDeletedEvent::class, fn (RoleDeletedEvent $event) => $container->get(
             DeleteGroupImageListener::class,
         )->handle($event));
 
-        $dispatcher->addListener(PaymentReminderEvent::class, fn ($event) => $container->get(
+        $dispatcher->addListener(PaymentReminderEvent::class, fn (PaymentReminderEvent $event) => $container->get(
             SendPaymentReminderMailListener::class,
         )->handle($event));
 
-        $dispatcher->addListener(PermitCancelledEvent::class, fn ($event) => $container->get(
+        $dispatcher->addListener(PermitCancelledEvent::class, fn (PermitCancelledEvent $event) => $container->get(
             SendPermitCancelledMailListener::class,
         )->handle($event));
 
         // Cross-Module Integration Event (Finance -> Permit)
-        $dispatcher->addListener(BankPaymentAssignedEvent::class, fn ($event) => $container->get(
+        $dispatcher->addListener(BankPaymentAssignedEvent::class, fn (BankPaymentAssignedEvent $event) => $container->get(
             MarkPermitPaidOnBankPaymentListener::class,
         )->handle($event));
     }

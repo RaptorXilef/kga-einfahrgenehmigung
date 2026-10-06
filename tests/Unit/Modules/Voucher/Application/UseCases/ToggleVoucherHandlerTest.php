@@ -10,6 +10,7 @@ use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 use DateTimeImmutable;
 use DomainException;
+use Iterator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -53,12 +54,10 @@ final class ToggleVoucherHandlerTest extends TestCase
         $this->assertSame(!$expectedActive, $voucher->isDeactivated());
     }
 
-    public static function toggleStatusProvider(): array
+    public static function toggleStatusProvider(): Iterator
     {
-        return [
-            'deactivate voucher' => ['deaktiviert', false],
-            'activate voucher' => ['aktiv', true],
-        ];
+        yield 'deactivate voucher' => ['deaktiviert', false];
+        yield 'activate voucher' => ['aktiv', true];
     }
 
     #[Test]

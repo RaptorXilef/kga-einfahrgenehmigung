@@ -37,9 +37,6 @@ final readonly class MarkPermitAsPaidHandler implements CommandHandlerInterface
         if (!$permit instanceof Permit) {
             throw new DomainException("Genehmigung {$command->code} nicht gefunden.");
         }
-
-        // Datum parsen
-        $dtBezahltAm = null;
         if ($command->bookingDate) {
             // FIX: Das "!" nullt die Uhrzeit (00:00:00), anstatt die echte Systemzeit reinzumischen
             $dateObj = DateTimeImmutable::createFromFormat('!d.m.y', \trim($command->bookingDate));

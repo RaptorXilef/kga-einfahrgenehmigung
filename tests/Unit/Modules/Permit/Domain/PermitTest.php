@@ -50,7 +50,7 @@ final class PermitTest extends TestCase
         $this->assertSame('test@example.com', $permit->getOwnerEmail());
         $this->assertSame('B-XX 123', $permit->getLicensePlate());
         $this->assertSame('Test Firma', $permit->getCompany());
-        $this->assertSame(10.0, $permit->getPrice());
+        $this->assertEqualsWithDelta(10.0, $permit->getPrice(), \PHP_FLOAT_EPSILON);
         $this->assertFalse($permit->isPaid());
         $this->assertFalse($permit->isSuspended());
     }
