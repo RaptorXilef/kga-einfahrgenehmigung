@@ -20,7 +20,7 @@ test('it creates a valid price and formats it correctly', function (float $amoun
 test('it identifies free prices correctly with float tolerance', function (float $amount, bool $isFree): void {
     $price = new Price($amount);
 
-    \expect($price->isFree())->toBe($isFree);
+    expect($price->isFree())->toBe($isFree);
 })->with([
     'exactly zero' => [0.0, true],
     'micro amount' => [0.001, true],
@@ -33,7 +33,7 @@ test('it correctly compares two prices for equality', function (): void {
     $price2 = new Price(10.50);
     $price3 = new Price(10.51);
 
-    \expect($price1->equals($price2))->toBeTrue()
+    expect($price1->equals($price2))->toBeTrue()
         ->and($price1->equals($price3))->toBeFalse();
 });
 

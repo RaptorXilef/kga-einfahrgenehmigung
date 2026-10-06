@@ -37,7 +37,7 @@
             ]
         },
         "php": {
-            "dirs": ["tests"],
+            "dirs": [],
             "files": ["*php-cs-fixer.dist*", "rector.php"]
         },
         "phtml": {
@@ -54,11 +54,15 @@
         }
     },
     "ENV_FILES": [
+        ".php-cs-fixer.dist.php",
         "composer.json",
-        "package.json",
         "deptrac.yaml",
+        "infection.json5",
+        "package.json",
+        "phpcs.xml.dist",
         "phpstan.neon.dist",
-        "phpunit.xml.dist"
+        "phpunit.xml.dist",
+        "rector.php"
     ],
     "SQL_TARGET_DIR": "database/migrations"
 }

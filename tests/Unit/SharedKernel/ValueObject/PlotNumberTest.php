@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
 
-\covers(PlotNumber::class);
+covers(PlotNumber::class);
 
-\test('it accepts valid plot numbers and formats them correctly', function (int|string $input, int $expectedValue, string $expectedFormat): void {
+test('it accepts valid plot numbers and formats them correctly', function (int|string $input, int $expectedValue, string $expectedFormat): void {
     $plot = new PlotNumber($input);
 
-    \expect($plot->value)->toBe($expectedValue)
+    expect($plot->value)->toBe($expectedValue)
         ->and($plot->getFormatted())->toBe($expectedFormat)
         ->and((string) $plot)->toBe($expectedFormat);
 })->with([
@@ -20,7 +20,7 @@ use App\SharedKernel\Domain\ValueObject\PlotNumber;
     'string with spaces' => ['  123  ', 123, '0123'],
 ]);
 
-\test('it throws exception for invalid values', function (int|string $invalidInput): void {
+test('it throws exception for invalid values', function (int|string $invalidInput): void {
     new PlotNumber($invalidInput);
 })->with([
     'empty string' => '   ',
@@ -30,11 +30,11 @@ use App\SharedKernel\Domain\ValueObject\PlotNumber;
     'special characters' => '12-3',
 ])->throws(\InvalidArgumentException::class);
 
-\test('it correctly compares two plot numbers for equality', function (): void {
+test('it correctly compares two plot numbers for equality', function (): void {
     $plot1 = new PlotNumber(123);
     $plot2 = new PlotNumber('0123');
     $plot3 = new PlotNumber(124);
 
-    \expect($plot1->equals($plot2))->toBeTrue()
+    expect($plot1->equals($plot2))->toBeTrue()
         ->and($plot1->equals($plot3))->toBeFalse();
 });

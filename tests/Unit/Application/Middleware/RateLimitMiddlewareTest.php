@@ -10,9 +10,9 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Security\RateLimiterInterface;
 use App\SharedKernel\Infrastructure\Utils\SystemClock;
 
-\covers(RateLimitMiddleware::class);
+covers(RateLimitMiddleware::class);
 
-\beforeEach(function (): void {
+beforeEach(function (): void {
     if (\session_status() === \PHP_SESSION_NONE) {
         \session_start();
     }
@@ -20,7 +20,7 @@ use App\SharedKernel\Infrastructure\Utils\SystemClock;
     $_SESSION = [];
 });
 
-\test('it passes the request to the next layer if IP is not blocked', function (): void {
+test('it passes the request to the next layer if IP is not blocked', function (): void {
     /** @var RateLimiterInterface&\PHPUnit\Framework\MockObject\Stub $limiter */
     $limiter = $this->createStub(RateLimiterInterface::class);
     $limiter->method('isBlocked')->willReturn(false);
@@ -35,10 +35,10 @@ use App\SharedKernel\Infrastructure\Utils\SystemClock;
         return new HtmlResponse('Success');
     });
 
-    \expect($response)->toBeInstanceOf(HtmlResponse::class);
+    expect($response)->toBeInstanceOf(HtmlResponse::class);
 });
 
-\test('it halts the request and redirects if IP is blocked', function (): void {
+test('it halts the request and redirects if IP is blocked', function (): void {
     /** @var RateLimiterInterface&\PHPUnit\Framework\MockObject\Stub $limiter */
     $limiter = $this->createStub(RateLimiterInterface::class);
     $limiter->method('isBlocked')->willReturn(true); // SIMULIERE SPERRE
@@ -58,7 +58,7 @@ use App\SharedKernel\Infrastructure\Utils\SystemClock;
     $response = $middleware->process($request, $next);
 
     // Wir erwarten einen Rauswurf (Redirect) UND eine echte Flash-Message in der Session
-    \expect($response)->toBeInstanceOf(RedirectResponse::class)
+    expect($response)->toBeInstanceOf(RedirectResponse::class)
         ->and($response->url)->toBe('/fallback?sent=0')
         ->and($session->getFlashes())->toHaveKey('error');
 });

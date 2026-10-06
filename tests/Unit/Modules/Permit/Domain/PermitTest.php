@@ -15,7 +15,7 @@ use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use App\SharedKernel\Domain\ValueObject\Price;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 
-\covers(Permit::class);
+covers(Permit::class);
 
 function createTestPermit(\DateTimeImmutable $start, \DateTimeImmutable $end, PermitStatus $status = PermitStatus::Offen): Permit
 {
@@ -30,12 +30,12 @@ function createTestPermit(\DateTimeImmutable $start, \DateTimeImmutable $end, Pe
     );
 }
 
-\test('it initializes correctly and returns data via getters', function (): void {
+test('it initializes correctly and returns data via getters', function (): void {
     $start = new \DateTimeImmutable('2026-10-10');
     $end = new \DateTimeImmutable('2026-10-17');
     $permit = \createTestPermit($start, $end);
 
-    \expect($permit->code->value)->toBe('TEST-1234')
+    expect($permit->code->value)->toBe('TEST-1234')
         ->and($permit->getOwnerName())->toBe('Max Mustermann')
         ->and($permit->getPlotNumber())->toBe('0042')
         ->and($permit->getOwnerEmail())->toBe('test@example.com')
@@ -46,40 +46,40 @@ function createTestPermit(\DateTimeImmutable $start, \DateTimeImmutable $end, Pe
         ->and($permit->isSuspended())->toBeFalse();
 });
 
-\test('it handles payment status transitions', function (): void {
+test('it handles payment status transitions', function (): void {
     $permit = \createTestPermit(new \DateTimeImmutable(), new \DateTimeImmutable());
 
     $paymentDate = new \DateTimeImmutable('2026-10-05 14:00:00');
     $permit->markAsPaid('PayPal Transaktion', $paymentDate);
 
-    \expect($permit->isPaid())->toBeTrue()
+    expect($permit->isPaid())->toBeTrue()
         ->and($permit->getStatus())->toBe(PermitStatus::Bezahlt)
         ->and($permit->getInternalComment())->toBe('PayPal Transaktion')
         ->and($permit->getPaidAt())->toEqual($paymentDate);
 });
 
-\test('it handles suspension logic', function (): void {
+test('it handles suspension logic', function (): void {
     $permit = \createTestPermit(new \DateTimeImmutable(), new \DateTimeImmutable());
 
     $permit->suspend('Gartenordnung verletzt');
-    \expect($permit->isSuspended())->toBeTrue()
+    expect($permit->isSuspended())->toBeTrue()
         ->and($permit->getSuspensionReason())->toBe('Gartenordnung verletzt');
 
     $permit->unsuspend();
-    \expect($permit->isSuspended())->toBeFalse()
+    expect($permit->isSuspended())->toBeFalse()
         ->and($permit->getSuspensionReason())->toBeNull();
 });
 
-\test('it records payment reminders', function (): void {
+test('it records payment reminders', function (): void {
     $permit = \createTestPermit(new \DateTimeImmutable(), new \DateTimeImmutable());
 
     $now = new \DateTimeImmutable('2026-10-05 10:00:00');
     $permit->recordReminder($now);
 
-    \expect($permit->getStatusObject()->last_reminder_at)->toEqual($now);
+    expect($permit->getStatusObject()->last_reminder_at)->toEqual($now);
 });
 
-\test('it validates time validity correctly', function (): void {
+test('it validates time validity correctly', function (): void {
     $start = new \DateTimeImmutable('2026-10-10 00:00:00');
     $end = new \DateTimeImmutable('2026-10-17 00:00:00');
 
@@ -92,7 +92,7 @@ function createTestPermit(\DateTimeImmutable $start, \DateTimeImmutable $end, Pe
     $exactEnd = new \DateTimeImmutable('2026-10-17 23:59:59');
 
     // Without payment requirement
-    \expect($permit->isValid(false, $before))->toBeFalse()
+    expect($permit->isValid(false, $before))->toBeFalse()
         ->and($permit->isValid(false, $inside))->toBeTrue()
         ->and($permit->isValid(false, $exactEnd))->toBeTrue()
         ->and($permit->isValid(false, $after))->toBeFalse()
@@ -100,9 +100,9 @@ function createTestPermit(\DateTimeImmutable $start, \DateTimeImmutable $end, Pe
         ->and($permit->isFuture($before))->toBeTrue();
 
     // With payment requirement (permit is currently 'Offen')
-    \expect($permit->isValid(true, $inside))->toBeFalse();
+    expect($permit->isValid(true, $inside))->toBeFalse();
 
     // Pay it, then it should be valid
     $permit->markAsPaid();
-    \expect($permit->isValid(true, $inside))->toBeTrue();
+    expect($permit->isValid(true, $inside))->toBeTrue();
 });

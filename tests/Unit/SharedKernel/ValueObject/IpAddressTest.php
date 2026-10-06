@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use App\SharedKernel\Domain\ValueObject\IpAddress;
 
-\covers(IpAddress::class);
+covers(IpAddress::class);
 
-\test('it accepts valid IPv4 and IPv6 addresses', function (string $input): void {
+test('it accepts valid IPv4 and IPv6 addresses', function (string $input): void {
     $ip = new IpAddress($input);
 
-    \expect($ip->value)->toBe($input)
+    expect($ip->value)->toBe($input)
         ->and((string) $ip)->toBe($input);
 })->with([
     'standard IPv4' => ['192.168.1.1'],
@@ -18,7 +18,7 @@ use App\SharedKernel\Domain\ValueObject\IpAddress;
     'localhost v6' => ['::1'],
 ]);
 
-\test('it throws exception for invalid IP formats', function (string $invalidInput): void {
+test('it throws exception for invalid IP formats', function (string $invalidInput): void {
     new IpAddress($invalidInput);
 })->with([
     'empty string' => '   ',

@@ -75,7 +75,8 @@
         "mehedidracula.php-namespace-resolver",
         "redhat.vscode-xml",
         "neontoolkit.vscode-neon-toolkit",
-        "rhevorn.confetti"
+        "rhevorn.confetti",
+        "dansysanalyst.pest-snippets"
     ],
     // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
     "unwantedRecommendations": ["htmlhint.vscode-htmlhint", "mikebovenlander.formate"]

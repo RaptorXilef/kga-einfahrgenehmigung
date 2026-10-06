@@ -7,9 +7,9 @@ use App\Modules\Voucher\Application\UseCases\ToggleVoucher\ToggleVoucherHandler;
 use App\Modules\Voucher\Domain\Voucher;
 use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
 
-\covers(ToggleVoucherHandler::class);
+covers(ToggleVoucherHandler::class);
 
-\test('it activates and deactivates an existing voucher', function (string $targetStatus, bool $expectedActive): void {
+test('it activates and deactivates an existing voucher', function (string $targetStatus, bool $expectedActive): void {
     // Gutschein erstellen (Start-Status ist immer 'aktiv' durch die Factory)
     $voucher = Voucher::create(
         'V-123',
@@ -41,14 +41,14 @@ use App\Modules\Voucher\Domain\VoucherRepositoryInterface;
     $handler = new ToggleVoucherHandler($repository);
     $handler->handle(new ToggleVoucherCommand('V-123', $targetStatus));
 
-    \expect($voucher->isActive())->toBe($expectedActive)
+    expect($voucher->isActive())->toBe($expectedActive)
         ->and($voucher->isDeactivated())->toBe(!$expectedActive);
 })->with([
     'deactivate voucher' => ['deaktiviert', false],
     'activate voucher' => ['aktiv', true],
 ]);
 
-\test('it throws an exception when toggling a non-existent voucher', function (): void {
+test('it throws an exception when toggling a non-existent voucher', function (): void {
     /** @var VoucherRepositoryInterface&\PHPUnit\Framework\MockObject\Stub $repository */
     $repository = $this->createStub(VoucherRepositoryInterface::class);
     $repository->method('findByCode')->willReturn(null);

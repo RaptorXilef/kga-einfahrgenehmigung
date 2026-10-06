@@ -11,9 +11,9 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthorizationInterface;
 use App\SharedKernel\Infrastructure\Utils\SystemClock;
 
-\covers(AuthMiddleware::class);
+covers(AuthMiddleware::class);
 
-\beforeEach(function (): void {
+beforeEach(function (): void {
     if (\session_status() === \PHP_SESSION_NONE) {
         \session_start();
     }
@@ -21,7 +21,7 @@ use App\SharedKernel\Infrastructure\Utils\SystemClock;
     $_SESSION = [];
 });
 
-\test('it allows admin access if user is properly logged in', function (): void {
+test('it allows admin access if user is properly logged in', function (): void {
     /** @var AuthorizationInterface&\PHPUnit\Framework\MockObject\Stub $auth */
     $auth = $this->createStub(AuthorizationInterface::class);
     $auth->method('isLoggedIn')->willReturn(true); // User ist eingeloggt
@@ -38,10 +38,10 @@ use App\SharedKernel\Infrastructure\Utils\SystemClock;
 
     $response = $middleware->process($request, fn () => new HtmlResponse('Admin Area'));
 
-    \expect($response)->toBeInstanceOf(HtmlResponse::class);
+    expect($response)->toBeInstanceOf(HtmlResponse::class);
 });
 
-\test('it redirects to login if user is not logged in', function (): void {
+test('it redirects to login if user is not logged in', function (): void {
     /** @var AuthorizationInterface&\PHPUnit\Framework\MockObject\Stub $auth */
     $auth = $this->createStub(AuthorizationInterface::class);
     $auth->method('isLoggedIn')->willReturn(false); // User ist GAST
@@ -63,11 +63,11 @@ use App\SharedKernel\Infrastructure\Utils\SystemClock;
     /** @var RedirectResponse $response */
     $response = $middleware->process($request, $next);
 
-    \expect($response)->toBeInstanceOf(RedirectResponse::class)
+    expect($response)->toBeInstanceOf(RedirectResponse::class)
         ->and($response->url)->toBe('https://app.local/admin_login?code=XYZ');
 });
 
-\test('it routes history requests to history login if no history email is set', function (): void {
+test('it routes history requests to history login if no history email is set', function (): void {
     $session = new SessionManager(new SystemClock());
     $session->clearHistoryEmail(); // Sicherstellen, dass kein Pächter eingeloggt ist
 
@@ -86,6 +86,6 @@ use App\SharedKernel\Infrastructure\Utils\SystemClock;
     /** @var RedirectResponse $response */
     $response = $middleware->process($request, $next);
 
-    \expect($response)->toBeInstanceOf(RedirectResponse::class)
+    expect($response)->toBeInstanceOf(RedirectResponse::class)
         ->and($response->url)->toBe('https://app.local/history_login');
 });

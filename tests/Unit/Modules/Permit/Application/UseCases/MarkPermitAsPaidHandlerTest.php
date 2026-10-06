@@ -18,7 +18,7 @@ use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use App\SharedKernel\Domain\ValueObject\Price;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 
-\covers(MarkPermitAsPaidHandler::class);
+covers(MarkPermitAsPaidHandler::class);
 
 function createUnpaidPermitForHandler(): Permit
 {
@@ -33,7 +33,7 @@ function createUnpaidPermitForHandler(): Permit
     );
 }
 
-\test('it successfully marks an open permit as paid and saves it', function (): void {
+test('it successfully marks an open permit as paid and saves it', function (): void {
     // 1. Arrange: Wir erstellen unsere Mocks
     $permit = \createUnpaidPermitForHandler();
 
@@ -61,11 +61,11 @@ function createUnpaidPermitForHandler(): Permit
     $handler->handle(new MarkPermitAsPaidCommand('TEST-1234', 'Barzahlung', '04.10.2026'));
 
     // 3. Assert: Hat der Handler den Status des Objekts verändert, bevor er save() aufrief?
-    \expect($permit->isPaid())->toBeTrue()
+    expect($permit->isPaid())->toBeTrue()
         ->and($permit->getInternalComment())->toBe('Barzahlung');
 });
 
-\test('it throws an exception if the permit to pay does not exist', function (): void {
+test('it throws an exception if the permit to pay does not exist', function (): void {
     /** @var PermitRepositoryInterface&\PHPUnit\Framework\MockObject\Stub $repository */
     $repository = $this->createStub(PermitRepositoryInterface::class);
     $repository->method('findByCode')->willReturn(null);

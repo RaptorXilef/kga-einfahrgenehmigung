@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 
-\covers(TemplateKey::class);
+covers(TemplateKey::class);
 
-\test('it accepts and normalizes valid template keys', function (string $input, string $expected): void {
+test('it accepts and normalizes valid template keys', function (string $input, string $expected): void {
     $key = new TemplateKey($input);
 
-    \expect($key->value)->toBe($expected);
+    expect($key->value)->toBe($expected);
 })->with([
     'standard key' => ['std_7', 'std_7'],
     'uppercase to lower' => ['PERM_12', 'perm_12'],
@@ -17,7 +17,7 @@ use App\SharedKernel\Domain\ValueObject\TemplateKey;
     'with spaces' => ['  custom_perm  ', 'custom_perm'],
 ]);
 
-\test('it throws exception for empty or invalid template keys', function (string $invalidInput): void {
+test('it throws exception for empty or invalid template keys', function (string $invalidInput): void {
     new TemplateKey($invalidInput);
 })->with([
     'empty string' => '',

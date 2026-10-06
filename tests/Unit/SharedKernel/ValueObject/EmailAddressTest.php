@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
 
-\covers(EmailAddress::class);
+covers(EmailAddress::class);
 
-\test('it accepts and normalizes valid email addresses', function (string $input, string $expected): void {
+test('it accepts and normalizes valid email addresses', function (string $input, string $expected): void {
     $email = new EmailAddress($input);
 
-    \expect($email->value)->toBe($expected)
+    expect($email->value)->toBe($expected)
         ->and((string) $email)->toBe($expected);
 })->with([
     'standard email' => ['test@example.com', 'test@example.com'],
@@ -19,7 +19,7 @@ use App\SharedKernel\Domain\ValueObject\EmailAddress;
     'complex valid' => ['first.last+alias@sub.domain.co.uk', 'first.last+alias@sub.domain.co.uk'],
 ]);
 
-\test('it throws exception for invalid email addresses', function (string $invalidInput): void {
+test('it throws exception for invalid email addresses', function (string $invalidInput): void {
     new EmailAddress($invalidInput);
 })->with([
     'empty string' => '',
@@ -30,11 +30,11 @@ use App\SharedKernel\Domain\ValueObject\EmailAddress;
     'invalid chars' => 'test @example.com',
 ])->throws(\InvalidArgumentException::class);
 
-\test('it correctly compares two email addresses for equality', function (): void {
+test('it correctly compares two email addresses for equality', function (): void {
     $email1 = new EmailAddress('test@example.com');
     $email2 = new EmailAddress(' TEST@example.com ');
     $email3 = new EmailAddress('other@example.com');
 
-    \expect($email1->equals($email2))->toBeTrue()
+    expect($email1->equals($email2))->toBeTrue()
         ->and($email1->equals($email3))->toBeFalse();
 });
