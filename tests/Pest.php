@@ -20,7 +20,7 @@ use App\Tests\TestCase;
 */
 
 // Bindet deine TestCase-Klasse an alle Feature-Tests
-pest()->extend(TestCase::class)->in('Feature');
+pest()->extend(TestCase::class)->in('Unit', 'Feature');
 
 /*
 |--------------------------------------------------------------------------

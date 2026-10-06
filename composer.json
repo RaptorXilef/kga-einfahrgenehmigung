@@ -114,8 +114,8 @@
     "test": "pest --parallel",
     "test:full": "pest --parallel --display-deprecations",
     "test:coverage": "pest --coverage",
-    "test:mutation": "pest --mutate --parallel",
-    "test:mutation:force": "pest --mutate --everything --covered-only --parallel",
+    "test:mutation": "pest --mutate --class=App --clear-cache --parallel",
+    "test:mutation:force": "pest --mutate --class=App --clear-cache --everything --covered-only --parallel",
 
     "// --- PHASE 3: FIXING & FORMATTING ---": "Aktive Code-Manipulation",
     "fix:modern": "rector process",
