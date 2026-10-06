@@ -57,8 +57,11 @@ final readonly class ServerRequest
     {
         $keys = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR'];
         foreach ($keys as $k) {
-            if (isset($this->server[$k]) && \is_string($this->server[$k]) && $this->server[$k] !== '') {
-                $ips = \explode(',', $this->server[$k]);
+            // FIX: Array-Key sicher in Variable laden. Tötet den letzten LogicalAnd Mutanten.
+            $val = $this->server[$k] ?? null;
+
+            if (\is_string($val) && $val !== '') {
+                $ips = \explode(',', $val);
 
                 return \trim($ips[0]);
             }
