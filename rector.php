@@ -28,7 +28,7 @@ return static function (RectorConfig $rectorConfig): void {
     // 1. Pfade definieren
     $rectorConfig->paths([
         __DIR__ . '/src',
-        // __DIR__ . '/tests',
+        __DIR__ . '/tests',
         __DIR__ . '/public',
         __DIR__ . '/config',
     ]);
@@ -50,9 +50,9 @@ return static function (RectorConfig $rectorConfig): void {
         SetList::TYPE_DECLARATION,            // Maximale Typsicherheit (hilft PHPStan Level max)
         SetList::PRIVATIZATION,               // Macht alles privat, was nicht öffentlich sein muss
         SetList::INSTANCEOF,                  // Modernisiert instanceof-Prüfungen
-        SetList::EARLY_RETURN, // Bouncer-Pattern. Löst tiefe Verschachtelungen auf und nutzt 'continue'/'return'
+        SetList::EARLY_RETURN,                // Bouncer-Pattern. Löst tiefe Verschachtelungen auf
 
-        // PHPUnit & Attribute-Migration
+        // PHPUnit & Attribute-Migration (Hilft beim konvertieren alter Bestände)
         // PHPUnitSetList::PHPUNIT_100,          // Basis für v11/v12
         PHPUnitSetList::ANNOTATIONS_TO_ATTRIBUTES,
         PHPUnitSetList::PHPUNIT_CODE_QUALITY,
@@ -67,7 +67,7 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->importShortClasses(false); // Verhindert Namenskollisionen
 
     // 5. Performance & Cache
-    $rectorConfig->parallel();                // Nutzt alle Kerne (wie dein PHPCS/PHPStan)
+    $rectorConfig->parallel();                // Nutzt alle Kerne
     $rectorConfig->cacheDirectory('.cache/rector');
 
     // 6. Sicherheits-Skips (Deine "Battle-Scars" Schutzregeln)

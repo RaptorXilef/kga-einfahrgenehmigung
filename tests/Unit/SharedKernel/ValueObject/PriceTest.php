@@ -6,7 +6,7 @@ use App\SharedKernel\Domain\ValueObject\Price;
 
 covers(Price::class);
 
-test('it creates a valid price and formats it correctly', function (float $amount, string$expectedFormat): void {
+test('it creates a valid price and formats it correctly', function (float $amount, string $expectedFormat): void {
     $price = new Price($amount);
 
     expect($price->amount)->toBe($amount)
