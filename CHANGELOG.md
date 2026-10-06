@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.81.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.81.2...v0.81.3) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **tests:** Correct TestCase binding and enforce mutation target namespace ([c3a64ee](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c3a64ee21d2f0b5aaf9007fa84dbf89518ae03a3))
+* **tests:** enforce xdebug coverage mode for pest child processes on windows ([9244715](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9244715f7dbd71f93437e788dd01f16de86320d2))
+* **tests:** Prevent PHP-CS-Fixer from prefixing Pest functions & deploy robust mutation testing ([190c3d9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/190c3d9444409fa3790684b6b60c65873fd677b0))
+* **tests:** remove redundant use statements and implement domain logic tests ([05ef380](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/05ef3807ce01fc2a80b2aae8ce36b7763e0e0dde))
+* **tests:** remove xdebug ini directive from phpunit config ([3e3a2bd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3e3a2bd19138ebb6722c30ae4f465442c2b4dbca))
+* **tests:** resolve zero mutations issue by passing xdebug mode to subprocesses ([013021c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/013021c60debefbf0e6ea2960e888ba6543ac5ac))
+
+### ⚙️ Refactoring
+
+* **tests:** Clean up global function calls and resolve Pest plugin compatibility ([443966a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/443966ade4a104f678022b94a1dc87dae72dfa0c))
+* **tests:** Make the architectural decision to drop Pest in favor of native PHPUnit & Infection ([0d5ec06](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0d5ec067ad8583f66732794a44fef8b4b682b459))
+
+### 🧪 Tests
+
+* **application:** fix final class mocking errors by using state-based session testing ([df289bb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/df289bb2cd1289951027cce2cf51ee56927e02db))
+* **application:** implement phase 3 use-case handler tests with mocked infrastructure ([e59c0a5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e59c0a5341970db4ec04b120f942da6d5c4f34ca))
+* **application:** resolve mock notices and implement phase 4 middleware tests ([1947e17](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1947e172c4fbb61ac387b5faa07882f4957f9a41))
+* Finalisiere PHPUnit Migration & maximiere Performance mit PCOV ([88a5709](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/88a57097bc8675e102de2b33551258aee0610b8e))
+* **shared-kernel:** remove example test and complete value object test suite ([91a8a24](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/91a8a24169d653dcdb1e19a4d6515fd152a78bcd))
+* **shared-kernel:** setup test architecture and add initial value object tests ([2cdcde5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2cdcde5255d8c1f720553db92e59f4f58776f8b0))
+
 ## [0.81.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.81.1...v0.81.2) (2026-10-04)
 
 ### 🐛 Bug Fixes
