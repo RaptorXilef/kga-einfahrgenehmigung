@@ -31,24 +31,28 @@ final class PlotNumberTest extends TestCase
             'boundary zero' => [0, 0, '0000'],
             'boundary max' => [9999, 9999, '9999'],
             'string with zeros' => ['007', 7, '0007'],
+            // KILLT MUTANTE 9: Wenn trim() entfernt wird, wehrt die Methode "string with spaces" ab.
+            'string with spaces' => ['  123  ', 123, '0123'],
         ];
     }
 
     #[Test]
     #[DataProvider('invalidPlotProvider')]
-    public function itThrowsExceptionForInvalidValues(int|string $invalidInput): void
+    public function itThrowsExceptionForInvalidValues(int|string $invalidInput, string $expectedMessage): void
     {
         $this->expectException(InvalidArgumentException::class);
+        // KILLT MUTANTE 10: Wenn throw gelöscht wird, greift die ctype_digit Validierung anstelle des 'empty' Fehlers
+        $this->expectExceptionMessage($expectedMessage);
         new PlotNumber($invalidInput);
     }
 
     public static function invalidPlotProvider(): array
     {
         return [
-            'empty string' => ['   '],
-            'negative number' => [-1],
-            'over max limit' => [10000],
-            'contains letters' => ['12A'],
+            'empty string' => ['   ', 'Die Parzellennummer darf nicht leer sein.'],
+            'negative number' => [-1, 'Die Parzellennummer muss zwischen 1 und 9999 liegen.'],
+            'over max limit' => [10000, 'Die Parzellennummer muss zwischen 1 und 9999 liegen.'],
+            'contains letters' => ['12A', 'Fehler: Die Parzellennummer darf ausschließlich aus Zahlen bestehen.'],
         ];
     }
 }

@@ -22,7 +22,7 @@ use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 use DomainException;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider; // FIX: Das hier hat gefehlt!
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -71,6 +71,9 @@ final class MarkPermitAsPaidHandlerTest extends TestCase
             // Durch das "!" im Handler ist die Zeit hier nun deterministisch auf 00:00:00 genullt
             'long year format' => ['05.10.2026', '2026-10-05 00:00:00'],
             'short year format' => ['05.10.26', '2026-10-05 00:00:00'],
+            // KILLT MUTANTEN 2 & 3: Erzwingt das trim() vor createFromFormat
+            'long year format with spaces' => ['  05.10.2026  ', '2026-10-05 00:00:00'],
+            'short year format with spaces' => ['  05.10.26  ', '2026-10-05 00:00:00'],
             // Der Fallback nutzt unser sauberes ClockInterface Mock (12:00:00)
             'invalid string falls back to now' => ['Kartoffelsalat', '2026-10-04 12:00:00'],
             'null falls back to now' => [null, '2026-10-04 12:00:00'],
@@ -116,5 +119,30 @@ final class MarkPermitAsPaidHandlerTest extends TestCase
 
         // Killt den String-Concat Mutanten!
         $this->assertSame('Alter Kommentar | Neuer Grund', $permit->getInternalComment());
+    }
+
+    #[Test]
+    public function itDoesNotAppendTheReasonIfItAlreadyExists(): void
+    {
+        // KILLT MUTANTE 4: Verhindert doppelte Gründe (str_contains)
+        $permit = new Permit(
+            new PermitCode('TEST-1234'),
+            new TemplateKey('std_7'),
+            new Owner('Name', null, new PlotNumber(42)),
+            new Vehicle('pkw', new LicensePlate('B-XX 123')),
+            new Validity(new DateTimeImmutable(), new DateTimeImmutable(), new Price(10.0), 'Privat'),
+            new Status(PermitStatus::Offen),
+            new DateTimeImmutable(),
+            'Grund',
+        );
+
+        $repository = $this->createStub(PermitRepositoryInterface::class);
+        $repository->method('findByCode')->willReturn($permit);
+        $clock = $this->createStub(ClockInterface::class);
+
+        $handler = new MarkPermitAsPaidHandler($repository, $clock);
+        $handler->handle(new MarkPermitAsPaidCommand('TEST-1234', 'Grund'));
+
+        $this->assertSame('Grund', $permit->getInternalComment());
     }
 }

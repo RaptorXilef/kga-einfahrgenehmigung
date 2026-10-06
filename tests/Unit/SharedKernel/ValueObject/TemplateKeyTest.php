@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace App\Tests\Unit\SharedKernel\ValueObject;
 
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
@@ -14,10 +16,10 @@ final class TemplateKeyTest extends TestCase
 {
     #[Test]
     #[DataProvider('validKeyProvider')]
-    public function it_accepts_and_normalizes_valid_template_keys(string $input, string $expected): void
+    public function itAcceptsAndNormalizesValidTemplateKeys(string $input, string $expected): void
     {
         $key = new TemplateKey($input);
-        self::assertSame($expected, $key->value);
+        $this->assertSame($expected, $key->value);
     }
 
     public static function validKeyProvider(): array
@@ -32,19 +34,21 @@ final class TemplateKeyTest extends TestCase
 
     #[Test]
     #[DataProvider('invalidKeyProvider')]
-    public function it_throws_exception_for_empty_or_invalid_template_keys(string $invalidInput): void
+    public function itThrowsExceptionForEmptyOrInvalidTemplateKeys(string $invalidInput, string $expectedMessage): void
     {
         $this->expectException(InvalidArgumentException::class);
+        // KILLT MUTANTE 12: Fehler genau validieren
+        $this->expectExceptionMessage($expectedMessage);
         new TemplateKey($invalidInput);
     }
 
     public static function invalidKeyProvider(): array
     {
         return [
-            'empty string' => [''],
-            'spaces only' => ['   '],
-            'special chars' => ['std_7!'],
-            'invalid formatting' => ['my/template'],
+            'empty string' => ['', 'Der Template-Key darf nicht leer sein.'],
+            'spaces only' => ['   ', 'Der Template-Key darf nicht leer sein.'],
+            'special chars' => ['std_7!', 'Ungültiges Format für Template-Key: std_7!'],
+            'invalid formatting' => ['my/template', 'Ungültiges Format für Template-Key: my/template'],
         ];
     }
 }

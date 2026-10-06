@@ -46,6 +46,8 @@ final class ServerRequestTest extends TestCase
             'x forwarded with spaces' => [['HTTP_X_FORWARDED_FOR' => '  10.0.0.5  , 1.2.3.4'], '10.0.0.5'],
             // Non-String Value (Soll ignoriert werden)
             'array instead of string' => [['HTTP_CF_CONNECTING_IP' => ['10.0.0.1'], 'REMOTE_ADDR' => '192.168.1.5'], '192.168.1.5'],
+            // KILLT MUTANTE 1: Wenn eine Zahl anstelle eines Strings übergeben wird
+            'integer instead of string' => [['HTTP_CF_CONNECTING_IP' => 12345, 'REMOTE_ADDR' => '192.168.1.5'], '192.168.1.5'],
             // Empty String Header (Soll ignoriert werden)
             'empty string header' => [['HTTP_CF_CONNECTING_IP' => '', 'REMOTE_ADDR' => '192.168.1.5'], '192.168.1.5'],
             'unknown fallback' => [[], 'unknown'],

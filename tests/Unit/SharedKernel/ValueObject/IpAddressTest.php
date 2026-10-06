@@ -16,39 +16,44 @@ final class IpAddressTest extends TestCase
 {
     #[Test]
     #[DataProvider('validIpProvider')]
-    public function itAcceptsValidIPv4AndIPv6Addresses(string $input): void
+    public function itAcceptsValidIPv4AndIPv6Addresses(string $input, string $expected): void
     {
         $ip = new IpAddress($input);
 
-        $this->assertSame($input, $ip->value);
-        $this->assertSame($input, (string) $ip);
+        $this->assertSame($expected, $ip->value);
+        $this->assertSame($expected, (string) $ip);
     }
 
     public static function validIpProvider(): array
     {
         return [
-            'standard IPv4' => ['192.168.1.1'],
-            'localhost v4' => ['127.0.0.1'],
-            'standard IPv6' => ['2001:0db8:85a3:0000:0000:8a2e:0370:7334'],
-            'localhost v6' => ['::1'],
+            'standard IPv4' => ['192.168.1.1', '192.168.1.1'],
+            'localhost v4' => ['127.0.0.1', '127.0.0.1'],
+            'standard IPv6' => ['2001:0db8:85a3:0000:0000:8a2e:0370:7334', '2001:0db8:85a3:0000:0000:8a2e:0370:7334'],
+            'localhost v6' => ['::1', '::1'],
+            // KILLT MUTANTE 7: Sichert das trim() bei der Eingabe ab
+            'with spaces' => ['  192.168.1.1  ', '192.168.1.1'],
         ];
     }
 
     #[Test]
     #[DataProvider('invalidIpProvider')]
-    public function itThrowsExceptionForInvalidIPFormats(string $invalidInput): void
+    public function itThrowsExceptionForInvalidIPFormats(string $invalidInput, string $expectedMessage): void
     {
         $this->expectException(InvalidArgumentException::class);
+        // KILLT MUTANTE 8: Wirft der Mutator das 'throw' weg, wird der Fehler erst im FILTER_VALIDATE geworfen.
+        // Das ergibt eine andere Exception Message, die wir hier gezielt abfragen.
+        $this->expectExceptionMessage($expectedMessage);
         new IpAddress($invalidInput);
     }
 
     public static function invalidIpProvider(): array
     {
         return [
-            'empty string' => ['   '],
-            'invalid format' => ['192.168.1'],
-            'out of range v4' => ['256.256.256.256'],
-            'text instead IP' => ['localhost'],
+            'empty string' => ['   ', 'IP-Adresse darf nicht leer sein.'],
+            'invalid format' => ['192.168.1', 'Ungültiges IP-Adressen-Format: 192.168.1'],
+            'out of range v4' => ['256.256.256.256', 'Ungültiges IP-Adressen-Format: 256.256.256.256'],
+            'text instead IP' => ['localhost', 'Ungültiges IP-Adressen-Format: localhost'],
         ];
     }
 }

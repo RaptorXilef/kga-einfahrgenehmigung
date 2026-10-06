@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace App\Tests\Unit\SharedKernel\ValueObject;
 
 use App\SharedKernel\Domain\ValueObject\Price;
@@ -14,12 +16,12 @@ final class PriceTest extends TestCase
 {
     #[Test]
     #[DataProvider('validPriceProvider')]
-    public function it_creates_a_valid_price_and_formats_it_correctly(float $amount, string $expectedFormat): void
+    public function itCreatesAValidPriceAndFormatsItCorrectly(float $amount, string $expectedFormat): void
     {
         $price = new Price($amount);
 
-        self::assertSame($amount, $price->amount);
-        self::assertSame($expectedFormat, $price->getFormatted());
+        $this->assertSame($amount, $price->amount);
+        $this->assertSame($expectedFormat, $price->getFormatted());
     }
 
     public static function validPriceProvider(): array
@@ -33,10 +35,10 @@ final class PriceTest extends TestCase
 
     #[Test]
     #[DataProvider('freePriceProvider')]
-    public function it_identifies_free_prices_correctly_with_float_tolerance(float $amount, bool $isFree): void
+    public function itIdentifiesFreePricesCorrectlyWithFloatTolerance(float $amount, bool $isFree): void
     {
         $price = new Price($amount);
-        self::assertSame($isFree, $price->isFree());
+        $this->assertSame($isFree, $price->isFree());
     }
 
     public static function freePriceProvider(): array
@@ -50,18 +52,21 @@ final class PriceTest extends TestCase
     }
 
     #[Test]
-    public function it_correctly_compares_two_prices_for_equality(): void
+    public function itCorrectlyComparesTwoPricesForEquality(): void
     {
         $price1 = new Price(10.50);
         $price2 = new Price(10.50);
         $price3 = new Price(10.51);
+        // KILLT MUTANTE 11: Eine exakte Abweichung von 0.001 muss False ergeben!
+        $price4 = new Price(10.501);
 
-        self::assertTrue($price1->equals($price2));
-        self::assertFalse($price1->equals($price3));
+        $this->assertTrue($price1->equals($price2));
+        $this->assertFalse($price1->equals($price3));
+        $this->assertFalse($price1->equals($price4));
     }
 
     #[Test]
-    public function it_throws_exception_for_negative_prices(): void
+    public function itThrowsExceptionForNegativePrices(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Ein Preis darf nicht negativ sein.');
