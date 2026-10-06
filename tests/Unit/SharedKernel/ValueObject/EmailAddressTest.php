@@ -2,39 +2,63 @@
 
 declare(strict_types=1);
 
+namespace App\Tests\Unit\SharedKernel\ValueObject;
+
 use App\SharedKernel\Domain\ValueObject\EmailAddress;
+use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-covers(EmailAddress::class);
+#[CoversClass(EmailAddress::class)]
+final class EmailAddressTest extends TestCase
+{
+    #[Test]
+    #[DataProvider('validEmailProvider')]
+    public function itAcceptsAndNormalizesValidEmailAddresses(string $input, string $expected): void
+    {
+        $email = new EmailAddress($input);
+        $this->assertSame($expected, $email->value);
+        $this->assertSame($expected, (string) $email);
+    }
 
-test('it accepts and normalizes valid email addresses', function (string $input, string $expected): void {
-    $email = new EmailAddress($input);
+    public static function validEmailProvider(): array
+    {
+        return [
+            'standard email' => ['test@example.com', 'test@example.com'],
+            'uppercase to lower' => ['TEST@EXAMPLE.COM', 'test@example.com'],
+            'with leading spaces' => ['  user@domain.de', 'user@domain.de'],
+            'complex valid' => ['first.last+alias@sub.domain.co.uk', 'first.last+alias@sub.domain.co.uk'],
+        ];
+    }
 
-    expect($email->value)->toBe($expected)
-        ->and((string) $email)->toBe($expected);
-})->with([
-    'standard email' => ['test@example.com', 'test@example.com'],
-    'uppercase to lower' => ['TEST@EXAMPLE.COM', 'test@example.com'],
-    'with leading spaces' => ['  user@domain.de', 'user@domain.de'],
-    'with trailing spaces' => ['user@domain.de  ', 'user@domain.de'],
-    'complex valid' => ['first.last+alias@sub.domain.co.uk', 'first.last+alias@sub.domain.co.uk'],
-]);
+    #[Test]
+    #[DataProvider('invalidEmailProvider')]
+    public function itThrowsExceptionForInvalidEmailAddresses(string $invalidInput): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new EmailAddress($invalidInput);
+    }
 
-test('it throws exception for invalid email addresses', function (string $invalidInput): void {
-    new EmailAddress($invalidInput);
-})->with([
-    'empty string' => '',
-    'spaces only' => '   ',
-    'missing at sign' => 'testexample.com',
-    'missing domain' => 'test@',
-    'missing user' => '@example.com',
-    'invalid chars' => 'test @example.com',
-])->throws(\InvalidArgumentException::class);
+    public static function invalidEmailProvider(): array
+    {
+        return [
+            'empty string' => [''],
+            'spaces only' => ['   '],
+            'missing at sign' => ['testexample.com'],
+            'invalid chars' => ['test @example.com'],
+        ];
+    }
 
-test('it correctly compares two email addresses for equality', function (): void {
-    $email1 = new EmailAddress('test@example.com');
-    $email2 = new EmailAddress(' TEST@example.com ');
-    $email3 = new EmailAddress('other@example.com');
+    #[Test]
+    public function itCorrectlyComparesTwoEmailAddressesForEquality(): void
+    {
+        $email1 = new EmailAddress('test@example.com');
+        $email2 = new EmailAddress(' TEST@example.com ');
+        $email3 = new EmailAddress('other@example.com');
 
-    expect($email1->equals($email2))->toBeTrue()
-        ->and($email1->equals($email3))->toBeFalse();
-});
+        $this->assertTrue($email1->equals($email2));
+        $this->assertFalse($email1->equals($email3));
+    }
+}

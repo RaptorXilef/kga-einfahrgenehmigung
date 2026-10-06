@@ -35,9 +35,6 @@
         <include>
             <!-- Unser Hauptcode -->
             <directory suffix=".php">src</directory>
-
-            <!-- DER MAGISCHE FIX: Bricht das Abschneiden des "src/" Präfixes -->
-            <file>scripts/console.php</file>
         </include>
         <exclude>
             <directory suffix=".php">src/Bootstrap</directory>

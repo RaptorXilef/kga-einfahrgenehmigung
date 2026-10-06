@@ -112,8 +112,8 @@ return (new Config())
         'native_function_invocation' => [
             'include' => ['@all'], // Betrifft alle internen PHP-Funktionen
             'exclude' => [
-                'pest', 'test', 'it', 'expect', 'covers', 'mutates',
-                'beforeEach', 'afterEach', 'beforeAll', 'afterAll', 'describe'
+                // 'pest', 'test', 'it', 'expect', 'covers', 'mutates',
+                // 'beforeEach', 'afterEach', 'beforeAll', 'afterAll', 'describe'
             ],
             'scope' => 'all',    // Überall im Code anwenden
             'strict' => true,

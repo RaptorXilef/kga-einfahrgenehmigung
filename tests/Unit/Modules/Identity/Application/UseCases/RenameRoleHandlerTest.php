@@ -1,44 +1,53 @@
 <?php
-
 declare(strict_types=1);
+
+namespace App\Tests\Unit\Modules\Identity\Application\UseCases;
 
 use App\Modules\Identity\Application\UseCases\ManageRoles\RenameRoleCommand;
 use App\Modules\Identity\Application\UseCases\ManageRoles\RenameRoleHandler;
 use App\Modules\Identity\Domain\Role;
 use App\Modules\Identity\Domain\RoleRepositoryInterface;
+use DomainException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-covers(RenameRoleHandler::class);
+#[CoversClass(RenameRoleHandler::class)]
+final class RenameRoleHandlerTest extends TestCase
+{
+    #[Test]
+    public function itRenamesAnExistingRoleAndSavesItToTheRepository(): void
+    {
+        $role = new Role('role_support', 'Support', ['permits.view']);
 
-test('it renames an existing role and saves it to the repository', function (): void {
-    $role = new Role('role_support', 'Support', ['permits.view']);
+        $repository = $this->createMock(RoleRepositoryInterface::class);
+        $repository->expects($this->once())
+            ->method('findById')
+            ->with('role_support')
+            ->willReturn($role);
 
-    /** @var RoleRepositoryInterface&\PHPUnit\Framework\MockObject\MockObject $repository */
-    $repository = $this->createMock(RoleRepositoryInterface::class);
+        $repository->expects($this->once())
+            ->method('save')
+            ->with($role);
 
-    $repository->expects($this->once())
-        ->method('findById')
-        ->with('role_support')
-        ->willReturn($role);
+        $handler = new RenameRoleHandler($repository);
+        $oldName = $handler->handle(new RenameRoleCommand('role_support', 'Kundenservice'));
 
-    $repository->expects($this->once())
-        ->method('save')
-        ->with($role);
+        $this->assertSame('Support', $oldName);
+        $this->assertSame('Kundenservice', $role->getName());
+    }
 
-    $handler = new RenameRoleHandler($repository);
+    #[Test]
+    public function itThrowsAnExceptionIfTheRoleToRenameDoesNotExist(): void
+    {
+        $repository = $this->createStub(RoleRepositoryInterface::class);
+        $repository->method('findById')->willReturn(null);
 
-    // Der Handler liefert laut Architektur den alten Namen für das Audit-Log zurück
-    $oldName = $handler->handle(new RenameRoleCommand('role_support', 'Kundenservice'));
+        $handler = new RenameRoleHandler($repository);
 
-    expect($oldName)->toBe('Support')
-        ->and($role->getName())->toBe('Kundenservice');
-});
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Rolle nicht gefunden.');
 
-test('it throws an exception if the role to rename does not exist', function (): void {
-    /** @var RoleRepositoryInterface&\PHPUnit\Framework\MockObject\Stub $repository */
-    $repository = $this->createStub(RoleRepositoryInterface::class);
-    $repository->method('findById')->willReturn(null);
-
-    $handler = new RenameRoleHandler($repository);
-
-    $handler->handle(new RenameRoleCommand('role_ghost', 'New Name'));
-})->throws(\DomainException::class, 'Rolle nicht gefunden.');
+        $handler->handle(new RenameRoleCommand('role_ghost', 'New Name'));
+    }
+}

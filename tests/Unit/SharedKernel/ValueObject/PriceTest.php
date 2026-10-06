@@ -1,42 +1,71 @@
 <?php
-
 declare(strict_types=1);
+namespace App\Tests\Unit\SharedKernel\ValueObject;
 
 use App\SharedKernel\Domain\ValueObject\Price;
+use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-covers(Price::class);
+#[CoversClass(Price::class)]
+final class PriceTest extends TestCase
+{
+    #[Test]
+    #[DataProvider('validPriceProvider')]
+    public function it_creates_a_valid_price_and_formats_it_correctly(float $amount, string $expectedFormat): void
+    {
+        $price = new Price($amount);
 
-test('it creates a valid price and formats it correctly', function (float $amount, string $expectedFormat): void {
-    $price = new Price($amount);
+        self::assertSame($amount, $price->amount);
+        self::assertSame($expectedFormat, $price->getFormatted());
+    }
 
-    expect($price->amount)->toBe($amount)
-        ->and($price->getFormatted())->toBe($expectedFormat);
-})->with([
-    'standard price' => [15.50, '15,50 €'],
-    'zero price' => [0.0, '0,00 €'],
-    'large number' => [1234.56, '1.234,56 €'],
-]);
+    public static function validPriceProvider(): array
+    {
+        return [
+            'standard price' => [15.50, '15,50 €'],
+            'zero price' => [0.0, '0,00 €'],
+            'large number' => [1234.56, '1.234,56 €'],
+        ];
+    }
 
-test('it identifies free prices correctly with float tolerance', function (float $amount, bool $isFree): void {
-    $price = new Price($amount);
+    #[Test]
+    #[DataProvider('freePriceProvider')]
+    public function it_identifies_free_prices_correctly_with_float_tolerance(float $amount, bool $isFree): void
+    {
+        $price = new Price($amount);
+        self::assertSame($isFree, $price->isFree());
+    }
 
-    expect($price->isFree())->toBe($isFree);
-})->with([
-    'exactly zero' => [0.0, true],
-    'micro amount' => [0.001, true],
-    'small price' => [0.01, false],
-    'normal price' => [5.0, false],
-]);
+    public static function freePriceProvider(): array
+    {
+        return [
+            'exactly zero' => [0.0, true],
+            'micro amount' => [0.001, true],
+            'small price' => [0.01, false],
+            'normal price' => [5.0, false],
+        ];
+    }
 
-test('it correctly compares two prices for equality', function (): void {
-    $price1 = new Price(10.50);
-    $price2 = new Price(10.50);
-    $price3 = new Price(10.51);
+    #[Test]
+    public function it_correctly_compares_two_prices_for_equality(): void
+    {
+        $price1 = new Price(10.50);
+        $price2 = new Price(10.50);
+        $price3 = new Price(10.51);
 
-    expect($price1->equals($price2))->toBeTrue()
-        ->and($price1->equals($price3))->toBeFalse();
-});
+        self::assertTrue($price1->equals($price2));
+        self::assertFalse($price1->equals($price3));
+    }
 
-test('it throws exception for negative prices', function (): void {
-    new Price(-1.50);
-})->throws(\InvalidArgumentException::class, 'Ein Preis darf nicht negativ sein.');
+    #[Test]
+    public function it_throws_exception_for_negative_prices(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Ein Preis darf nicht negativ sein.');
+
+        new Price(-1.50);
+    }
+}

@@ -1,34 +1,52 @@
 <?php
-
 declare(strict_types=1);
+namespace App\Tests\Unit\Modules\Identity\Domain;
 
 use App\Modules\Identity\Domain\Role;
+use DomainException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-covers(Role::class);
+#[CoversClass(Role::class)]
+final class RoleTest extends TestCase
+{
+    #[Test]
+    public function it_creates_a_role_and_allows_retrieving_its_properties(): void
+    {
+        $role = new Role('role_123', 'Vorstand', ['permits.view', 'system.manage']);
 
-test('it creates a role and allows retrieving its properties', function (): void {
-    $role = new Role('role_123', 'Vorstand', ['permits.view', 'system.manage']);
+        self::assertSame('role_123', $role->id);
+        self::assertSame('Vorstand', $role->getName());
+        self::assertSame(['permits.view', 'system.manage'], $role->getPermissions());
+    }
 
-    expect($role->id)->toBe('role_123')
-        ->and($role->getName())->toBe('Vorstand')
-        ->and($role->getPermissions())->toBe(['permits.view', 'system.manage']);
-});
+    #[Test]
+    public function it_allows_renaming_the_role(): void
+    {
+        $role = new Role('role_123', 'Old Name', []);
+        $role->rename('New Admin Name');
 
-test('it allows renaming the role', function (): void {
-    $role = new Role('role_123', 'Old Name', []);
-    $role->rename('New Admin Name');
+        self::assertSame('New Admin Name', $role->getName());
+    }
 
-    expect($role->getName())->toBe('New Admin Name');
-});
+    #[Test]
+    public function it_throws_exception_when_renaming_to_an_empty_string(): void
+    {
+        $role = new Role('role_123', 'Valid Name', []);
 
-test('it throws exception when renaming to an empty string', function (): void {
-    $role = new Role('role_123', 'Valid Name', []);
-    $role->rename('   ');
-})->throws(\DomainException::class, 'Der Rollenname darf nicht leer sein.');
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Der Rollenname darf nicht leer sein.');
 
-test('it allows updating permissions', function (): void {
-    $role = new Role('role_123', 'Name', ['old.perm']);
-    $role->updatePermissions(['new.perm1', 'new.perm2']);
+        $role->rename('   ');
+    }
 
-    expect($role->getPermissions())->toBe(['new.perm1', 'new.perm2']);
-});
+    #[Test]
+    public function it_allows_updating_permissions(): void
+    {
+        $role = new Role('role_123', 'Name', ['old.perm']);
+        $role->updatePermissions(['new.perm1', 'new.perm2']);
+
+        self::assertSame(['new.perm1', 'new.perm2'], $role->getPermissions());
+    }
+}

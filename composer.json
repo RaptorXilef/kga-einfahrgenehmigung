@@ -34,9 +34,8 @@
     "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
     "deptrac/deptrac": "^4.6",
     "friendsofphp/php-cs-fixer": "^3.95",
+    "infection/infection": "^0.35.6",
     "kubawerlos/php-cs-fixer-custom-fixers": "^3.37",
-    "pestphp/pest-plugin-mutate": "^4.0",
-    "pestphp/pest": "^4.0",
     "phpcompatibility/php-compatibility": "^10.0@alpha",
     "phpcsstandards/phpcsextra": "^1.5",
     "phpcsstandards/phpcsutils": "^1.2",
@@ -45,6 +44,7 @@
     "phpstan/phpstan-phpunit": "^2.0",
     "phpstan/phpstan-strict-rules": "^2.0",
     "phpstan/phpstan": "^2.1",
+    "phpunit/phpunit": "^12.5",
     "rector/rector": "^2.4",
     "slevomat/coding-standard": "^8.28",
     "spaze/phpstan-disallowed-calls": "^4.14",
@@ -61,6 +61,7 @@
     }
   },
   "config": {
+    "process-timeout": 0,
     "platform": {
       "php": "8.3.0"
     },
@@ -68,8 +69,8 @@
     "optimize-autoloader": true,
     "allow-plugins": {
       "phpstan/extension-installer": true,
-      "pestphp/pest-plugin": true,
-      "dealerdirect/phpcodesniffer-composer-installer": true
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "infection/extension-installer": true
     }
   },
   "extra": {
@@ -111,11 +112,11 @@
 
     "// --- PHASE 2: TESTING ---": "Automatisierte Tests",
     "test:wiring": "php scripts/smoke_test.php",
-    "test": "pest --parallel",
-    "test:full": "pest --parallel --display-deprecations",
-    "test:coverage": "pest --coverage",
-    "test:mutation": "pest --mutate --class=App --clear-cache --parallel",
-    "test:mutation:force": "pest --mutate --class=App --clear-cache --everything --covered-only --parallel",
+    "test": "phpunit",
+    "test:full": "phpunit --display-deprecations",
+    "test:coverage": "phpunit --coverage-html .build/reports/phpunit-html",
+    "test:mutation": "infection --threads=max --show-mutations --coverage=.cache/phpunit",
+    "test:mutation:full": "infection --threads=max --show-mutations",
 
     "// --- PHASE 3: FIXING & FORMATTING ---": "Aktive Code-Manipulation",
     "fix:modern": "rector process",
@@ -132,7 +133,7 @@
       "@mkdir:reports",
       "phpstan analyse --error-format=checkstyle --no-progress > .build/reports/phpstan.xml || true"
     ],
-    "ci:test": ["@mkdir:reports", "pest --ci --log-junit .build/reports/junit.xml"],
+    "ci:test": ["@mkdir:reports", "phpunit --log-junit .build/reports/junit.xml"],
     "ci:cs": [
       "@mkdir:reports",
       "phpcs --report=checkstyle --report-file=.build/reports/phpcs.xml || true"

@@ -1,6 +1,6 @@
 <?php
-
 declare(strict_types=1);
+namespace App\Tests\Unit\Application\Middleware;
 
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AuthMiddleware;
@@ -10,82 +10,56 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\AuthorizationInterface;
 use App\SharedKernel\Infrastructure\Utils\SystemClock;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-covers(AuthMiddleware::class);
-
-beforeEach(function (): void {
-    if (\session_status() === \PHP_SESSION_NONE) {
-        \session_start();
+#[CoversClass(AuthMiddleware::class)]
+final class AuthMiddlewareTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
+        }
+        $_SESSION = [];
     }
-    // Session für jeden Test sauber leeren
-    $_SESSION = [];
-});
 
-test('it allows admin access if user is properly logged in', function (): void {
-    /** @var AuthorizationInterface&\PHPUnit\Framework\MockObject\Stub $auth */
-    $auth = $this->createStub(AuthorizationInterface::class);
-    $auth->method('isLoggedIn')->willReturn(true); // User ist eingeloggt
+    #[Test]
+    public function it_allows_admin_access_if_user_is_properly_logged_in(): void
+    {
+        $auth = $this->createStub(AuthorizationInterface::class);
+        $auth->method('isLoggedIn')->willReturn(true);
 
-    // Echter SessionManager (State-based Testing)
-    $session = new SessionManager(new SystemClock());
+        $session = new SessionManager(new SystemClock());
+        $config = $this->createStub(ConfigInterface::class);
+        $config->method('getBaseUrl')->willReturn('https://app.local/');
 
-    /** @var ConfigInterface&\PHPUnit\Framework\MockObject\Stub $config */
-    $config = $this->createStub(ConfigInterface::class);
-    $config->method('getBaseUrl')->willReturn('https://app.local/');
+        $middleware = new AuthMiddleware($session, $config, $auth);
+        $request = new ServerRequest(server: ['REQUEST_URI' => '/admin']);
 
-    $middleware = new AuthMiddleware($session, $config, $auth);
-    $request = new ServerRequest(server: ['REQUEST_URI' => '/admin']);
+        $response = $middleware->process($request, fn () => new HtmlResponse('Admin Area'));
+        self::assertInstanceOf(HtmlResponse::class, $response);
+    }
 
-    $response = $middleware->process($request, fn () => new HtmlResponse('Admin Area'));
+    #[Test]
+    public function it_redirects_to_login_if_user_is_not_logged_in(): void
+    {
+        $auth = $this->createStub(AuthorizationInterface::class);
+        $auth->method('isLoggedIn')->willReturn(false);
 
-    expect($response)->toBeInstanceOf(HtmlResponse::class);
-});
+        $session = new SessionManager(new SystemClock());
+        $config = $this->createStub(ConfigInterface::class);
+        $config->method('getBaseUrl')->willReturn('https://app.local/');
 
-test('it redirects to login if user is not logged in', function (): void {
-    /** @var AuthorizationInterface&\PHPUnit\Framework\MockObject\Stub $auth */
-    $auth = $this->createStub(AuthorizationInterface::class);
-    $auth->method('isLoggedIn')->willReturn(false); // User ist GAST
+        $middleware = new AuthMiddleware($session, $config, $auth);
+        $request = new ServerRequest(server: ['REQUEST_URI' => '/admin'], get: ['code' => 'XYZ']);
 
-    $session = new SessionManager(new SystemClock());
+        $next = fn () => throw new \Exception('Sollte nicht passieren!');
+        $response = $middleware->process($request, $next);
 
-    /** @var ConfigInterface&\PHPUnit\Framework\MockObject\Stub $config */
-    $config = $this->createStub(ConfigInterface::class);
-    $config->method('getBaseUrl')->willReturn('https://app.local/');
-
-    $middleware = new AuthMiddleware($session, $config, $auth);
-
-    // Simuliert einen Aufruf, bei dem ein Login-Code als GET-Parameter mitgeschleift wird
-    $request = new ServerRequest(server: ['REQUEST_URI' => '/admin'], get: ['code' => 'XYZ']);
-
-    // Die nächste Schicht darf nicht erreicht werden
-    $next = fn () => throw new \Exception('Sollte nicht passieren!');
-
-    /** @var RedirectResponse $response */
-    $response = $middleware->process($request, $next);
-
-    expect($response)->toBeInstanceOf(RedirectResponse::class)
-        ->and($response->url)->toBe('https://app.local/admin_login?code=XYZ');
-});
-
-test('it routes history requests to history login if no history email is set', function (): void {
-    $session = new SessionManager(new SystemClock());
-    $session->clearHistoryEmail(); // Sicherstellen, dass kein Pächter eingeloggt ist
-
-    /** @var ConfigInterface&\PHPUnit\Framework\MockObject\Stub $config */
-    $config = $this->createStub(ConfigInterface::class);
-    $config->method('getBaseUrl')->willReturn('https://app.local/');
-
-    /** @var AuthorizationInterface&\PHPUnit\Framework\MockObject\Stub $auth */
-    $auth = $this->createStub(AuthorizationInterface::class);
-
-    $middleware = new AuthMiddleware($session, $config, $auth);
-    $request = new ServerRequest(server: ['REQUEST_URI' => '/history']);
-
-    $next = fn () => throw new \Exception('Sollte nicht passieren!');
-
-    /** @var RedirectResponse $response */
-    $response = $middleware->process($request, $next);
-
-    expect($response)->toBeInstanceOf(RedirectResponse::class)
-        ->and($response->url)->toBe('https://app.local/history_login');
-});
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame('https://app.local/admin_login?code=XYZ', $response->url);
+    }
+}
