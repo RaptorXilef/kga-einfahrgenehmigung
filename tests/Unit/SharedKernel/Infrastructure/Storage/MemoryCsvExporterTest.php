@@ -33,18 +33,13 @@ final class MemoryCsvExporterTest extends TestCase
             ],
         ];
 
-        $csv = $exporter->export($headers, $rows, ';');
+        // Aufruf ohne 3. Parameter testet gleichzeitig den Default-Delimiter ';'
+        $csv = $exporter->export($headers, $rows);
 
-        // 1. Prüft auf exakten UTF-8 BOM Header am Anfang
-        $this->assertStringStartsWith("\xEF\xBB\xBF", $csv);
+        $expectedCsv = "\xEF\xBB\xBF"
+            . "Text;Int;Float;Leer;FormelGleich;FormelPlus;FormelMinus;FormelAt;Tab;CR\n"
+            . "\"Normaler Text\";-42;-15.5;;'=SUM(A1:A2);'+12345;'-12345;'@cmd;\"'\tTabulator\";\"'\rCarriageReturn\"\n";
 
-        // 2. Prüft Kopfzeile
-        $this->assertStringContainsString("Text;Int;Float;Leer;FormelGleich;FormelPlus;FormelMinus;FormelAt;Tab;CR\n", $csv);
-
-        // 3. Echte Zahlen (-42, -15.5) dürfen NICHT mit ' maskiert werden, Strings mit gefährlichen Startzeichen schon!
-        $this->assertStringContainsString(
-            "\"Normaler Text\";-42;-15.5;\"\";'=SUM(A1:A2);'+12345;'-12345;'@cmd;\"'\tTabulator\";\"'\rCarriageReturn\"\n",
-            $csv,
-        );
+        $this->assertSame($expectedCsv, $csv);
     }
 }
