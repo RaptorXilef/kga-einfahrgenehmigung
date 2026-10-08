@@ -16,13 +16,18 @@ use PHPUnit\Framework\TestCase;
 final class UserTest extends TestCase
 {
     #[Test]
-    public function itCreatesAUserAndAllowsRetrievingProperties(): void
+    public function itCreatesAUserAndAllowsRetrievingAndUpdatingProperties(): void
     {
         $user = new User('usr_123', 'max_m', 'role_admin', 'hash123', 'v1.0.0');
 
         $this->assertSame('usr_123', $user->id);
         $this->assertSame('max_m', $user->getUsername());
         $this->assertSame('role_admin', $user->getRoleId());
+        $this->assertSame('hash123', $user->getPasswordHash());
+        $this->assertSame('v1.0.0', $user->getLastSeenChangelog());
+
+        $user->markChangelogAsRead('v2.1.0');
+        $this->assertSame('v2.1.0', $user->getLastSeenChangelog());
     }
 
     #[Test]

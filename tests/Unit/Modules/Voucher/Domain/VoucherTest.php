@@ -33,7 +33,18 @@ final class VoucherTest extends TestCase
         );
 
         $this->assertSame('TEST-CODE', $voucher->code);
+        $this->assertSame('std_7', $voucher->templateKey);
+        $this->assertSame('Rabattaktion', $voucher->reason);
+        $this->assertSame('percent', $voucher->type);
+        $this->assertEqualsWithDelta(50.0, $voucher->value, \PHP_FLOAT_EPSILON);
+        $this->assertFalse($voucher->isMultiUse);
+        $this->assertSame(1, $voucher->maxUses);
         $this->assertSame(0, $voucher->getCurrentUses());
+        $this->assertNull($voucher->expiresAt);
+        $this->assertSame('aktiv', $voucher->getStatus());
+        $this->assertSame(['parzelle' => '123'], $voucher->prefillData);
+        $this->assertSame('usr_admin', $voucher->createdBy);
+        $this->assertSame($now, $voucher->createdAt);
         $this->assertTrue($voucher->isActive());
         $this->assertFalse($voucher->isDeactivated());
         $this->assertFalse($voucher->isExpired($now));
@@ -46,9 +57,11 @@ final class VoucherTest extends TestCase
 
         $voucher->deactivate();
         $this->assertTrue($voucher->isDeactivated());
+        $this->assertSame('deaktiviert', $voucher->getStatus());
 
         $voucher->activate();
         $this->assertTrue($voucher->isActive());
+        $this->assertSame('aktiv', $voucher->getStatus());
     }
 
     #[Test]

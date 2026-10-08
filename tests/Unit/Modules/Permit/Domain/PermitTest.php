@@ -49,10 +49,27 @@ final class PermitTest extends TestCase
         $this->assertSame('0042', $permit->getPlotNumber());
         $this->assertSame('test@example.com', $permit->getOwnerEmail());
         $this->assertSame('B-XX 123', $permit->getLicensePlate());
+        $this->assertSame('pkw', $permit->getVehicleType());
         $this->assertSame('Test Firma', $permit->getCompany());
+        $this->assertSame('Bau', $permit->getPurpose());
         $this->assertEqualsWithDelta(10.0, $permit->getPrice(), \PHP_FLOAT_EPSILON);
+        $this->assertSame($start, $permit->getValidFrom());
+        $this->assertSame($end, $permit->getValidUntil());
+        $this->assertEquals(new DateTimeImmutable('2026-10-01 10:00:00'), $permit->getCreatedAt());
         $this->assertFalse($permit->isPaid());
         $this->assertFalse($permit->isSuspended());
+
+        // Fallback für fehlende E-Mail-Adresse prüfen
+        $permitWithoutEmail = new Permit(
+            code: new PermitCode('NO-MAIL'),
+            template_key: new TemplateKey('std_7'),
+            owner: new Owner('Ohne Mail', null, new PlotNumber(1)),
+            vehicle: new Vehicle('pkw', new LicensePlate('B-OO 111')),
+            validity: new Validity($start, $end, new Price(0.0), 'Privat'),
+            status: new Status(PermitStatus::Bezahlt),
+            erstellt: new DateTimeImmutable('2026-10-01 10:00:00'),
+        );
+        $this->assertSame('', $permitWithoutEmail->getOwnerEmail());
     }
 
     #[Test]
@@ -120,7 +137,6 @@ final class PermitTest extends TestCase
         $this->assertTrue($permit->isValid(false, $exactEnd));
         $this->assertFalse($permit->isValid(false, $after));
 
-        // Das ist der Bugfix!
         $this->assertTrue($permit->isExpired($after));
         $this->assertFalse($permit->isExpired($exactEnd));
 
@@ -131,5 +147,24 @@ final class PermitTest extends TestCase
         $this->assertFalse($permit->isValid(true, $inside));
         $permit->markAsPaid();
         $this->assertTrue($permit->isValid(true, $inside));
+
+        // Suspended permit is never valid, even if paid and inside date range
+        $permit->suspend('Sperre');
+        $this->assertFalse($permit->isValid(true, $inside));
+        $this->assertFalse($permit->isValid(false, $inside));
+    }
+
+    #[Test]
+    public function itMatchesSearchQueriesAcrossAllConcatenatedFields(): void
+    {
+        $permit = $this->createTestPermit(
+            new DateTimeImmutable('2026-10-10'),
+            new DateTimeImmutable('2026-10-17'),
+        );
+
+        $this->assertTrue($permit->matchesSearch(''));
+        // Prüft die exakte Verkettung aller Felder in Kleinbuchstaben (tötet alle Concat-Mutanten!)
+        $this->assertTrue($permit->matchesSearch('test-1234 max mustermann test@example.com b-xx 123 0042 bau'));
+        $this->assertFalse($permit->matchesSearch('unbekannter-suchbegriff'));
     }
 }

@@ -52,4 +52,15 @@ final class PlotNumberTest extends TestCase
         yield 'over max limit' => [10000, 'Die Parzellennummer muss zwischen 1 und 9999 liegen.'];
         yield 'contains letters' => ['12A', 'Fehler: Die Parzellennummer darf ausschließlich aus Zahlen bestehen.'];
     }
+
+    #[Test]
+    public function itComparesTwoPlotNumbersForEquality(): void
+    {
+        $plot1 = new PlotNumber(42);
+        $plot2 = new PlotNumber('0042');
+        $plot3 = new PlotNumber(99);
+
+        $this->assertTrue($plot1->equals($plot2));
+        $this->assertFalse($plot1->equals($plot3));
+    }
 }
