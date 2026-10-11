@@ -28,14 +28,16 @@ final class AuditLoggerServiceTest extends TestCase
         $clock = new SystemClock();
         $repo = $this->createMock(AuditLogRepositoryInterface::class);
 
-        $repo->expects($this->once())->method('save')->with($this->callback(
+        // FIX: Nutzt willReturnCallback anstelle von $this->callback().
+        // Das erlaubt Rector die void-Deklaration ohne PHPUnit zum Absturz zu bringen.
+        $repo->expects($this->once())->method('save')->willReturnCallback(
             function (AuditLog $log): void {
                 $this->assertSame('usr_123', $log->userId);
                 $this->assertSame('Max_Admin', $log->username);
                 $this->assertSame('TEST', $log->action);
                 $this->assertSame('192.168.1.1', $log->ipAddress->value);
             },
-        ));
+        );
 
         $config = $this->createStub(ConfigInterface::class);
         $ip = $this->createStub(IpResolverInterface::class);
@@ -75,12 +77,12 @@ final class AuditLoggerServiceTest extends TestCase
         $clock = new SystemClock();
         $repo = $this->createMock(AuditLogRepositoryInterface::class);
 
-        $repo->expects($this->once())->method('save')->with($this->callback(
+        $repo->expects($this->once())->method('save')->willReturnCallback(
             function (AuditLog $log): void {
                 $this->assertSame('history_user', $log->userId);
                 $this->assertSame('Pächter (history@test.de)', $log->username);
             },
-        ));
+        );
 
         $config = $this->createStub(ConfigInterface::class);
         $ip = $this->createStub(IpResolverInterface::class);

@@ -41,6 +41,8 @@ final class AuthServiceTest extends TestCase
     private function getConfigStub(): ConfigInterface
     {
         $config = $this->createStub(ConfigInterface::class);
+
+        // Rector Fix: Return types for arrow functions
         $config->method('getArray')->willReturnCallback(fn (string $key): array => match ($key) {
             'superadmins' => ['max' => ['label' => 'Superadmin']],
             'backdoor' => ['user' => 'dev', 'label' => 'Dev', 'pass' => 'xxx'],
@@ -48,6 +50,7 @@ final class AuthServiceTest extends TestCase
             'structure' => ['stats' => ['key' => 'stats.view']],
             default => []
         });
+
         $config->method('getBool')->willReturnCallback(fn (string $key): bool => match ($key) {
             'disable_backdoor' => false,
             'disable_superadmin' => false,
@@ -187,7 +190,11 @@ final class AuthServiceTest extends TestCase
         $userRepo->expects($this->once())->method('save');
 
         $auth = new AuthService($config, $roleRepo, $session, $userRepo);
+
+        // FIX: Output Buffering fängt SAPI-Echos (z.B. native error_log Outputs in der CLI) sicher ab.
+        \ob_start();
         $auth->bootstrapDefaultIdentityData();
+        \ob_end_clean();
 
         $this->assertSame(['valid.perm'], $role->getPermissions());
     }

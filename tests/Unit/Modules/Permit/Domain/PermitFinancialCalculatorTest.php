@@ -31,6 +31,8 @@ final class PermitFinancialCalculatorTest extends TestCase
     private function getConfigMock(): ConfigInterface
     {
         $config = $this->createStub(ConfigInterface::class);
+
+        // Rector Fix: Return types for arrow functions
         $config->method('getArray')->willReturnCallback(fn (string $key): array => match ($key) {
             'permit_templates' => [
                 'std_7' => ['prices' => ['pkw' => 5.0, 'lkw' => 15.0]],
@@ -64,6 +66,7 @@ final class PermitFinancialCalculatorTest extends TestCase
         $clock = $this->createStub(ClockInterface::class);
         $calc = new PermitFinancialCalculator($this->getConfigMock(), $clock);
 
+        // Rector Fix: assertEqualsWithDelta
         // Bekannter Typ
         $this->assertEqualsWithDelta(15.0, $calc->calculateBasePrice(new TemplateKey('std_7'), 'lkw'), \PHP_FLOAT_EPSILON);
 
