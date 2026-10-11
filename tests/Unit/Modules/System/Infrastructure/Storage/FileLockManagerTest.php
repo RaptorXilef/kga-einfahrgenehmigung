@@ -38,7 +38,7 @@ final class FileLockManagerTest extends TestCase
 
         $manager = new FileLockManager($config);
 
-        $result = $manager->executeWithLock('test_job', fn () => 'Success_123');
+        $result = $manager->executeWithLock('test_job', fn (): string => 'Success_123');
 
         $this->assertSame('Success_123', $result);
         $this->assertFileExists($this->tempRoot . '/logs/test_job.lock');

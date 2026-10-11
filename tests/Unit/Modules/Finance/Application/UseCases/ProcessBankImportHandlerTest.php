@@ -49,6 +49,17 @@ final class ProcessBankImportHandlerTest extends TestCase
         $infrastructure = $this->createMock(BankImportInfrastructureInterface::class);
         $infrastructure->method('normalizeAndOpenCsv')->willReturn($reader);
 
+        // Dummy-Daten Basis-Struktur
+        $baseRecord = [
+            'typ' => 'pkw',
+            'vonFormatted' => '01.10.2026',
+            'bisFormatted' => '10.10.2026',
+            'erstelltFormatted' => '01.10.2026',
+            'bezahltAmFormatted' => null,
+            'isSuspended' => false,
+            'preis' => 10.0,
+        ];
+
         $provider = $this->createStub(UnpaidPermitProviderInterface::class);
         $provider->method('getPermitDataForImport')->willReturn(new UnpaidPermitsDto(
             allCodes: [
@@ -66,13 +77,13 @@ final class ProcessBankImportHandlerTest extends TestCase
                 'EFG-5555' => 10.0, 'EFG-6666' => 10.0, 'EFG-7777' => 10.0,
             ],
             records: [
-                'EFG-1111' => ['code' => 'EFG-1111', 'shortCode' => '1111', 'status' => 'offen', 'name' => 'Max', 'parzelle' => 1, 'kennzeichen' => 'B-AA 1', 'preis' => 10.0],
-                'EFG-2222' => ['code' => 'EFG-2222', 'shortCode' => '2222', 'status' => 'offen', 'name' => 'Max', 'parzelle' => 2, 'kennzeichen' => 'B-BB 2', 'preis' => 10.0],
-                'EFG-3333' => ['code' => 'EFG-3333', 'shortCode' => '3333', 'status' => 'storniert', 'name' => 'Max', 'parzelle' => 3, 'kennzeichen' => 'B-CC 3', 'preis' => 10.0],
-                'EFG-4444' => ['code' => 'EFG-4444', 'shortCode' => '4444', 'status' => 'bezahlt', 'bezahltAmFormatted' => '01.10.2026', 'name' => 'Max', 'parzelle' => 4, 'kennzeichen' => 'B-DD 4', 'preis' => 10.0],
-                'EFG-5555' => ['code' => 'EFG-5555', 'shortCode' => '5555', 'status' => 'offen', 'name' => 'Max', 'parzelle' => 5, 'kennzeichen' => 'B-XX 123', 'preis' => 10.0], // Prio 2 Match
-                'EFG-6666' => ['code' => 'EFG-6666', 'shortCode' => '6666', 'status' => 'offen', 'name' => 'Erika Musterfrau', 'parzelle' => 6, 'kennzeichen' => 'B-FF 6', 'preis' => 10.0], // Prio 3 Match
-                'EFG-7777' => ['code' => 'EFG-7777', 'shortCode' => '7777', 'status' => 'offen', 'name' => 'Unbekannt', 'parzelle' => 42, 'kennzeichen' => 'B-GG 7', 'preis' => 10.0, 'plotFormatted' => '0042'], // Prio 4 Match
+                'EFG-1111' => \array_merge($baseRecord, ['code' => 'EFG-1111', 'shortCode' => '1111', 'status' => 'offen', 'name' => 'Max', 'parzelle' => 1, 'plotFormatted' => '0001', 'kennzeichen' => 'B-AA 1']),
+                'EFG-2222' => \array_merge($baseRecord, ['code' => 'EFG-2222', 'shortCode' => '2222', 'status' => 'offen', 'name' => 'Max', 'parzelle' => 2, 'plotFormatted' => '0002', 'kennzeichen' => 'B-BB 2']),
+                'EFG-3333' => \array_merge($baseRecord, ['code' => 'EFG-3333', 'shortCode' => '3333', 'status' => 'storniert', 'name' => 'Max', 'parzelle' => 3, 'plotFormatted' => '0003', 'kennzeichen' => 'B-CC 3']),
+                'EFG-4444' => \array_merge($baseRecord, ['code' => 'EFG-4444', 'shortCode' => '4444', 'status' => 'bezahlt', 'bezahltAmFormatted' => '01.10.2026', 'name' => 'Max', 'parzelle' => 4, 'plotFormatted' => '0004', 'kennzeichen' => 'B-DD 4']),
+                'EFG-5555' => \array_merge($baseRecord, ['code' => 'EFG-5555', 'shortCode' => '5555', 'status' => 'offen', 'name' => 'Max', 'parzelle' => 5, 'plotFormatted' => '0005', 'kennzeichen' => 'B-XX 123']), // Prio 2 Match
+                'EFG-6666' => \array_merge($baseRecord, ['code' => 'EFG-6666', 'shortCode' => '6666', 'status' => 'offen', 'name' => 'Erika Musterfrau', 'parzelle' => 6, 'plotFormatted' => '0006', 'kennzeichen' => 'B-FF 6']), // Prio 3 Match
+                'EFG-7777' => \array_merge($baseRecord, ['code' => 'EFG-7777', 'shortCode' => '7777', 'status' => 'offen', 'name' => 'Unbekannt', 'parzelle' => 42, 'plotFormatted' => '0042', 'kennzeichen' => 'B-GG 7']), // Prio 4 Match
             ],
         ));
 
