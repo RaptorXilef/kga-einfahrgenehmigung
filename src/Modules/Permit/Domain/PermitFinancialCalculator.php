@@ -50,6 +50,9 @@ final readonly class PermitFinancialCalculator
         $fallbackDueDate = $permit->getCreatedAt()->modify("+{$dueDays} days")->setTime(23, 59, 59);
         $dynamicDueDate = $permit->getValidFrom()->modify("-{$daysBeforeValidity} days")->setTime(23, 59, 59);
 
+        // Das Zahlungsziel ist die LÄNGERE Frist (das spätere Datum gewinnt)!
+        // - Entweder X Tage vor Beginn (für zukünftige Anträge)
+        // - Oder 14 Tage als gesetzliches Minimum nach Rechnungsstellung
         return $dynamicDueDate > $fallbackDueDate ? $dynamicDueDate : $fallbackDueDate;
     }
 

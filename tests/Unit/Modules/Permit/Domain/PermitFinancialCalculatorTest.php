@@ -102,14 +102,25 @@ final class PermitFinancialCalculatorTest extends TestCase
 
     public static function dueDateProvider(): Iterator
     {
-        yield 'Validity is far in the future -> 14 days after creation' => [
-            '2026-10-01', '2026-12-01', '2026-10-15',
+        // 1. Erstellt am 01.10. für 01.12.
+        // Fallback (14 Tage): 15.10. | Dynamic (2 Tage vorher): 29.11.
+        // MAX = 29.11.
+        yield 'Validity is far in the future -> X days before validity' => [
+            '2026-10-01', '2026-12-01', '2026-11-29',
         ];
-        yield 'Validity starts soon -> 2 days before validity' => [
-            '2026-10-01', '2026-10-05', '2026-10-03',
+
+        // 2. Erstellt am 01.10. für 05.10.
+        // Fallback (14 Tage): 15.10. | Dynamic (2 Tage vorher): 03.10.
+        // MAX = 15.10. (Das gesetzliche Minimum von 14 Tagen greift)
+        yield 'Validity starts soon -> 14 days minimum apply' => [
+            '2026-10-01', '2026-10-05', '2026-10-15',
         ];
-        yield 'Validity starts tomorrow -> Date is already in the past (overdue)' => [
-            '2026-10-01', '2026-10-02', '2026-09-30',
+
+        // 3. Erstellt am 01.10. für 02.10.
+        // Fallback (14 Tage): 15.10. | Dynamic (2 Tage vorher): 30.09.
+        // MAX = 15.10. (Das gesetzliche Minimum von 14 Tagen greift)
+        yield 'Validity starts tomorrow -> 14 days minimum apply' => [
+            '2026-10-01', '2026-10-02', '2026-10-15',
         ];
     }
 
@@ -119,7 +130,9 @@ final class PermitFinancialCalculatorTest extends TestCase
         $clock = $this->createStub(ClockInterface::class);
         $calc = new PermitFinancialCalculator($this->getConfigMock(), $clock);
 
-        // Erstellt am 1.10., Gültig ab 20.10. -> Fällig am 15.10.
+        // Erstellt am 1.10., Gültig ab 20.10.
+        // Fallback (14 Tage): 15.10. | Dynamic (2 Tage vorher): 18.10.
+        // MAX = 18.10.
         $permit = new Permit(
             new PermitCode('T-1'),
             new TemplateKey('std_7'),
@@ -134,12 +147,12 @@ final class PermitFinancialCalculatorTest extends TestCase
         $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-10 12:00:00'));
         $this->assertSame(0, $calc->getOverdueLevel($permit));
 
-        // Level 1: Fällig, Mahnfrist läuft (Heute ist der 16.10.)
-        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-16 12:00:00'));
+        // Level 1: Fällig, Mahnfrist läuft (Heute ist der 19.10., Limit für Mahnstufe 2 ist +2 Tage = 20.10.)
+        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-19 12:00:00'));
         $this->assertSame(1, $calc->getOverdueLevel($permit));
 
-        // Level 2: Überfällig, Mahnfrist abgelaufen (Heute ist der 18.10., Limit war +2 Tage = 17.10.)
-        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-18 12:00:00'));
+        // Level 2: Überfällig, Mahnfrist abgelaufen (Heute ist der 21.10.)
+        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-21 12:00:00'));
         $this->assertSame(2, $calc->getOverdueLevel($permit));
 
         // Paid permits never overdue
