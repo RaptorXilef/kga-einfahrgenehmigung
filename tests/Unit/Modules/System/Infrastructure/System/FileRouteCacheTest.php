@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\SharedKernel\Infrastructure\System;
+namespace App\Tests\Unit\Modules\System\Infrastructure\System;
 
 use App\Contracts\Config\ConfigInterface;
-use App\SharedKernel\Infrastructure\System\FileRouteCache;
+use App\Modules\System\Infrastructure\System\FileRouteCache;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\SharedKernel\Infrastructure\Storage;
+namespace App\Tests\Unit\Modules\System\Infrastructure\Storage;
 
-use App\SharedKernel\Infrastructure\Storage\JsonHelper;
+use App\Modules\System\Infrastructure\Storage\JsonHelper;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;

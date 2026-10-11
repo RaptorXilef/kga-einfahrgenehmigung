@@ -171,10 +171,9 @@ final class AuthServiceTest extends TestCase
 
         $auth = new AuthService($config, $roleRepo, $session, $userRepo);
 
-        // Output-Buffering fängt den error_log STDOUT Leak bei CLI Konfigurationen zuverlässig ab!
-        \ob_start();
+        // Fängt die Konsolen-Ausgabe sicher auf und markiert sie als "erwartet" für PHPUnit
+        $this->expectOutputRegex('/Bootstrap:.*/');
         $auth->bootstrapDefaultIdentityData();
-        \ob_end_clean();
 
         $this->assertSame(['valid.perm'], $role->getPermissions());
     }

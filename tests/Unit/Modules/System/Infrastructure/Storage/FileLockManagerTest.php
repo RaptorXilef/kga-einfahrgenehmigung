@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\SharedKernel\Infrastructure\Storage;
+namespace App\Tests\Unit\Modules\System\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
-use App\SharedKernel\Infrastructure\Storage\FileLockManager;
+use App\Modules\System\Infrastructure\Storage\FileLockManager;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;

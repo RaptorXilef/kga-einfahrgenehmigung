@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Modules\Finance\Application\UseCases;
 
 use App\Application\Http\ServerRequest;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Finance\Application\UseCases\ExportFinanceData\ExportRequest;
-use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -20,7 +20,7 @@ final class ExportRequestTest extends TestCase
     {
         $request = new ServerRequest(post: ['format' => 'json', 'start' => 'all'], server: ['REQUEST_METHOD' => 'POST']);
         $sessionFilters = ['start' => '2026-01-01', 'end' => '2026-12-31'];
-        $clock = $this->createStub(SystemClock::class);
+        $clock = $this->createStub(ClockInterface::class);
 
         $dto = ExportRequest::fromRequest($request, $sessionFilters, $clock);
 
@@ -33,7 +33,7 @@ final class ExportRequestTest extends TestCase
     public function itUsesClockFallbacksIfNothingIsProvided(): void
     {
         $request = new ServerRequest(get: []); // GET Request
-        $clock = $this->createStub(SystemClock::class);
+        $clock = $this->createStub(ClockInterface::class);
         $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-15'));
 
         $dto = ExportRequest::fromRequest($request, [], $clock);
