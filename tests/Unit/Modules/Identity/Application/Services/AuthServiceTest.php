@@ -22,8 +22,8 @@ final class AuthServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // Unterdrückt den error_log Output von CLI-Aufrufen in diesem Test
-        $this->iniSet('error_log', \PHP_OS_FAMILY === 'Windows' ? 'nul' : '/dev/null');
+        // Unterdrückt den error_log Output von CLI-Aufrufen in diesem Test nativ
+        \ini_set('error_log', \PHP_OS_FAMILY === 'Windows' ? 'nul' : '/dev/null');
     }
 
     private function getConfigStub(): ConfigInterface
@@ -169,10 +169,9 @@ final class AuthServiceTest extends TestCase
         $userRepo->method('findById')->willThrowException(new Exception('Not found'));
 
         // Erwarte, dass die Rolle GEREINIGT gespeichert wird (1 Save)
-        // Die Defaults werden übersprungen, da loadAll() nicht leer ist!
+        // Die 4 Defaults werden übersprungen, da das Repository nicht leer ist!
         $roleRepo->expects($this->once())->method('save');
-
-        // 1 Default Admin User wird erstellt (da userCheck nicht existiert)
+        // 1 Default Admin User wird erstellt
         $userRepo->expects($this->once())->method('save');
 
         $auth = new AuthService($config, $roleRepo, $session, $userRepo);

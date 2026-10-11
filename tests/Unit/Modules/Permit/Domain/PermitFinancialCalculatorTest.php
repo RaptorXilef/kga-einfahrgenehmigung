@@ -127,12 +127,8 @@ final class PermitFinancialCalculatorTest extends TestCase
     #[Test]
     public function itReturnsCorrectOverdueLevels(): void
     {
-        $clock = $this->createStub(ClockInterface::class);
-        $calc = new PermitFinancialCalculator($this->getConfigMock(), $clock);
-
         // Erstellt am 1.10., Gültig ab 20.10.
-        // Fallback (14 Tage): 15.10. | Dynamic (2 Tage vorher): 18.10.
-        // MAX = 18.10.
+        // Deadline MAX(15.10., 18.10.) -> Fällig am 18.10.
         $permit = new Permit(
             new PermitCode('T-1'),
             new TemplateKey('std_7'),
@@ -143,21 +139,30 @@ final class PermitFinancialCalculatorTest extends TestCase
             new DateTimeImmutable('2026-10-01'),
         );
 
+        // Um das PHPUnit "Stub overwriting" Problem zu umgehen, instanziieren wir den Calculator
+        // für jede Zeit-Prüfung frisch mit einem eigenen Clock-Stub.
+
         // Level 0: Nicht fällig (Heute ist der 10.10.)
-        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-10 12:00:00'));
-        $this->assertSame(0, $calc->getOverdueLevel($permit));
+        $clock0 = $this->createStub(ClockInterface::class);
+        $clock0->method('now')->willReturn(new DateTimeImmutable('2026-10-10 12:00:00'));
+        $calc0 = new PermitFinancialCalculator($this->getConfigMock(), $clock0);
+        $this->assertSame(0, $calc0->getOverdueLevel($permit));
 
         // Level 1: Fällig, Mahnfrist läuft (Heute ist der 19.10., Limit für Mahnstufe 2 ist +2 Tage = 20.10.)
-        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-19 12:00:00'));
-        $this->assertSame(1, $calc->getOverdueLevel($permit));
+        $clock1 = $this->createStub(ClockInterface::class);
+        $clock1->method('now')->willReturn(new DateTimeImmutable('2026-10-19 12:00:00'));
+        $calc1 = new PermitFinancialCalculator($this->getConfigMock(), $clock1);
+        $this->assertSame(1, $calc1->getOverdueLevel($permit));
 
         // Level 2: Überfällig, Mahnfrist abgelaufen (Heute ist der 21.10.)
-        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-21 12:00:00'));
-        $this->assertSame(2, $calc->getOverdueLevel($permit));
+        $clock2 = $this->createStub(ClockInterface::class);
+        $clock2->method('now')->willReturn(new DateTimeImmutable('2026-10-21 12:00:00'));
+        $calc2 = new PermitFinancialCalculator($this->getConfigMock(), $clock2);
+        $this->assertSame(2, $calc2->getOverdueLevel($permit));
 
         // Paid permits never overdue
         $permit->markAsPaid();
-        $this->assertSame(0, $calc->getOverdueLevel($permit));
+        $this->assertSame(0, $calc2->getOverdueLevel($permit));
     }
 
     #[Test]
