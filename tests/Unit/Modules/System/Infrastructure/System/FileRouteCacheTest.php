@@ -35,7 +35,7 @@ final class FileRouteCacheTest extends TestCase
     public function itSavesAndLoadsRouteCacheCorrectly(): void
     {
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('get')->with('root_path')->willReturn($this->tempRoot);
+        $config->method('get')->willReturn($this->tempRoot); // D-Fix: Kein with() bei Stubs
 
         $cache = new FileRouteCache($config);
 
@@ -52,7 +52,7 @@ final class FileRouteCacheTest extends TestCase
     public function itClearsOldAndAllCaches(): void
     {
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('get')->with('root_path')->willReturn($this->tempRoot);
+        $config->method('get')->willReturn($this->tempRoot); // D-Fix
 
         // Erstelle künstliche Cache-Dateien
         \file_put_contents($this->tempRoot . '/cache/routes_v2.php', '<?php return [];');

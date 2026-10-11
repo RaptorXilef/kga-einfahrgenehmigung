@@ -114,6 +114,7 @@
     "test:wiring": "php scripts/smoke_test.php",
     "test": "phpunit",
     "test:full": "phpunit --display-deprecations",
+    "test:full:all": "phpunit --display-deprecations --display-notices --display-skipped",
     "test:coverage": "phpunit --coverage-html .build/reports/phpunit-html",
     "test:mutation": "infection --threads=max --show-mutations --coverage=.cache/phpunit",
     "test:mutation:full": "infection --threads=max --show-mutations",

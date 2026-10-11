@@ -29,7 +29,7 @@ final class RequestMagicLinkHandlerTest extends TestCase
 
         $config = $this->createStub(ConfigInterface::class);
         // Link soll 15 Minuten gültig sein
-        $config->method('getInt')->with('magic_link_duration', 15)->willReturn(15);
+        $config->method('getInt')->willReturn(15); // D-Fix: Kein with() bei Stubs
 
         $repository = $this->createMock(MagicLinkRepositoryInterface::class);
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);

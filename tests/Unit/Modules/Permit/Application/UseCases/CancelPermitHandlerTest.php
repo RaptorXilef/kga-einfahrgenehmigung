@@ -54,7 +54,7 @@ final class CancelPermitHandlerTest extends TestCase
         );
 
         $repo = $this->createMock(PermitRepositoryInterface::class);
-        $repo->method('findByCode')->with('T-123')->willReturn($permit);
+        $repo->expects($this->once())->method('findByCode')->with('T-123')->willReturn($permit); // N-Fix
         $repo->expects($this->once())->method('delete')->with('T-123'); // Active Permit must be deleted
 
         $cancelledRepo = $this->createMock(CancelledPermitRepositoryInterface::class);

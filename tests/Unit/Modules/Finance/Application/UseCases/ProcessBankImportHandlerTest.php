@@ -47,7 +47,7 @@ final class ProcessBankImportHandlerTest extends TestCase
         $reader->setDelimiter(';');
 
         $infrastructure = $this->createMock(BankImportInfrastructureInterface::class);
-        $infrastructure->method('normalizeAndOpenCsv')->willReturn($reader);
+        $infrastructure->expects($this->once())->method('normalizeAndOpenCsv')->willReturn($reader); // N-Fix
 
         // Dummy-Daten Basis-Struktur
         $baseRecord = [
@@ -63,27 +63,41 @@ final class ProcessBankImportHandlerTest extends TestCase
         $provider = $this->createStub(UnpaidPermitProviderInterface::class);
         $provider->method('getPermitDataForImport')->willReturn(new UnpaidPermitsDto(
             allCodes: [
-                'EFG-1111' => true, 'EFG-2222' => true, 'EFG-3333' => true, 'EFG-4444' => true,
-                'EFG-5555' => true, 'EFG-6666' => true, 'EFG-7777' => true,
+                'EFG-1111' => true,
+                'EFG-2222' => true,
+                'EFG-3333' => true,
+                'EFG-4444' => true,
+                'EFG-5555' => true,
+                'EFG-6666' => true,
+                'EFG-7777' => true,
             ],
             unpaidCodes: [
-                'EFG-1111' => 'Max', 'EFG-2222' => 'Max', 'EFG-5555' => 'Max', 'EFG-6666' => 'Erika Musterfrau', 'EFG-7777' => 'Unbekannt',
+                'EFG-1111' => 'Max',
+                'EFG-2222' => 'Max',
+                'EFG-5555' => 'Max',
+                'EFG-6666' => 'Erika Musterfrau',
+                'EFG-7777' => 'Unbekannt',
             ],
             unpaidPlates: [
                 'EFG-5555' => 'B-XX 123',
             ],
             prices: [
-                'EFG-1111' => 10.0, 'EFG-2222' => 10.0, 'EFG-3333' => 10.0, 'EFG-4444' => 10.0,
-                'EFG-5555' => 10.0, 'EFG-6666' => 10.0, 'EFG-7777' => 10.0,
+                'EFG-1111' => 10.0,
+                'EFG-2222' => 10.0,
+                'EFG-3333' => 10.0,
+                'EFG-4444' => 10.0,
+                'EFG-5555' => 10.0,
+                'EFG-6666' => 10.0,
+                'EFG-7777' => 10.0,
             ],
             records: [
                 'EFG-1111' => \array_merge($baseRecord, ['code' => 'EFG-1111', 'shortCode' => '1111', 'status' => 'offen', 'name' => 'Max', 'parzelle' => 1, 'plotFormatted' => '0001', 'kennzeichen' => 'B-AA 1']),
                 'EFG-2222' => \array_merge($baseRecord, ['code' => 'EFG-2222', 'shortCode' => '2222', 'status' => 'offen', 'name' => 'Max', 'parzelle' => 2, 'plotFormatted' => '0002', 'kennzeichen' => 'B-BB 2']),
                 'EFG-3333' => \array_merge($baseRecord, ['code' => 'EFG-3333', 'shortCode' => '3333', 'status' => 'storniert', 'name' => 'Max', 'parzelle' => 3, 'plotFormatted' => '0003', 'kennzeichen' => 'B-CC 3']),
                 'EFG-4444' => \array_merge($baseRecord, ['code' => 'EFG-4444', 'shortCode' => '4444', 'status' => 'bezahlt', 'bezahltAmFormatted' => '01.10.2026', 'name' => 'Max', 'parzelle' => 4, 'plotFormatted' => '0004', 'kennzeichen' => 'B-DD 4']),
-                'EFG-5555' => \array_merge($baseRecord, ['code' => 'EFG-5555', 'shortCode' => '5555', 'status' => 'offen', 'name' => 'Max', 'parzelle' => 5, 'plotFormatted' => '0005', 'kennzeichen' => 'B-XX 123']), // Prio 2 Match
-                'EFG-6666' => \array_merge($baseRecord, ['code' => 'EFG-6666', 'shortCode' => '6666', 'status' => 'offen', 'name' => 'Erika Musterfrau', 'parzelle' => 6, 'plotFormatted' => '0006', 'kennzeichen' => 'B-FF 6']), // Prio 3 Match
-                'EFG-7777' => \array_merge($baseRecord, ['code' => 'EFG-7777', 'shortCode' => '7777', 'status' => 'offen', 'name' => 'Unbekannt', 'parzelle' => 42, 'plotFormatted' => '0042', 'kennzeichen' => 'B-GG 7']), // Prio 4 Match
+                'EFG-5555' => \array_merge($baseRecord, ['code' => 'EFG-5555', 'shortCode' => '5555', 'status' => 'offen', 'name' => 'Max', 'parzelle' => 5, 'plotFormatted' => '0005', 'kennzeichen' => 'B-XX 123']),
+                'EFG-6666' => \array_merge($baseRecord, ['code' => 'EFG-6666', 'shortCode' => '6666', 'status' => 'offen', 'name' => 'Erika Musterfrau', 'parzelle' => 6, 'plotFormatted' => '0006', 'kennzeichen' => 'B-FF 6']),
+                'EFG-7777' => \array_merge($baseRecord, ['code' => 'EFG-7777', 'shortCode' => '7777', 'status' => 'offen', 'name' => 'Unbekannt', 'parzelle' => 42, 'plotFormatted' => '0042', 'kennzeichen' => 'B-GG 7']),
             ],
         ));
 
@@ -96,8 +110,7 @@ final class ProcessBankImportHandlerTest extends TestCase
 
         $handler = new ProcessBankImportHandler($provider, $config, $dispatcher, $infrastructure, new SystemClock());
 
-        $command = new ProcessBankImportCommand('/tmp/bank.csv', 1, 3, 0, 2, 4);
-        $result = $handler->handle($command);
+        $result = $handler->handle(new ProcessBankImportCommand('/tmp/bank.csv', 1, 3, 0, 2, 4));
 
         $this->assertTrue($result->success);
 

@@ -107,7 +107,8 @@ final class AuthenticateAdminHandlerTest extends TestCase
         $user = new User('usr_123', 'db_user', 'role_custom', $hash, 'v0');
 
         $repo = $this->createStub(UserRepositoryInterface::class);
-        $repo->method('findByUsername')->with('db_user')->willReturn($user);
+        // D-FIX: Stubs dürfen keine Input-Validierung (->with) durchführen!
+        $repo->method('findByUsername')->willReturn($user);
 
         $session = $this->createMock(AuthSessionInterface::class);
         $session->expects($this->once())->method('setAuthSession')->with('usr_123', 'role_custom', 'db_user', $hash);

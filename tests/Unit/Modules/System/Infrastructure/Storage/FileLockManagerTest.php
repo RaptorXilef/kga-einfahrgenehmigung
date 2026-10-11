@@ -34,7 +34,7 @@ final class FileLockManagerTest extends TestCase
     public function itExecutesOperationWithFileLockAndReturnsResult(): void
     {
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('get')->with('root_path')->willReturn($this->tempRoot);
+        $config->method('get')->willReturn($this->tempRoot); // D-Fix
 
         $manager = new FileLockManager($config);
 

@@ -44,9 +44,9 @@ final class SendPaymentRemindersHandlerTest extends TestCase
         );
 
         $repo = $this->createMock(PermitRepositoryInterface::class);
-        $repo->method('yieldUnpaid')->willReturn((function () use ($permit) { yield $permit; })());
+        $repo->expects($this->once())->method('yieldUnpaid')->willReturn((function () use ($permit) { yield $permit; })()); // N-Fix
         // FIX: Wird vom Handler intern erneut aufgerufen!
-        $repo->method('findByCode')->with('T-123')->willReturn($permit);
+        $repo->expects($this->once())->method('findByCode')->with('T-123')->willReturn($permit); // N-Fix
         $repo->expects($this->once())->method('save');
 
         $clock = $this->createStub(ClockInterface::class);

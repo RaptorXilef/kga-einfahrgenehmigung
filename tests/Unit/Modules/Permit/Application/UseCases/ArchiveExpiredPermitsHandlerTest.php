@@ -43,10 +43,10 @@ final class ArchiveExpiredPermitsHandlerTest extends TestCase
         $permit2 = clone $permit1; // Simuliere 2 Permits
 
         $repo = $this->createMock(PermitRepositoryInterface::class);
-        $repo->method('yieldExpired')->willReturn((function () use ($permit1, $permit2) {
+        $repo->expects($this->once())->method('yieldExpired')->willReturn((function () use ($permit1, $permit2) {
             yield $permit1;
             yield $permit2;
-        })());
+        })()); // N-Fix
         $repo->expects($this->once())->method('deleteMultiple')->with(['T-1', 'T-1']); // Delete wird einmal mit dem Array aufgerufen
 
         $archiveRepo = $this->createMock(PermitArchiveRepositoryInterface::class);

@@ -50,7 +50,7 @@ final class ConfirmPermitEmailHandlerTest extends TestCase
         $req = new VerificationRequest('token123', new DateTimeImmutable(), ['preis' => 10.0]);
 
         $repo = $this->createMock(VerificationRepositoryInterface::class);
-        $repo->method('findPendingByTokenOrCode')->with('123456')->willReturn($req);
+        $repo->expects($this->once())->method('findPendingByTokenOrCode')->with('123456')->willReturn($req); // N-Fix
         $repo->expects($this->once())->method('deletePending')->with('token123');
         $repo->expects($this->once())->method('saveVerifiedOne');
 
@@ -70,11 +70,11 @@ final class ConfirmPermitEmailHandlerTest extends TestCase
         $req = new VerificationRequest('token123', new DateTimeImmutable(), ['preis' => 10.0, 'voucher' => 'V-100', 'name' => 'Max']);
 
         $repo = $this->createMock(VerificationRepositoryInterface::class);
-        $repo->method('findPendingByTokenOrCode')->willReturn($req);
+        $repo->expects($this->once())->method('findPendingByTokenOrCode')->willReturn($req); // N-Fix
         $repo->expects($this->once())->method('saveVerifiedOne');
 
         $voucher = $this->createMock(VoucherIntegrationInterface::class);
-        $voucher->method('calculateDiscount')->willReturn(new VoucherDiscountResult(0.0, true, '100% Free', ''));
+        $voucher->expects($this->once())->method('calculateDiscount')->willReturn(new VoucherDiscountResult(0.0, true, '100% Free', '')); // N-Fix
         // Erwartet, dass der Gutschein eingelöst wird
         $voucher->expects($this->once())->method('redeemVoucher')->with('V-100', 'Max', '0');
 

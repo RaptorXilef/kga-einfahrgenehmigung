@@ -46,7 +46,8 @@ final class AuthServiceTest extends TestCase
     {
         $config = $this->getConfigStub();
 
-        $session = $this->createMock(AuthSessionInterface::class);
+        // N-FIX: Hier wurde vorher createMock() genutzt, was ohne expects() eine Notice warf
+        $session = $this->createStub(AuthSessionInterface::class);
         $repo = $this->createStub(UserRepositoryInterface::class);
         $roleRepo = $this->createStub(RoleRepositoryInterface::class);
 

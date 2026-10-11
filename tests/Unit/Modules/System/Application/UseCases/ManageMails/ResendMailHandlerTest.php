@@ -34,7 +34,7 @@ final class ResendMailHandlerTest extends TestCase
         );
 
         $log = $this->createMock(MailLogInterface::class);
-        $log->method('findByTimestamp')->with('2026-10-15')->willReturn($entry);
+        $log->expects($this->once())->method('findByTimestamp')->with('2026-10-15')->willReturn($entry); // N-Fix
 
         $mailer = $this->createMock(MailServiceInterface::class);
         $mailer->expects($this->once())->method('sendTemplate')->with('test@example.com', 'Subject', 'std_7', ['data' => 'yes'], null, 100);

@@ -23,7 +23,7 @@ final class CreateUserHandlerTest extends TestCase
     {
         $repo = $this->createMock(UserRepositoryInterface::class);
         // Da 'new_max' nicht existiert, liefert das Repo null zurück -> Uniqueness Check bestanden!
-        $repo->method('findByUsername')->willReturn(null);
+        $repo->expects($this->once())->method('findByUsername')->willReturn(null); // N-Fix
 
         $repo->expects($this->once())->method('save')->willReturnCallback(
             function (User $user): void {
@@ -35,7 +35,8 @@ final class CreateUserHandlerTest extends TestCase
         );
 
         $roleRepo = $this->createStub(RoleRepositoryInterface::class);
-        $roleRepo->method('findById')->with('role_123')->willReturn(new Role('role_123', 'Admin Rolle', []));
+        // D-FIX: Stubs dürfen keine Input-Validierung (->with) durchführen!
+        $roleRepo->method('findById')->willReturn(new Role('role_123', 'Admin Rolle', []));
 
         // FIX: Reale Instanziierung statt Mock, da UserUniquenessChecker final ist!
         $uniquenessChecker = new UserUniquenessChecker($repo);
