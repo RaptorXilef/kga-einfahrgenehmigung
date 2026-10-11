@@ -22,7 +22,7 @@ final class MiddlewarePipelineTest extends TestCase
         $pipeline = new MiddlewarePipeline();
         $executionLog = [];
 
-        // Das & steht NUR in der Methoden-Signatur, nicht beim Aufruf!
+        // Das & steht NUR in der Methoden-Signatur, nicht beim Aufruf (PHP 8 Kompatibilität)!
         $middleware1 = new class($executionLog) implements MiddlewareInterface {
             public function __construct(private array &$log)
             {

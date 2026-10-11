@@ -19,6 +19,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthService::class)]
 final class AuthServiceTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Unterdrückt den error_log Output von CLI-Aufrufen in diesem Test
+        $this->iniSet('error_log', \PHP_OS_FAMILY === 'Windows' ? 'nul' : '/dev/null');
+    }
+
     private function getConfigStub(): ConfigInterface
     {
         $config = $this->createStub(ConfigInterface::class);
@@ -117,7 +124,10 @@ final class AuthServiceTest extends TestCase
         $sessionNorm->method('getUserId')->willReturn('usr_1');
         $sessionNorm->method('getAuthHash')->willReturn($hash);
         $sessionNorm->method('getAdminGroup')->willReturn('role_custom');
-        // FIX: Liefert die Berechtigungen, die der Compiler im Live-System in die Session packen würde
+        // Liefert Live-Rechte aus der DB, wenn geladen
+        $roleRepo->method('loadAll')->willReturn([
+            'role_custom' => new Role('role_custom', 'Custom', ['stats.view']),
+        ]);
         $sessionNorm->method('getPermissions')->willReturn(['stats.view' => true]);
 
         $auth2 = new AuthService($config, $roleRepo, $sessionNorm, $repo);
@@ -159,9 +169,10 @@ final class AuthServiceTest extends TestCase
         $userRepo->method('findById')->willThrowException(new Exception('Not found'));
 
         // Erwarte, dass die Rolle GEREINIGT gespeichert wird (1 Save)
-        // Die 4 Defaults werden übersprungen, da das Repository nicht leer ist!
+        // Die Defaults werden übersprungen, da loadAll() nicht leer ist!
         $roleRepo->expects($this->once())->method('save');
-        // 1 Default Admin User wird erstellt
+
+        // 1 Default Admin User wird erstellt (da userCheck nicht existiert)
         $userRepo->expects($this->once())->method('save');
 
         $auth = new AuthService($config, $roleRepo, $session, $userRepo);

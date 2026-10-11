@@ -23,6 +23,10 @@ return [
      * false = Sofort gültig, auch wenn noch nicht bezahlt
      */
     'require_payment_for_validity' => true,
+    /**
+     * Zeit, bis wann bezahlt werden muss. (Mindestens siehe payment_due_days)
+     * Die Zeit in Tagen, vor beginn der Genehmigung.
+     */
     'payment_due_days_before_validity' => 1,
     /**
      * Zahlungsziel für Überfälligkeit
