@@ -20,7 +20,7 @@ final class CalculateVoucherDiscountHandlerTest extends TestCase
     private function getPdoStub(?array $rowToReturn): PDO
     {
         $stmt = $this->createStub(PDOStatement::class);
-        $stmt->method('fetch')->willReturn($rowToReturn === null ? false : $rowToReturn);
+        $stmt->method('fetch')->willReturn($rowToReturn ?? false);
 
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
@@ -37,7 +37,7 @@ final class CalculateVoucherDiscountHandlerTest extends TestCase
         $result = $handler->handle(new CalculateVoucherDiscountQuery('UNKNOWN', 10.0));
 
         $this->assertFalse($result->isValid);
-        $this->assertSame(10.0, $result->finalPrice);
+        $this->assertEqualsWithDelta(10.0, $result->finalPrice, \PHP_FLOAT_EPSILON);
         $this->assertSame('Ungültiger Code', $result->errorMessage);
     }
 
@@ -96,7 +96,7 @@ final class CalculateVoucherDiscountHandlerTest extends TestCase
         $handler1 = new CalculateVoucherDiscountHandler($pdoFree, $clock);
         $result1 = $handler1->handle(new CalculateVoucherDiscountQuery('CODE', 10.0));
         $this->assertTrue($result1->isValid);
-        $this->assertSame(0.0, $result1->finalPrice);
+        $this->assertEqualsWithDelta(0.0, $result1->finalPrice, \PHP_FLOAT_EPSILON);
         $this->assertSame('100% Rabatt (Kostenlos)', $result1->discountText);
 
         // 2. PERCENT (50%)
@@ -104,7 +104,7 @@ final class CalculateVoucherDiscountHandlerTest extends TestCase
         $handler2 = new CalculateVoucherDiscountHandler($pdoPercent, $clock);
         $result2 = $handler2->handle(new CalculateVoucherDiscountQuery('CODE', 10.0));
         $this->assertTrue($result2->isValid);
-        $this->assertSame(5.0, $result2->finalPrice);
+        $this->assertEqualsWithDelta(5.0, $result2->finalPrice, \PHP_FLOAT_EPSILON);
         $this->assertSame('50% Rabatt', $result2->discountText);
 
         // 3. FIXED (-3€)
@@ -112,7 +112,7 @@ final class CalculateVoucherDiscountHandlerTest extends TestCase
         $handler3 = new CalculateVoucherDiscountHandler($pdoFixed, $clock);
         $result3 = $handler3->handle(new CalculateVoucherDiscountQuery('CODE', 10.0));
         $this->assertTrue($result3->isValid);
-        $this->assertSame(7.0, $result3->finalPrice);
+        $this->assertEqualsWithDelta(7.0, $result3->finalPrice, \PHP_FLOAT_EPSILON);
         $this->assertSame('Sonderpreis aktiviert', $result3->discountText);
     }
 }

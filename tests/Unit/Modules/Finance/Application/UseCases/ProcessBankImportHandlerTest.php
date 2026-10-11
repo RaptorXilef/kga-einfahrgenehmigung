@@ -92,10 +92,10 @@ final class ProcessBankImportHandlerTest extends TestCase
 
         // EFG-1111 wurde freigeschaltet
         $this->assertSame(1, $result->successCount);
-        $this->assertStringContainsString('EFG-1111', $result->successDetails[0]);
+        $this->assertStringContainsString('EFG-1111', (string) $result->successDetails[0]);
 
         // EFG-2222 (Unterzahlung)
-        $this->assertSame(1, \count($result->errorDetails['Zu geringer Betrag']));
+        $this->assertCount(1, $result->errorDetails['Zu geringer Betrag']);
 
         // Anomaly / Sammeltransfers:
         // USD Mismatch, Cancelled, Duplicate, Plate, Name, Plot, Underpaid = 7 Stück

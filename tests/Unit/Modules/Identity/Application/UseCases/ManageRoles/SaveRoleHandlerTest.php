@@ -42,7 +42,7 @@ final class SaveRoleHandlerTest extends TestCase
         $inheritedRole = new Role('role_admin', 'Admin', ['*', 'permits.view']);
         $repo = $this->createMock(RoleRepositoryInterface::class);
         $repo->method('findById')->willReturnCallback(
-            fn (string $id) => $id === 'role_admin' ? $inheritedRole : null,
+            fn (string $id): ?Role => $id === 'role_admin' ? $inheritedRole : null,
         );
 
         $repo->expects($this->once())->method('save')->willReturnCallback(

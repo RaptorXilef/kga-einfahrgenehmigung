@@ -114,7 +114,7 @@ final class HolidayServiceTest extends TestCase
         $now = new DateTimeImmutable('2026-10-04 12:00:00');
         $next = $service->getNextAvailableSlot($now);
 
-        $this->assertNotNull($next);
+        $this->assertInstanceOf(DateTimeImmutable::class, $next);
         $this->assertSame('2026-10-05 07:00:00', $next->format('Y-m-d H:i:s'));
     }
 }

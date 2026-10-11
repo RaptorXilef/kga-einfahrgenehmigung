@@ -28,7 +28,7 @@ final class FinalizePermitHandlerTest extends TestCase
     public function itHydratesPermitDispatchesEventAndDeletesVerifiedRequest(): void
     {
         $lockManager = $this->createStub(LockManagerInterface::class);
-        $lockManager->method('executeWithLock')->willReturnCallback(fn (string $name, callable $op) => $op());
+        $lockManager->method('executeWithLock')->willReturnCallback(fn (string $name, callable $op): mixed => $op());
 
         $reqData = [
             'datum_von' => '2026-10-15',
@@ -79,7 +79,7 @@ final class FinalizePermitHandlerTest extends TestCase
     public function itThrowsExceptionIfSessionExpired(): void
     {
         $lockManager = $this->createStub(LockManagerInterface::class);
-        $lockManager->method('executeWithLock')->willReturnCallback(fn (string $name, callable $op) => $op());
+        $lockManager->method('executeWithLock')->willReturnCallback(fn (string $name, callable $op): mixed => $op());
 
         $verifyRepo = $this->createStub(VerificationRepositoryInterface::class);
         $verifyRepo->method('findVerifiedByToken')->willReturn(null);

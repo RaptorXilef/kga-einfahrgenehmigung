@@ -9,6 +9,7 @@ use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailab
 use App\Modules\Voucher\Application\UseCases\CheckAvailableVouchers\CheckAvailableVouchersQuery;
 use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\GetVoucherPrefillHandler;
 use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\GetVoucherPrefillQuery;
+use App\Modules\Voucher\Application\UseCases\GetVoucherPrefill\VoucherPrefillDto;
 use DateTimeImmutable;
 use PDO;
 use PDOStatement;
@@ -24,7 +25,7 @@ final class VoucherQueryHandlersTest extends TestCase
     {
         $stmt = $this->createStub(PDOStatement::class);
         $stmt->method('fetchColumn')->willReturn($returnFromFetchColumn);
-        $stmt->method('fetch')->willReturn($returnFromFetchRow === null ? false : $returnFromFetchRow);
+        $stmt->method('fetch')->willReturn($returnFromFetchRow ?? false);
 
         $pdo = $this->createStub(PDO::class);
         $pdo->method('prepare')->willReturn($stmt);
@@ -73,7 +74,7 @@ final class VoucherQueryHandlersTest extends TestCase
         $handler = new GetVoucherPrefillHandler($pdo, $clock);
         $dto = $handler->handle(new GetVoucherPrefillQuery('V-123'));
 
-        $this->assertNotNull($dto);
+        $this->assertInstanceOf(VoucherPrefillDto::class, $dto);
         $this->assertSame('V-123', $dto->code);
         $this->assertSame('std_14', $dto->templateKey);
         $this->assertSame(['name' => 'Max'], $dto->data);

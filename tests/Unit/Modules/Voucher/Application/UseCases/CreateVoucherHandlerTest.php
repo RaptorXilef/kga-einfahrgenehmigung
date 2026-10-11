@@ -32,7 +32,7 @@ final class CreateVoucherHandlerTest extends TestCase
                 $this->assertSame('std_7', $voucher->templateKey);
                 $this->assertSame('Rabattaktion', $voucher->reason);
                 $this->assertSame('free', $voucher->type);
-                $this->assertSame(0.0, $voucher->value);
+                $this->assertEqualsWithDelta(0.0, $voucher->value, \PHP_FLOAT_EPSILON);
                 $this->assertTrue($voucher->isMultiUse);
                 $this->assertSame(10, $voucher->maxUses);
                 $this->assertSame('usr_123', $voucher->createdBy);

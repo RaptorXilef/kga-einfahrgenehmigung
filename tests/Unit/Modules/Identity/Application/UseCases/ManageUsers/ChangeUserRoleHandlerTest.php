@@ -32,7 +32,7 @@ final class ChangeUserRoleHandlerTest extends TestCase
         );
 
         $roleRepo = $this->createStub(RoleRepositoryInterface::class);
-        $roleRepo->method('findById')->willReturnCallback(fn (string $id) => match ($id) {
+        $roleRepo->method('findById')->willReturnCallback(fn (string $id): ?Role => match ($id) {
             'role_old' => new Role('role_old', 'Alte Rolle', []),
             'role_new' => new Role('role_new', 'Neue Rolle', []),
             default => null

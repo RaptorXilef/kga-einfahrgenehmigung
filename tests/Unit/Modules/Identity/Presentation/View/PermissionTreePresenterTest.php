@@ -17,7 +17,7 @@ final class PermissionTreePresenterTest extends TestCase
     public function itRendersTreeRecursivelyWithCorrectAttributes(): void
     {
         $asset = $this->createStub(AssetHelperInterface::class);
-        $asset->method('url')->willReturnCallback(fn ($path) => '/' . $path);
+        $asset->method('url')->willReturnCallback(fn (string $path): string => '/' . $path);
 
         $structure = [
             'category1' => [
