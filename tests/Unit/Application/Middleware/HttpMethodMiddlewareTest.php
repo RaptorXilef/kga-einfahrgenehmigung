@@ -22,7 +22,7 @@ final class HttpMethodMiddlewareTest extends TestCase
         $request = new ServerRequest(server: ['REQUEST_METHOD' => 'GET']);
 
         /** @var JsonResponse $response */
-        $response = $middleware->process($request, fn () => new HtmlResponse('OK'));
+        $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
 
         $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertSame(405, $response->statusCode);
@@ -34,7 +34,7 @@ final class HttpMethodMiddlewareTest extends TestCase
         $middleware = new HttpMethodMiddleware(['POST']);
         $request = new ServerRequest(server: ['REQUEST_METHOD' => 'POST']);
 
-        $response = $middleware->process($request, fn () => new HtmlResponse('OK'));
+        $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
 
         $this->assertInstanceOf(HtmlResponse::class, $response);
     }

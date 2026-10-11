@@ -23,7 +23,7 @@ final class PermissionMiddlewareTest extends TestCase
         $auth->method('hasPermission')->willReturn(true);
 
         $middleware = new PermissionMiddleware($auth, 'permits.create', '/fallback');
-        $response = $middleware->process(new ServerRequest(), fn () => new HtmlResponse('OK'));
+        $response = $middleware->process(new ServerRequest(), fn (): HtmlResponse => new HtmlResponse('OK'));
 
         $this->assertInstanceOf(HtmlResponse::class, $response);
     }
@@ -35,7 +35,7 @@ final class PermissionMiddlewareTest extends TestCase
         $auth->method('hasPermission')->willReturn(false);
 
         $middleware = new PermissionMiddleware($auth, 'permits.create', '/fallback');
-        $response = $middleware->process(new ServerRequest(), fn () => new HtmlResponse('OK'));
+        $response = $middleware->process(new ServerRequest(), fn (): HtmlResponse => new HtmlResponse('OK'));
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/fallback', $response->url);

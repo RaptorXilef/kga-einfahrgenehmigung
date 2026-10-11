@@ -25,7 +25,7 @@ final class ApiPermissionMiddlewareTest extends TestCase
 
         $middleware = new ApiPermissionMiddleware($auth, 'permits.create');
         /** @var JsonResponse $response */
-        $response = $middleware->process(new ServerRequest(), fn () => new HtmlResponse('OK'));
+        $response = $middleware->process(new ServerRequest(), fn (): HtmlResponse => new HtmlResponse('OK'));
 
         $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertSame(403, $response->statusCode);

@@ -36,7 +36,7 @@ final class ApiCsrfMiddlewareTest extends TestCase
         $request = new ServerRequest(server: ['REQUEST_METHOD' => 'POST']); // Kein Token mitgeschickt
 
         /** @var JsonResponse $response */
-        $response = $middleware->process($request, fn () => new HtmlResponse('OK'));
+        $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
 
         $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertSame(401, $response->statusCode);
@@ -54,7 +54,7 @@ final class ApiCsrfMiddlewareTest extends TestCase
             server: ['REQUEST_METHOD' => 'POST', 'HTTP_X_CSRF_TOKEN' => $validToken],
         );
 
-        $response = $middleware->process($request, fn () => new HtmlResponse('OK'));
+        $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
         $this->assertInstanceOf(HtmlResponse::class, $response);
     }
 }

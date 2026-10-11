@@ -7,7 +7,6 @@ namespace App\Tests\Unit\Modules\System\Application\Services;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Modules\System\Application\Services\BotProtectionService;
-use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;

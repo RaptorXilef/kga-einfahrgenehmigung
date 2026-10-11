@@ -34,7 +34,7 @@ final class FormExceptionHandlerMiddlewareTest extends TestCase
         $middleware = new FormExceptionHandlerMiddleware($session);
         $request = new ServerRequest();
 
-        $response = $middleware->process($request, fn () => new HtmlResponse('OK'));
+        $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
         $this->assertInstanceOf(HtmlResponse::class, $response);
     }
 

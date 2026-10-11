@@ -29,10 +29,12 @@ final class AuditLoggerServiceTest extends TestCase
         $repo = $this->createMock(AuditLogRepositoryInterface::class);
 
         $repo->expects($this->once())->method('save')->with($this->callback(
-            fn (AuditLog $log): bool => $log->userId === 'usr_123'
-                && $log->username === 'Max_Admin'
-                && $log->action === 'TEST'
-                && $log->ipAddress->value === '192.168.1.1',
+            function (AuditLog $log): void {
+                $this->assertSame('usr_123', $log->userId);
+                $this->assertSame('Max_Admin', $log->username);
+                $this->assertSame('TEST', $log->action);
+                $this->assertSame('192.168.1.1', $log->ipAddress->value);
+            },
         ));
 
         $config = $this->createStub(ConfigInterface::class);
@@ -74,8 +76,10 @@ final class AuditLoggerServiceTest extends TestCase
         $repo = $this->createMock(AuditLogRepositoryInterface::class);
 
         $repo->expects($this->once())->method('save')->with($this->callback(
-            fn (AuditLog $log): bool => $log->userId === 'history_user'
-                && $log->username === 'Pächter (history@test.de)',
+            function (AuditLog $log): void {
+                $this->assertSame('history_user', $log->userId);
+                $this->assertSame('Pächter (history@test.de)', $log->username);
+            },
         ));
 
         $config = $this->createStub(ConfigInterface::class);

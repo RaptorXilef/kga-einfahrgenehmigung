@@ -33,7 +33,7 @@ final class CsrfMiddlewareTest extends TestCase
         $middleware = new CsrfMiddleware($session, '/fallback');
 
         $request = new ServerRequest(server: ['REQUEST_METHOD' => 'GET']);
-        $response = $middleware->process($request, fn () => new HtmlResponse('OK'));
+        $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
 
         $this->assertInstanceOf(HtmlResponse::class, $response);
     }
@@ -50,7 +50,7 @@ final class CsrfMiddlewareTest extends TestCase
             post: ['csrf_token' => $validToken],
             server: ['REQUEST_METHOD' => 'POST'],
         );
-        $response = $middleware->process($request, fn () => new HtmlResponse('OK'));
+        $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
 
         $this->assertInstanceOf(HtmlResponse::class, $response);
     }
@@ -69,7 +69,7 @@ final class CsrfMiddlewareTest extends TestCase
         );
 
         /** @var RedirectResponse $response */
-        $response = $middleware->process($request, fn () => new HtmlResponse('OK'));
+        $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/fallback', $response->url);

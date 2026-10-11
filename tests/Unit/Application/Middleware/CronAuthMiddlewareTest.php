@@ -25,7 +25,7 @@ final class CronAuthMiddlewareTest extends TestCase
         $middleware = new CronAuthMiddleware($config);
         $request = new ServerRequest(get: ['token' => 'secret-cron']);
 
-        $response = $middleware->process($request, fn () => new HtmlResponse('OK'));
+        $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
         $this->assertInstanceOf(HtmlResponse::class, $response);
     }
 
@@ -47,7 +47,7 @@ final class CronAuthMiddlewareTest extends TestCase
         }
 
         /** @var EmptyResponse $response */
-        $response = $middleware->process($request, fn () => new HtmlResponse('OK'));
+        $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
         $this->assertInstanceOf(EmptyResponse::class, $response);
         $this->assertSame(403, $response->status);
     }

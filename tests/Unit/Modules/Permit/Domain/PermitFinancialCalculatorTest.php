@@ -31,7 +31,7 @@ final class PermitFinancialCalculatorTest extends TestCase
     private function getConfigMock(): ConfigInterface
     {
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('getArray')->willReturnCallback(fn (string $key) => match ($key) {
+        $config->method('getArray')->willReturnCallback(fn (string $key): array => match ($key) {
             'permit_templates' => [
                 'std_7' => ['prices' => ['pkw' => 5.0, 'lkw' => 15.0]],
                 'free_tpl' => ['prices' => ['pkw' => 0.0]],
@@ -43,14 +43,14 @@ final class PermitFinancialCalculatorTest extends TestCase
             default => []
         });
 
-        $config->method('getInt')->willReturnCallback(fn (string $key) => match ($key) {
+        $config->method('getInt')->willReturnCallback(fn (string $key): int => match ($key) {
             'payment_due_days' => 14,
             'payment_due_days_before_validity' => 2,
             'payment_due_days_notify' => 2,
             default => 0
         });
 
-        $config->method('getString')->willReturnCallback(fn (string $key) => match ($key) {
+        $config->method('getString')->willReturnCallback(fn (string $key): string => match ($key) {
             'usage_pattern' => 'EFG-{{code}}-{{nachname}}-{{vorname}}',
             default => ''
         });
@@ -65,13 +65,13 @@ final class PermitFinancialCalculatorTest extends TestCase
         $calc = new PermitFinancialCalculator($this->getConfigMock(), $clock);
 
         // Bekannter Typ
-        $this->assertSame(15.0, $calc->calculateBasePrice(new TemplateKey('std_7'), 'lkw'));
+        $this->assertEqualsWithDelta(15.0, $calc->calculateBasePrice(new TemplateKey('std_7'), 'lkw'), \PHP_FLOAT_EPSILON);
 
         // Fallback auf PKW (Default), wenn Typ unbekannt ist
-        $this->assertSame(5.0, $calc->calculateBasePrice(new TemplateKey('std_7'), 'unknown_type'));
+        $this->assertEqualsWithDelta(5.0, $calc->calculateBasePrice(new TemplateKey('std_7'), 'unknown_type'), \PHP_FLOAT_EPSILON);
 
         // Fallback auf 0.0, wenn Template nicht existiert
-        $this->assertSame(0.0, $calc->calculateBasePrice(new TemplateKey('non_existent'), 'pkw'));
+        $this->assertEqualsWithDelta(0.0, $calc->calculateBasePrice(new TemplateKey('non_existent'), 'pkw'), \PHP_FLOAT_EPSILON);
     }
 
     #[Test]

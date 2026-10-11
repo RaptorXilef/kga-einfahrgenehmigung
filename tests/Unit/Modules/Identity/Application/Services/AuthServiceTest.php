@@ -19,24 +19,36 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthService::class)]
 final class AuthServiceTest extends TestCase
 {
+    private string $tempLogFile;
+
     protected function setUp(): void
     {
         parent::setUp();
-        // Unterdrückt den error_log Output von CLI-Aufrufen in diesem Test nativ
-        \ini_set('error_log', \PHP_OS_FAMILY === 'Windows' ? 'nul' : '/dev/null');
+        // Leitet error_log() Aufrufe sicher in eine physische Datei um, damit PHPUnit nicht fehlschlägt
+        $this->tempLogFile = \tempnam(\sys_get_temp_dir(), 'kga_test_log_') ?: 'test.log';
+        \ini_set('error_log', $this->tempLogFile);
+    }
+
+    protected function tearDown(): void
+    {
+        // Temporäre Log-Datei nach dem Test wieder sauber entfernen
+        if (\file_exists($this->tempLogFile)) {
+            @\unlink($this->tempLogFile);
+        }
+        parent::tearDown();
     }
 
     private function getConfigStub(): ConfigInterface
     {
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('getArray')->willReturnCallback(fn (string $key) => match ($key) {
+        $config->method('getArray')->willReturnCallback(fn (string $key): array => match ($key) {
             'superadmins' => ['max' => ['label' => 'Superadmin']],
             'backdoor' => ['user' => 'dev', 'label' => 'Dev', 'pass' => 'xxx'],
             'permissions' => ['valid.perm' => 'Valid'],
             'structure' => ['stats' => ['key' => 'stats.view']],
             default => []
         });
-        $config->method('getBool')->willReturnCallback(fn (string $key) => match ($key) {
+        $config->method('getBool')->willReturnCallback(fn (string $key): bool => match ($key) {
             'disable_backdoor' => false,
             'disable_superadmin' => false,
             'stealth_superadmins' => true,
