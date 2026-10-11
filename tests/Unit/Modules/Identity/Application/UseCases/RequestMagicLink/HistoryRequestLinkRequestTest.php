@@ -20,13 +20,13 @@ final class HistoryRequestLinkRequestTest extends TestCase
     public function itCreatesRequestFromValidServerRequest(): void
     {
         $serverRequest = new ServerRequest(
-            post: ['email' => '  pächter@kga.de  '],
+            post: ['email' => '  paechter@kga.de  '], // FIX: Keine Umlaute für filter_var()!
             server: ['REMOTE_ADDR' => '10.0.0.5'],
         );
 
         $request = HistoryRequestLinkRequest::fromRequest($serverRequest);
 
-        $this->assertSame('pächter@kga.de', $request->email); // Trimmed
+        $this->assertSame('paechter@kga.de', $request->email); // Trimmed
         $this->assertSame('10.0.0.5', $request->ip);
     }
 
@@ -48,5 +48,6 @@ final class HistoryRequestLinkRequestTest extends TestCase
         yield 'missing email' => [[]];
         yield 'invalid format' => [['email' => 'not-an-email']];
         yield 'missing at' => [['email' => 'test.kga.de']];
+        yield 'umlaut in local part' => [['email' => 'pächter@kga.de']]; // Wird von filter_var abgelehnt
     }
 }

@@ -22,6 +22,9 @@ final class CreateUserHandlerTest extends TestCase
     public function itChecksUniquenessSavesUserAndReturnsDto(): void
     {
         $repo = $this->createMock(UserRepositoryInterface::class);
+        // Da 'new_max' nicht existiert, liefert das Repo null zurück -> Uniqueness Check bestanden!
+        $repo->method('findByUsername')->willReturn(null);
+
         $repo->expects($this->once())->method('save')->willReturnCallback(
             function (User $user): void {
                 $this->assertStringStartsWith('usr_', $user->id);
@@ -34,8 +37,8 @@ final class CreateUserHandlerTest extends TestCase
         $roleRepo = $this->createStub(RoleRepositoryInterface::class);
         $roleRepo->method('findById')->with('role_123')->willReturn(new Role('role_123', 'Admin Rolle', []));
 
-        $uniquenessChecker = $this->createMock(UserUniquenessChecker::class);
-        $uniquenessChecker->expects($this->once())->method('check')->with('new_max');
+        // FIX: Reale Instanziierung statt Mock, da UserUniquenessChecker final ist!
+        $uniquenessChecker = new UserUniquenessChecker($repo);
 
         $handler = new CreateUserHandler($repo, $roleRepo, $uniquenessChecker);
         $result = $handler->handle(new CreateUserCommand('new_max', 'secret123', 'role_123'));
