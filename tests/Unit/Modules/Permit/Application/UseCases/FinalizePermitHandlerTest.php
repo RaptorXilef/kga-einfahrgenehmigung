@@ -55,7 +55,12 @@ final class FinalizePermitHandlerTest extends TestCase
 
         // Nutzt die echte PermitFactory anstatt eines Mock, da sie final ist
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('getArray')->willReturnMap([['permit_templates', [], ['std_7' => ['days' => 7]]]]);
+        $config->method('getArray')->willReturnCallback(fn (string $key): array => match ($key) {
+            'permit_templates' => ['std_7' => ['days' => 7]],
+            'purposes' => [],
+            'vehicle_types' => [],
+            default => []
+        });
         $config->method('getBool')->willReturnMap([['use_long_permit_code', false, false]]);
 
         $permitFactory = new PermitFactory($permitRepo, $config, $this->createStub(ClockInterface::class));

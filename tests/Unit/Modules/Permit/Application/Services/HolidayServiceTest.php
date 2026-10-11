@@ -83,21 +83,25 @@ final class HolidayServiceTest extends TestCase
     #[Test]
     public function itReturnsCorrectTimeAllowedNowState(): void
     {
-        // Verwende das ClockInterface
-        $clock = $this->createStub(ClockInterface::class);
-        $service = new HolidayService($this->getConfigStub(), $this->createStub(JsonHelperInterface::class), $clock);
+        $helper = $this->createStub(JsonHelperInterface::class);
 
         // Fall 1: Montag, 12:00 Uhr (Erlaubt: 07:00 - 20:00)
-        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-05 12:00:00'));
-        $this->assertTrue($service->isTimeAllowedNow());
+        $clock1 = $this->createStub(ClockInterface::class);
+        $clock1->method('now')->willReturn(new DateTimeImmutable('2026-10-05 12:00:00'));
+        $service1 = new HolidayService($this->getConfigStub(), $helper, $clock1);
+        $this->assertTrue($service1->isTimeAllowedNow());
 
         // Fall 2: Montag, 21:00 Uhr (Außerhalb)
-        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-05 21:00:00'));
-        $this->assertFalse($service->isTimeAllowedNow());
+        $clock2 = $this->createStub(ClockInterface::class);
+        $clock2->method('now')->willReturn(new DateTimeImmutable('2026-10-05 21:00:00'));
+        $service2 = new HolidayService($this->getConfigStub(), $helper, $clock2);
+        $this->assertFalse($service2->isTimeAllowedNow());
 
         // Fall 3: Feiertag (Karfreitag), 12:00 Uhr
-        $clock->method('now')->willReturn(new DateTimeImmutable('2026-04-03 12:00:00'));
-        $this->assertFalse($service->isTimeAllowedNow());
+        $clock3 = $this->createStub(ClockInterface::class);
+        $clock3->method('now')->willReturn(new DateTimeImmutable('2026-04-03 12:00:00'));
+        $service3 = new HolidayService($this->getConfigStub(), $helper, $clock3);
+        $this->assertFalse($service3->isTimeAllowedNow());
     }
 
     #[Test]

@@ -171,7 +171,7 @@ final class AuthServiceTest extends TestCase
 
         $auth = new AuthService($config, $roleRepo, $session, $userRepo);
 
-        // Output-Buffering fängt den error_log STDOUT Leak bei manchen CLI Konfigurationen zuverlässig ab!
+        // Output-Buffering fängt den error_log STDOUT Leak bei CLI Konfigurationen zuverlässig ab!
         \ob_start();
         $auth->bootstrapDefaultIdentityData();
         \ob_end_clean();
