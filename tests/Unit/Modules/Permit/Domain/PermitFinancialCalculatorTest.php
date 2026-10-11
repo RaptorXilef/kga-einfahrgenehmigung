@@ -1,0 +1,163 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Unit\Modules\Permit\Domain;
+
+use App\Contracts\Config\ConfigInterface;
+use App\Modules\Permit\Domain\Owner;
+use App\Modules\Permit\Domain\Permit;
+use App\Modules\Permit\Domain\PermitFinancialCalculator;
+use App\Modules\Permit\Domain\PermitStatus;
+use App\Modules\Permit\Domain\Status;
+use App\Modules\Permit\Domain\Validity;
+use App\Modules\Permit\Domain\Vehicle;
+use App\SharedKernel\Domain\ValueObject\LicensePlate;
+use App\SharedKernel\Domain\ValueObject\PermitCode;
+use App\SharedKernel\Domain\ValueObject\PlotNumber;
+use App\SharedKernel\Domain\ValueObject\Price;
+use App\SharedKernel\Domain\ValueObject\TemplateKey;
+use App\SharedKernel\Infrastructure\Utils\SystemClock;
+use DateTimeImmutable;
+use Iterator;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+
+#[CoversClass(PermitFinancialCalculator::class)]
+final class PermitFinancialCalculatorTest extends TestCase
+{
+    private function getConfigMock(): ConfigInterface
+    {
+        $config = $this->createStub(ConfigInterface::class);
+        $config->method('getArray')->willReturnMap([
+            ['permit_templates', [], [
+                'std_7' => ['prices' => ['pkw' => 5.0, 'lkw' => 15.0]],
+                'free_tpl' => ['prices' => ['pkw' => 0.0]],
+            ]],
+            ['vehicle_types', [], [
+                'pkw' => ['label' => 'PKW'],
+                'lkw' => ['label' => 'LKW'],
+            ]],
+        ]);
+
+        $config->method('getInt')->willReturnMap([
+            ['payment_due_days', 0, 14],
+            ['payment_due_days_before_validity', 0, 2],
+            ['payment_due_days_notify', 0, 2],
+        ]);
+
+        $config->method('getString')->willReturnMap([
+            ['usage_pattern', '', 'EFG-{{code}}-{{nachname}}-{{vorname}}'],
+        ]);
+
+        return $config;
+    }
+
+    #[Test]
+    public function itCalculatesBasePriceFromTemplateAndVehicleType(): void
+    {
+        $calc = new PermitFinancialCalculator($this->getConfigMock(), new SystemClock());
+
+        // Bekannter Typ
+        $this->assertSame(15.0, $calc->calculateBasePrice(new TemplateKey('std_7'), 'lkw'));
+
+        // Fallback auf PKW (Default), wenn Typ unbekannt ist
+        $this->assertSame(5.0, $calc->calculateBasePrice(new TemplateKey('std_7'), 'unknown_type'));
+
+        // Fallback auf 0.0, wenn Template nicht existiert
+        $this->assertSame(0.0, $calc->calculateBasePrice(new TemplateKey('non_existent'), 'pkw'));
+    }
+
+    #[Test]
+    #[DataProvider('dueDateProvider')]
+    public function itCalculatesThePaymentDueDateCorrectly(
+        string $createdStr,
+        string $validFromStr,
+        string $expectedDueStr,
+    ): void {
+        $calc = new PermitFinancialCalculator($this->getConfigMock(), new SystemClock());
+
+        $permit = new Permit(
+            new PermitCode('T-1'),
+            new TemplateKey('std_7'),
+            new Owner('M', null, new PlotNumber(1)),
+            new Vehicle('pkw', new LicensePlate('B')),
+            new Validity(new DateTimeImmutable($validFromStr), new DateTimeImmutable(), new Price(10.0), 'Zweck'),
+            new Status(PermitStatus::Offen),
+            new DateTimeImmutable($createdStr),
+        );
+
+        $dueDate = $calc->calculatePaymentDueDate($permit);
+
+        // Die Zeit muss immer auf 23:59:59 gesetzt werden
+        $this->assertSame($expectedDueStr . ' 23:59:59', $dueDate->format('Y-m-d H:i:s'));
+    }
+
+    public static function dueDateProvider(): Iterator
+    {
+        yield 'Validity is far in the future -> 14 days after creation' => [
+            '2026-10-01', '2026-12-01', '2026-10-15',
+        ];
+        yield 'Validity starts soon -> 2 days before validity' => [
+            '2026-10-01', '2026-10-05', '2026-10-03',
+        ];
+        yield 'Validity starts tomorrow -> Date is already in the past (overdue)' => [
+            '2026-10-01', '2026-10-02', '2026-09-30',
+        ];
+    }
+
+    #[Test]
+    public function itReturnsCorrectOverdueLevels(): void
+    {
+        $clock = $this->createStub(SystemClock::class);
+        $calc = new PermitFinancialCalculator($this->getConfigMock(), $clock);
+
+        // Erstellt am 1.10., Gültig ab 20.10. -> Fällig am 15.10.
+        $permit = new Permit(
+            new PermitCode('T-1'),
+            new TemplateKey('std_7'),
+            new Owner('M', null, new PlotNumber(1)),
+            new Vehicle('pkw', new LicensePlate('B')),
+            new Validity(new DateTimeImmutable('2026-10-20'), new DateTimeImmutable(), new Price(10.0), 'Zweck'),
+            new Status(PermitStatus::Offen),
+            new DateTimeImmutable('2026-10-01'),
+        );
+
+        // Level 0: Nicht fällig (Heute ist der 10.10.)
+        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-10 12:00:00'));
+        $this->assertSame(0, $calc->getOverdueLevel($permit));
+
+        // Level 1: Fällig, Mahnfrist läuft (Heute ist der 16.10.)
+        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-16 12:00:00'));
+        $this->assertSame(1, $calc->getOverdueLevel($permit));
+
+        // Level 2: Überfällig, Mahnfrist abgelaufen (Heute ist der 18.10., Limit war +2 Tage = 17.10.)
+        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-18 12:00:00'));
+        $this->assertSame(2, $calc->getOverdueLevel($permit));
+
+        // Paid permits never overdue
+        $permit->markAsPaid();
+        $this->assertSame(0, $calc->getOverdueLevel($permit));
+    }
+
+    #[Test]
+    public function itGeneratesTheUsageTextCorrectly(): void
+    {
+        $calc = new PermitFinancialCalculator($this->getConfigMock(), new SystemClock());
+
+        $permit = new Permit(
+            new PermitCode('SYS-AB-1234'),
+            new TemplateKey('std_7'),
+            new Owner('Klaus Dieter Müller', null, new PlotNumber(1)),
+            new Vehicle('pkw', new LicensePlate('B')),
+            new Validity(new DateTimeImmutable(), new DateTimeImmutable(), new Price(10.0), 'Zweck'),
+            new Status(PermitStatus::Offen),
+            new DateTimeImmutable(),
+        );
+
+        // Pattern aus Mock: EFG-{{code}}-{{nachname}}-{{vorname}}
+        $this->assertSame('EFG-1234-Müller-Klaus', $calc->generateUsageText($permit));
+    }
+}
