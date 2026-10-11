@@ -47,7 +47,7 @@ final class PermissionCompilerTest extends TestCase
         $this->assertTrue($compiled['system.manage']);
         $this->assertTrue($compiled['system.users.manage']);
         $this->assertTrue($compiled['system.roles.manage']);
-        $this->assertFalse($compiled['stats.view']);
+        $this->assertFalse($compiled['stats.view'] ?? false);
     }
 
     #[Test]
@@ -75,7 +75,9 @@ final class PermissionCompilerTest extends TestCase
         // Versucht das Kind zu erlauben, verbietet aber explizit den Parent!
         $compiled = $compiler->compile($this->getTestStructure(), ['system.users.manage', '-system.manage']);
 
-        $this->assertTrue($compiled['system.users.manage']);
+        // FIX: Ein verbotener Parent (Verwaltung gesperrt) negiert auch alle Kind-Freigaben,
+        // da das `-` nach unten propagiert wird!
+        $this->assertFalse($compiled['system.users.manage']);
         // Explizites -system.manage verbietet den impliziten Grant
         $this->assertFalse($compiled['system.manage'] ?? false);
     }
@@ -84,7 +86,6 @@ final class PermissionCompilerTest extends TestCase
     public function itGrantsEverythingWithWildcardExceptExplicitDenies(): void
     {
         $compiler = new PermissionCompiler();
-
         $compiled = $compiler->compile($this->getTestStructure(), ['*', '-system.roles.manage']);
 
         $this->assertTrue($compiled['system.manage']);

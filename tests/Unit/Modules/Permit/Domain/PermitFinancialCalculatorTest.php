@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Modules\Permit\Domain;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Domain\Owner;
 use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitFinancialCalculator;
@@ -17,7 +18,6 @@ use App\SharedKernel\Domain\ValueObject\PermitCode;
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use App\SharedKernel\Domain\ValueObject\Price;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
-use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use DateTimeImmutable;
 use Iterator;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -31,26 +31,29 @@ final class PermitFinancialCalculatorTest extends TestCase
     private function getConfigMock(): ConfigInterface
     {
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('getArray')->willReturnMap([
-            ['permit_templates', [], [
+        $config->method('getArray')->willReturnCallback(fn (string $key) => match ($key) {
+            'permit_templates' => [
                 'std_7' => ['prices' => ['pkw' => 5.0, 'lkw' => 15.0]],
                 'free_tpl' => ['prices' => ['pkw' => 0.0]],
-            ]],
-            ['vehicle_types', [], [
+            ],
+            'vehicle_types' => [
                 'pkw' => ['label' => 'PKW'],
                 'lkw' => ['label' => 'LKW'],
-            ]],
-        ]);
+            ],
+            default => []
+        });
 
-        $config->method('getInt')->willReturnMap([
-            ['payment_due_days', 0, 14],
-            ['payment_due_days_before_validity', 0, 2],
-            ['payment_due_days_notify', 0, 2],
-        ]);
+        $config->method('getInt')->willReturnCallback(fn (string $key) => match ($key) {
+            'payment_due_days' => 14,
+            'payment_due_days_before_validity' => 2,
+            'payment_due_days_notify' => 2,
+            default => 0
+        });
 
-        $config->method('getString')->willReturnMap([
-            ['usage_pattern', '', 'EFG-{{code}}-{{nachname}}-{{vorname}}'],
-        ]);
+        $config->method('getString')->willReturnCallback(fn (string $key) => match ($key) {
+            'usage_pattern' => 'EFG-{{code}}-{{nachname}}-{{vorname}}',
+            default => ''
+        });
 
         return $config;
     }
@@ -58,7 +61,8 @@ final class PermitFinancialCalculatorTest extends TestCase
     #[Test]
     public function itCalculatesBasePriceFromTemplateAndVehicleType(): void
     {
-        $calc = new PermitFinancialCalculator($this->getConfigMock(), new SystemClock());
+        $clock = $this->createStub(ClockInterface::class);
+        $calc = new PermitFinancialCalculator($this->getConfigMock(), $clock);
 
         // Bekannter Typ
         $this->assertSame(15.0, $calc->calculateBasePrice(new TemplateKey('std_7'), 'lkw'));
@@ -77,7 +81,8 @@ final class PermitFinancialCalculatorTest extends TestCase
         string $validFromStr,
         string $expectedDueStr,
     ): void {
-        $calc = new PermitFinancialCalculator($this->getConfigMock(), new SystemClock());
+        $clock = $this->createStub(ClockInterface::class);
+        $calc = new PermitFinancialCalculator($this->getConfigMock(), $clock);
 
         $permit = new Permit(
             new PermitCode('T-1'),
@@ -111,7 +116,7 @@ final class PermitFinancialCalculatorTest extends TestCase
     #[Test]
     public function itReturnsCorrectOverdueLevels(): void
     {
-        $clock = $this->createStub(SystemClock::class);
+        $clock = $this->createStub(ClockInterface::class);
         $calc = new PermitFinancialCalculator($this->getConfigMock(), $clock);
 
         // Erstellt am 1.10., Gültig ab 20.10. -> Fällig am 15.10.
@@ -145,7 +150,8 @@ final class PermitFinancialCalculatorTest extends TestCase
     #[Test]
     public function itGeneratesTheUsageTextCorrectly(): void
     {
-        $calc = new PermitFinancialCalculator($this->getConfigMock(), new SystemClock());
+        $clock = $this->createStub(ClockInterface::class);
+        $calc = new PermitFinancialCalculator($this->getConfigMock(), $clock);
 
         $permit = new Permit(
             new PermitCode('SYS-AB-1234'),

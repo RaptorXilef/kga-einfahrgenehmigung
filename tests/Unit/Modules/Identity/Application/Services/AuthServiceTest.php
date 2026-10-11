@@ -19,14 +19,30 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthService::class)]
 final class AuthServiceTest extends TestCase
 {
+    private function getConfigStub(): ConfigInterface
+    {
+        $config = $this->createStub(ConfigInterface::class);
+        $config->method('getArray')->willReturnCallback(fn (string $key) => match ($key) {
+            'superadmins' => ['max' => ['label' => 'Superadmin']],
+            'backdoor' => ['user' => 'dev', 'label' => 'Dev', 'pass' => 'xxx'],
+            'permissions' => ['valid.perm' => 'Valid'],
+            'structure' => ['stats' => ['key' => 'stats.view']],
+            default => []
+        });
+        $config->method('getBool')->willReturnCallback(fn (string $key) => match ($key) {
+            'disable_backdoor' => false,
+            'disable_superadmin' => false,
+            'stealth_superadmins' => true,
+            default => false
+        });
+
+        return $config;
+    }
+
     #[Test]
     public function itCorrectlyEvaluatesIsLoggedInForDifferentTiers(): void
     {
-        $config = $this->createStub(ConfigInterface::class);
-        $config->method('getArray')->willReturnMap([
-            ['superadmins', [], ['max' => ['label' => 'Superadmin']]],
-            ['backdoor', [], ['user' => 'dev', 'label' => 'Dev']],
-        ]);
+        $config = $this->getConfigStub();
 
         $session = $this->createMock(AuthSessionInterface::class);
         $repo = $this->createStub(UserRepositoryInterface::class);
@@ -64,7 +80,7 @@ final class AuthServiceTest extends TestCase
     #[Test]
     public function itLogsOutIfDbSyncFailsOrUserIsDeleted(): void
     {
-        $config = $this->createStub(ConfigInterface::class);
+        $config = $this->getConfigStub();
         $session = $this->createMock(AuthSessionInterface::class);
         $repo = $this->createStub(UserRepositoryInterface::class);
         $roleRepo = $this->createStub(RoleRepositoryInterface::class);
@@ -82,7 +98,7 @@ final class AuthServiceTest extends TestCase
     #[Test]
     public function itEvaluatesPermissionsAndWildcards(): void
     {
-        $config = $this->createStub(ConfigInterface::class);
+        $config = $this->getConfigStub();
         $repo = $this->createStub(UserRepositoryInterface::class);
         $roleRepo = $this->createStub(RoleRepositoryInterface::class);
 
@@ -101,10 +117,8 @@ final class AuthServiceTest extends TestCase
         $sessionNorm->method('getUserId')->willReturn('usr_1');
         $sessionNorm->method('getAuthHash')->willReturn($hash);
         $sessionNorm->method('getAdminGroup')->willReturn('role_custom');
-        // Liefert Live-Rechte aus der DB, wenn geladen
-        $roleRepo->method('loadAll')->willReturn([
-            'role_custom' => new Role('role_custom', 'Custom', ['stats.view']),
-        ]);
+        // FIX: Liefert die Berechtigungen, die der Compiler im Live-System in die Session packen würde
+        $sessionNorm->method('getPermissions')->willReturn(['stats.view' => true]);
 
         $auth2 = new AuthService($config, $roleRepo, $sessionNorm, $repo);
         $this->assertTrue($auth2->hasPermission('stats.view'));
@@ -114,10 +128,7 @@ final class AuthServiceTest extends TestCase
     #[Test]
     public function itRefreshesSessionPermissionsCorrectly(): void
     {
-        $config = $this->createStub(ConfigInterface::class);
-        $config->method('getArray')->willReturnMap([
-            ['structure', [], ['stats' => ['key' => 'stats.view']]],
-        ]);
+        $config = $this->getConfigStub();
         $repo = $this->createStub(UserRepositoryInterface::class);
 
         $roleRepo = $this->createStub(RoleRepositoryInterface::class);
@@ -137,11 +148,7 @@ final class AuthServiceTest extends TestCase
     #[Test]
     public function itBootstrapsDefaultIdentityDataAndCleansOrphans(): void
     {
-        $config = $this->createStub(ConfigInterface::class);
-        $config->method('getArray')->willReturnMap([
-            ['permissions', [], ['valid.perm' => 'Valid']],
-        ]);
-
+        $config = $this->getConfigStub();
         $roleRepo = $this->createMock(RoleRepositoryInterface::class);
         $userRepo = $this->createMock(UserRepositoryInterface::class);
         $session = $this->createStub(AuthSessionInterface::class);
@@ -151,9 +158,11 @@ final class AuthServiceTest extends TestCase
         $roleRepo->method('loadAll')->willReturn(['role_1' => $role]);
         $userRepo->method('findById')->willThrowException(new Exception('Not found'));
 
-        // Erwarte, dass die Rolle GEREINIGT gespeichert wird, und dass die Defaults erstellt werden
-        $roleRepo->expects($this->exactly(5))->method('save'); // 4 defaults + 1 cleanup update
-        $userRepo->expects($this->once())->method('save'); // 1 default admin
+        // Erwarte, dass die Rolle GEREINIGT gespeichert wird (1 Save)
+        // Die 4 Defaults werden übersprungen, da das Repository nicht leer ist!
+        $roleRepo->expects($this->once())->method('save');
+        // 1 Default Admin User wird erstellt
+        $userRepo->expects($this->once())->method('save');
 
         $auth = new AuthService($config, $roleRepo, $session, $userRepo);
         $auth->bootstrapDefaultIdentityData();

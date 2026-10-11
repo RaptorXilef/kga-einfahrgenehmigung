@@ -36,6 +36,7 @@ final class MemoryCsvExporterTest extends TestCase
         // Aufruf ohne 3. Parameter testet gleichzeitig den Default-Delimiter ';'
         $csv = $exporter->export($headers, $rows);
 
+        // EXAKTER OUTPUT FÜR fputcsv OHNE ANFÜHRUNGSZEICHEN UM LEERE STRINGS
         $expectedCsv = "\xEF\xBB\xBF"
             . "Text;Int;Float;Leer;FormelGleich;FormelPlus;FormelMinus;FormelAt;Tab;CR\n"
             . "\"Normaler Text\";-42;-15.5;;'=SUM(A1:A2);'+12345;'-12345;'@cmd;\"'\tTabulator\";\"'\rCarriageReturn\"\n";
