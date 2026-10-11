@@ -40,22 +40,26 @@ final class SendPaymentRemindersHandlerTest extends TestCase
             new Vehicle('pkw', new LicensePlate('B')),
             new Validity(new DateTimeImmutable(), new DateTimeImmutable(), new Price(10.0), ''),
             new Status(PermitStatus::Offen),
-            new DateTimeImmutable(),
+            new DateTimeImmutable('2026-10-01'), // Erstellt vor 14 Tagen -> Ist jetzt fällig!
         );
 
         $repo = $this->createMock(PermitRepositoryInterface::class);
-        $repo->method('yieldUnpaid')->willReturn((function () use ($permit) { yield $permit; })()); // Generator Mock
+        $repo->method('yieldUnpaid')->willReturn((function () use ($permit) { yield $permit; })());
         $repo->expects($this->once())->method('save');
 
         $clock = $this->createStub(ClockInterface::class);
         $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-15 12:00:00'));
 
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('getInt')->willReturnMap([['payment_reminder_cooldown_days', 7, 7]]);
+        $config->method('getInt')->willReturnCallback(fn (string $key): int => match ($key) {
+            'payment_due_days' => 14,
+            'payment_due_days_before_validity' => 2,
+            'payment_reminder_cooldown_days' => 7,
+            default => 0
+        });
 
-        $calculator = $this->createStub(PermitFinancialCalculator::class);
-        // Fällig seit gestern
-        $calculator->method('calculatePaymentDueDate')->willReturn(new DateTimeImmutable('2026-10-14 23:59:59'));
+        // Echte Klasse instanziieren statt zu mocken
+        $calculator = new PermitFinancialCalculator($config, $clock);
 
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
         $dispatcher->expects($this->once())->method('dispatch'); // PaymentReminderEvent

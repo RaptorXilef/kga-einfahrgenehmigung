@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Modules\Permit\Application\UseCases;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\SubmitPermitRequestCommand;
 use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\SubmitPermitRequestHandler;
 use App\Modules\Permit\Domain\Exceptions\PermitCollisionException;
@@ -60,11 +61,15 @@ final class SubmitPermitRequestHandlerTest extends TestCase
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects($this->once())->method('dispatch'); // VerificationRequestedEvent
 
-        $calculator = $this->createStub(PermitFinancialCalculator::class);
-        $calculator->method('calculateBasePrice')->willReturn(10.0);
-
         $config = $this->createStub(ConfigInterface::class);
+        $config->method('getArray')->willReturnMap([
+            ['permit_templates', [], ['std_7' => ['prices' => ['pkw' => 10.0]]]],
+            ['vehicle_types', [], ['pkw' => ['label' => 'PKW']]],
+        ]);
         $config->method('get')->willReturnMap([['max_plot_number', 9999, 9999], ['hours_pending_verify', 24, 24]]);
+
+        // Real Domain Service
+        $calculator = new PermitFinancialCalculator($config, $this->createStub(ClockInterface::class));
 
         $handler = new SubmitPermitRequestHandler($config, new SystemClock(), $verifyRepo, $permitRepo, $eventDispatcher, $calculator);
 
@@ -87,9 +92,14 @@ final class SubmitPermitRequestHandlerTest extends TestCase
         $verifyRepo->expects($this->once())->method('saveVerifiedOne');
         $verifyRepo->expects($this->never())->method('deleteVerified');
 
-        $calculator = $this->createStub(PermitFinancialCalculator::class);
         $config = $this->createStub(ConfigInterface::class);
+        $config->method('getArray')->willReturnMap([
+            ['permit_templates', [], ['std_7' => ['prices' => ['pkw' => 10.0]]]],
+            ['vehicle_types', [], ['pkw' => ['label' => 'PKW']]],
+        ]);
         $config->method('get')->willReturnMap([['max_plot_number', 9999, 9999]]);
+
+        $calculator = new PermitFinancialCalculator($config, $this->createStub(ClockInterface::class));
 
         $handler = new SubmitPermitRequestHandler($config, new SystemClock(), $verifyRepo, $permitRepo, $this->createStub(EventDispatcherInterface::class), $calculator);
 
@@ -107,13 +117,15 @@ final class SubmitPermitRequestHandlerTest extends TestCase
         $config = $this->createStub(ConfigInterface::class);
         $config->method('get')->willReturnMap([['max_plot_number', 9999, 9999]]);
 
+        $calculator = new PermitFinancialCalculator($config, $this->createStub(ClockInterface::class));
+
         $handler = new SubmitPermitRequestHandler(
             $config,
             new SystemClock(),
             $verifyRepo,
             $permitRepo,
             $this->createStub(EventDispatcherInterface::class),
-            $this->createStub(PermitFinancialCalculator::class),
+            $calculator,
         );
 
         $this->expectException(PermitCollisionException::class);

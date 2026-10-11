@@ -4,25 +4,17 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Modules\Permit\Application\UseCases;
 
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Storage\LockManagerInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitCommand;
 use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitHandler;
-use App\Modules\Permit\Domain\Owner;
-use App\Modules\Permit\Domain\Permit;
 use App\Modules\Permit\Domain\PermitFactory;
 use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\PermitStatus;
-use App\Modules\Permit\Domain\Status;
-use App\Modules\Permit\Domain\Validity;
-use App\Modules\Permit\Domain\Vehicle;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
-use App\SharedKernel\Domain\ValueObject\LicensePlate;
-use App\SharedKernel\Domain\ValueObject\PermitCode;
-use App\SharedKernel\Domain\ValueObject\PlotNumber;
-use App\SharedKernel\Domain\ValueObject\Price;
-use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -58,19 +50,15 @@ final class FinalizePermitHandlerTest extends TestCase
         $verifyRepo->expects($this->once())->method('deleteVerified')->with('token123');
 
         $permitRepo = $this->createMock(PermitRepositoryInterface::class);
+        $permitRepo->method('isCodeUnique')->willReturn(true);
         $permitRepo->expects($this->once())->method('save');
 
-        $permitFactory = $this->createStub(PermitFactory::class);
-        $permit = new Permit(
-            new PermitCode('ZM-0042-B-XX-123-CODE'),
-            new TemplateKey('std_7'),
-            new Owner('M', null, new PlotNumber(42)),
-            new Vehicle('pkw', new LicensePlate('B')),
-            new Validity(new DateTimeImmutable(), new DateTimeImmutable(), new Price(10.0), ''),
-            new Status(PermitStatus::Offen),
-            new DateTimeImmutable(),
-        );
-        $permitFactory->method('createNew')->willReturn($permit);
+        // Nutzt die echte PermitFactory anstatt eines Mock, da sie final ist
+        $config = $this->createStub(ConfigInterface::class);
+        $config->method('getArray')->willReturnMap([['permit_templates', [], ['std_7' => ['days' => 7]]]]);
+        $config->method('getBool')->willReturnMap([['use_long_permit_code', false, false]]);
+
+        $permitFactory = new PermitFactory($permitRepo, $config, $this->createStub(ClockInterface::class));
 
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $eventDispatcher->expects($this->once())->method('dispatch'); // PermitCreatedEvent
@@ -78,7 +66,8 @@ final class FinalizePermitHandlerTest extends TestCase
         $handler = new FinalizePermitHandler($lockManager, $verifyRepo, $permitRepo, $permitFactory, $eventDispatcher);
         $code = $handler->handle(new FinalizePermitCommand('token123', PermitStatus::Offen));
 
-        $this->assertSame('ZM-0042-B-XX-123-CODE', $code);
+        $this->assertIsString($code);
+        $this->assertSame(8, \strlen($code)); // Der generierte Random Code hat 8 Stellen
     }
 
     #[Test]
@@ -90,11 +79,17 @@ final class FinalizePermitHandlerTest extends TestCase
         $verifyRepo = $this->createStub(VerificationRepositoryInterface::class);
         $verifyRepo->method('findVerifiedByToken')->willReturn(null);
 
+        $permitFactory = new PermitFactory(
+            $this->createStub(PermitRepositoryInterface::class),
+            $this->createStub(ConfigInterface::class),
+            $this->createStub(ClockInterface::class),
+        );
+
         $handler = new FinalizePermitHandler(
             $lockManager,
             $verifyRepo,
             $this->createStub(PermitRepositoryInterface::class),
-            $this->createStub(PermitFactory::class),
+            $permitFactory,
             $this->createStub(EventDispatcherInterface::class),
         );
 

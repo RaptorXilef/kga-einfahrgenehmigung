@@ -19,30 +19,10 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AuthService::class)]
 final class AuthServiceTest extends TestCase
 {
-    private string $tempLogFile;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        // Leitet error_log() Aufrufe sicher in eine physische Datei um, damit PHPUnit nicht fehlschlägt
-        $this->tempLogFile = \tempnam(\sys_get_temp_dir(), 'kga_test_log_') ?: 'test.log';
-        \ini_set('error_log', $this->tempLogFile);
-    }
-
-    protected function tearDown(): void
-    {
-        // Temporäre Log-Datei nach dem Test wieder sauber entfernen
-        if (\file_exists($this->tempLogFile)) {
-            @\unlink($this->tempLogFile);
-        }
-        parent::tearDown();
-    }
-
     private function getConfigStub(): ConfigInterface
     {
         $config = $this->createStub(ConfigInterface::class);
 
-        // Rector Fix: Return types for arrow functions
         $config->method('getArray')->willReturnCallback(fn (string $key): array => match ($key) {
             'superadmins' => ['max' => ['label' => 'Superadmin']],
             'backdoor' => ['user' => 'dev', 'label' => 'Dev', 'pass' => 'xxx'],
@@ -191,7 +171,7 @@ final class AuthServiceTest extends TestCase
 
         $auth = new AuthService($config, $roleRepo, $session, $userRepo);
 
-        // FIX: Output Buffering fängt SAPI-Echos (z.B. native error_log Outputs in der CLI) sicher ab.
+        // Output-Buffering fängt den error_log STDOUT Leak bei manchen CLI Konfigurationen zuverlässig ab!
         \ob_start();
         $auth->bootstrapDefaultIdentityData();
         \ob_end_clean();

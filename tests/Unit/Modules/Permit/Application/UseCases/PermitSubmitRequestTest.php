@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Modules\Permit\Application\UseCases;
 
 use App\Application\Exception\ValidationException;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\UseCases\SubmitPermitRequest\PermitSubmitRequest;
-use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use DateTimeImmutable;
 use Iterator;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -32,15 +32,16 @@ final class PermitSubmitRequestTest extends TestCase
     public function itCreatesRequestFromValidArrayAndSanitizesHtml(): void
     {
         $post = $this->getValidPost();
-        $post['firma'] = '  <b>Baufirma</b>  '; // XSS-Test
+        $post['firma'] = '  <b>Baufirma</b>  ';
 
-        $clock = $this->createStub(SystemClock::class);
+        // Mockt das ClockInterface (anstelle der finalen Klasse)
+        $clock = $this->createStub(ClockInterface::class);
         $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-01 12:00:00'));
 
         $request = PermitSubmitRequest::fromArray($post, $clock);
 
         $this->assertSame('Max Mustermann', $request->name);
-        $this->assertSame('Baufirma', $request->firma); // Stripped & trimmed
+        $this->assertSame('Baufirma', $request->firma);
         $this->assertSame('42', $request->parzelle);
     }
 
@@ -48,7 +49,7 @@ final class PermitSubmitRequestTest extends TestCase
     #[DataProvider('invalidPostProvider')]
     public function itThrowsExceptionOnInvalidData(array $overrides, string $expectedMessage): void
     {
-        $clock = $this->createStub(SystemClock::class);
+        $clock = $this->createStub(ClockInterface::class);
         $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-10 12:00:00'));
 
         $post = \array_merge($this->getValidPost(), $overrides);

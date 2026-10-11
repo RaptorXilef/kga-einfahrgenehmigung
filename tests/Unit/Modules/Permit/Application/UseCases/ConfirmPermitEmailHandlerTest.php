@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Modules\Permit\Application\UseCases;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Integration\VoucherDiscountResult;
 use App\Contracts\Integration\VoucherIntegrationInterface;
+use App\Contracts\Storage\LockManagerInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\UseCases\ConfirmPermitEmail\ConfirmPermitEmailCommand;
 use App\Modules\Permit\Application\UseCases\ConfirmPermitEmail\ConfirmPermitEmailHandler;
 use App\Modules\Permit\Application\UseCases\FinalizePermit\FinalizePermitHandler;
+use App\Modules\Permit\Domain\PermitFactory;
+use App\Modules\Permit\Domain\PermitRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRepositoryInterface;
 use App\Modules\Permit\Domain\VerificationRequest;
 use App\SharedKernel\Infrastructure\Utils\SystemClock;
@@ -22,6 +27,23 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ConfirmPermitEmailHandler::class)]
 final class ConfirmPermitEmailHandlerTest extends TestCase
 {
+    private function createDummyFinalizeHandler(): FinalizePermitHandler
+    {
+        $dummyPermitFactory = new PermitFactory(
+            $this->createStub(PermitRepositoryInterface::class),
+            $this->createStub(ConfigInterface::class),
+            $this->createStub(ClockInterface::class),
+        );
+
+        return new FinalizePermitHandler(
+            $this->createStub(LockManagerInterface::class),
+            $this->createStub(VerificationRepositoryInterface::class),
+            $this->createStub(PermitRepositoryInterface::class),
+            $dummyPermitFactory,
+            $this->createStub(EventDispatcherInterface::class),
+        );
+    }
+
     #[Test]
     public function itMovesRequestFromPendingToVerifiedAndReturnsToken(): void
     {
@@ -35,7 +57,8 @@ final class ConfirmPermitEmailHandlerTest extends TestCase
         $voucher = $this->createStub(VoucherIntegrationInterface::class);
         $config = $this->createStub(ConfigInterface::class);
 
-        $handler = new ConfirmPermitEmailHandler($repo, $config, new SystemClock(), $voucher, $this->createStub(FinalizePermitHandler::class));
+        // Nutzt echten Handler mit Stub-Abhängigkeiten
+        $handler = new ConfirmPermitEmailHandler($repo, $config, new SystemClock(), $voucher, $this->createDummyFinalizeHandler());
 
         $token = $handler->handle(new ConfirmPermitEmailCommand('123456', '127.0.0.1'));
         $this->assertSame('token123', $token);
@@ -55,9 +78,23 @@ final class ConfirmPermitEmailHandlerTest extends TestCase
         // Erwartet, dass der Gutschein eingelöst wird
         $voucher->expects($this->once())->method('redeemVoucher')->with('V-100', 'Max', '0');
 
-        $finalize = $this->createMock(FinalizePermitHandler::class);
-        // Erwartet Auto-Finalisierung, da Preis = 0.0
-        $finalize->expects($this->once())->method('handle')->willReturn('PERMIT-123');
+        // Für Auto-Finalize mocken wir den LockManager im Finalize-Handler
+        $lockMock = $this->createMock(LockManagerInterface::class);
+        $lockMock->expects($this->once())->method('executeWithLock')->willReturn('PERMIT-123');
+
+        $dummyPermitFactory = new PermitFactory(
+            $this->createStub(PermitRepositoryInterface::class),
+            $this->createStub(ConfigInterface::class),
+            $this->createStub(ClockInterface::class),
+        );
+
+        $finalize = new FinalizePermitHandler(
+            $lockMock,
+            $this->createStub(VerificationRepositoryInterface::class),
+            $this->createStub(PermitRepositoryInterface::class),
+            $dummyPermitFactory,
+            $this->createStub(EventDispatcherInterface::class),
+        );
 
         $config = $this->createStub(ConfigInterface::class);
 
@@ -79,7 +116,7 @@ final class ConfirmPermitEmailHandlerTest extends TestCase
             $this->createStub(ConfigInterface::class),
             new SystemClock(),
             $this->createStub(VoucherIntegrationInterface::class),
-            $this->createStub(FinalizePermitHandler::class),
+            $this->createDummyFinalizeHandler(),
         );
 
         $this->expectException(DomainException::class);

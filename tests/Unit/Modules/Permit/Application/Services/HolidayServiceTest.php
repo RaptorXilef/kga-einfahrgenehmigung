@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Modules\Permit\Application\Services;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\Permit\Application\Services\HolidayService;
 use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use DateTimeImmutable;
@@ -48,6 +49,7 @@ final class HolidayServiceTest extends TestCase
     #[DataProvider('berlinHolidayProvider')]
     public function itCalculatesHolidaysCorrectlyIncludingEasterGauss(string $dateStr, bool $isRestricted): void
     {
+        // ClockInterface Stub statt final class SystemClock
         $service = new HolidayService($this->getConfigStub(), $this->createStub(JsonHelperInterface::class), new SystemClock());
         $date = new DateTimeImmutable($dateStr);
 
@@ -81,7 +83,8 @@ final class HolidayServiceTest extends TestCase
     #[Test]
     public function itReturnsCorrectTimeAllowedNowState(): void
     {
-        $clock = $this->createStub(SystemClock::class);
+        // Verwende das ClockInterface
+        $clock = $this->createStub(ClockInterface::class);
         $service = new HolidayService($this->getConfigStub(), $this->createStub(JsonHelperInterface::class), $clock);
 
         // Fall 1: Montag, 12:00 Uhr (Erlaubt: 07:00 - 20:00)
@@ -100,7 +103,7 @@ final class HolidayServiceTest extends TestCase
     #[Test]
     public function itFindsNextAvailableSlotProperly(): void
     {
-        $clock = $this->createStub(SystemClock::class);
+        $clock = $this->createStub(ClockInterface::class);
         $service = new HolidayService($this->getConfigStub(), $this->createStub(JsonHelperInterface::class), $clock);
 
         // Es ist Sonntag, 12:00 Uhr. Nächster Slot ist Montag 07:00 Uhr
