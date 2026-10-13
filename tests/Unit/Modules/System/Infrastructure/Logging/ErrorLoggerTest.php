@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Modules\System\Infrastructure\Logging;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Modules\System\Infrastructure\Logging\ErrorLogger;
+use DateTimeImmutable;
 use Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -36,7 +38,10 @@ final class ErrorLoggerTest extends TestCase
         $config = $this->createStub(ConfigInterface::class);
         $config->method('getString')->willReturn($this->tempRoot);
 
-        $logger = new ErrorLogger($config);
+        $clock = $this->createStub(ClockInterface::class);
+        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-15 12:00:00'));
+
+        $logger = new ErrorLogger($config, $clock);
         $logger->logThrowable(new Exception('Test Exception Message'));
 
         $logFile = $this->tempRoot . '/logs/system_error.log';

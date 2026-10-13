@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Modules\System\Infrastructure\System;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Modules\System\Infrastructure\Storage\JsonHelper;
 use App\Modules\System\Infrastructure\System\SystemInfoService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -41,7 +42,8 @@ final class SystemInfoServiceTest extends TestCase
         $config = $this->createStub(ConfigInterface::class);
         $config->method('get')->willReturn($this->tempRoot);
 
-        $service = new SystemInfoService($config);
+        // Reale JsonHelper Instanz, damit das File-Reading weiterhin klappt
+        $service = new SystemInfoService($config, new JsonHelper());
 
         $this->assertSame('v1.2.3', $service->getCurrentVersion());
         $this->assertStringContainsString('Feature A', $service->getChangelog());
@@ -65,7 +67,7 @@ final class SystemInfoServiceTest extends TestCase
         $config = $this->createStub(ConfigInterface::class);
         $config->method('get')->willReturn($this->tempRoot);
 
-        $service = new SystemInfoService($config);
+        $service = new SystemInfoService($config, new JsonHelper());
 
         $this->assertSame('v0.0.0', $service->getCurrentVersion());
         $this->assertSame('', $service->getChangelog());
