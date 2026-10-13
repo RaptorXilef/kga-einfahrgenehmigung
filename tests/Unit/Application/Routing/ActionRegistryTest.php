@@ -2,123 +2,135 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\TestMod\Application\UseCases {
-use App\Application\Attribute\RequiresAuth;
-use App\Application\Attribute\Route;
+namespace App\Tests\Unit\Application\Routing;
 
-    #[Route('GET', '/exact-path')]
-    #[RequiresAuth]
-    class MyExactAction
+use App\Application\Routing\ActionRegistry;
+use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\RouteCacheInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+
+#[CoversClass(ActionRegistry::class)]
+final class ActionRegistryTest extends TestCase
+{
+    private string $tempRoot;
+
+    private string $exactClass;
+
+    private string $dynamicClass;
+
+    protected function setUp(): void
     {
+        parent::setUp();
+
+        // Eindeutige Klassennamen generieren, um "Cannot redeclare class" bei multiplen Test-Durchläufen zu verhindern
+        $uniq = \uniqid();
+        $this->exactClass = 'MyExactAction' . $uniq;
+        $this->dynamicClass = 'MyDynamicAction' . $uniq;
+
+        // Windows-sichere Pfad-Auflösung
+        $sysTemp = \realpath(\sys_get_temp_dir()) ?: \sys_get_temp_dir();
+        $this->tempRoot = $sysTemp . \DIRECTORY_SEPARATOR . 'kga_registry_' . $uniq;
+
+        $moduleDir = $this->tempRoot . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules' . \DIRECTORY_SEPARATOR . 'TestMod' . \DIRECTORY_SEPARATOR . 'Application' . \DIRECTORY_SEPARATOR . 'UseCases';
+        @\mkdir($moduleDir, 0o777, true);
+
+        $exactActionCode = <<<PHP
+            <?php
+            namespace App\Modules\TestMod\Application\UseCases;
+            use App\Application\Attribute\Route;
+            use App\Application\Attribute\RequiresAuth;
+
+            #[Route('GET', '/exact-path')]
+            #[RequiresAuth]
+            class {$this->exactClass}Action {}
+            PHP;
+
+        $dynamicActionCode = <<<PHP
+            <?php
+            namespace App\Modules\TestMod\Application\UseCases;
+            use App\Application\Attribute\Route;
+
+            #[Route('POST', '/api/users/{id}/update')]
+            class {$this->dynamicClass}Action {}
+            PHP;
+
+        \file_put_contents($moduleDir . \DIRECTORY_SEPARATOR . $this->exactClass . 'Action.php', $exactActionCode);
+        \file_put_contents($moduleDir . \DIRECTORY_SEPARATOR . $this->dynamicClass . 'Action.php', $dynamicActionCode);
+
+        require_once $moduleDir . \DIRECTORY_SEPARATOR . $this->exactClass . 'Action.php';
+        require_once $moduleDir . \DIRECTORY_SEPARATOR . $this->dynamicClass . 'Action.php';
     }
 
-    #[Route('POST', '/api/users/{id}/update')]
-    class MyDynamicAction
+    protected function tearDown(): void
     {
+        $moduleDir = $this->tempRoot . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules' . \DIRECTORY_SEPARATOR . 'TestMod' . \DIRECTORY_SEPARATOR . 'Application' . \DIRECTORY_SEPARATOR . 'UseCases';
+        @\unlink($moduleDir . \DIRECTORY_SEPARATOR . $this->exactClass . 'Action.php');
+        @\unlink($moduleDir . \DIRECTORY_SEPARATOR . $this->dynamicClass . 'Action.php');
+        @\rmdir($moduleDir);
+        @\rmdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules' . \DIRECTORY_SEPARATOR . 'TestMod' . \DIRECTORY_SEPARATOR . 'Application');
+        @\rmdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules' . \DIRECTORY_SEPARATOR . 'TestMod');
+        @\rmdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules');
+        @\rmdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'src');
+        @\rmdir($this->tempRoot);
+        parent::tearDown();
     }
-}
 
-namespace App\Tests\Unit\Application\Routing {
-    use App\Application\Routing\ActionRegistry;
-    use App\Contracts\Config\ConfigInterface;
-    use App\Contracts\System\RouteCacheInterface;
-    use PHPUnit\Framework\Attributes\CoversClass;
-    use PHPUnit\Framework\Attributes\Test;
-    use PHPUnit\Framework\TestCase;
-
-    #[CoversClass(ActionRegistry::class)]
-    final class ActionRegistryTest extends TestCase
+    #[Test]
+    public function itScansDirectoriesAndRegistersExactAndDynamicRoutes(): void
     {
-        private string $tempRoot;
+        $config = $this->createStub(ConfigInterface::class);
+        $config->method('getString')->willReturnCallback(fn (string $k, string $def = '') => $k === 'root_path' ? $this->tempRoot : $def);
+        $config->method('getBool')->willReturn(true); // debug_mode = true erzwingt den Live-Scan
 
-        protected function setUp(): void
-        {
-            parent::setUp();
+        $cache = $this->createMock(RouteCacheInterface::class);
+        $cache->expects($this->once())->method('clearOld');
+        $cache->expects($this->once())->method('save');
 
-            $sysTemp = \sys_get_temp_dir();
-            $this->tempRoot = $sysTemp . \DIRECTORY_SEPARATOR . 'kga_registry_' . \uniqid();
+        $registry = new ActionRegistry($config, $cache);
 
-            $moduleDir = $this->tempRoot . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules' . \DIRECTORY_SEPARATOR . 'TestMod' . \DIRECTORY_SEPARATOR . 'Application' . \DIRECTORY_SEPARATOR . 'UseCases';
-            @\mkdir($moduleDir, 0o777, true);
+        // Teste die exakte Route
+        $exactMatch = $registry->match('GET', '/exact-path');
+        $this->assertNotNull($exactMatch);
+        $this->assertSame('App\Modules\TestMod\Application\UseCases\\' . $this->exactClass . 'Action', $exactMatch['class']);
+        $this->assertTrue($exactMatch['requiresAuth']);
+        $this->assertSame([], $exactMatch['params']);
 
-            // WICHTIG: realpath() nach dem Erstellen des Ordners aufrufen, um die exakte Groß-/Kleinschreibung
-            // des Betriebssystems (Windows) zu erhalten! Sonst schlägt das str_replace im Scanner fehl.
-            $this->tempRoot = \realpath($this->tempRoot) ?: $this->tempRoot;
-            $moduleDir = \realpath($moduleDir) ?: $moduleDir;
+        // Teste die dynamische Regex Route
+        $dynMatch = $registry->match('POST', '/api/users/99/update');
+        $this->assertNotNull($dynMatch);
+        $this->assertSame('App\Modules\TestMod\Application\UseCases\\' . $this->dynamicClass . 'Action', $dynMatch['class']);
+        $this->assertFalse($dynMatch['requiresAuth']);
+        $this->assertSame(['id' => '99'], $dynMatch['params']);
 
-            \file_put_contents($moduleDir . \DIRECTORY_SEPARATOR . 'MyExactAction.php', '<?php');
-            \file_put_contents($moduleDir . \DIRECTORY_SEPARATOR . 'MyDynamicAction.php', '<?php');
-        }
+        // Teste Fallback bei ungültiger Route
+        $this->assertNull($registry->match('GET', '/unknown'));
+    }
 
-        protected function tearDown(): void
-        {
-            $moduleDir = $this->tempRoot . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules' . \DIRECTORY_SEPARATOR . 'TestMod' . \DIRECTORY_SEPARATOR . 'Application' . \DIRECTORY_SEPARATOR . 'UseCases';
-            @\unlink($moduleDir . \DIRECTORY_SEPARATOR . 'MyExactAction.php');
-            @\unlink($moduleDir . \DIRECTORY_SEPARATOR . 'MyDynamicAction.php');
-            @\rmdir($moduleDir);
-            @\rmdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules' . \DIRECTORY_SEPARATOR . 'TestMod' . \DIRECTORY_SEPARATOR . 'Application');
-            @\rmdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules' . \DIRECTORY_SEPARATOR . 'TestMod');
-            @\rmdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules');
-            @\rmdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'src');
-            @\rmdir($this->tempRoot);
-            parent::tearDown();
-        }
+    #[Test]
+    public function itLoadsFromCacheIfDebugModeIsOff(): void
+    {
+        $config = $this->createStub(ConfigInterface::class);
+        $config->method('getBool')->willReturn(false); // debug_mode = false
 
-        #[Test]
-        public function itScansDirectoriesAndRegistersExactAndDynamicRoutes(): void
-        {
-            $config = $this->createStub(ConfigInterface::class);
-            $config->method('getString')->willReturnCallback(fn (string $k, string $def = '') => $k === 'root_path' ? $this->tempRoot : $def);
-            $config->method('getBool')->willReturn(true); // debug_mode = true erzwingt den Live-Scan (Ignoriert Cache)
-
-            $cache = $this->createMock(RouteCacheInterface::class);
-            $cache->expects($this->once())->method('clearOld');
-            $cache->expects($this->once())->method('save');
-
-            $registry = new ActionRegistry($config, $cache);
-
-            // Teste die exakte Route
-            $exactMatch = $registry->match('GET', '/exact-path');
-            $this->assertNotNull($exactMatch);
-            $this->assertSame('App\Modules\TestMod\Application\UseCases\MyExactAction', $exactMatch['class']);
-            $this->assertTrue($exactMatch['requiresAuth']);
-            $this->assertSame([], $exactMatch['params']);
-
-            // Teste die dynamische Regex Route
-            $dynMatch = $registry->match('POST', '/api/users/99/update');
-            $this->assertNotNull($dynMatch);
-            $this->assertSame('App\Modules\TestMod\Application\UseCases\MyDynamicAction', $dynMatch['class']);
-            $this->assertFalse($dynMatch['requiresAuth']);
-            $this->assertSame(['id' => '99'], $dynMatch['params']);
-
-            // Teste Fallback bei ungültiger Route
-            $this->assertNull($registry->match('GET', '/unknown'));
-        }
-
-        #[Test]
-        public function itLoadsFromCacheIfDebugModeIsOff(): void
-        {
-            $config = $this->createStub(ConfigInterface::class);
-            $config->method('getBool')->willReturn(false); // debug_mode = false
-
-            $cachedRoutes = [
-                'exact' => [
-                    'GET' => [
-                        '/cached' => ['class' => 'CachedAction', 'auth' => true],
-                    ],
+        $cachedRoutes = [
+            'exact' => [
+                'GET' => [
+                    '/cached' => ['class' => 'CachedAction', 'auth' => true],
                 ],
-                'dynamic' => [],
-            ];
+            ],
+            'dynamic' => [],
+        ];
 
-            $cache = $this->createMock(RouteCacheInterface::class);
-            $cache->expects($this->once())->method('load')->willReturn($cachedRoutes);
-            $cache->expects($this->never())->method('save'); // Darf im Cache-Mode nicht speichern/scannen
+        $cache = $this->createMock(RouteCacheInterface::class);
+        $cache->expects($this->once())->method('load')->willReturn($cachedRoutes);
+        $cache->expects($this->never())->method('save');
 
-            $registry = new ActionRegistry($config, $cache);
-            $match = $registry->match('GET', '/cached');
+        $registry = new ActionRegistry($config, $cache);
+        $match = $registry->match('GET', '/cached');
 
-            $this->assertNotNull($match);
-            $this->assertSame('CachedAction', $match['class']);
-        }
+        $this->assertNotNull($match);
+        $this->assertSame('CachedAction', $match['class']);
     }
 }
