@@ -1,5 +1,65 @@
 # Changelog
 
+## [0.82.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.81.3...v0.82.0) (2026-10-13)
+
+### 🚀 Features
+
+* **tests:** Implement test suite for Presenters and Infrastructure Adapters ([fb59a2a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fb59a2af1dbff7c2f0143fdca076668a16f6e5ca))
+
+### 🐛 Bug Fixes
+
+* Behebe Datums-Grenzwerte und schärfe Test-Suite via Mutation Testing ([ab5ca78](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ab5ca784607274f896727c259a0f25e7d6fe800c))
+* **core:** Correct payment deadline logic and apply automated Rector improvements ([5895c03](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5895c03b28456fcdbaca855adc9750ec87d2d6f6))
+* **domain:** Correct payment deadline calculation bug and resolve test failures ([9c24f9d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9c24f9d2f7ab8ece9a1603596df5b0e06fe56afb))
+* **domain:** Revert payment due date logic and correct test expectations ([59db422](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/59db422ca819b79b708f1790d404fd09c3c0bba0))
+* **tests:** Resolve ArgumentCountErrors and assertion mismatch in infrastructure tests ([b3c85f4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b3c85f41e55fa377e496c2c40b6a0606d93c9a76))
+* **tests:** Resolve error_log bleeding in AuthServiceTest and remove unused import ([899648b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/899648b0234632c1b7514a0895a7655f93e7c629))
+* **tests:** Resolve Fatal Error and Path Casing Bug in ActionRegistryTest ([20389b3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/20389b3586b049d7acc0621c0ff64e356e22cee7))
+* **tests:** Resolve final class mock violations and fatal redeclaration errors ([fbdc7a4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fbdc7a4267afa22a8e040345254fd58a3755ff21))
+* **tests:** Resolve final class mock violations and suppress unexpected CLI output ([f9c5617](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f9c56174f9b65028d700f06f27b0d0cfa1547902))
+* **tests:** Resolve FrontendControllerTest missing imports and ActionRegistry mismatch ([9d90ccb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9d90ccb2689a29a01799f3ec573beb93c30009f4))
+* **tests:** Resolve iniSet deprecation and PHPUnit stub immutability traps ([975bb81](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/975bb8195ae8c05e161fa6796f5b629c4dc2b09c))
+* **tests:** Resolve mock constraints, stub immutability, and missing dependencies ([e62258b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e62258b7a1fd93a84195b1c38af53524d6ef580b))
+* **tests:** Resolve namespace mismatches, final class mocking, and suppress CLI output ([237ce04](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/237ce0493cdea0ebf654eb4e3ef1db967100d4c7))
+* **tests:** Resolve path normalization bugs in infrastructure tests ([65179e1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/65179e16da9c2197a0cae6b6e79caac07a22b343))
+* **tests:** Resolve path resolution failures in infrastructure tests ([b831c3b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b831c3bc41823a1b5fbf066da3be23cca8083b44))
+* **tests:** Resolve Rector conflicts, PHPUnit strict output checks, and mock constraints ([d9c28c1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d9c28c147f5a5e84af2a142275670f9eaccdcdad))
+* **tests:** Resolve remaining PHPUnit deprecations and notices regarding test doubles ([52a222b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/52a222be06189ebbe0704437df60ce9428f61ec6))
+* **tests:** Resolve syntax errors, type mismatches, and stubbing issues in unit tests ([870b579](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/870b579f046022e6c8de87eb5bfa1c166f3906da))
+* **tests:** Resolve SystemInfoService getAllReleaseNotes missing items array assertion ([0d82346](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0d82346f34c6f784d1f03ed0120ca75430c95ea7))
+* **tests:** Resolve trait coverage and native file I/O warnings ([1a35d91](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1a35d915936f414ef114c5f5abf112109ee18ee5))
+* **tests:** Resolve undefined array key warnings in ProcessBankImportHandlerTest ([5df9330](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5df93301a63c8ebcd8d1a9380f3bdfb8b7954865))
+
+### ⚙️ Refactoring
+
+* **core:** Replace isset with null coalescing in ServerRequest to kill final mutant ([70af3a9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/70af3a982db992c5c9f25394eb8c4160603208c7))
+
+### 🧪 Tests
+
+* **Application:** Add missing middleware tests for 100% coverage ([fe6c19b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fe6c19b58225069386640aa8d04da444a1933d6a))
+* **Application:** Fix Final-Class Mocking and add extensive coverage for Session & Routing ([506f4ce](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/506f4ce737724d0f32c8664877ab30fad3d6e541))
+* **Application:** Fix Final-Class Mocking and add extensive coverage for Session & Routing ([fade146](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fade1462765bd44f4e9fb85b84e3b620b97d469b))
+* **Application:** Fix SystemMaintenanceMiddleware test and add missing middleware tests ([67451df](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/67451dff76c17e18c1724f9db974a1123aee8156))
+* **application:** Implement Phase 3 HTTP-Kernel and Middleware test suite ([447942f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/447942f274f0ee14feb929085e30d7180ce424f3))
+* **Application:** Refactor CronAuthMiddleware and fix skipped test to achieve 100% coverage ([782b096](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/782b096b2851fc975e385865d8356016d9b7949d))
+* **domain:** Expand coverage to Permit, Identity, and System Domain models ([d279583](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d279583a5ff77c0f581bded55d3dbbec33223fd2))
+* **domain:** Expand coverage to Permit, Identity, and System Domain models ([6f10020](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6f100201ee17705b96e9b2ba36499e347b1305f6))
+* **finance:** Implement unit tests for Finance and System Handlers ([63bcdbd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/63bcdbd06726ae7310806dcf842871603a594cdd))
+* fixes with rector ([862be06](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/862be06b4b456af2fdea4c8bedc399e2c210dd6b))
+* **identity:** Fix CreateUserHandlerTest and HistoryRequestLinkRequestTest, ([15f85c7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/15f85c702495f2f2a084cdc83f97f78584244647))
+* **identity:** Implement Identity Handlers and Request Validation tests ([4172117](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4172117a9f1724f6a3f49ecac9ea0ba178058bc7))
+* **identity:** Implement unit tests for Identity authentication use-cases ([0d1610c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0d1610c785b2b9975b47a4f3e6c75097fdcbf141))
+* **infrastructure:** Implement Phase 6 core infrastructure and session management tests ([564f05e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/564f05ea23856881ebd7cc12b3152b29332260fa))
+* **permit:** Implement unit tests for Permit Handlers and Holiday Service ([ad80f6a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ad80f6af63fa517b39ed76edf32d792918d1c6d4))
+* **quality:** Fix float precision in PriceTest and modernize data providers ([478536a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/478536ac05c5ecade65478c634c8e538aa2f4159))
+* **quality:** Kill 12 escaped Infection mutants to achieve 100% MSI ([bf623d7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bf623d7ca4a9aa88fb77b3c7ecb1f9afb6dba713))
+* **shared-kernel:** Complete coverage for existing unit tests and add SharedKernel test suite ([d1986fe](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d1986fed1cf3afffb7b9fcc968245ee20b6f44c7))
+* **shared-kernel:** Complete coverage for existing unit tests and add SharedKernel test suite ([c2a976c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c2a976c68addb4771b04b826129d23c339565810))
+
+### 🧹 Chore / Maintenance
+
+* **deps:** bump actions/setup-node from 7.0.0 to 7.1.0 ([6da6120](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6da61206421372c81bac002f39e94421495510a7))
+
 ## [0.81.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.81.2...v0.81.3) (2026-10-06)
 
 ### 🐛 Bug Fixes
