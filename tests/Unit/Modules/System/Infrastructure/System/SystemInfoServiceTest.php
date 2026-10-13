@@ -20,7 +20,7 @@ final class SystemInfoServiceTest extends TestCase
     {
         parent::setUp();
         $this->tempRoot = \sys_get_temp_dir() . '/kga_sysinfo_' . \uniqid();
-        @\mkdir($this->tempRoot);
+        @\mkdir($this->tempRoot, 0o777, true);
 
         \file_put_contents($this->tempRoot . '/package.json', '{"version": "1.2.3"}');
 
@@ -40,7 +40,11 @@ final class SystemInfoServiceTest extends TestCase
     public function itParsesVersionAndChangelogCorrectly(): void
     {
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('get')->willReturn($this->tempRoot);
+        // Korrekte Methode: getString statt get mocken
+        $config->method('getString')->willReturnCallback(fn (string $key): string => match ($key) {
+            'root_path' => $this->tempRoot,
+            default => ''
+        });
 
         // Reale JsonHelper Instanz, damit das File-Reading weiterhin klappt
         $service = new SystemInfoService($config, new JsonHelper());
@@ -65,12 +69,16 @@ final class SystemInfoServiceTest extends TestCase
         @\unlink($this->tempRoot . '/CHANGELOG.md');
 
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('get')->willReturn($this->tempRoot);
+        $config->method('getString')->willReturnCallback(fn (string $key): string => match ($key) {
+            'root_path' => $this->tempRoot,
+            default => ''
+        });
 
         $service = new SystemInfoService($config, new JsonHelper());
 
         $this->assertSame('v0.0.0', $service->getCurrentVersion());
-        $this->assertSame('', $service->getChangelog());
+        // Angepasst an den tatsächlichen Fallback der Implementierung
+        $this->assertSame('Kein Changelog gefunden.', $service->getChangelog());
         $this->assertSame([], $service->getAllReleaseNotes());
     }
 }

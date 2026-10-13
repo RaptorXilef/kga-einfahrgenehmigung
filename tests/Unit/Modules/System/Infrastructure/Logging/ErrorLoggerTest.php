@@ -22,6 +22,8 @@ final class ErrorLoggerTest extends TestCase
     {
         parent::setUp();
         $this->tempRoot = \sys_get_temp_dir() . '/kga_log_' . \uniqid();
+        // Das Basisverzeichnis muss existieren, bevor ErrorLogger den /logs Ordner erstellt
+        @\mkdir($this->tempRoot, 0o777, true);
     }
 
     protected function tearDown(): void
@@ -36,7 +38,11 @@ final class ErrorLoggerTest extends TestCase
     public function itLogsThrowableToFile(): void
     {
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('getString')->willReturn($this->tempRoot);
+        // Nutze den strikten Fallback für root_path (getString statt get)
+        $config->method('getString')->willReturnCallback(fn (string $key): string => match ($key) {
+            'root_path' => $this->tempRoot,
+            default => ''
+        });
 
         $clock = $this->createStub(ClockInterface::class);
         $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-15 12:00:00'));
