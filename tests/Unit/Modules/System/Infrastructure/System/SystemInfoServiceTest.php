@@ -26,16 +26,24 @@ final class SystemInfoServiceTest extends TestCase
         @\mkdir($this->tempRoot, 0o777, true);
         $this->tempRoot = \realpath($this->tempRoot) ?: $this->tempRoot;
 
+        // 1. package.json im Root erstellen
         \file_put_contents($this->tempRoot . \DIRECTORY_SEPARATOR . 'package.json', '{"version": "1.2.3"}');
+        \file_put_contents($this->tempRoot . \DIRECTORY_SEPARATOR . 'CHANGELOG.md', "## [1.2.3] - 2026-01-01\n### Added\n- Feature A");
 
-        $changelog = "## [1.2.3] - 2026-01-01\n### Added\n- Feature A\n\n## [1.2.2] - 2025-12-31\n### Fixed\n- Bug B";
-        \file_put_contents($this->tempRoot . \DIRECTORY_SEPARATOR . 'CHANGELOG.md', $changelog);
+        // 2. release_notes Ordner erstellen (zwingend erforderlich für getAllReleaseNotes)
+        @\mkdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'release_notes', 0o777, true);
+
+        \file_put_contents($this->tempRoot . \DIRECTORY_SEPARATOR . 'release_notes' . \DIRECTORY_SEPARATOR . 'v1.2.3.md', 'Release 1.2.3');
+        \file_put_contents($this->tempRoot . \DIRECTORY_SEPARATOR . 'release_notes' . \DIRECTORY_SEPARATOR . 'v1.2.2.md', 'Release 1.2.2');
     }
 
     protected function tearDown(): void
     {
         @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'package.json');
         @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'CHANGELOG.md');
+        @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'release_notes' . \DIRECTORY_SEPARATOR . 'v1.2.3.md');
+        @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'release_notes' . \DIRECTORY_SEPARATOR . 'v1.2.2.md');
+        @\rmdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'release_notes');
         @\rmdir($this->tempRoot);
         parent::tearDown();
     }
@@ -69,6 +77,9 @@ final class SystemInfoServiceTest extends TestCase
     {
         @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'package.json');
         @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'CHANGELOG.md');
+        @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'release_notes' . \DIRECTORY_SEPARATOR . 'v1.2.3.md');
+        @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'release_notes' . \DIRECTORY_SEPARATOR . 'v1.2.2.md');
+        @\rmdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'release_notes');
 
         $config = $this->createStub(ConfigInterface::class);
         $config->method('get')->willReturnCallback(fn (string $key, mixed $def = null): mixed => $key === 'root_path' ? $this->tempRoot : $def);
