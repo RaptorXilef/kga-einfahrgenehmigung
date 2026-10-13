@@ -25,10 +25,34 @@ final class ActionRegistryTest extends TestCase
         $moduleDir = $this->tempRoot . \DIRECTORY_SEPARATOR . 'src' . \DIRECTORY_SEPARATOR . 'Modules' . \DIRECTORY_SEPARATOR . 'TestMod' . \DIRECTORY_SEPARATOR . 'Application' . \DIRECTORY_SEPARATOR . 'UseCases';
         @\mkdir($moduleDir, 0o777, true);
 
-        // Leere Dateien anlegen, damit der Iterator sie findet.
-        // Klassen sind bereits oben im Speicher.
-        \file_put_contents($moduleDir . \DIRECTORY_SEPARATOR . 'MyExactAction.php', '<?php');
-        \file_put_contents($moduleDir . \DIRECTORY_SEPARATOR . 'MyDynamicAction.php', '<?php');
+        // FIX: Wir müssen ECHTE Klassen mit echten Attributen in die Dateien schreiben,
+        // da ActionRegistry::scanDirectoryRecursively die Dateien per include einbindet und per ReflectionClass prüft!
+        $exactActionCode = <<<'PHP'
+            <?php
+            namespace App\Modules\TestMod\Application\UseCases;
+            use App\Application\Attribute\Route;
+            use App\Application\Attribute\RequiresAuth;
+
+            #[Route('GET', '/exact-path')]
+            #[RequiresAuth]
+            class MyExactAction {}
+            PHP;
+
+        $dynamicActionCode = <<<'PHP'
+            <?php
+            namespace App\Modules\TestMod\Application\UseCases;
+            use App\Application\Attribute\Route;
+
+            #[Route('POST', '/api/users/{id}/update')]
+            class MyDynamicAction {}
+            PHP;
+
+        \file_put_contents($moduleDir . \DIRECTORY_SEPARATOR . 'MyExactAction.php', $exactActionCode);
+        \file_put_contents($moduleDir . \DIRECTORY_SEPARATOR . 'MyDynamicAction.php', $dynamicActionCode);
+
+        // Die Klassen für Reflection im RAM verfügbar machen
+        require_once $moduleDir . \DIRECTORY_SEPARATOR . 'MyExactAction.php';
+        require_once $moduleDir . \DIRECTORY_SEPARATOR . 'MyDynamicAction.php';
     }
 
     protected function tearDown(): void
