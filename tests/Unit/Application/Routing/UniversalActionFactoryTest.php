@@ -9,7 +9,9 @@ use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Routing\ActionRegistry;
 use App\Application\Routing\UniversalActionFactory;
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\DependencyInjection\ContainerInterface;
+use App\Contracts\System\RouteCacheInterface;
 use Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -27,6 +29,15 @@ final class DummyActionTestClass implements ActionInterface
 #[CoversClass(UniversalActionFactory::class)]
 final class UniversalActionFactoryTest extends TestCase
 {
+    private function getActionRegistryStub(): ActionRegistry
+    {
+        $config = $this->createStub(ConfigInterface::class);
+        $config->method('getString')->willReturnCallback(fn (string $k, string $def = '') => $k === 'root_path' ? \sys_get_temp_dir() . '/kga_empty_dir_' . \uniqid() : $def);
+        $config->method('getBool')->willReturn(true);
+
+        return new ActionRegistry($config, $this->createStub(RouteCacheInterface::class));
+    }
+
     #[Test]
     public function itReturnsActionInstanceIfFoundInContainer(): void
     {
@@ -38,7 +49,7 @@ final class UniversalActionFactoryTest extends TestCase
                   ->with(DummyActionTestClass::class)
                   ->willReturn($actionMock);
 
-        $factory = new UniversalActionFactory($this->createStub(ActionRegistry::class), $container);
+        $factory = new UniversalActionFactory($this->getActionRegistryStub(), $container);
 
         $result = $factory->create(DummyActionTestClass::class);
 
@@ -49,7 +60,7 @@ final class UniversalActionFactoryTest extends TestCase
     public function itReturnsNullIfClassDoesNotExist(): void
     {
         $factory = new UniversalActionFactory(
-            $this->createStub(ActionRegistry::class),
+            $this->getActionRegistryStub(),
             $this->createStub(ContainerInterface::class),
         );
 

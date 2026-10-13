@@ -33,13 +33,19 @@ final class MaintenanceModeMiddlewareTest extends TestCase
     private function getConfigStub(array $maintenanceConfig): ConfigInterface
     {
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('getArray')->willReturnMap([
-            ['maintenance', [], $maintenanceConfig],
-        ]);
-        $config->method('getString')->willReturnMap([
-            ['root_path', '', '/tmp'],
-            ['vereins_name', 'KGA', 'KGA MOCK'],
-        ]);
+
+        $config->method('getArray')->willReturnCallback(fn (string $key, array $def = []): array => match ($key) {
+            'maintenance' => $maintenanceConfig,
+            default => $def
+        });
+
+        // FIX: willReturnCallback statt willReturnMap, da PHPUnit strikt auf die übergebenen Parameter achtet
+        $config->method('getString')->willReturnCallback(fn (string $key, string $def = ''): string => match ($key) {
+            'root_path' => '/tmp',
+            'vereins_name' => 'KGA MOCK',
+            default => $def
+        });
+
         $config->method('getBaseUrl')->willReturn('https://mock.de/');
 
         return $config;
@@ -142,8 +148,6 @@ final class MaintenanceModeMiddlewareTest extends TestCase
 
         $request = new ServerRequest(server: ['REQUEST_URI' => '/']);
 
-        // Da wir root_path auf /tmp gesetzt haben und es dort keine templates/pages/frontend/maintenance.phtml gibt,
-        // muss der Zero-Dependency Fallback greifen!
         /** @var HtmlResponse $response */
         $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
 
