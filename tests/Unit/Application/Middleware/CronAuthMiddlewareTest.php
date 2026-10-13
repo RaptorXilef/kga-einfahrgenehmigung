@@ -17,38 +17,50 @@ use PHPUnit\Framework\TestCase;
 final class CronAuthMiddlewareTest extends TestCase
 {
     #[Test]
-    public function itPassesIfTokenMatchesConfig(): void
+    public function itPassesIfTokenMatchesConfigInWebRequest(): void
     {
         $config = $this->createStub(ConfigInterface::class);
         $config->method('getString')->willReturn('secret-cron');
 
         $middleware = new CronAuthMiddleware($config);
-        $request = new ServerRequest(get: ['token' => 'secret-cron']);
+
+        // server: [] simuliert einen echten Web-Request (ohne argc)
+        $request = new ServerRequest(get: ['token' => 'secret-cron'], server: []);
 
         $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
+
         $this->assertInstanceOf(HtmlResponse::class, $response);
     }
 
     #[Test]
-    public function itBlocksExecutionIfTokenIsWrongOrMissing(): void
+    public function itBlocksExecutionIfTokenIsWrongOrMissingInWebRequest(): void
     {
-        // Wir tun so, als ob wir im Web-Kontext sind (nicht CLI)
         $config = $this->createStub(ConfigInterface::class);
         $config->method('getString')->willReturn('secret-cron');
 
         $middleware = new CronAuthMiddleware($config);
-        $request = new ServerRequest(get: ['token' => 'wrong-token']);
-
-        // PHP_SAPI Workaround: Im echten Testrunner sind wir CLI,
-        // CronAuthMiddleware lässt CLI IMMER durch.
-        // Um das zu testen, müssen wir die CLI-Bedingung beachten.
-        if (\php_sapi_name() === 'cli') {
-            $this->markTestSkipped('CronAuthMiddleware lässt CLI immer durch. Test übersprungen.');
-        }
+        $request = new ServerRequest(get: ['token' => 'wrong-token'], server: []);
 
         /** @var EmptyResponse $response */
         $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
+
         $this->assertInstanceOf(EmptyResponse::class, $response);
         $this->assertSame(403, $response->status);
+    }
+
+    #[Test]
+    public function itPassesWithoutTokenIfExecutedInCliEnvironment(): void
+    {
+        $config = $this->createStub(ConfigInterface::class);
+        $config->method('getString')->willReturn('secret-cron');
+
+        $middleware = new CronAuthMiddleware($config);
+
+        // server: ['argc' => 1] simuliert einen reinen CLI-Aufruf über die Konsole
+        $request = new ServerRequest(get: [], server: ['argc' => 1]);
+
+        $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
+
+        $this->assertInstanceOf(HtmlResponse::class, $response);
     }
 }

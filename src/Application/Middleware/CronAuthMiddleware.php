@@ -23,7 +23,13 @@ final readonly class CronAuthMiddleware implements MiddlewareInterface
     {
         $provided = $request->get['token'] ?? '';
         $req = $this->config->getString('cron_secret');
-        if (\php_sapi_name() !== 'cli' && $provided !== $req) {
+
+        // CLI-Erkennung über den ServerRequest statt nativer Funktion (php_sapi_name).
+        // Das sorgt für 100% Testbarkeit der Schicht, ohne die Umgebungsebene manipulieren zu müssen.
+        // Ein Web-Server injiziert kein 'argc' in das $_SERVER Array.
+        $isCli = isset($request->server['argc']);
+
+        if (!$isCli && $provided !== $req) {
             return new EmptyResponse(403);
         }
 
