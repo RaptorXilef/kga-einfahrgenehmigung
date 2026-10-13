@@ -11,6 +11,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AnalyticsTrackerInterface;
 use App\Contracts\Utils\ClockInterface;
+use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -19,6 +20,15 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(AnalyticsMiddleware::class)]
 final class AnalyticsMiddlewareTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
+        }
+        $_SESSION = [];
+    }
+
     #[Test]
     public function itSkipsTrackingInLocalEnvironment(): void
     {
@@ -30,7 +40,7 @@ final class AnalyticsMiddlewareTest extends TestCase
 
         $middleware = new AnalyticsMiddleware(
             $config,
-            $this->createStub(SessionManager::class),
+            new SessionManager(new SystemClock()),
             $this->createStub(ClockInterface::class),
             $tracker,
         );
@@ -50,7 +60,12 @@ final class AnalyticsMiddlewareTest extends TestCase
         $tracker = $this->createMock(AnalyticsTrackerInterface::class);
         $tracker->expects($this->never())->method('trackPageView');
 
-        $middleware = new AnalyticsMiddleware($config, $this->createStub(SessionManager::class), $this->createStub(ClockInterface::class), $tracker);
+        $middleware = new AnalyticsMiddleware(
+            $config,
+            new SessionManager(new SystemClock()),
+            $this->createStub(ClockInterface::class),
+            $tracker,
+        );
 
         // API Pfad sollte ignoriert werden
         $request = new ServerRequest(server: ['REQUEST_URI' => '/api/ping']);
@@ -66,7 +81,12 @@ final class AnalyticsMiddlewareTest extends TestCase
         $tracker = $this->createMock(AnalyticsTrackerInterface::class);
         $tracker->expects($this->never())->method('trackPageView');
 
-        $middleware = new AnalyticsMiddleware($config, $this->createStub(SessionManager::class), $this->createStub(ClockInterface::class), $tracker);
+        $middleware = new AnalyticsMiddleware(
+            $config,
+            new SessionManager(new SystemClock()),
+            $this->createStub(ClockInterface::class),
+            $tracker,
+        );
 
         // Fall 1: Kein Cookie
         $request1 = new ServerRequest(server: ['REQUEST_URI' => '/check']);
@@ -85,9 +105,10 @@ final class AnalyticsMiddlewareTest extends TestCase
         $config->method('getArray')->willReturnMap([['ga4_server_side', [], ['measurement_id' => 'G-123', 'api_secret' => 'SEC']]]);
         $config->method('getBaseUrl')->willReturn('https://test.de/');
 
-        $session = $this->createMock(SessionManager::class);
-        $session->method('getAnalyticsId')->willReturn('client-123');
-        $session->method('getAnalyticsSessionId')->willReturn(1600000000);
+        // Echte SessionManager Instanz nutzen und $_SESSION manuell füllen (Kein Mocking nötig!)
+        $_SESSION['ga4_client_id'] = 'client-123';
+        $_SESSION['ga4_session_id'] = 1600000000;
+        $session = new SessionManager(new SystemClock());
 
         $tracker = $this->createMock(AnalyticsTrackerInterface::class);
         $tracker->expects($this->once())
@@ -110,7 +131,12 @@ final class AnalyticsMiddlewareTest extends TestCase
         $tracker = $this->createStub(AnalyticsTrackerInterface::class);
         $tracker->method('trackPageView')->willThrowException(new Exception('Network Error'));
 
-        $middleware = new AnalyticsMiddleware($config, $this->createStub(SessionManager::class), $this->createStub(ClockInterface::class), $tracker);
+        $middleware = new AnalyticsMiddleware(
+            $config,
+            new SessionManager(new SystemClock()),
+            $this->createStub(ClockInterface::class),
+            $tracker,
+        );
 
         $request = new ServerRequest(cookie: ['kga_cookie_consent' => '{"analytics": true}'], server: ['REQUEST_URI' => '/check']);
 

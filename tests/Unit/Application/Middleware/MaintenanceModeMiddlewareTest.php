@@ -13,6 +13,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\Utils\ClockInterface;
+use App\SharedKernel\Infrastructure\Utils\SystemClock;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -20,6 +21,15 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(MaintenanceModeMiddleware::class)]
 final class MaintenanceModeMiddlewareTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
+        }
+        $_SESSION = [];
+    }
+
     private function getConfigStub(array $maintenanceConfig): ConfigInterface
     {
         $config = $this->createStub(ConfigInterface::class);
@@ -41,7 +51,7 @@ final class MaintenanceModeMiddlewareTest extends TestCase
         $config = $this->getConfigStub(['frontend' => false, 'admin' => false, 'api' => false]);
         $middleware = new MaintenanceModeMiddleware(
             $config,
-            $this->createStub(SessionManager::class),
+            new SessionManager(new SystemClock()),
             $this->createStub(AssetHelperInterface::class),
             $this->createStub(SystemInfoInterface::class),
             $this->createStub(ClockInterface::class),
@@ -58,7 +68,13 @@ final class MaintenanceModeMiddlewareTest extends TestCase
     public function itAlwaysAllowsAdminLoginEvenIfGlobalAdminIsLocked(): void
     {
         $config = $this->getConfigStub(['admin' => true]);
-        $middleware = new MaintenanceModeMiddleware($config, $this->createStub(SessionManager::class), $this->createStub(AssetHelperInterface::class), $this->createStub(SystemInfoInterface::class), $this->createStub(ClockInterface::class));
+        $middleware = new MaintenanceModeMiddleware(
+            $config,
+            new SessionManager(new SystemClock()),
+            $this->createStub(AssetHelperInterface::class),
+            $this->createStub(SystemInfoInterface::class),
+            $this->createStub(ClockInterface::class),
+        );
 
         $request = new ServerRequest(server: ['REQUEST_URI' => '/admin_login']);
         $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('LOGIN OK'));
@@ -70,7 +86,13 @@ final class MaintenanceModeMiddlewareTest extends TestCase
     public function itReturnsJsonResponseForApiRoutes(): void
     {
         $config = $this->getConfigStub(['api' => true, 'message' => 'API Pause']);
-        $middleware = new MaintenanceModeMiddleware($config, $this->createStub(SessionManager::class), $this->createStub(AssetHelperInterface::class), $this->createStub(SystemInfoInterface::class), $this->createStub(ClockInterface::class));
+        $middleware = new MaintenanceModeMiddleware(
+            $config,
+            new SessionManager(new SystemClock()),
+            $this->createStub(AssetHelperInterface::class),
+            $this->createStub(SystemInfoInterface::class),
+            $this->createStub(ClockInterface::class),
+        );
 
         $request = new ServerRequest(server: ['REQUEST_URI' => '/api/ping']);
         /** @var JsonResponse $response */
@@ -86,10 +108,16 @@ final class MaintenanceModeMiddlewareTest extends TestCase
     {
         $config = $this->getConfigStub(['frontend' => true]);
 
-        $session = $this->createStub(SessionManager::class);
-        $session->method('getAdminGroup')->willReturn('admin'); // Admin ist eingeloggt
+        $_SESSION['admin_group'] = 'admin'; // Echten Session-Status simulieren
+        $session = new SessionManager(new SystemClock());
 
-        $middleware = new MaintenanceModeMiddleware($config, $session, $this->createStub(AssetHelperInterface::class), $this->createStub(SystemInfoInterface::class), $this->createStub(ClockInterface::class));
+        $middleware = new MaintenanceModeMiddleware(
+            $config,
+            $session,
+            $this->createStub(AssetHelperInterface::class),
+            $this->createStub(SystemInfoInterface::class),
+            $this->createStub(ClockInterface::class),
+        );
 
         // Versucht das Frontend aufzurufen
         $request = new ServerRequest(server: ['REQUEST_URI' => '/']);
@@ -102,9 +130,15 @@ final class MaintenanceModeMiddlewareTest extends TestCase
     public function itReturnsZeroDependencyFallbackIfTemplateIsMissing(): void
     {
         $config = $this->getConfigStub(['frontend' => true, 'message' => 'Wartung aktiv!']);
-        $session = $this->createStub(SessionManager::class);
+        $session = new SessionManager(new SystemClock());
 
-        $middleware = new MaintenanceModeMiddleware($config, $session, $this->createStub(AssetHelperInterface::class), $this->createStub(SystemInfoInterface::class), $this->createStub(ClockInterface::class));
+        $middleware = new MaintenanceModeMiddleware(
+            $config,
+            $session,
+            $this->createStub(AssetHelperInterface::class),
+            $this->createStub(SystemInfoInterface::class),
+            $this->createStub(ClockInterface::class),
+        );
 
         $request = new ServerRequest(server: ['REQUEST_URI' => '/']);
 
