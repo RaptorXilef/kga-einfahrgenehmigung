@@ -16,30 +16,6 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(SystemMaintenanceMiddleware::class)]
 final class SystemMaintenanceMiddlewareTest extends TestCase
 {
-    private string $tempLogFile;
-
-    private string $originalErrorLog;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->originalErrorLog = (string) \ini_get('error_log');
-        $this->tempLogFile = \sys_get_temp_dir() . '/test_error_log_' . \uniqid('', true) . '.log';
-        \ini_set('error_log', $this->tempLogFile);
-    }
-
-    protected function tearDown(): void
-    {
-        \ini_set('error_log', $this->originalErrorLog);
-
-        if (\file_exists($this->tempLogFile)) {
-            @\unlink($this->tempLogFile);
-        }
-
-        parent::tearDown();
-    }
-
     #[Test]
     public function itBootstrapsStorageAndPassesRequest(): void
     {
@@ -63,13 +39,11 @@ final class SystemMaintenanceMiddlewareTest extends TestCase
         $middleware = new SystemMaintenanceMiddleware($bootstrapper);
         $request = new ServerRequest();
 
+        // Fängt den nativen Output von \error_log() sicher ab, um den Test nicht crashen zu lassen!
+        $this->expectOutputRegex('/Bootstrapping Warning: DB Crash/');
+
         $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('STILL OK'));
 
         $this->assertInstanceOf(HtmlResponse::class, $response);
-
-        // Wir prüfen, ob die Exception sauber als Native-Error geloggt wurde
-        $logContent = \file_get_contents($this->tempLogFile);
-        $this->assertIsString($logContent);
-        $this->assertStringContainsString('Bootstrapping Warning: DB Crash', $logContent);
     }
 }
