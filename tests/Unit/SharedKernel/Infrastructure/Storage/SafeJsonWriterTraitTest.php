@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Unit\SharedKernel\Infrastructure\Storage;
 
 use App\SharedKernel\Infrastructure\Storage\SafeJsonWriterTrait;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-#[CoversClass(SafeJsonWriterTrait::class)]
+#[CoversTrait(SafeJsonWriterTrait::class)]
 final class SafeJsonWriterTraitTest extends TestCase
 {
     private string $tempFile;

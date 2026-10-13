@@ -19,7 +19,10 @@ trait SafeJsonWriterTrait
             throw new RuntimeException("JSON-Encoding für $path fehlgeschlagen: " . \json_last_error_msg());
         }
 
-        $result = \file_put_contents($path, $json, \LOCK_EX);
+        // Fehler-Unterdrückung (@) ist hier zwingend erforderlich, damit der native E_WARNING
+        // nicht den PHPUnit-Lauf oder unseren GlobalExceptionHandler stört, bevor wir
+        // die saubere RuntimeException werfen können!
+        $result = @\file_put_contents($path, $json, \LOCK_EX);
 
         if ($result === false) {
             throw new RuntimeException("Kritischer Schreibfehler: Dateisystem voll oder keine Rechte auf $path");
