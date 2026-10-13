@@ -137,7 +137,7 @@ final class SessionManagerTest extends TestCase
         $this->assertSame(['perm' => true], $manager->getPermissions());
 
         // Admin Username Update
-        $manager->setAuthSession('1', 'admin', 'Old', null);
+        $manager->setAuthSession('1', 'admin', 'Old');
         $manager->updateAdminUsername('New');
         $this->assertSame('New', $manager->getAdminUser());
     }

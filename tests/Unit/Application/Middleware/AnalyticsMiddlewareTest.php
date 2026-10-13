@@ -93,7 +93,7 @@ final class AnalyticsMiddlewareTest extends TestCase
         $middleware->process($request1, fn (): HtmlResponse => new HtmlResponse('OK'));
 
         // Fall 2: Consent verweigert
-        $request2 = new ServerRequest(cookie: ['kga_cookie_consent' => '{"analytics": false}'], server: ['REQUEST_URI' => '/check']);
+        $request2 = new ServerRequest(server: ['REQUEST_URI' => '/check'], cookie: ['kga_cookie_consent' => '{"analytics": false}']);
         $middleware->process($request2, fn (): HtmlResponse => new HtmlResponse('OK'));
     }
 
@@ -117,7 +117,7 @@ final class AnalyticsMiddlewareTest extends TestCase
 
         $middleware = new AnalyticsMiddleware($config, $session, $this->createStub(ClockInterface::class), $tracker);
 
-        $request = new ServerRequest(cookie: ['kga_cookie_consent' => '{"analytics": true}'], server: ['REQUEST_URI' => '/check']);
+        $request = new ServerRequest(server: ['REQUEST_URI' => '/check'], cookie: ['kga_cookie_consent' => '{"analytics": true}']);
         $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));
     }
 
@@ -138,7 +138,7 @@ final class AnalyticsMiddlewareTest extends TestCase
             $tracker,
         );
 
-        $request = new ServerRequest(cookie: ['kga_cookie_consent' => '{"analytics": true}'], server: ['REQUEST_URI' => '/check']);
+        $request = new ServerRequest(server: ['REQUEST_URI' => '/check'], cookie: ['kga_cookie_consent' => '{"analytics": true}']);
 
         // Muss ohne Exception durchlaufen!
         $response = $middleware->process($request, fn (): HtmlResponse => new HtmlResponse('OK'));

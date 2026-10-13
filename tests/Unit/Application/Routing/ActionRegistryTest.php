@@ -81,7 +81,7 @@ final class ActionRegistryTest extends TestCase
     public function itScansDirectoriesAndRegistersExactAndDynamicRoutes(): void
     {
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('getString')->willReturnCallback(fn (string $k, string $def = '') => $k === 'root_path' ? $this->tempRoot : $def);
+        $config->method('getString')->willReturnCallback(fn (string $k, string $def = ''): string => $k === 'root_path' ? $this->tempRoot : $def);
         $config->method('getBool')->willReturn(true); // debug_mode = true erzwingt den Live-Scan
 
         $cache = $this->createMock(RouteCacheInterface::class);

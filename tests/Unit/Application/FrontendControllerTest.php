@@ -142,15 +142,15 @@ final class FrontendControllerTest extends TestCase
     {
         $config = $this->createStub(ConfigInterface::class);
         $config->method('getBaseUrl')->willReturn('https://app.local/');
-        $config->method('getString')->willReturnCallback(fn (string $k, string $def = '') => $k === 'root_path' ? $this->tempRoot : $def);
-        $config->method('getArray')->willReturnCallback(fn (string $k, array $def = []) => $def);
-        $config->method('getBool')->willReturnCallback(fn (string $k, bool $def = false) => true);
+        $config->method('getString')->willReturnCallback(fn (string $k, string $def = ''): string => $k === 'root_path' ? $this->tempRoot : $def);
+        $config->method('getArray')->willReturnCallback(fn (string $k, array $def = []): array => $def);
+        $config->method('getBool')->willReturnCallback(fn (string $k, bool $def = false): bool => true);
 
         // Wir nutzen die echte Registry, welche die oben erzeugten Dummy-Klassen aus dem Temp-Verzeichnis lädt
         $registry = new ActionRegistry($config, $this->createStub(RouteCacheInterface::class));
 
         $container = $this->createStub(ContainerInterface::class);
-        $container->method('get')->willReturnCallback(fn (string $c) => new $c());
+        $container->method('get')->willReturnCallback(fn (string $c): mixed => new $c());
 
         $actionFactory = new UniversalActionFactory($registry, $container);
         $sessionManager = new SessionManager(new SystemClock());
@@ -239,7 +239,7 @@ final class FrontendControllerTest extends TestCase
     {
         $auth = $this->createMock(AuthorizationInterface::class);
         $auth->method('isLoggedIn')->willReturn(true);
-        $auth->method('hasPermission')->willReturnCallback(fn (string $perm) => $perm === 'admin.access');
+        $auth->method('hasPermission')->willReturnCallback(fn (string $perm): bool => $perm === 'admin.access');
 
         $auth->expects($this->never())->method('logout');
 

@@ -32,7 +32,7 @@ final class UniversalActionFactoryTest extends TestCase
     private function getActionRegistryStub(): ActionRegistry
     {
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('getString')->willReturnCallback(fn (string $k, string $def = '') => $k === 'root_path' ? \sys_get_temp_dir() . '/kga_empty_dir_' . \uniqid() : $def);
+        $config->method('getString')->willReturnCallback(fn (string $k, string $def = ''): string => $k === 'root_path' ? \sys_get_temp_dir() . '/kga_empty_dir_' . \uniqid() : $def);
         $config->method('getBool')->willReturn(true);
 
         return new ActionRegistry($config, $this->createStub(RouteCacheInterface::class));
