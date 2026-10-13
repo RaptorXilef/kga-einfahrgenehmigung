@@ -19,19 +19,23 @@ final class SystemInfoServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->tempRoot = \sys_get_temp_dir() . '/kga_sysinfo_' . \uniqid();
-        @\mkdir($this->tempRoot, 0o777, true);
 
-        \file_put_contents($this->tempRoot . '/package.json', '{"version": "1.2.3"}');
+        $sysTemp = \realpath(\sys_get_temp_dir()) ?: \sys_get_temp_dir();
+        $this->tempRoot = $sysTemp . \DIRECTORY_SEPARATOR . 'kga_sysinfo_' . \uniqid();
+
+        @\mkdir($this->tempRoot, 0o777, true);
+        $this->tempRoot = \realpath($this->tempRoot) ?: $this->tempRoot;
+
+        \file_put_contents($this->tempRoot . \DIRECTORY_SEPARATOR . 'package.json', '{"version": "1.2.3"}');
 
         $changelog = "## [1.2.3] - 2026-01-01\n### Added\n- Feature A\n\n## [1.2.2] - 2025-12-31\n### Fixed\n- Bug B";
-        \file_put_contents($this->tempRoot . '/CHANGELOG.md', $changelog);
+        \file_put_contents($this->tempRoot . \DIRECTORY_SEPARATOR . 'CHANGELOG.md', $changelog);
     }
 
     protected function tearDown(): void
     {
-        @\unlink($this->tempRoot . '/package.json');
-        @\unlink($this->tempRoot . '/CHANGELOG.md');
+        @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'package.json');
+        @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'CHANGELOG.md');
         @\rmdir($this->tempRoot);
         parent::tearDown();
     }
@@ -40,13 +44,11 @@ final class SystemInfoServiceTest extends TestCase
     public function itParsesVersionAndChangelogCorrectly(): void
     {
         $config = $this->createStub(ConfigInterface::class);
-        // Korrekte Methode: getString statt get mocken
-        $config->method('getString')->willReturnCallback(fn (string $key): string => match ($key) {
-            'root_path' => $this->tempRoot,
-            default => ''
-        });
 
-        // Reale JsonHelper Instanz, damit das File-Reading weiterhin klappt
+        // Narrensicherer Mock für beide Get-Methoden
+        $config->method('get')->willReturnCallback(fn (string $key, mixed $def = null): mixed => $key === 'root_path' ? $this->tempRoot : $def);
+        $config->method('getString')->willReturnCallback(fn (string $key, string $def = ''): string => $key === 'root_path' ? $this->tempRoot : $def);
+
         $service = new SystemInfoService($config, new JsonHelper());
 
         $this->assertSame('v1.2.3', $service->getCurrentVersion());
@@ -65,19 +67,16 @@ final class SystemInfoServiceTest extends TestCase
     #[Test]
     public function itHandlesMissingFilesGracefully(): void
     {
-        @\unlink($this->tempRoot . '/package.json');
-        @\unlink($this->tempRoot . '/CHANGELOG.md');
+        @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'package.json');
+        @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'CHANGELOG.md');
 
         $config = $this->createStub(ConfigInterface::class);
-        $config->method('getString')->willReturnCallback(fn (string $key): string => match ($key) {
-            'root_path' => $this->tempRoot,
-            default => ''
-        });
+        $config->method('get')->willReturnCallback(fn (string $key, mixed $def = null): mixed => $key === 'root_path' ? $this->tempRoot : $def);
+        $config->method('getString')->willReturnCallback(fn (string $key, string $def = ''): string => $key === 'root_path' ? $this->tempRoot : $def);
 
         $service = new SystemInfoService($config, new JsonHelper());
 
         $this->assertSame('v0.0.0', $service->getCurrentVersion());
-        // Angepasst an den tatsächlichen Fallback der Implementierung
         $this->assertSame('Kein Changelog gefunden.', $service->getChangelog());
         $this->assertSame([], $service->getAllReleaseNotes());
     }

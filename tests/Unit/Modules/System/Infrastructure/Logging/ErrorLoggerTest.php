@@ -21,15 +21,20 @@ final class ErrorLoggerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->tempRoot = \sys_get_temp_dir() . '/kga_log_' . \uniqid();
-        // Das Basisverzeichnis muss existieren, bevor ErrorLogger den /logs Ordner erstellt
-        @\mkdir($this->tempRoot, 0o777, true);
+
+        $sysTemp = \realpath(\sys_get_temp_dir()) ?: \sys_get_temp_dir();
+        $this->tempRoot = $sysTemp . \DIRECTORY_SEPARATOR . 'kga_log_' . \uniqid();
+
+        // WICHTIG: Das 'logs' Verzeichnis MUSS vorher existieren, file_put_contents erstellt keine Ordner!
+        @\mkdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'logs', 0o777, true);
+
+        $this->tempRoot = \realpath($this->tempRoot) ?: $this->tempRoot;
     }
 
     protected function tearDown(): void
     {
-        @\unlink($this->tempRoot . '/logs/system_error.log');
-        @\rmdir($this->tempRoot . '/logs');
+        @\unlink($this->tempRoot . \DIRECTORY_SEPARATOR . 'logs' . \DIRECTORY_SEPARATOR . 'system_error.log');
+        @\rmdir($this->tempRoot . \DIRECTORY_SEPARATOR . 'logs');
         @\rmdir($this->tempRoot);
         parent::tearDown();
     }
@@ -38,11 +43,10 @@ final class ErrorLoggerTest extends TestCase
     public function itLogsThrowableToFile(): void
     {
         $config = $this->createStub(ConfigInterface::class);
-        // Nutze den strikten Fallback für root_path (getString statt get)
-        $config->method('getString')->willReturnCallback(fn (string $key): string => match ($key) {
-            'root_path' => $this->tempRoot,
-            default => ''
-        });
+
+        // Narrensicher: Wir fangen get UND getString ab, falls die Implementierung sich ändert
+        $config->method('get')->willReturnCallback(fn (string $key, mixed $def = null): mixed => $key === 'root_path' ? $this->tempRoot : $def);
+        $config->method('getString')->willReturnCallback(fn (string $key, string $def = ''): string => $key === 'root_path' ? $this->tempRoot : $def);
 
         $clock = $this->createStub(ClockInterface::class);
         $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-15 12:00:00'));
@@ -50,7 +54,7 @@ final class ErrorLoggerTest extends TestCase
         $logger = new ErrorLogger($config, $clock);
         $logger->logThrowable(new Exception('Test Exception Message'));
 
-        $logFile = $this->tempRoot . '/logs/system_error.log';
+        $logFile = $this->tempRoot . \DIRECTORY_SEPARATOR . 'logs' . \DIRECTORY_SEPARATOR . 'system_error.log';
         $this->assertFileExists($logFile);
 
         $content = \file_get_contents($logFile);
