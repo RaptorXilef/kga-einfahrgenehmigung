@@ -10,7 +10,7 @@ use Stringable;
 
 /**
  * Value Object für ein Kfz-Kennzeichen.
- * Unterstützt internationale Kennzeichen und nutzt eine Blacklist für ungültige Eingaben.
+ * Unterstützt internationale Kennzeichen (Eurasien) und erzwingt eine strikte Kombination aus Buchstaben und Zahlen.
  */
 final readonly class LicensePlate implements Stringable
 {
@@ -44,9 +44,16 @@ final readonly class LicensePlate implements Stringable
             throw new InvalidArgumentException('Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.');
         }
 
-        // Smarte Blacklist für unsinnige Eingaben (Verhindert "XXX" oder "KEINS")
-        $blacklist = ['XXX', 'TEST', 'KEINS', 'UNBEKANNT', 'AUTO', 'PKW', 'LKW'];
-        if (\in_array($cleanAlphanumeric, $blacklist, true) || \preg_match('/^X{3,}$/u', $cleanAlphanumeric)) {
+        // ULTIMATIVER PLAUSIBILITÄTS-CHECK FÜR EURASIEN:
+        // Ein echtes europäisches/russisches/asiatisches Kennzeichen besteht IMMER aus Buchstaben UND Zahlen.
+        // Das blockiert automatisch 99% aller Mülleingaben wie "XXXXX", "KEINS", "UNBEKANNT".
+        if (!\preg_match('/[\p{L}]/u', $cleanAlphanumeric) || !\preg_match('/[0-9]/', $cleanAlphanumeric)) {
+            throw new InvalidArgumentException('Bitte geben Sie ein plausibles Kfz-Kennzeichen ein (es muss Buchstaben und Zahlen enthalten).');
+        }
+
+        // Gezielter Spam-Schutz für Edge-Cases mit Zahl (z.B. "TEST 1" oder "PKW 99")
+        $lettersOnly = \mb_strtoupper(\preg_replace('/[0-9]/', '', $cleanAlphanumeric) ?? '', 'UTF-8');
+        if (\in_array($lettersOnly, ['TEST', 'KEIN', 'KEINS', 'AUTO', 'PKW', 'LKW', 'UNBEKANNT', 'XXX'], true)) {
             throw new InvalidArgumentException('Bitte geben Sie ein echtes Kfz-Kennzeichen ein.');
         }
 

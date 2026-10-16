@@ -38,9 +38,12 @@ final class LicensePlateTest extends TestCase
         yield 'h-plate' => ['B-XX 123H', 'B-XX 123H'];
         yield 'anonymized fallback' => ['XXX-XX 9999', 'XXX-XX 9999'];
         yield 'empty fallback' => ['---', '---'];
-        yield 'international poland' => ['PO 12345', 'PO 12345']; // Wird nicht auto-formatiert!
+
+        // International Eurasian Plates (Must NOT be mangled by auto-formatter)
+        yield 'international poland' => ['PO 12345', 'PO 12345'];
+        yield 'international romania' => ['B 123 ABC', 'B 123 ABC'];
         yield 'international austria' => ['W 1234 AB', 'W 1234 AB'];
-        yield 'vanity plate no numbers' => ['KING', 'KING']; // Unterstützt ab sofort Custom Vanity Plates
+        yield 'international russia cyrillic' => ['А 123 АА 77', 'А 123 АА 77'];
     }
 
     #[Test]
@@ -57,6 +60,7 @@ final class LicensePlateTest extends TestCase
         yield 'multiple spaces' => ['B  ML  1234', 'BML1234'];
         yield 'special chars ignored' => ['B-ML 1234', 'BML1234'];
         yield 'umlaute supported' => ['B-ÖÄ 99', 'BÖÄ99'];
+        yield 'cyrillic supported' => ['А 123 АА 77', 'А123АА77'];
         yield 'anonymized fallback' => ['XXX-XX 9999', 'XXXXX9999'];
     }
 
@@ -93,10 +97,17 @@ final class LicensePlateTest extends TestCase
     public static function invalidPlateProvider(): Iterator
     {
         yield 'special chars' => ['B/ML 123', 'Bitte geben Sie nur ein gültiges Kennzeichen ein'];
-        yield 'too short' => ['A', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.'];
+        yield 'too short' => ['A1', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.'];
         yield 'too long' => ['ABCDEFGHIJKLMNOPQ', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.'];
-        yield 'blocked xxx' => ['XXX', 'Bitte geben Sie ein echtes Kfz-Kennzeichen ein.'];
-        yield 'blocked test' => ['TEST', 'Bitte geben Sie ein echtes Kfz-Kennzeichen ein.'];
-        yield 'blocked keins' => ['KEINS', 'Bitte geben Sie ein echtes Kfz-Kennzeichen ein.'];
+
+        // Strict Eurasian Plausibility (Requires Letters AND Numbers)
+        yield 'only letters (XXXXX)' => ['XXXXX', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein'];
+        yield 'only letters (TEST)' => ['TEST', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein'];
+        yield 'only digits' => ['12345', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein'];
+
+        // Sub-Blacklist bypass attempts
+        yield 'blocked test with number' => ['TEST 1', 'Bitte geben Sie ein echtes Kfz-Kennzeichen ein.'];
+        yield 'blocked xxx with number' => ['XXX 99', 'Bitte geben Sie ein echtes Kfz-Kennzeichen ein.'];
+        yield 'blocked pkw with number' => ['PKW 123', 'Bitte geben Sie ein echtes Kfz-Kennzeichen ein.'];
     }
 }
