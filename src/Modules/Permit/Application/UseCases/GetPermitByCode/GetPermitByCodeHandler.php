@@ -110,7 +110,8 @@ final readonly class GetPermitByCodeHandler implements QueryHandlerInterface
      */
     private function findBestMatchByLicensePlate(string $table, string $plate): ?array
     {
-        $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($plate));
+        // FIX: \p{L} statt A-Z für Eurasien
+        $searchPlate = (string) \preg_replace('/[^\p{L}0-9]/u', '', \mb_strtoupper($plate, 'UTF-8'));
         if ($searchPlate === null || $searchPlate === '') {
             return null;
         }

@@ -18,8 +18,7 @@ use League\Csv\Reader;
 use Override;
 
 /**
- * Orchestriert den Bank-Import mit einer 4-stufigen Erkennungskaskade pro Zeile,
- * optionalem 6-Stellen-Suffix-Matching für 8-stellige Codes sowie Betrugs-/Doppelzahlungserkennung.
+ * Orchestriert den Bank-Import mit einer 4-stufigen Erkennungskaskade pro Zeile.
  *
  * @implements CommandWithResultHandlerInterface<ProcessBankImportCommand, BankImportResultDto>
  */
@@ -566,8 +565,9 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
      */
     private function findPrio2LicensePlateMatches(string $purpose, array $records): array
     {
-        $purposeNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', \mb_strtoupper($purpose, 'UTF-8'));
-        if (\strlen($purposeNormalized) < 4) {
+        // FIX: \p{L} statt A-Z für Eurasien (Kyrillisch, Polnisch, etc.)
+        $purposeNormalized = (string) \preg_replace('/[^\p{L}0-9]/u', '', \mb_strtoupper($purpose, 'UTF-8'));
+        if (\mb_strlen($purposeNormalized, 'UTF-8') < 4) {
             return [];
         }
 
@@ -582,8 +582,8 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
                 continue;
             }
 
-            $plateNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', \mb_strtoupper($plate, 'UTF-8'));
-            if (\strlen($plateNormalized) < 4 || $plateNormalized === 'XXXXX9999') {
+            $plateNormalized = (string) \preg_replace('/[^\p{L}0-9]/u', '', \mb_strtoupper($plate, 'UTF-8'));
+            if (\mb_strlen($plateNormalized, 'UTF-8') < 4 || $plateNormalized === 'XXXXX9999') {
                 continue;
             }
 
@@ -725,8 +725,9 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
                 $targetNames[$normName] = true;
             }
 
-            $normPlate = (string) \preg_replace('/[^A-Z0-9]/', '', \strtoupper((string) $rec['kennzeichen']));
-            if (\strlen($normPlate) >= 4 && $normPlate !== 'XXXXX9999') {
+            // FIX: \p{L} statt A-Z für Eurasien
+            $normPlate = (string) \preg_replace('/[^\p{L}0-9]/u', '', \mb_strtoupper((string) $rec['kennzeichen'], 'UTF-8'));
+            if (\mb_strlen($normPlate, 'UTF-8') >= 4 && $normPlate !== 'XXXXX9999') {
                 $targetPlates[$normPlate] = true;
             }
 
@@ -745,10 +746,11 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
             $samePlot = (int) $cand['parzelle'] > 0 && isset($targetPlots[(int) $cand['parzelle']]);
             $candNormName = $this->normalizeTextForNameSearch((string) $cand['name']);
             $sameName = $candNormName !== '' && isset($targetNames[$candNormName]);
-            $candNormPlate = (string) \preg_replace('/[^A-Z0-9]/', '', \strtoupper((string) $cand['kennzeichen']));
-            $samePlate = \strlen($candNormPlate) >= 4 && isset($targetPlates[$candNormPlate]);
+            // FIX: \p{L} statt A-Z für Eurasien
+            $candNormPlate = (string) \preg_replace('/[^\p{L}0-9]/u', '', \mb_strtoupper((string) $cand['kennzeichen'], 'UTF-8'));
+            $samePlate = \mb_strlen($candNormPlate, 'UTF-8') >= 4 && isset($targetPlates[$candNormPlate]);
 
-            if (!$isDirectMatch && !$samePlot && !$sameName && !$samePlate) {
+            if (!$isDirectMatch && (!$samePlot && !$sameName && !$samePlate)) {
                 continue;
             }
 
@@ -829,7 +831,8 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
             $lower,
         );
 
-        $cleaned = (string) \preg_replace('/[^a-z0-9]+/', ' ', $transliterated);
+        // FIX: \p{L} statt a-z für internationale Namen
+        $cleaned = (string) \preg_replace('/[^\p{L}0-9]+/u', ' ', $transliterated);
 
         return \trim((string) \preg_replace('/\s+/', ' ', $cleaned));
     }
@@ -849,7 +852,7 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
 
         foreach ($parts as $part) {
             // Ignoriere akademische Titel oder 1-Buchstaben-Initialen
-            if (\strlen($part) < 2 || \in_array($part, ['dr', 'prof', 'herr', 'frau', 'fam', 'familie', 'dipl', 'ing'], true)) {
+            if (\mb_strlen($part, 'UTF-8') < 2 || \in_array($part, ['dr', 'prof', 'herr', 'frau', 'fam', 'familie', 'dipl', 'ing'], true)) {
                 continue;
             }
             $tokens[] = $part;
@@ -864,7 +867,7 @@ final readonly class ProcessBankImportHandler implements CommandWithResultHandle
     private function containsAllNameTokens(string $normalizedHaystack, array $nameTokens): bool
     {
         foreach ($nameTokens as $token) {
-            if (!\preg_match('/\b' . \preg_quote($token, '/') . '\b/', $normalizedHaystack)) {
+            if (!\preg_match('/(?:^|\s)' . \preg_quote($token, '/') . '(?:\s|$)/ui', $normalizedHaystack)) {
                 return false;
             }
         }

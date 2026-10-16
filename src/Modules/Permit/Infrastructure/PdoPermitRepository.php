@@ -151,7 +151,8 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
         string $licensePlate,
         ?string $company,
     ): bool {
-        $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($licensePlate));
+        // FIX: \p{L} statt A-Z für Eurasien
+        $searchPlate = (string) \preg_replace('/[^\p{L}0-9]/u', '', \mb_strtoupper($licensePlate, 'UTF-8'));
         $query = 'SELECT 1 FROM permits WHERE parzelle = ? AND von <= ? AND bis >= ? AND status != \'storniert\' AND (';
         $params = [$plotNumber, $end->format('Y-m-d'), $start->format('Y-m-d')];
         $conditions = [];
@@ -198,6 +199,8 @@ final readonly class PdoPermitRepository implements PermitRepositoryInterface
 
     /**
      * Mappt einen rohen Datenbank-Datensatz auf die Domain Entität.
+     *
+     * @param array<string, mixed> $row
      */
     private function mapRowToEntity(array $row): Permit
     {

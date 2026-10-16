@@ -151,7 +151,9 @@ final readonly class SubmitPermitRequestHandler implements CommandWithResultHand
         }
 
         $allPending = $this->verificationRepository->loadPending();
-        $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($licensePlate));
+
+        // FIX: \p{L} statt A-Z für Eurasien
+        $searchPlate = (string) \preg_replace('/[^\p{L}0-9]/u', '', \mb_strtoupper($licensePlate, 'UTF-8'));
         $todayStr = $this->clock->now()->format('Y-m-d');
 
         foreach ($allPending as $pendingReq) {
@@ -164,7 +166,8 @@ final readonly class SubmitPermitRequestHandler implements CommandWithResultHand
                 continue;
             }
 
-            $pKennzeichen = \preg_replace('/[^A-Z0-9]/', '', \strtoupper((string) ($pendingData['kennzeichen'] ?? '')));
+            // FIX: \p{L} statt A-Z für Eurasien
+            $pKennzeichen = (string) \preg_replace('/[^\p{L}0-9]/u', '', \mb_strtoupper((string) ($pendingData['kennzeichen'] ?? ''), 'UTF-8'));
             $pFirma = \trim((string) ($pendingData['firma'] ?? ''));
 
             $isSamePlate = $searchPlate !== '' && $searchPlate !== 'XXXXX9999' && $searchPlate === $pKennzeichen;
