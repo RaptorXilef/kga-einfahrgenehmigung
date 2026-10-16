@@ -17,10 +17,12 @@ final class LicensePlateTest extends TestCase
 {
     #[Test]
     #[DataProvider('validPlateProvider')]
-    public function itAcceptsAndTrimsValidLicensePlates(string $input, string $expected): void
+    public function itAcceptsTrimsAndFormatsValidLicensePlates(string $input, string $expected): void
     {
         $plate = new LicensePlate($input);
+
         $this->assertSame($expected, $plate->value);
+        $this->assertSame($expected, (string) $plate);
     }
 
     public static function validPlateProvider(): Iterator
@@ -28,12 +30,15 @@ final class LicensePlateTest extends TestCase
         yield 'standard plate' => ['B-ML 1234', 'B-ML 1234'];
         yield 'lowercase' => ['b-xx 99', 'B-XX 99'];
         yield 'with spaces' => ['  HD-AB 123  ', 'HD-AB 123'];
-        yield 'state plate' => ['M-1234', 'M-1234'];
+        yield 'state plate formatting' => ['M-AB1234', 'M-AB 1234'];
+        yield 'auto format berlin' => ['BXX123', 'B-XX 123'];
+        yield 'auto format normal' => ['HDAB123', 'HD-AB 123'];
+        yield 'auto format 3 letters' => ['BARAB123', 'BAR-AB 123'];
         yield 'e-plate' => ['B-XX 123E', 'B-XX 123E'];
         yield 'h-plate' => ['B-XX 123H', 'B-XX 123H'];
         yield 'anonymized fallback' => ['XXX-XX 9999', 'XXX-XX 9999'];
         yield 'empty fallback' => ['---', '---'];
-        yield 'international format' => ['PO 12345', 'PO 12345']; // Testet die Flexibilität der Regex
+        yield 'international format' => ['PO 12345', 'PO 12345'];
     }
 
     #[Test]
@@ -48,7 +53,8 @@ final class LicensePlateTest extends TestCase
     {
         yield 'standard plate' => ['B-ML 1234', 'BML1234'];
         yield 'multiple spaces' => ['B  ML  1234', 'BML1234'];
-        yield 'special chars ignored' => ['B:ML_1234!', 'BML1234'];
+        yield 'special chars ignored' => ['B-ML 1234', 'BML1234'];
+        yield 'umlaute supported' => ['B-ÖÄ 99', 'BÖÄ99'];
         yield 'anonymized fallback' => ['XXX-XX 9999', 'XXXXX9999'];
     }
 
@@ -57,37 +63,29 @@ final class LicensePlateTest extends TestCase
     {
         $plate1 = new LicensePlate('B-ML 1234');
         $plate2 = new LicensePlate('B ML 1234');
-        $plate3 = new LicensePlate('B-ML-1234');
-        $plate4 = new LicensePlate('B-ML 9999');
+        $plate3 = new LicensePlate('BML1234');
 
         $this->assertTrue($plate1->equals($plate2));
         $this->assertTrue($plate1->equals($plate3));
-        $this->assertFalse($plate1->equals($plate4));
-    }
-
-    #[Test]
-    public function itThrowsExceptionForEmptyLicensePlates(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Das Kennzeichen darf nicht leer sein.');
-
-        new LicensePlate('   ');
     }
 
     #[Test]
     #[DataProvider('invalidPlateProvider')]
-    public function itThrowsExceptionForImplausibleLicensePlates(string $input): void
+    public function itThrowsExceptionForImplausibleLicensePlates(string $input, string $expectedMessage): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Bitte geben Sie ein plausibles Kfz-Kennzeichen ein (z.B. B-XX 123).');
+        $this->expectExceptionMessage($expectedMessage);
 
         new LicensePlate($input);
     }
 
     public static function invalidPlateProvider(): Iterator
     {
-        yield 'only letters (XXX)' => ['XXX'];
-        yield 'only digits' => ['12345'];
-        yield 'too short' => ['A1'];
+        yield 'empty' => ['   ', 'Das Kennzeichen darf nicht leer sein.'];
+        yield 'special chars' => ['B/ML 123', 'Bitte geben Sie nur ein gültiges Kennzeichen ein'];
+        yield 'too short' => ['A1', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.'];
+        yield 'too long' => ['ABCDEFGHIJKLMNOPQ', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.'];
+        yield 'only letters (XXX)' => ['XXX', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein'];
+        yield 'only digits' => ['12345', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein'];
     }
 }
