@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.82.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.82.0...v0.82.1) (2026-10-16)
+
+### 🔒 Security
+
+* **htaccess:** Prevent IP spoofing and harden directory access rules ([b0d5e7f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b0d5e7f7fd9ea96ca3e9dac37ef8e076f811b8eb))
+
+### 🧹 Chore / Maintenance
+
+* **ci:** Add security type to commitlint configuration ([58d289e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/58d289e23bef03acac2dffbf2d1df6d171d7abec))
+* **release:** Add security commit type to release-it configuration ([a5b638f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a5b638f9be2853bfd2a70f910751d46071ebbe61))
+
 ## [0.82.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.81.3...v0.82.0) (2026-10-13)
 
 ### 🚀 Features
