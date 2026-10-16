@@ -16,6 +16,7 @@ module.exports = {
             [
                 'feat', // 🚀 Features
                 'fix', // 🐛 Bug Fixes
+                'security', // 🔒 Security
                 'perf', // ⚡ Performance
                 'refactor', // ⚙️ Refactoring
                 'build', // 🏗️ Build System
