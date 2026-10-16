@@ -58,7 +58,7 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
             email: $dto->email !== '' ? new EmailAddress($dto->email) : null,
             parzelle: new PlotNumber($dto->parzelle),
             typ: $dto->typ,
-            kennzeichen: new LicensePlate($dto->kennzeichen),
+            kennzeichen: new LicensePlate($dto->kennzeichen !== '' ? $dto->kennzeichen : '---'),
             firma: $dto->firma !== '' ? $dto->firma : null,
             zweck: $dto->zweck,
             templateKey: new TemplateKey($dto->templateKey),

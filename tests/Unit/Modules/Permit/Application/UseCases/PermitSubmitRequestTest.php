@@ -23,6 +23,7 @@ final class PermitSubmitRequestTest extends TestCase
             'name' => 'Max Mustermann',
             'email' => 'max@example.com',
             'parzelle' => '42',
+            'kennzeichen' => 'B-XX 123',
             'datum_von' => '2026-10-15',
             'datum_bis' => '2026-10-20',
         ];
@@ -70,5 +71,23 @@ final class PermitSubmitRequestTest extends TestCase
         yield 'start in past' => [['datum_von' => '2026-10-09'], 'Das Startdatum darf nicht in der Vergangenheit liegen.'];
         yield 'end before start' => [['datum_von' => '2026-10-15', 'datum_bis' => '2026-10-14'], 'Das Enddatum darf nicht vor dem Startdatum liegen.'];
         yield 'invalid date string' => [['datum_von' => 'Kartoffel'], 'Das eingegebene Datumsformat ist ungültig.'];
+        yield 'missing plate for pkw' => [['typ' => 'pkw', 'kennzeichen' => ''], 'Bitte geben Sie Ihr Kfz-Kennzeichen ein.'];
+        yield 'implausible plate' => [['kennzeichen' => 'XXX'], 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein (z.B. B-XX 123).'];
+    }
+
+    #[Test]
+    public function itAllowsEmptyLicensePlateForNonPkw(): void
+    {
+        $clock = $this->createStub(ClockInterface::class);
+        $clock->method('now')->willReturn(new DateTimeImmutable('2026-10-10 12:00:00'));
+
+        $post = $this->getValidPost();
+        $post['typ'] = 'sharing';
+        $post['kennzeichen'] = '';
+
+        $request = PermitSubmitRequest::fromArray($post, $clock);
+
+        $this->assertSame('', $request->kennzeichen);
+        $this->assertSame('sharing', $request->typ);
     }
 }

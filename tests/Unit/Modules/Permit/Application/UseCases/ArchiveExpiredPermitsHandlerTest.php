@@ -35,7 +35,7 @@ final class ArchiveExpiredPermitsHandlerTest extends TestCase
             new PermitCode('T-1'),
             new TemplateKey('std_7'),
             new Owner('Max', null, new PlotNumber(42)),
-            new Vehicle('pkw', new LicensePlate('B')),
+            new Vehicle('pkw', new LicensePlate('B-123')), // Fix: Plausible plate
             new Validity(new DateTimeImmutable(), new DateTimeImmutable(), new Price(0.0), ''),
             new Status(PermitStatus::Bezahlt),
             new DateTimeImmutable(),

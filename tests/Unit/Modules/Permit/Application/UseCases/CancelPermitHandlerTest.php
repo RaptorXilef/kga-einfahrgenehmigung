@@ -47,7 +47,7 @@ final class CancelPermitHandlerTest extends TestCase
             new PermitCode('T-123'),
             new TemplateKey('std_7'),
             new Owner('Max', new EmailAddress('test@example.com'), new PlotNumber(42)),
-            new Vehicle('pkw', new LicensePlate('B')),
+            new Vehicle('pkw', new LicensePlate('B-123')), // Fix: Plausible plate
             new Validity(new DateTimeImmutable('2026-10-20'), new DateTimeImmutable('2026-10-25'), new Price(10.0), ''),
             new Status(PermitStatus::Offen),
             new DateTimeImmutable(),
@@ -95,7 +95,7 @@ final class CancelPermitHandlerTest extends TestCase
             new PermitCode('T-123'),
             new TemplateKey('std_7'),
             new Owner('Max', new EmailAddress('test@example.com'), new PlotNumber(42)),
-            new Vehicle('pkw', new LicensePlate('B')),
+            new Vehicle('pkw', new LicensePlate('B-123')), // Fix: Plausible plate
             new Validity(new DateTimeImmutable('2026-10-20'), new DateTimeImmutable('2026-10-25'), new Price(10.0), ''),
             new Status(PermitStatus::Bezahlt), // BEZAHLT!
             new DateTimeImmutable(),

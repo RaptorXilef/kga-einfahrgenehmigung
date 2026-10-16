@@ -37,7 +37,7 @@ final class SendPaymentRemindersHandlerTest extends TestCase
             new PermitCode('T-123'),
             new TemplateKey('std_7'),
             new Owner('Max', null, new PlotNumber(42)),
-            new Vehicle('pkw', new LicensePlate('B')),
+            new Vehicle('pkw', new LicensePlate('B-123')), // Fix: Plausible plate
             new Validity(new DateTimeImmutable(), new DateTimeImmutable(), new Price(10.0), ''),
             new Status(PermitStatus::Offen),
             new DateTimeImmutable('2026-10-01'), // Erstellt vor 14 Tagen -> Ist jetzt fällig!

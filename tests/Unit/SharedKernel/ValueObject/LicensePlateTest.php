@@ -28,6 +28,12 @@ final class LicensePlateTest extends TestCase
         yield 'standard plate' => ['B-ML 1234', 'B-ML 1234'];
         yield 'lowercase' => ['b-xx 99', 'B-XX 99'];
         yield 'with spaces' => ['  HD-AB 123  ', 'HD-AB 123'];
+        yield 'state plate' => ['M-1234', 'M-1234'];
+        yield 'e-plate' => ['B-XX 123E', 'B-XX 123E'];
+        yield 'h-plate' => ['B-XX 123H', 'B-XX 123H'];
+        yield 'anonymized fallback' => ['XXX-XX 9999', 'XXX-XX 9999'];
+        yield 'empty fallback' => ['---', '---'];
+        yield 'international format' => ['PO 12345', 'PO 12345']; // Testet die Flexibilität der Regex
     }
 
     #[Test]
@@ -42,7 +48,7 @@ final class LicensePlateTest extends TestCase
     {
         yield 'standard plate' => ['B-ML 1234', 'BML1234'];
         yield 'multiple spaces' => ['B  ML  1234', 'BML1234'];
-        yield 'special chars' => ['B:ML_1234!', 'BML1234'];
+        yield 'special chars ignored' => ['B:ML_1234!', 'BML1234'];
         yield 'anonymized fallback' => ['XXX-XX 9999', 'XXXXX9999'];
     }
 
@@ -66,5 +72,22 @@ final class LicensePlateTest extends TestCase
         $this->expectExceptionMessage('Das Kennzeichen darf nicht leer sein.');
 
         new LicensePlate('   ');
+    }
+
+    #[Test]
+    #[DataProvider('invalidPlateProvider')]
+    public function itThrowsExceptionForImplausibleLicensePlates(string $input): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Bitte geben Sie ein plausibles Kfz-Kennzeichen ein (z.B. B-XX 123).');
+
+        new LicensePlate($input);
+    }
+
+    public static function invalidPlateProvider(): Iterator
+    {
+        yield 'only letters (XXX)' => ['XXX'];
+        yield 'only digits' => ['12345'];
+        yield 'too short' => ['A1'];
     }
 }

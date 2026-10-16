@@ -63,13 +63,13 @@ final readonly class SubmitPermitAction implements ActionInterface
             $editToken = $this->sessionManager->getEditToken();
             $sessionEmail = $this->sessionManager->getVerifiedEmail();
 
-            // 5. Instanziierung des Domain-Commands
+            // 5. Instanziierung des Domain-Commands (Kennzeichen ist optional für LKW/Sharing, Fallback '---')
             $command = new SubmitPermitRequestCommand(
                 name: $dto->name,
                 email: $dto->email !== '' ? new EmailAddress($dto->email) : null,
                 parzelle: new PlotNumber($dto->parzelle),
                 typ: $dto->typ,
-                kennzeichen: new LicensePlate($dto->kennzeichen),
+                kennzeichen: new LicensePlate($dto->kennzeichen !== '' ? $dto->kennzeichen : '---'),
                 firma: $dto->firma !== '' ? $dto->firma : null,
                 zweck: $dto->zweck,
                 templateKey: new TemplateKey($dto->templateKey),

@@ -91,7 +91,7 @@ final class PermitFinancialCalculatorTest extends TestCase
             new PermitCode('T-1'),
             new TemplateKey('std_7'),
             new Owner('M', null, new PlotNumber(1)),
-            new Vehicle('pkw', new LicensePlate('B')),
+            new Vehicle('pkw', new LicensePlate('B-123')), // Fix: Plausible plate required
             new Validity(new DateTimeImmutable($validFromStr), new DateTimeImmutable(), new Price(10.0), 'Zweck'),
             new Status(PermitStatus::Offen),
             new DateTimeImmutable($createdStr),
@@ -136,7 +136,7 @@ final class PermitFinancialCalculatorTest extends TestCase
             new PermitCode('T-1'),
             new TemplateKey('std_7'),
             new Owner('M', null, new PlotNumber(1)),
-            new Vehicle('pkw', new LicensePlate('B')),
+            new Vehicle('pkw', new LicensePlate('B-123')), // Fix: Plausible plate
             new Validity(new DateTimeImmutable('2026-10-20'), new DateTimeImmutable(), new Price(10.0), 'Zweck'),
             new Status(PermitStatus::Offen),
             new DateTimeImmutable('2026-10-01'),
@@ -178,7 +178,7 @@ final class PermitFinancialCalculatorTest extends TestCase
             new PermitCode('SYS-AB-1234'),
             new TemplateKey('std_7'),
             new Owner('Klaus Dieter Müller', null, new PlotNumber(1)),
-            new Vehicle('pkw', new LicensePlate('B')),
+            new Vehicle('pkw', new LicensePlate('B-123')), // Fix: Plausible plate
             new Validity(new DateTimeImmutable(), new DateTimeImmutable(), new Price(10.0), 'Zweck'),
             new Status(PermitStatus::Offen),
             new DateTimeImmutable(),

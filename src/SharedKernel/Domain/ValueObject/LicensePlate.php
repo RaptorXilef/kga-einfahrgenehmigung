@@ -21,8 +21,19 @@ final readonly class LicensePlate
             throw new InvalidArgumentException('Das Kennzeichen darf nicht leer sein.');
         }
 
-        // Optional: Weitere Regex-Validierung (z.B. deutsche Kennzeichen)
-        // Für den Anfang belasse ich es beim Legacy-Verhalten (darf nicht leer sein).
+        // Erlaube Platzhalter für "Kein Kennzeichen" (Sharing/LKW) und Anonymisierung
+        if (\in_array($val, ['---', 'XXX-XX 9999'], true)) {
+            $this->value = $val;
+
+            return;
+        }
+
+        // Strikte Validierung auf ein plausibles Kennzeichen (Verhindert "XXX" oder "keins").
+        // Muss mindestens einen Buchstaben und eine Zahl enthalten (International & E-Scooter tauglich).
+        if (!\preg_match('/^(?=.*[A-ZÄÖÜ])(?=.*[0-9])[A-ZÄÖÜ0-9 \-]{3,15}$/u', $val)) {
+            throw new InvalidArgumentException('Bitte geben Sie ein plausibles Kfz-Kennzeichen ein (z.B. B-XX 123).');
+        }
+
         $this->value = $val;
     }
 

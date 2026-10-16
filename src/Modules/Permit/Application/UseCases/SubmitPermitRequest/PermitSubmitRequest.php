@@ -41,6 +41,7 @@ final readonly class PermitSubmitRequest
         $name = $sanitized['name'] ?? '';
         $email = $sanitized['email'] ?? '';
         $parzelle = $sanitized['parzelle'] ?? '';
+        $typ = $sanitized['typ'] ?? 'pkw';
         $kennzeichen = $sanitized['kennzeichen'] ?? '';
         $datumVon = $sanitized['datum_von'] ?? '';
         $datumBis = $sanitized['datum_bis'] ?? '';
@@ -63,6 +64,11 @@ final readonly class PermitSubmitRequest
         }
         if ($datumVon === '' || $datumBis === '') {
             throw ValidationException::withMessage('Bitte geben Sie einen Gültigkeitszeitraum an.');
+        }
+
+        // --- KENNZEICHEN LOGIK ---
+        if ($typ === 'pkw' && $kennzeichen === '') {
+            throw ValidationException::withMessage('Bitte geben Sie Ihr Kfz-Kennzeichen ein.');
         }
 
         // Serverseitige Datums-Prüfung gegen Manipulation durch Bots
@@ -108,7 +114,7 @@ final readonly class PermitSubmitRequest
             name: $name,
             parzelle: $parzelle,
             templateKey: $sanitized['template_key'] ?? '',
-            typ: $sanitized['typ'] ?? 'pkw',
+            typ: $typ,
             voucher: $sanitized['voucher'] ?? '',
             zweck: $sanitized['zweck'] ?? '',
         );

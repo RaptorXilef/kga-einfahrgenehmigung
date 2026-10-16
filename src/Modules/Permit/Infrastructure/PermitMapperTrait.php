@@ -20,6 +20,7 @@ use App\SharedKernel\Domain\ValueObject\Price;
 use App\SharedKernel\Domain\ValueObject\TemplateKey;
 use DateTimeImmutable;
 use Exception;
+use InvalidArgumentException;
 
 /**
  * Trait für die bidirektionale Transformation zwischen Permit-Entitäten und relationalen Arrays.
@@ -53,6 +54,14 @@ trait PermitMapperTrait
         $kzStr = \trim((string) ($item['kennzeichen'] ?? ''));
         if (\in_array($kzStr, ['', '[ANONYMISIERT]', 'ANONYMISIERT'], true)) {
             $kzStr = 'XXX-XX 9999';
+        }
+
+        // Sicherer Fallback: Wenn in der DB alter Müll steht, der die Regex nicht besteht (z.B. "KEINS"),
+        // stürzt die Anwendung beim Laden nicht ab, sondern fällt auf "---" zurück!
+        try {
+            $licensePlate = new LicensePlate($kzStr);
+        } catch (InvalidArgumentException) {
+            $licensePlate = new LicensePlate('---');
         }
 
         $codeStr = \trim((string) ($item['code'] ?? ''));
@@ -115,10 +124,28 @@ trait PermitMapperTrait
         return new Permit(
             code: clone new PermitCode($codeStr),
             template_key: clone new TemplateKey($tKeyStr),
-            owner: new Owner($name, $emailObj, clone new PlotNumber($pzInt)),
-            vehicle: new Vehicle((string) ($item['typ'] ?? 'pkw'), clone new LicensePlate($kzStr), isset($item['firma']) ? (string) $item['firma'] : null),
-            validity: new Validity($dtVon, $dtBis, new Price((float) ($item['preis'] ?? 0.0)), (string) ($item['zweck'] ?? 'Privat')),
-            status: new Status($statusEnum, $is_suspended, $suspReason, $dtLastReminder),
+            owner: new Owner(
+                (string) $row['name'],
+                $emailObj,
+                clone new PlotNumber($pzInt),
+            ),
+            vehicle: new Vehicle(
+                (string) ($item['typ'] ?? 'pkw'),
+                clone $licensePlate,
+                isset($item['firma']) ? (string) $item['firma'] : null,
+            ),
+            validity: new Validity(
+                $dtVon,
+                $dtBis,
+                new Price((float) ($item['preis'] ?? 0.0)),
+                (string) ($item['zweck'] ?? 'Privat'),
+            ),
+            status: new Status(
+                $statusEnum,
+                $is_suspended,
+                $suspReason,
+                $dtLastReminder,
+            ),
             erstellt: $dtCreated,
             interner_kommentar: $kommentar,
             agreements: \is_array($agreements) ? $agreements : [],

@@ -33,6 +33,8 @@ final readonly class PermitCreateManualRequest
         $name = $sanitized['name'] ?? '';
         $parzelle = $sanitized['parzelle'] ?? '';
         $preis = (float) ($sanitized['preis'] ?? 0.0);
+        $typ = $sanitized['typ'] ?? 'pkw';
+        $kennzeichen = $sanitized['kennzeichen'] ?? '';
 
         if ($name === '') {
             throw ValidationException::withMessage('Fehler: Der Name darf nicht leer sein.');
@@ -46,6 +48,9 @@ final readonly class PermitCreateManualRequest
         if ($preis < 0) {
             throw ValidationException::withMessage('Fehler: Der Preis darf nicht negativ sein.');
         }
+        if ($typ === 'pkw' && $kennzeichen === '') {
+            throw ValidationException::withMessage('Fehler: Für PKW ist ein Kennzeichen erforderlich.');
+        }
 
         $isPaid = isset($post['mark_as_paid']);
 
@@ -53,8 +58,8 @@ final readonly class PermitCreateManualRequest
             name: $name,
             email: $sanitized['email'] ?? '',
             parzelle: $parzelle,
-            typ: $sanitized['typ'] ?? 'pkw',
-            kennzeichen: $sanitized['kennzeichen'] ?? '',
+            typ: $typ,
+            kennzeichen: $kennzeichen,
             firma: $sanitized['firma'] ?? '',
             zweck: $sanitized['zweck'] ?? 'Privat',
             templateKey: $sanitized['template_key'] ?? 'std_7',
