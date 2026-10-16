@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.83.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.83.0...v0.83.1) (2026-10-16)
+
+### 🐛 Bug Fixes
+
+* **domain:** Resolve validation type mismatch and formatting regex conflicts ([628b59c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/628b59c26ee2e09eee7d28b7a75eaca00c483e8c))
+* **domain:** Synchronize license plate search algorithms with \p{L} unicode standard ([ee26a97](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ee26a973ea066798a97abb2d1ff4641cba2c36fb))
+* **frontend:** Ensure default string for optional license plates in JS formatter ([7c6c37f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7c6c37f810002d9799712b4c1b1e6f4ef45934dc))
+* **tests:** Align PermitSubmitRequest exception messages and expand plate datasets ([b1a665f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b1a665fc47bf39e0a6a9d19ba919defdb54cce33))
+
 ## [0.83.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.82.1...v0.83.0) (2026-10-16)
 
 ### 🚀 Features
