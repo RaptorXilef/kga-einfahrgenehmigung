@@ -10,6 +10,7 @@ use App\SharedKernel\Domain\ValueObject\LicensePlate;
 use App\SharedKernel\Domain\ValueObject\PlotNumber;
 use DateTimeImmutable;
 use Exception;
+use InvalidArgumentException;
 
 /**
  * DTO für das öffentliche Antragsformular (VSA Slice).
@@ -98,10 +99,17 @@ final readonly class PermitSubmitRequest
 
         // Wir jagen Parzelle und Kennzeichen sofort durch die Value Objects (Shared Kernel)!
         // Schlägt die Format-Prüfung fehl, knallt es hier (wird von der Action abgefangen).
-        new PlotNumber($parzelle);
 
-        if ($kennzeichen !== '') {
-            new LicensePlate($kennzeichen);
+        // FIX: Wir fangen Value Object Fehler (InvalidArgumentException) ab
+        // und wandeln sie für das UI in ValidationExceptions um!
+        try {
+            new PlotNumber($parzelle);
+
+            if ($kennzeichen !== '') {
+                new LicensePlate($kennzeichen);
+            }
+        } catch (InvalidArgumentException $e) {
+            throw ValidationException::withMessage($e->getMessage());
         }
 
         return new self(

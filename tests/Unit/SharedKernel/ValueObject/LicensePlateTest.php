@@ -97,7 +97,7 @@ final class LicensePlateTest extends TestCase
     public static function invalidPlateProvider(): Iterator
     {
         yield 'special chars' => ['B/ML 123', 'Bitte geben Sie nur ein gültiges Kennzeichen ein'];
-        yield 'too short' => ['A1', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.'];
+        yield 'too short' => ['A', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.']; // FIX: 'A' statt 'A1'
         yield 'too long' => ['ABCDEFGHIJKLMNOPQ', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.'];
 
         // Strict Eurasian Plausibility (Requires Letters AND Numbers)

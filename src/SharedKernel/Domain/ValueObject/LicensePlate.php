@@ -105,15 +105,18 @@ final readonly class LicensePlate implements Stringable
         $val = (string) \preg_replace('/[^\p{L}0-9]/u', '', $plate);
 
         // Prio 1: Berlin-Regel, um Konflikte bei z.B. BAB1234 (Bamberg vs. Berlin) zu lösen
-        if (\preg_match('/^(B)([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
+        if (\preg_match('/^(B)([\p{L}]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
 
-        // Prio 2: Typisch deutsches Format erkennen
-        if (\preg_match('/^([A-ZÄÖÜ]{3})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
+        // Prio 2: Typisch deutsches Format mit 1-2 Buchstaben Prefix ZUERST prüfen!
+        // Verhindert, dass 4-stellige Codes (HDAB) fälschlicherweise als (HDA-B) getrennt werden.
+        if (\preg_match('/^([\p{L}]{1,2})([\p{L}]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
-        if (\preg_match('/^([A-ZÄÖÜ]{1,2})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
+
+        // Prio 3: Typisch deutsches Format mit 3 Buchstaben Prefix (z.B. BAR-AB 123)
+        if (\preg_match('/^([\p{L}]{3})([\p{L}]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
 
