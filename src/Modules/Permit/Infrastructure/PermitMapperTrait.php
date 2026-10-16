@@ -56,7 +56,7 @@ trait PermitMapperTrait
             $kzStr = 'XXX-XX 9999';
         }
 
-        // Sicherer Fallback: Wenn in der DB alter Müll steht, der die Regex nicht besteht (z.B. "KEINS"),
+        // Sicherer Fallback: Wenn in der DB alter Müll steht, der die Regex nicht besteht,
         // stürzt die Anwendung beim Laden nicht ab, sondern fällt auf "---" zurück!
         try {
             $licensePlate = new LicensePlate($kzStr);
@@ -125,7 +125,7 @@ trait PermitMapperTrait
             code: clone new PermitCode($codeStr),
             template_key: clone new TemplateKey($tKeyStr),
             owner: new Owner(
-                (string) $row['name'],
+                $name, // FIX: Nutzt jetzt die extrahierte Variable statt $row['name']
                 $emailObj,
                 clone new PlotNumber($pzInt),
             ),

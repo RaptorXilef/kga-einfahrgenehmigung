@@ -10,7 +10,7 @@ use Stringable;
 
 /**
  * Value Object für ein Kfz-Kennzeichen.
- * Erzwingt standardisierte Formatierung und strikte strukturelle Validierung.
+ * Unterstützt internationale Kennzeichen und nutzt eine Blacklist für ungültige Eingaben.
  */
 final readonly class LicensePlate implements Stringable
 {
@@ -18,7 +18,7 @@ final readonly class LicensePlate implements Stringable
 
     public function __construct(string $value)
     {
-        $plate = \strtoupper(\trim($value));
+        $plate = \mb_strtoupper(\trim($value), 'UTF-8');
 
         if ($plate === '') {
             throw new InvalidArgumentException('Das Kennzeichen darf nicht leer sein.');
@@ -31,22 +31,23 @@ final readonly class LicensePlate implements Stringable
             return;
         }
 
-        // Erlaube nur Buchstaben, Zahlen, Leerzeichen und Bindestriche (International)
-        if (!\preg_match('/^[A-ZÄÖÜ0-9\-\s]+$/u', $plate)) {
-            throw new InvalidArgumentException('Bitte geben Sie nur ein gültiges Kennzeichen ein (Buchstaben, Zahlen, Leerzeichen, Bindestrich). Sonderzeichen wie / sind nicht erlaubt.');
+        // Erlaube internationale Buchstaben (\p{L}), Zahlen, Leerzeichen und Bindestriche
+        if (!\preg_match('/^[\p{L}0-9\-\s]+$/u', $plate)) {
+            throw new InvalidArgumentException('Bitte geben Sie nur ein gültiges Kennzeichen ein (Buchstaben, Zahlen, Leerzeichen, Bindestrich).');
         }
 
         // Die reine Alphanumerische Zeichenkette (ohne Leerzeichen und Bindestriche)
-        $cleanAlphanumeric = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $plate);
+        $cleanAlphanumeric = (string) \preg_replace('/[^\p{L}0-9]/u', '', $plate);
 
         // Prüfung auf realistische Längen (international)
-        if (\strlen($cleanAlphanumeric) < 2 || \strlen($cleanAlphanumeric) > 15) {
+        if (\mb_strlen($cleanAlphanumeric, 'UTF-8') < 2 || \mb_strlen($cleanAlphanumeric, 'UTF-8') > 15) {
             throw new InvalidArgumentException('Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.');
         }
 
-        // Plausibilitäts-Check: Muss mindestens einen Buchstaben und eine Zahl enthalten (International & E-Scooter tauglich)
-        if (!\preg_match('/[A-ZÄÖÜ]/u', $cleanAlphanumeric) || !\preg_match('/[0-9]/', $cleanAlphanumeric)) {
-            throw new InvalidArgumentException('Bitte geben Sie ein plausibles Kfz-Kennzeichen ein (es muss Buchstaben und Zahlen enthalten).');
+        // Smarte Blacklist für unsinnige Eingaben (Verhindert "XXX" oder "KEINS")
+        $blacklist = ['XXX', 'TEST', 'KEINS', 'UNBEKANNT', 'AUTO', 'PKW', 'LKW'];
+        if (\in_array($cleanAlphanumeric, $blacklist, true) || \preg_match('/^X{3,}$/u', $cleanAlphanumeric)) {
+            throw new InvalidArgumentException('Bitte geben Sie ein echtes Kfz-Kennzeichen ein.');
         }
 
         $formatted = $this->format($plate);
@@ -69,7 +70,7 @@ final readonly class LicensePlate implements Stringable
      */
     public function getNormalized(): string
     {
-        $normalized = \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $this->value);
+        $normalized = \preg_replace('/[^\p{L}0-9]/u', '', $this->value);
 
         return $normalized ?? $this->value;
     }
@@ -81,6 +82,7 @@ final readonly class LicensePlate implements Stringable
 
     /**
      * Formatiert das Kennzeichen nach typisch deutschem Standard, falls möglich.
+     * Internationale Kennzeichen fallen sicher durch das Raster und behalten ihre Originalform.
      */
     private function format(string $plate): string
     {
@@ -90,10 +92,10 @@ final readonly class LicensePlate implements Stringable
             $plate = \preg_replace('/-+/', '-', $plate);
             $plate = \preg_replace('/\s+/', ' ', (string) $plate);
 
-            return (string) \preg_replace('/([A-ZÄÖÜ])(\d)/u', '$1 $2', \trim((string) $plate));
+            return (string) \preg_replace('/([\p{L}])(\d)/u', '$1 $2', \trim((string) $plate));
         }
 
-        $val = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $plate);
+        $val = (string) \preg_replace('/[^\p{L}0-9]/u', '', $plate);
 
         // Prio 1: Berlin-Regel, um Konflikte bei z.B. BAB1234 (Bamberg vs. Berlin) zu lösen
         if (\preg_match('/^(B)([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
@@ -108,7 +110,7 @@ final readonly class LicensePlate implements Stringable
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
 
-        // Fallback für internationale Kennzeichen (z.B. SB 58 JVR).
+        // Fallback für internationale Kennzeichen.
         // Überflüssige Leerzeichen werden entfernt, aber die Struktur wird nicht zerstört.
         $originalCleaned = \preg_replace('/\s+/', ' ', $plate);
 

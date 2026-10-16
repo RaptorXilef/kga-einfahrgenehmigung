@@ -38,7 +38,9 @@ final class LicensePlateTest extends TestCase
         yield 'h-plate' => ['B-XX 123H', 'B-XX 123H'];
         yield 'anonymized fallback' => ['XXX-XX 9999', 'XXX-XX 9999'];
         yield 'empty fallback' => ['---', '---'];
-        yield 'international format' => ['PO 12345', 'PO 12345'];
+        yield 'international poland' => ['PO 12345', 'PO 12345']; // Wird nicht auto-formatiert!
+        yield 'international austria' => ['W 1234 AB', 'W 1234 AB'];
+        yield 'vanity plate no numbers' => ['KING', 'KING']; // Unterstützt ab sofort Custom Vanity Plates
     }
 
     #[Test]
@@ -70,6 +72,15 @@ final class LicensePlateTest extends TestCase
     }
 
     #[Test]
+    public function itThrowsExceptionForEmptyLicensePlates(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Das Kennzeichen darf nicht leer sein.');
+
+        new LicensePlate('   ');
+    }
+
+    #[Test]
     #[DataProvider('invalidPlateProvider')]
     public function itThrowsExceptionForImplausibleLicensePlates(string $input, string $expectedMessage): void
     {
@@ -81,11 +92,11 @@ final class LicensePlateTest extends TestCase
 
     public static function invalidPlateProvider(): Iterator
     {
-        yield 'empty' => ['   ', 'Das Kennzeichen darf nicht leer sein.'];
         yield 'special chars' => ['B/ML 123', 'Bitte geben Sie nur ein gültiges Kennzeichen ein'];
-        yield 'too short' => ['A1', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.'];
+        yield 'too short' => ['A', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.'];
         yield 'too long' => ['ABCDEFGHIJKLMNOPQ', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.'];
-        yield 'only letters (XXX)' => ['XXX', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein'];
-        yield 'only digits' => ['12345', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein'];
+        yield 'blocked xxx' => ['XXX', 'Bitte geben Sie ein echtes Kfz-Kennzeichen ein.'];
+        yield 'blocked test' => ['TEST', 'Bitte geben Sie ein echtes Kfz-Kennzeichen ein.'];
+        yield 'blocked keins' => ['KEINS', 'Bitte geben Sie ein echtes Kfz-Kennzeichen ein.'];
     }
 }
