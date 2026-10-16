@@ -191,7 +191,13 @@ export class PermitForm {
         }
 
         if (this.kennzeichenInput) {
+            // JS Validierung synchron zur PHP Validierung
             this.kennzeichenInput.required = !isCompanyRequired;
+
+            // UI Aufräumen, falls von PKW (mit Text) auf LKW (Optional) gewechselt wird und es fehlerhaft aussieht
+            if (!this.kennzeichenInput.required && this.kennzeichenInput.value === '---') {
+                this.kennzeichenInput.value = '';
+            }
         }
 
         if (!isCompanyRequired && this.firmaInput) {
@@ -201,18 +207,29 @@ export class PermitForm {
 
     formatLicensePlate(input) {
         if (input.readOnly) return;
+
+        // FIX: Komplett leere Strings ignorieren (erlaubt für LKW/Sharing)
         let val = input.value.toUpperCase().trim();
-        if (val.length <= 1) return;
-
-        val = val.replace(/[^A-ZÄÖÜ0-9\-\s]/g, '');
-
-        if (val.includes('-')) {
-            val = val.replace(/-+/g, '-').replace(/\s+/g, ' ');
-            input.value = val.replace(/([A-ZÄÖÜ])(\d)/g, '$1 $2').trim();
+        if (val.length === 0) {
+            input.value = '';
             return;
         }
 
-        const clean = val.replace(/[^A-ZÄÖÜ0-9]/g, '');
+        // Internationale Zeichen (\p{L}) erlauben, Sonderzeichen blockieren
+        val = val.replace(/[^\p{L}0-9\-\s]/gu, '');
+
+        if (val.includes('-')) {
+            val = val.replace(/-+/g, '-').replace(/\s+/g, ' ');
+            input.value = val.replace(/([\p{L}])(\d)/gu, '$1 $2').trim();
+            return;
+        }
+
+        const clean = val.replace(/[^\p{L}0-9]/gu, '');
+
+        // Zu kurze Eingaben nicht verarbeiten (Domain wird es bei Bedarf fangen)
+        if (clean.length <= 1) return;
+
+        // Auto-Formatter Logik (Deutsch)
         const patternBerlin = /^(B)([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
         const pattern32 = /^([A-ZÄÖÜ]{3})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
         const pattern12 = /^([A-ZÄÖÜ]{1,2})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
@@ -222,7 +239,7 @@ export class PermitForm {
         else if (pattern32.test(clean)) input.value = clean.replace(pattern32, '$1-$2 $3');
         else if (pattern12.test(clean)) input.value = clean.replace(pattern12, '$1-$2 $3');
         else if (fallback.test(clean)) input.value = clean.replace(fallback, '$1 $2');
-        else input.value = val.replace(/\s+/g, ' ').trim();
+        else input.value = val.replace(/\s+/g, ' ').trim(); // Internationale Fallback-Bereinigung
     }
 
     formatPlotNumber(input) {

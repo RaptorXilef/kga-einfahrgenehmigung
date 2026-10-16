@@ -22,30 +22,30 @@ describe('PermitFormHandler', () => {
         };
 
         document.body.innerHTML = `
-      <form class="js-permit-form">
-        <div class="c-form-group">
-          <label for="typ">Fahrzeugtyp</label>
-          <select id="typ" name="typ" class="js-pf-typ">
-            <option value="pkw">PKW</option>
-            <option value="lkw">LKW</option>
-          </select>
-        </div>
-        <div class="c-form-group">
-          <label id="label_kennzeichen" class="js-pf-label-kennzeichen" for="kennzeichen">Kennzeichen</label>
-          <input id="kennzeichen" name="kennzeichen" class="js-pf-kennzeichen">
-        </div>
-        <div class="c-form-group js-pf-firma-wrapper" id="group_firma" hidden>
-          <label for="firma">Firma</label>
-          <input id="firma" name="firma" class="js-pf-firma">
-        </div>
-        <input id="parzelle" name="parzelle" class="js-pf-parzelle">
-        <input id="datum_von" name="datum_von" class="js-pf-von">
-        <input id="datum_bis" name="datum_bis" class="js-pf-bis">
-        <select name="template_key" class="js-pf-template"><option value="std_7">7 Tage</option></select>
+            <form class="js-permit-form">
+                <div class="c-form-group">
+                    <label for="typ">Fahrzeugtyp</label>
+                    <select id="typ" name="typ" class="js-pf-typ">
+                        <option value="pkw">PKW</option>
+                        <option value="lkw">LKW</option>
+                    </select>
+                </div>
+                <div class="c-form-group">
+                    <label id="label_kennzeichen" class="js-pf-label-kennzeichen" for="kennzeichen">Kennzeichen</label>
+                    <input id="kennzeichen" name="kennzeichen" class="js-pf-kennzeichen">
+                </div>
+                <div class="c-form-group js-pf-firma-wrapper" id="group_firma" hidden>
+                    <label for="firma">Firma</label>
+                    <input id="firma" name="firma" class="js-pf-firma">
+                </div>
+                <input id="parzelle" name="parzelle" class="js-pf-parzelle">
+                <input id="datum_von" name="datum_von" class="js-pf-von">
+                <input id="datum_bis" name="datum_bis" class="js-pf-bis">
+                <select name="template_key" class="js-pf-template"><option value="std_7">7 Tage</option></select>
 
-        <div class="js-pf-price-display"></div>
-      </form>
-    `;
+                <div class="js-pf-price-display"></div>
+            </form>
+        `;
 
         // Instanziierung mit document.body (Da die Klasse nun ein Element erwartet)
         handler = new PermitForm(document.body);
@@ -65,6 +65,13 @@ describe('PermitFormHandler', () => {
             input.value = 'bhd7398';
             handler.formatLicensePlate(input);
             expect(input.value).toBe('B-HD 7398');
+        });
+
+        it('sollte bei fehlendem optionalen Kennzeichen keinen Fallback einfügen', () => {
+            const input = document.querySelector('.js-pf-kennzeichen');
+            input.value = '    ';
+            handler.formatLicensePlate(input);
+            expect(input.value).toBe(''); // Darf nicht zu "XXX" oder "---" umgewandelt werden
         });
     });
 
