@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.83.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.82.1...v0.83.0) (2026-10-16)
+
+### 🚀 Features
+
+* **domain:** Restore intelligent license plate formatting and validation ([dfc3667](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dfc36679e697611816c284a4c865b7c8a46399fc))
+
+### 🐛 Bug Fixes
+
+* **domain:** Enforce plausible license plates and make it optional for Sharing/LKW ([cae148c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cae148ce7caf6421b3c812f84791fe5600f1651f))
+* **domain:** Enforce strict Eurasian license plate validation ([2e5df51](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2e5df51c63607541d860551abb97ea530428a6d0))
+* **domain:** Resolve trait typo and add international license plate support ([0d74e32](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0d74e32253f9c99927f6dee3185a3ad1c78af531))
+
 ## [0.82.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.82.0...v0.82.1) (2026-10-16)
 
 ### 🔒 Security
