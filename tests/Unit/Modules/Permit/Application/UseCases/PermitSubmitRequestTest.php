@@ -72,7 +72,8 @@ final class PermitSubmitRequestTest extends TestCase
         yield 'end before start' => [['datum_von' => '2026-10-15', 'datum_bis' => '2026-10-14'], 'Das Enddatum darf nicht vor dem Startdatum liegen.'];
         yield 'invalid date string' => [['datum_von' => 'Kartoffel'], 'Das eingegebene Datumsformat ist ungültig.'];
         yield 'missing plate for pkw' => [['typ' => 'pkw', 'kennzeichen' => ''], 'Bitte geben Sie Ihr Kfz-Kennzeichen ein.'];
-        yield 'implausible plate' => [['kennzeichen' => 'XXX'], 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein (z.B. B-XX 123).'];
+        // FIX: Hier die angepasste Nachricht für das neue eurasische Kennzeichen-Format
+        yield 'implausible plate' => [['kennzeichen' => 'XXX'], 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein (es muss Buchstaben und Zahlen enthalten).'];
     }
 
     #[Test]

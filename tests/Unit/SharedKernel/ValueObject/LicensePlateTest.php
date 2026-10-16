@@ -27,7 +27,14 @@ final class LicensePlateTest extends TestCase
 
     public static function validPlateProvider(): Iterator
     {
-        yield 'standard plate' => ['B-ML 1234', 'B-ML 1234'];
+        // Die explizit angeforderten Testfälle
+        yield 'requested: berlin standard' => ['B-ML 1234', 'B-ML 1234'];
+        yield 'requested: brandenburg 3-letter' => ['BAR-SE 1234', 'BAR-SE 1234'];
+        yield 'requested: berlin h-plate' => ['B-ML 1234H', 'B-ML 1234H'];
+        yield 'requested: brandenburg h-plate' => ['BAR-SE 1234H', 'BAR-SE 1234H'];
+        yield 'requested: hamburg standard' => ['HH-BL 123', 'HH-BL 123'];
+
+        // Weitere Edge-Cases und Fallbacks
         yield 'lowercase' => ['b-xx 99', 'B-XX 99'];
         yield 'with spaces' => ['  HD-AB 123  ', 'HD-AB 123'];
         yield 'state plate formatting' => ['M-AB1234', 'M-AB 1234'];
@@ -35,7 +42,6 @@ final class LicensePlateTest extends TestCase
         yield 'auto format normal' => ['HDAB123', 'HD-AB 123'];
         yield 'auto format 3 letters' => ['BARAB123', 'BAR-AB 123'];
         yield 'e-plate' => ['B-XX 123E', 'B-XX 123E'];
-        yield 'h-plate' => ['B-XX 123H', 'B-XX 123H'];
         yield 'anonymized fallback' => ['XXX-XX 9999', 'XXX-XX 9999'];
         yield 'empty fallback' => ['---', '---'];
 
@@ -97,13 +103,13 @@ final class LicensePlateTest extends TestCase
     public static function invalidPlateProvider(): Iterator
     {
         yield 'special chars' => ['B/ML 123', 'Bitte geben Sie nur ein gültiges Kennzeichen ein'];
-        yield 'too short' => ['A', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.']; // FIX: 'A' statt 'A1'
+        yield 'too short' => ['A', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.'];
         yield 'too long' => ['ABCDEFGHIJKLMNOPQ', 'Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.'];
 
         // Strict Eurasian Plausibility (Requires Letters AND Numbers)
-        yield 'only letters (XXXXX)' => ['XXXXX', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein'];
-        yield 'only letters (TEST)' => ['TEST', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein'];
-        yield 'only digits' => ['12345', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein'];
+        yield 'only letters (XXXXX)' => ['XXXXX', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein (es muss Buchstaben und Zahlen enthalten).'];
+        yield 'only letters (TEST)' => ['TEST', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein (es muss Buchstaben und Zahlen enthalten).'];
+        yield 'only digits' => ['12345', 'Bitte geben Sie ein plausibles Kfz-Kennzeichen ein (es muss Buchstaben und Zahlen enthalten).'];
 
         // Sub-Blacklist bypass attempts
         yield 'blocked test with number' => ['TEST 1', 'Bitte geben Sie ein echtes Kfz-Kennzeichen ein.'];
