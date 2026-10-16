@@ -4,6 +4,7 @@ const config = await conventionalCommits({
     types: [
         { type: 'feat', section: '🚀 Features' },
         { type: 'fix', section: '🐛 Bug Fixes' },
+        { type: 'security', section: '🔒 Security' },
         { type: 'perf', section: '⚡ Performance' },
         { type: 'refactor', section: '⚙️ Refactoring' },
         { type: 'build', section: '🏗️ Build System' },
@@ -32,6 +33,7 @@ writerOpts.commitGroupsSort = (a, b) => {
     const order = [
         '🚀 Features',
         '🐛 Bug Fixes',
+        '🔒 Security',
         '⚡ Performance',
         '⚙️ Refactoring',
         '🏗️ Build System',
