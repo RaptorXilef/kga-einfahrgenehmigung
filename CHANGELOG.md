@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.83.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.83.1...v0.83.2) (2026-10-22)
+
+### 📚 Dokumentation
+
+* **release:** Add user-facing release notes for v0.82.1, v0.83.1, and v0.83.2 ([df9e160](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/df9e1602db81304623853ebed4f9fe613fac7d25))
+
 ## [0.83.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.83.0...v0.83.1) (2026-10-16)
 
 ### 🐛 Bug Fixes
